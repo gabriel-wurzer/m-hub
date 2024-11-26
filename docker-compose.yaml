@@ -1,0 +1,33 @@
+# we proudly present...
+name: m-hub
+version: '1'
+# Define the services for m-hub
+services:
+  m-hub-backend:
+    # Use the specified Docker image
+    image: m-hub-backend
+    # Specify the build context (location of Dockerfile)
+    build:
+      context: m-hub-backend
+    # Expose port 1880 from the container to the host
+    ports:
+      - "1880:1880"
+    # Mount host directories to container directories as volumes
+    volumes:
+      - ./m-hub-backend/data:/data
+  m-hub-frontend:
+    # Use the specified Docker image
+    image: m-hub-frontend
+    # docker run -i
+    stdin_open: true
+    # docker run -t
+    tty: true
+    # Specify the build context (location of Dockerfile)
+    build:
+      context: m-hub-frontend
+    # Expose port 4200 from the container to the host port 80
+    ports:
+      #  - "80:4200"
+      - 80:3000
+    depends_on:
+      - m-hub-backend

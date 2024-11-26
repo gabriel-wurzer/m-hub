@@ -1,0 +1,13 @@
+{
+  "name": "node-red-project",
+  "description": "A Node-RED Project",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@thatopen/components": "^2.3.19",
+    "@thatopen/fragments": "~2.3.0",
+    "web-ifc": "^0.0.59",
+    "three": "^0.160.1",
+    "@types/three": "0.160.0"
+  }
+}

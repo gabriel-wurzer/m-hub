@@ -1,0 +1,9 @@
+{
+    "@thatopen/components": {
+        "spec": "@thatopen/components",
+        "module": "@thatopen/components",
+        "subpath": "",
+        "builtin": false,
+        "known": false
+    }
+}

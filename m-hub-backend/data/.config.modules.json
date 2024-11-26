@@ -1,0 +1,16 @@
+{
+    "@thatopen/components": {
+        "spec": "@thatopen/components",
+        "module": "@thatopen/components",
+        "subpath": "",
+        "builtin": false,
+        "known": false
+    },
+    "web-ifc": {
+        "spec": "web-ifc",
+        "module": "web-ifc",
+        "subpath": "",
+        "builtin": false,
+        "known": false
+    }
+}

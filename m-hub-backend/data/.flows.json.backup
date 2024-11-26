@@ -1,0 +1,212 @@
+[
+    {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "e8d2c400a518975b",
+        "type": "tab",
+        "label": "API",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "3cc11d24.ff01a2",
+        "type": "comment",
+        "z": "f6f2187d.f17ca8",
+        "name": "WARNING: please check you have started this container with a volume that is mounted to /data\\n otherwise any flow changes are lost when you redeploy or upgrade the container\\n (e.g. upgrade to a more recent node-red docker image).\\n  If you are using named volumes you can ignore this warning.\\n Double click or see info side panel to learn how to start Node-RED in Docker to save your work",
+        "info": "\nTo start docker with a bind mount volume (-v option), for example:\n\n```\ndocker run -it -p 1880:1880 -v /home/user/node_red_data:/data --name mynodered nodered/node-red\n```\n\nwhere `/home/user/node_red_data` is a directory on your host machine where you want to store your flows.\n\nIf you do not do this then you can experiment and redploy flows, but if you restart or upgrade the container the flows will be disconnected and lost. \n\nThey will still exist in a hidden data volume, which can be recovered using standard docker techniques, but that is much more complex than just starting with a named volume as described above.",
+        "x": 350,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "67e242a6fdfa39b6",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "open ifc file and convert to JSON",
+        "func": "const ifcData = msg.payload\nconst ifcBuffer = new Uint8Array(ifcData)\nconst modelID = context.get(\"webIfc\").OpenModel(ifcBuffer)\nconst fragments = context.get(\"components\").get(OBC.FragmentsManager);\nconst fragmentIfcLoader = context.get(\"components\").get(OBC.IfcLoader);\nconst exported = await context.get(\"exporter\").export(context.get(\"webIfc\"), modelID)\ncontext.get(\"webIfc\").CloseModel(modelID)\nmsg.payload = exported\nreturn msg\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "// Der Code hier wird ausgeführt,\n// wenn der Node gestartet wird\nconst components = new OBC.Components()\n//components.init()\ncontext.set(\"components\", components)\nconst exporter = components.get(OBC.IfcJsonExporter)\ncontext.set(\"exporter\", exporter)\n//node.log(JSON.stringify(exporter))\nconst webIfc = new WEBIFC.IfcAPI()\n//webIfc.SetWasmPath(\"https://unpkg.com/web-ifc@0.0.57/\", true)\n//webIfc.SetWasmPath(\"\",false)\n//node.log(util.inspect(webIfc))\nawait webIfc.Init()\ncontext.set(\"webIfc\", webIfc)\n//node.log(JSON.stringify(webIfc))\n//node.log('setup completed')\n",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "OBC",
+                "module": "@thatopen/components"
+            },
+            {
+                "var": "WEBIFC",
+                "module": "web-ifc"
+            }
+        ],
+        "x": 220,
+        "y": 280,
+        "wires": [
+            [
+                "dd4e97322180a29f"
+            ]
+        ]
+    },
+    {
+        "id": "29efd0853df6ee13",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 220,
+        "wires": [
+            [
+                "b8effc12f971c9b9"
+            ]
+        ]
+    },
+    {
+        "id": "b8effc12f971c9b9",
+        "type": "http request",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "method": "GET",
+        "ret": "bin",
+        "paytoqs": "ignore",
+        "url": "https://thatopen.github.io/engine_components/resources/small.ifc",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 310,
+        "y": 220,
+        "wires": [
+            [
+                "67e242a6fdfa39b6"
+            ]
+        ]
+    },
+    {
+        "id": "284c6fc27e3ce9c2",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 580,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "dd4e97322180a29f",
+        "type": "file",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "filename": "/data/test.json",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 400,
+        "y": 340,
+        "wires": [
+            [
+                "284c6fc27e3ce9c2"
+            ]
+        ]
+    },
+    {
+        "id": "e8ad80e4d0f32511",
+        "type": "comment",
+        "z": "f6f2187d.f17ca8",
+        "name": "download https://thatopen.github.io/engine_components/resources/small.ifc",
+        "info": "",
+        "x": 500,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "e49eac9b2532b6c4",
+        "type": "comment",
+        "z": "f6f2187d.f17ca8",
+        "name": "save as test.json",
+        "info": "",
+        "x": 400,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "1248ce57789522dd",
+        "type": "http in",
+        "z": "e8d2c400a518975b",
+        "name": "test",
+        "url": "/test",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 130,
+        "y": 120,
+        "wires": [
+            [
+                "9c7509f21076669f"
+            ]
+        ]
+    },
+    {
+        "id": "9c7509f21076669f",
+        "type": "template",
+        "z": "e8d2c400a518975b",
+        "name": "hello world (html)",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "plain",
+        "template": "<html>\n    <head></head>\n    <body>\n        <h1>Hello World!</h1>\n    </body>\n</html>",
+        "output": "str",
+        "x": 330,
+        "y": 120,
+        "wires": [
+            [
+                "625e6556c0ae06ae"
+            ]
+        ]
+    },
+    {
+        "id": "625e6556c0ae06ae",
+        "type": "http response",
+        "z": "e8d2c400a518975b",
+        "name": "response",
+        "statusCode": "",
+        "headers": {},
+        "x": 520,
+        "y": 120,
+        "wires": []
+    }
+]
