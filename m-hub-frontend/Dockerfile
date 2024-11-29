@@ -7,4 +7,3 @@
 #EXPOSE 4200
 #CMD ["ng", "serve", "--host", "0.0.0.0"]
 FROM lipanski/docker-static-website:latest
-COPY dist/m-hub-frontend/browser .

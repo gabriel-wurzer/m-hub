@@ -29,5 +29,10 @@ services:
     ports:
       #  - "80:4200"
       - 80:3000
+    # Mount host directories to container directories as volumes
+    volumes:
+      - ./m-hub-frontend/dist/m-hub-frontend/browser:/home/static
+      - ./m-hub-frontend/httpd.conf:/home/static/httpd.conf:ro
+    # Don't start before backend
     depends_on:
       - m-hub-backend
