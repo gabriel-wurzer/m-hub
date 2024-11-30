@@ -26,6 +26,9 @@ echo [INSTALL] frontend...
 cd m-hub-frontend 
 npm install 2>&1
 ng build 2>&1
+chmod 755 dist/m-hub-frontend/browser
+chmod 644 dist/m-hub-frontend/browser/*
+chmod 755 httpd.conf
 cd ..
 
 docker compose up

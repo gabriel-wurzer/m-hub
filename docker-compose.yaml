@@ -1,6 +1,5 @@
 # we proudly present...
 name: m-hub
-version: '1'
 # Define the services for m-hub
 services:
   m-hub-backend:
