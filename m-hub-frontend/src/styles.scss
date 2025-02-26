@@ -1,0 +1,47 @@
+@use '@angular/material' as mat;
+
+.leaflet-control-geocoder button:hover {
+    background-color: #f4f4f4;
+}
+
+.leaflet-control-geocoder-form {
+width: 300px;
+}
+
+.leaflet-control-geocoder-form input {
+    width: 300px;
+}
+
+ul.leaflet-control-geocoder-alternatives {
+    width: 324px;
+}
+
+/* 
+.leaflet-control-geocoder-throbber {
+    display: none;
+} */
+
+
+.leaflet-control-filter {
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.leaflet-control-filter:hover {
+    background-color: #f4f4f4;
+}
+
+.filter-btn {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    font-size: 16px;
+    color: #333;
+    cursor: pointer;
+  }
