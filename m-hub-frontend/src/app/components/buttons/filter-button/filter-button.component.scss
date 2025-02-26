@@ -1,0 +1,13 @@
+.leaflet-control-filter {
+    width: 34px;
+    height: 34px;
+    position: absolute;
+    top: 50px;
+    left: 10px;
+    cursor: pointer;
+  }
+  
+  .leaflet-control-filter mat-icon {
+    position: relative;
+    transform: translate(-5%);
+  }
