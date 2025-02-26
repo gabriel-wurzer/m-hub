@@ -1,0 +1,18 @@
+{
+  "/mapbox": {
+    "target": "https://api.mapbox.com",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/mapbox": ""
+    }
+  },
+  "/nominatim" : {
+    "target": "https://nominatim.openstreetmap.org",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/nominatim": ""
+    }
+  }
+}

@@ -1,0 +1,9 @@
+<main>
+    <div id="map" style="height: 1160px; width: 1600px;">
+      <app-filter-menu *ngIf="isFilterPanelVisible" (closePanel)="toggleFilterPanel()"/>
+      <app-filter-button *ngIf="!isFilterPanelVisible" (click)="toggleFilterPanel()"/>      
+    </div>
+    <!-- <div>
+        <p *ngIf="selectedBuilding">ID of selected building: <code>{{ selectedBuilding }}</code></p>
+    </div> -->
+</main>

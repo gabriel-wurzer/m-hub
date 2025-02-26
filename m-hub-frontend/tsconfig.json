@@ -21,7 +21,9 @@
     "lib": [
       "ES2022",
       "dom"
-    ]
+    ],
+    "typeRoots": ["node_modules/@types"],
+    "types": ["leaflet.vectorgrid"]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
