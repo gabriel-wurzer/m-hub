@@ -1,3 +1,43 @@
+<mat-sidenav-container class="sidebar-menu-container">
+  <mat-sidenav
+    *ngIf="!isMobile"
+    mode="side"
+    opened
+    class="sidenav"
+  >
+
+  <div class="logo-section">
+    <img src="assets/images/logo.png" alt="Logo" class="logo" />
+  </div>
+
+    <mat-nav-list>
+      <a mat-list-item (click)="onMenuClick('map')">
+        <mat-icon>map</mat-icon>
+      </a>
+      <a mat-list-item (click)="onMenuClick('hub')">
+        <mat-icon>hub</mat-icon>
+      </a>
+      <a mat-list-item (click)="onMenuClick('data')">
+        <mat-icon>grid_view</mat-icon>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <!-- Main content on the right -->
+  <mat-sidenav-content class="main-content">
+    <mat-toolbar *ngIf="isMobile" class="mobile-toolbar">
+      <button mat-icon-button><mat-icon>menu</mat-icon></button>
+      <span>M-Hub</span>
+    </mat-toolbar>
+
+    <!-- Routed components will be displayed here -->
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+
+
+
 <!-- 
 <div class="sidebar-menu-container">
     <div class="logo-section">
@@ -58,7 +98,7 @@
   </mat-navigation-rail> -->
   
 
-  <mat-sidenav-container class="sidenav-container">
+  <!-- <mat-sidenav-container class="sidenav-container">
     <mat-sidenav mode="side" opened>
       <mat-nav-list>
         <button mat-icon-button (click)="onMenuClick('map')">
@@ -84,5 +124,5 @@
         </button>
       </mat-nav-list>
     </mat-sidenav>
-  </mat-sidenav-container>
+  </mat-sidenav-container> -->
   
