@@ -3,13 +3,12 @@ import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
-import { NgIf } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-sidebar-menu',
   standalone: true,
-  imports: [MatSidenavModule, MatListModule, MatIconModule, MatButtonModule, NgIf],
+  imports: [MatSidenavModule, MatListModule, MatIconModule, MatButtonModule],
   templateUrl: './sidebar-menu.component.html',
   styleUrl: './sidebar-menu.component.scss'
 })
