@@ -1,0 +1,40 @@
+.sidebar-menu-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Space top and bottom sections */
+    align-items: center;
+    width: 80px; /* or any width you prefer */
+    min-height: 100vh;
+    background-color: #f8f9fa; /* Adjust to your desired color */
+    border-right: 1px solid #eee;
+    padding: 1rem 0;
+  }
+  
+  .logo-section {
+    margin-bottom: 1rem;
+  }
+  
+  .logo {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  
+  .icon-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .profile-section {
+    margin-top: 1rem;
+  }
+  
+  .user-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  

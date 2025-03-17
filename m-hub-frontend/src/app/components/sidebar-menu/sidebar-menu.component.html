@@ -1,0 +1,88 @@
+<!-- 
+<div class="sidebar-menu-container">
+    <div class="logo-section">
+      <img src="assets/images/logo.png" alt="Logo" class="logo" />
+    </div>
+  
+    <nav class="icon-buttons">
+      <button mat-icon-button (click)="onMenuClick('map')">
+        <mat-icon>map</mat-icon>
+      </button>
+      <button mat-icon-button (click)="onMenuClick('hub')">
+        <mat-icon>hub</mat-icon>
+      </button>
+      <button mat-icon-button (click)="onMenuClick('data')">
+        <mat-icon>insert_drive_file</mat-icon>
+      </button>
+    </nav>
+
+    <div class="profile-section">
+        <button mat-icon-button (click)="onProfileClick()">
+            <mat-icon>account_circle</mat-icon>
+        </button>
+    </div>
+  </div>
+   -->
+
+
+   <!-- <mat-navigation-rail [(selected)]="selected">
+    <mat-navigation-rail-item
+      value="map"
+      (click)="onMenuClick('map')"
+      label="Map"
+      icon="map">
+    </mat-navigation-rail-item>
+  
+    <mat-navigation-rail-item
+      value="hub"
+      (click)="onMenuClick('hub')"
+      label="Hub"
+      icon="hub">
+    </mat-navigation-rail-item>
+  
+    <mat-navigation-rail-item
+      value="data"
+      (click)="onMenuClick('data')"
+      label="Data"
+      icon="insert_drive_file">
+    </mat-navigation-rail-item>
+  
+    <mat-divider></mat-divider>
+  
+    <mat-navigation-rail-item
+      value="profile"
+      (click)="onProfileClick()"
+      label="Profile"
+      icon="account_circle">
+    </mat-navigation-rail-item>
+  </mat-navigation-rail> -->
+  
+
+  <mat-sidenav-container class="sidenav-container">
+    <mat-sidenav mode="side" opened>
+      <mat-nav-list>
+        <button mat-icon-button (click)="onMenuClick('map')">
+          <mat-icon>map</mat-icon>
+          <span>Map</span>
+        </button>
+  
+        <button mat-icon-button (click)="onMenuClick('hub')">
+          <mat-icon>hub</mat-icon>
+          <span>Hub</span>
+        </button>
+  
+        <button mat-icon-button (click)="onMenuClick('data')">
+          <mat-icon>insert_drive_file</mat-icon>
+          <span>Data</span>
+        </button>
+  
+        <mat-divider></mat-divider>
+  
+        <button mat-icon-button (click)="onProfileClick()">
+          <mat-icon>account_circle</mat-icon>
+          <span>Profile</span>
+        </button>
+      </mat-nav-list>
+    </mat-sidenav>
+  </mat-sidenav-container>
+  
