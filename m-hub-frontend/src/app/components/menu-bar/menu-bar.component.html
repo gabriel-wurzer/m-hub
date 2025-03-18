@@ -1,10 +1,5 @@
-<mat-sidenav-container class="sidebar-menu-container">
-  <mat-sidenav
-    *ngIf="!isMobile"
-    mode="side"
-    opened
-    class="sidenav"
-  >
+<mat-sidenav-container class="menu-container">
+  <mat-sidenav *ngIf="!isMobile" mode="side" opened class="sidenav">
 
   <div class="logo-section">
     <img src="assets/images/logo.png" alt="Logo" class="logo" />
@@ -23,15 +18,15 @@
     </mat-nav-list>
   </mat-sidenav>
 
-  <!-- Main content on the right -->
   <mat-sidenav-content class="main-content">
     <mat-toolbar *ngIf="isMobile" class="mobile-toolbar">
       <button mat-icon-button><mat-icon>menu</mat-icon></button>
       <span>M-Hub</span>
     </mat-toolbar>
 
-    <!-- Routed components will be displayed here -->
-    <router-outlet></router-outlet>
+    <div class="router-outlet-container">
+      <router-outlet />
+    </div>
   </mat-sidenav-content>
 </mat-sidenav-container>
 

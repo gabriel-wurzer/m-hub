@@ -19,6 +19,7 @@ import { FilterButtonComponent } from "../buttons/filter-button/filter-button.co
   styleUrls: ['./map.component.scss']
 })
 export class MapComponent implements OnInit {
+
   #map!: L.Map;
   #vectorGridLayer: L.VectorGrid.Protobuf | null = null;
   #highlightedFeatureLayer: L.GeoJSON | null = null;

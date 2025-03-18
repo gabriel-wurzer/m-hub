@@ -1,22 +1,36 @@
-.sidebar-menu-container {
+.menu-container {
   display: flex;
   height: 100vh;
 }
 
 .sidenav {
-  width: 240px; /* Fixed width */
+  width: 80px;
   background-color: #ececec;
-  border-right: 1px solid #ddd;
-}
-
-.main-content {
-  flex: 1; /* Ensures it takes up the remaining space */
-  padding: 16px; /* Add some spacing */
-  overflow: auto; /* Prevent overflow issues */
+  border-radius: 8px;
+  margin: 2rem;
 }
 
 .mobile-toolbar {
   background-color: #f8f9fa;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+
+.router-outlet-container {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  margin-left: 2rem;
+  height: 100%;
 }
 
 .logo-section {
@@ -28,6 +42,15 @@
   height: 48px;
   object-fit: cover;
   border-radius: 8px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .router-outlet-container {
+    padding: 8px;
+    margin-left: 0;
+  }
+
 }
 
 

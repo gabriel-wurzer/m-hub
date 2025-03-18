@@ -1,6 +1,21 @@
-#map {
-    border: 1px solid rgb(110, 110, 110);
-    border-radius: 8px;
-    position: relative;
+:host {
+    height: 100%;
+    width: 100%;
 }
 
+main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    height: 100%;
+    width: 100%;
+  }
+
+  #map {
+    flex: 1;
+    border: 1px solid rgb(110, 110, 110);
+    border-radius: 8px;
+    width: 100%;
+    min-width: 350px;
+    height: 100%;
+}

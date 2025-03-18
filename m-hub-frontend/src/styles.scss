@@ -112,6 +112,20 @@ ul.leaflet-control-geocoder-alternatives {
     width: 324px;
 }
 
+@media (max-width: 420px) {
+  .leaflet-control-geocoder-form {
+    width: 260px;
+    }
+    
+    .leaflet-control-geocoder-form input {
+        width: 260px;
+    }
+    
+    ul.leaflet-control-geocoder-alternatives {
+        width: 284px;
+    }
+}
+
 /* 
 .leaflet-control-geocoder-throbber {
     display: none;
@@ -142,5 +156,9 @@ ul.leaflet-control-geocoder-alternatives {
     cursor: pointer;
   }
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html, body { 
+  height: 100%; 
+  width: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
