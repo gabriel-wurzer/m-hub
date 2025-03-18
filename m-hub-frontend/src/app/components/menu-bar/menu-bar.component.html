@@ -1,9 +1,11 @@
-<mat-sidenav-container class="menu-container">
+<!-- <mat-sidenav-container class="menu-container">
   <mat-sidenav *ngIf="!isMobile" mode="side" opened class="sidenav">
 
   <div class="logo-section">
     <img src="assets/images/logo.png" alt="Logo" class="logo" />
   </div>
+
+  
 
     <mat-nav-list>
       <a mat-list-item (click)="onMenuClick('map')">
@@ -28,7 +30,57 @@
       <router-outlet />
     </div>
   </mat-sidenav-content>
+</mat-sidenav-container> -->
+
+
+<mat-sidenav-container class="menu-container">
+  <mat-sidenav *ngIf="!isMobile" mode="side" opened class="sidenav">
+    
+    <!-- Logo Section -->
+    <div class="logo-section">
+      <img src="assets/images/logo.png" alt="Logo" class="logo" />
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+      <button mat-icon-button (click)="onMenuClick('map')" [ngClass]="{'active': currentRoute.includes('/map')}">
+        <mat-icon>map</mat-icon>
+      </button>
+      <button mat-icon-button (click)="onMenuClick('hub')" [ngClass]="{'active': currentRoute.includes('/hub')}">
+        <mat-icon>hub</mat-icon>
+      </button>
+      <button mat-icon-button (click)="onMenuClick('data')" [ngClass]="{'active': currentRoute.includes('/data')}">
+        <mat-icon>grid_view</mat-icon>
+      </button>
+    </div>
+
+
+    <div class="bottom-section">
+      <mat-divider />
+      
+      <button mat-icon-button disableRipple class="profile-button" (click)="onProfileClick()">
+        <mat-icon>account_circle</mat-icon>
+      </button>
+    </div>
+
+  </mat-sidenav>
+
+  <!-- Keep Main Content As Is -->
+  <mat-sidenav-content class="main-content">
+    <mat-toolbar *ngIf="isMobile" class="mobile-toolbar">
+      <button mat-icon-button><mat-icon>menu</mat-icon></button>
+      <span>M-Hub</span>
+    </mat-toolbar>
+
+    <div class="router-outlet-container">
+      <router-outlet />
+    </div>
+  </mat-sidenav-content>
 </mat-sidenav-container>
+
+
+
+
 
 
 

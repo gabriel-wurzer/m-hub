@@ -8,10 +8,22 @@
   background-color: #ececec;
   border-radius: 8px;
   margin: 2rem;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  // justify-content: center;
+  justify-content: flex-start;
+  // justify-content: space-between;
+
+  padding: 1rem 0;
+
+  box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.1);
 }
 
 .mobile-toolbar {
-  background-color: #f8f9fa;
+  // background-color: #f8f9fa;
+  background-color: #ececec;
 }
 
 .main-content {
@@ -33,16 +45,87 @@
   height: 100%;
 }
 
+
 .logo-section {
-  margin-bottom: 1rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 2px solid #455a64;
+  margin: auto;
+  margin-bottom: 3rem;
 }
 
 .logo {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   object-fit: cover;
-  border-radius: 8px;
 }
+
+.nav-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+
+}
+
+button[mat-icon-button] {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: none;
+  transition: all 0.3s ease-in-out;
+  
+  mat-icon {
+    color: #455a64;
+    transform: translateY(2px);
+  }
+
+  &:hover {
+    // background: rgba(0, 0, 0, 0.05);
+    mat-icon {
+      color: #37474f;
+    }
+  }
+}
+
+button[mat-icon-button].active {
+  background-color: #455a64;
+  transition: all 0.4s ease-in-out;
+  mat-icon {
+    color: #ececec;
+  }
+}
+
+.bottom-section {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+mat-divider {
+  width: 60%;
+  height: 2px;
+  margin: 2rem auto 6px;
+}
+
+.profile-button {
+  width: 52px;
+  height: 52px;
+  border-radius: 0;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
 
 /* Mobile adjustments */
 @media (max-width: 600px) {
@@ -52,46 +135,3 @@
   }
 
 }
-
-
-
-// .sidebar-menu-container {
-//     display: flex;
-//     flex-direction: column;
-//     justify-content: space-between; /* Space top and bottom sections */
-//     align-items: center;
-//     width: 80px; /* or any width you prefer */
-//     min-height: 100vh;
-//     background-color: #f8f9fa; /* Adjust to your desired color */
-//     border-right: 1px solid #eee;
-//     padding: 1rem 0;
-//   }
-  
-  // .logo-section {
-  //   margin-bottom: 1rem;
-  // }
-  
-  // .logo {
-  //   width: 48px;
-  //   height: 48px;
-  //   object-fit: cover;
-  //   border-radius: 8px;
-  // }
-  
-//   .icon-buttons {
-//     display: flex;
-//     flex-direction: column;
-//     gap: 1.5rem;
-//   }
-  
-//   .profile-section {
-//     margin-top: 1rem;
-//   }
-  
-//   .user-avatar {
-//     width: 56px;
-//     height: 56px;
-//     border-radius: 50%;
-//     cursor: pointer;
-//   }
-  
