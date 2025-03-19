@@ -9,12 +9,13 @@ import { Building } from '../../models/building';
 import { environment } from '../../../environments/environment';
 import { FilterMenuComponent } from "../filter-menu/filter-menu.component";
 import { FilterButtonComponent } from "../buttons/filter-button/filter-button.component";
+import { BuildingInformationComponent } from "../building-information/building-information.component";
 
 
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [CommonModule, FilterMenuComponent, FilterButtonComponent],
+  imports: [CommonModule, FilterMenuComponent, FilterButtonComponent, BuildingInformationComponent],
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })
@@ -27,11 +28,13 @@ export class MapComponent implements OnInit {
 
 
   #selectedBuildingID: number | null = null;
-  selectedBuilding!: number;
+  selectedBuilding!: Building | null;
+
   #buildingClicked = false;
 
   #tableName = 'buildings_details';
-  #defaultColumns = ['bw_geb_id','ST_AsGeoJSON(geom) as geometry'];
+  #defaultColumns = ['bw_geb_id', 'ST_AsGeoJSON(geom) as geometry'];
+  additionalColumns: string[] = [];  // Stores extra columns dynamically
 
   isFilterPanelVisible = false;
 
@@ -108,7 +111,7 @@ export class MapComponent implements OnInit {
     const url = `/nominatim/search?format=json&limit=5&q=${encodeURIComponent(query)}, Vienna&countrycodes=AT`;
 
 
-    console.log('Nominatim request URL:', url); // Log for debugging
+    console.log('Nominatim request URL:', url);
 
     fetch(url)
     .then(response => {
@@ -123,7 +126,7 @@ export class MapComponent implements OnInit {
       const parts = result.display_name.split(',').map(part => part.trim());
       
       // Extract fields based on your desired structure
-      const name = parts[0] || ''; // Name
+      const name = parts[0] || '';
       const addressDetail = parts.slice(1, 4).join(', ') || ''; // Address details (fields 1-3)
 
       // Handle different part lengths for city field
@@ -220,7 +223,7 @@ export class MapComponent implements OnInit {
       })
     },
     interactive: true,
-    getFeatureId: (feature: any) => (feature.properties as Building).bw_geb_id, // set building_id as unique feature identifier
+    getFeatureId: (feature: any) => ((feature.properties as Building).bw_geb_id).toString() // set building_id as unique feature identifier; vector grid expects a string ID
   });
 
   
@@ -247,48 +250,125 @@ export class MapComponent implements OnInit {
     (filter != undefined ? '&filter=' + filter : '');
   }
 
-  updateFilter(filtervalue: number): void {
-    // const filter = this.hKlasseFilter ? `h_klasse > ${this.hKlasseFilter}` : undefined;
-    const filter = "h_klasse >= " + filtervalue;
-    this.#generateVectorTileUrl(this.#tableName, this.#defaultColumns, filter);
-  }
+  // updateFilter(filtervalue: number): void {
+  //   // const filter = this.hKlasseFilter ? `h_klasse > ${this.hKlasseFilter}` : undefined;
+  //   const filter = "h_klasse >= " + filtervalue;
+  //   this.#generateVectorTileUrl(this.#tableName, this.#defaultColumns, filter);
+  // }
+
+  // updateFilter(filterValue: number): void {
+  //   let additionalColumns: string[] = []; // here I would check for fields that should be filtered from filterComponent via a filterService and add these field to array?
+  
+  //   // Merge defaultColumns with additionalColumns
+  //   const updatedColumns = ['bw_geb_id', 'ST_AsGeoJSON(geom) as geometry', ...additionalColumns];
+  
+  //   const filter = `h_klasse >= ${filterValue}`; // I guess here I would need a more complex approach so I can add filterValues for each field that should be filtered.
+  //   this.#generateVectorTileUrl(this.#tableName, updatedColumns, filter);
+  // }
+
+
+  // applyFilter(filterColumn: string): void {
+  //   if (!this.additionalColumns.includes(filterColumn)) {
+  //     this.additionalColumns.push(filterColumn);
+  //   }
+  
+  //   const allColumns = [...this.#defaultColumns, ...this.additionalColumns];
+  //   const query = `SELECT ${allColumns.join(", ")} FROM ${this.#tableName} WHERE ${filterColumn} IS NOT NULL`;
+  
+  //   this.#reloadVectorGridLayer(query);
+  // }
+
+  // #reloadVectorGridLayer(query: string): void {
+  //   if (this.#vectorGridLayer) {
+  //     this.#map.removeLayer(this.#vectorGridLayer);
+  //   }
+    
+  //   this.#vectorGridLayer = L.vectorGrid.protobuf(`/api/buildings?query=${encodeURIComponent(query)}`, {
+  //     vectorTileLayerStyles: {
+  //       [this.#tableName]: ({
+  //         weight: 2,
+  //         opacity: 0.8,
+  //         fill: true,
+  //         fillOpacity: 0.1,
+  //       })
+  //     },
+  //     interactive: true
+  //   });
+  
+  //   this.#vectorGridLayer.on('click', this.#handleBuildingClick.bind(this));
+  
+  //   this.#vectorGridLayer.addTo(this.#map);
+  // }
+  
 
   #handleBuildingClick(event: any): void {
     const properties = event.layer.properties;
-
+  
     if (properties) {
       const buildingId = parseInt(properties['bw_geb_id']);
-      const geometry = JSON.parse(properties['geometry']);
-
       console.log('Clicked Building ID:', buildingId);
       
-      this.#highlightBuilding(geometry, buildingId);
+      this.additionalColumns = ['dom_nutzung', 'bp', 'm3vol', 'm2bgf', 'm2bgf_use1', 'm2bgf_use2', 'm2bgf_use3', 'm2bgf_use4', 'm2flaeche', 'maxhoehe', 'bmg1', 'bmg2', 'bmg3', 'bmg4', 'bmg5', 'bmg6', 'bmg7', 'bmg8', 'bmg9'];
+
+      const queryColumns = [...this.#defaultColumns, ...this.additionalColumns];
+
+      const url = `http://128.131.21.198:3002/v1/query/${this.#tableName}?columns=${encodeURIComponent(queryColumns.join(','))}&filter=${encodeURIComponent(`bw_geb_id = ${buildingId}`)}`;
+
+      fetch(url)
+        .then(response => response.text())
+        .then(rawData => {
+          try {
+            const data = JSON.parse(rawData);
+            const building = Array.isArray(data) ? data[0] : data;
+            
+            this.selectedBuilding = building;
+            console.log("Selected Building:", this.selectedBuilding);
+  
+            this.#highlightBuilding();
+          } catch (parseError) {
+            console.error("Error parsing JSON response:", parseError, "Raw data:", rawData);
+          }
+        })
+        .catch(error => console.error("Error fetching building data:", error));
+  
+      this.#buildingClicked = true;
     }
   }
+  
 
-  #highlightBuilding(geometry: any, buildingId: number): void {
-    if (this.#highlightedFeatureLayer) {
-      this.#map.removeLayer(this.#highlightedFeatureLayer);
-      this.#highlightedFeatureLayer = null;
+  #highlightBuilding(): void {
+    if (this.selectedBuilding && this.selectedBuilding.geometry) {
+      try {
+        const geometryObj = JSON.parse(this.selectedBuilding.geometry);
+
+        if (this.#highlightedFeatureLayer) {
+          this.#map.removeLayer(this.#highlightedFeatureLayer);
+          this.#highlightedFeatureLayer = null;
+        }
+    
+        this.#highlightedFeatureLayer = L.geoJSON(geometryObj, {
+          style: {
+            color: '#ff0000',
+            weight: 3,
+            fill: true,
+            fillColor: '#ff0000',
+            fillOpacity: 0.5,
+          },
+        }).addTo(this.#map);
+    
+        this.#selectedBuildingID = this.selectedBuilding.bw_geb_id;
+    
+        const bounds = L.geoJSON(geometryObj).getBounds();
+        const currentZoom = this.#map.getZoom();
+        const targetZoom = Math.max(currentZoom, 18);
+        this.#map.fitBounds(bounds, { maxZoom: targetZoom });
+
+      } catch (geometryParseError) {
+        console.error("Error parsing geometry data:", geometryParseError);
+      }
+    } else {
+      console.error("No geometry data found in building object:", this.selectedBuilding);
     }
-
-    this.#highlightedFeatureLayer = L.geoJSON(geometry, {
-      style: {
-        color: '#ff0000',
-        weight: 3,
-        fill: true,
-        fillColor: '#ff0000',
-        fillOpacity: 0.5,
-      },
-    }).addTo(this.#map);
-
-    this.#selectedBuildingID = buildingId;
-    this.selectedBuilding = buildingId;
-
-    const bounds = L.geoJSON(geometry).getBounds();
-    const currentZoom = this.#map.getZoom();
-    const targetZoom = Math.max(currentZoom, 18);
-    this.#map.fitBounds(bounds, { maxZoom: targetZoom });
   }
 
   #deselectBuilding(): void {
@@ -301,7 +381,7 @@ export class MapComponent implements OnInit {
       console.log(`Building with ID ${this.#selectedBuildingID} deselected`);
     }
     this.#selectedBuildingID = null;
-    this.selectedBuilding = 0;
+    this.selectedBuilding = null;
   }
 
   #addSearchMarker(latlng: L.LatLng): void {
@@ -317,47 +397,30 @@ export class MapComponent implements OnInit {
     const { lat, lng } = latLngCenter;
     const srid = 4326;
 
-    const point = `${lng},${lat},${srid}`; 
+    const point = `${lng},${lat},${srid}`;
+
+    this.additionalColumns = ['dom_nutzung', 'bp', 'm3vol', 'm2bgf', 'm2bgf_use1', 'm2bgf_use2', 'm2bgf_use3', 'm2bgf_use4', 'm2flaeche', 'maxhoehe', 'bmg1', 'bmg2', 'bmg3', 'bmg4', 'bmg5', 'bmg6', 'bmg7', 'bmg8', 'bmg9'];
+
+    const queryColumns = [...this.#defaultColumns, ...this.additionalColumns];
     
-    const url = `http://128.131.21.198:3002/v1/intersect_point/${this.#tableName}/${point}}?columns=${this.#defaultColumns}`;
+    const url = `http://128.131.21.198:3002/v1/intersect_point/${this.#tableName}/${point}}?columns=${queryColumns}`;
 
     fetch(url)
-      .then((response) => {
-        // Check if response is OK (status 200)
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return response.json();
-      })
-      .then((data: any) => {
-
-        if (Array.isArray(data) && data.length > 0) {
-          const buildingData = data[0];
-           // Ensure that the data contains valid geometry and building ID
-           if (buildingData && buildingData.geometry && buildingData.bw_geb_id) {
-            try {
-              const geometry = JSON.parse(buildingData.geometry);
-              const buildingId = parseInt(buildingData.bw_geb_id);
-
-              if (geometry && buildingId) {
-                console.log('Selected (via search) Building ID:', buildingId);
-                this.#highlightBuilding(geometry, buildingId);
-              }
-            } catch (parseError) {
-              console.error('Error parsing geometry:', parseError);
-            }
-          } else {
-            console.error('Invalid building data:', buildingData);
+        .then(response => response.text())
+        .then(rawData => {
+          try {
+            const data = JSON.parse(rawData);
+            const building = Array.isArray(data) ? data[0] : data;
+            
+            this.selectedBuilding = building;
+            console.log("Selected Building:", this.selectedBuilding);
+  
+            this.#highlightBuilding();
+          } catch (parseError) {
+            console.error("Error parsing JSON response:", parseError, "Raw data:", rawData);
           }
-        } else {
-          console.warn('No building found at the given location');
-        }
-      })
-      .catch((error) => {
-        // Handle errors such as network issues, invalid JSON, etc.
-        console.error('Error:', error);
-      });
+        })
+        .catch(error => console.error("Error fetching building data:", error));
   }
 
   
