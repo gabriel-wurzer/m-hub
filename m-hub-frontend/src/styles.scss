@@ -1,5 +1,8 @@
 @use '@angular/material' as mat;
 
+@import url("https://use.typekit.net/pox7hcz.css");
+
+
 // Define a custom theme
 @include mat.core(); // This is required for Material components to work
 
