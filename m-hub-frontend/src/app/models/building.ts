@@ -2,7 +2,7 @@
  * Interface of buildings.
  */
 export interface Building {
-    bw_geb_id: string;
+    bw_geb_id: number;
     dom_nutzung: number;
     bp: string;
     m3vol: number;
@@ -22,5 +22,5 @@ export interface Building {
     bmg7: number;
     bmg8: number;
     bmg9: number;
-    geometry: string; // as GeoJSON string
+    geometry: any; // geometry as GeoJSON object
 }
