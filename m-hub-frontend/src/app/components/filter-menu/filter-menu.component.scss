@@ -11,12 +11,13 @@
     top: 0;
     left: 0;
     // background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.95);
     // background: rgba(233, 233, 233, 0.8);
-    background: rgb(236, 236, 236, 0.9);
+    // background: rgb(236, 236, 236, 0.9);
     color: #000;
     z-index: 1500;
     transition: all 0.4s ease-in-out;
-    padding: 8px;
+    padding: 8px 12px 12px;
     border-radius: 12px;
     box-sizing: border-box;
 }
@@ -27,8 +28,11 @@
     justify-content: space-between;
 
     h2 {
-        margin-top: 10px;
-        // margin-bottom: 8px;
+        margin: 10px 0;
+        // margin-top: 10px;
+        // // margin-bottom: 8px;
+        font-size: 1.6rem;
+        line-height: 1;
     }
 
     button {
@@ -39,3 +43,11 @@
     }
 }
 
+mat-divider {
+    margin: 2px 12px 2rem auto;
+}
+
+h3 {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+}

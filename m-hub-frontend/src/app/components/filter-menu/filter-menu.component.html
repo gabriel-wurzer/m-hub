@@ -1,11 +1,46 @@
 <div class="filter-menu">
     <header class="filter-menu-header">
-        <h2 class="filter-menu-title">Filter Menü</h2>
+        <h2 class="filter-menu-title">Karten Filter</h2>
         <button mat-icon-button class="close-button" (click)="closeFilterMenu()">
             <mat-icon>close</mat-icon>
         </button>
     </header>
 
-    <div>Optionen wie Baujahrfilter, Nutzung etc kommen hier her</div>
+    <mat-divider />
+
+    
+    <h3>Bauperioden</h3>
+
+    <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Bauperioden</mat-label>
+        
+        <!-- <div class="chip-container">
+            <mat-chip *ngFor="let period of bauperiodenControl.value" 
+                      removable 
+                      (removed)="removeBauperiode(period)">
+              {{ period }}
+              <mat-icon matChipRemove>close</mat-icon>
+            </mat-chip>
+        </div> -->
+
+        <mat-select [formControl]="periodControl" multiple disableRipple>
+          <mat-option *ngFor="let period of periodOptions" [value]="period">
+            {{ period }}
+          </mat-option>
+        </mat-select>
+    </mat-form-field>
+
+
+
+    <h3>Nutzung</h3>  
+
+    <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nutzung</mat-label>
+        <mat-select [formControl]="usageControl" multiple disableRipple>
+          <mat-option *ngFor="let usage of usageOptions" [value]="usage">
+            {{ usage }}
+          </mat-option>
+        </mat-select>
+    </mat-form-field>
 
 </div>
