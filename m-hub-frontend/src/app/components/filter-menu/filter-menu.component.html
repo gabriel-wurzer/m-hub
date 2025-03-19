@@ -14,15 +14,6 @@
     <mat-form-field appearance="outline" class="full-width">
         <mat-label>Bauperioden</mat-label>
         
-        <!-- <div class="chip-container">
-            <mat-chip *ngFor="let period of bauperiodenControl.value" 
-                      removable 
-                      (removed)="removeBauperiode(period)">
-              {{ period }}
-              <mat-icon matChipRemove>close</mat-icon>
-            </mat-chip>
-        </div> -->
-
         <mat-select [formControl]="periodControl" multiple disableRipple>
           <mat-option *ngFor="let period of periodOptions" [value]="period">
             {{ period }}
@@ -42,5 +33,11 @@
           </mat-option>
         </mat-select>
     </mat-form-field>
+
+    <div class="filter-menu-footer">
+        <button mat-flat-button color="primary" (click)="resetForm()" [disabled]="isResetDisabled()">
+            Filter zurücksetzen
+        </button>
+    </div>
 
 </div>

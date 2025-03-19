@@ -48,6 +48,15 @@ export class FilterMenuComponent {
     this.usageControl.setValue(this.usageControl.value.filter(item => item !== value));
   }
 
+  resetForm() {
+    this.periodControl.reset();
+    this.usageControl.reset();
+  }
+
+  isResetDisabled(): boolean {
+    return !this.periodControl.value?.length && !this.usageControl.value?.length;
+  }
+
   closeFilterMenu() {
     this.closePanel.emit();
   }

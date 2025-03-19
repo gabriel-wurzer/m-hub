@@ -43,11 +43,27 @@
     }
 }
 
+.filter-menu-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
 mat-divider {
     margin: 2px 12px 2rem auto;
 }
 
 h3 {
     font-size: 1.2rem;
-    margin-bottom: 8px;
+    margin: 0 0 8px;
 }
+
+mat-form-field {
+    width: 100%;
+    font-size: 15px;
+}
+
+button {
+    font-size: 14px;
+}
+
