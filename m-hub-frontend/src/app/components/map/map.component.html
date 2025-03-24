@@ -1,6 +1,9 @@
 <main>
   <div id="map">
-    <app-filter-menu *ngIf="isFilterPanelVisible" (closePanel)="toggleFilterPanel()" />
+    <app-filter-menu *ngIf="isFilterPanelVisible" 
+      (closePanel)="toggleFilterPanel()" 
+      (mouseenter)="disableMapInteractions()" 
+      (mouseleave)="enableMapInteractions()" />
     <app-filter-button *ngIf="!isFilterPanelVisible" (click)="toggleFilterPanel()" />
   </div>
 

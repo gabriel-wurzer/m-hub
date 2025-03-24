@@ -434,6 +434,31 @@ export class MapComponent implements OnInit {
 
     this.isFilterPanelVisible = !this.isFilterPanelVisible;
     console.log(`Filter menu visibility toggled: ${this.isFilterPanelVisible ? 'Visible' : 'Hidden'}`);
+
+    if (!this.isFilterPanelVisible) {
+      this.enableMapInteractions();
+    }
+  }
+
+  disableMapInteractions() {
+    if (this.#map) {
+      this.#map.dragging.disable();
+      this.#map.scrollWheelZoom.disable();
+      this.#map.tapHold?.disable(); // Disable touch gestures
+
+      console.log('map interaction disabled');
+    }
+  }
+
+  enableMapInteractions() {
+    if (this.#map) {
+      this.#map.dragging.enable();
+      this.#map.scrollWheelZoom.enable();
+      this.#map.tapHold?.enable();
+
+      console.log('map interaction enabled');
+
+    }
   }
   
 }
