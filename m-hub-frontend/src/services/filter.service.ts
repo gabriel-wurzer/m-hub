@@ -6,17 +6,17 @@ import { BehaviorSubject } from 'rxjs';
 })
 export class FilterService {
 
-  private periodFilterSubject = new BehaviorSubject<string[]>([]);
+  private periodFilterSubject = new BehaviorSubject<number[]>([]);
   private usageFilterSubject = new BehaviorSubject<number[]>([]);
 
   periodFilter$ = this.periodFilterSubject.asObservable();
   usageFilter$ = this.usageFilterSubject.asObservable();
 
-  getPeriodFilter(): string[] {
+  getPeriodFilter(): number[] {
     return this.periodFilterSubject.value;
   }
 
-  setPeriodFilter(selectedPeriods: string[]): void {
+  setPeriodFilter(selectedPeriods: number[]): void {
     this.periodFilterSubject.next(selectedPeriods);
     console.log('current period selection: ', this.periodFilterSubject.value)
   }

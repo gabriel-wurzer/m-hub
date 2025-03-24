@@ -16,7 +16,7 @@
         
         <mat-select [formControl]="periodControl" multiple (selectionChange)="updatePeriodSelection()">
           <mat-option *ngFor="let period of periodOptions" [value]="period">
-            {{ period }}
+            {{ periodLabels[period] }}
           </mat-option>
         </mat-select>
     </mat-form-field>

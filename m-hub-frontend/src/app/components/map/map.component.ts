@@ -35,7 +35,8 @@ export class MapComponent implements OnInit {
 
   #tableName = 'buildings_details';
   #defaultColumns = ['bw_geb_id', 'ST_AsGeoJSON(geom) as geometry'];
-  additionalColumns: string[] = [];  // Stores extra columns dynamically
+  #additionalColumns = ['dom_nutzung', 'bp', 'm3vol', 'm2bgf', 'm2bgf_use1', 'm2bgf_use2', 'm2bgf_use3', 'm2bgf_use4', 'm2flaeche', 'maxhoehe', 'bmg1', 'bmg2', 'bmg3', 'bmg4', 'bmg5', 'bmg6', 'bmg7', 'bmg8', 'bmg9'];    
+  // additionalColumns: string[] = [];  // Stores extra columns dynamically
 
   isFilterPanelVisible = false;
 
@@ -45,8 +46,16 @@ export class MapComponent implements OnInit {
     this.#initMap();
 
     // Subscribe to filter changes and apply them
+    // this.filterService.usageFilter$.subscribe(selectedUsages => {
+    //   this.applyUsageFilter(selectedUsages);
+    // });
+
     this.filterService.usageFilter$.subscribe(selectedUsages => {
-      this.applyUsageFilter(selectedUsages);
+      this.applyFilter(selectedUsages, this.filterService.getPeriodFilter());
+    });
+
+    this.filterService.periodFilter$.subscribe(selectedPeriods => {
+      this.applyFilter(this.filterService.getUsageFilter(), selectedPeriods);
     });
   }
 
@@ -215,6 +224,7 @@ export class MapComponent implements OnInit {
 
   /**
    * Load the VectorGrid Layer with default styles and event listeners.
+   * @param filter [optional] SQL WHERE clause for filtering data (column dom_nutzung AND/OR bp).
    */
   #loadVectorGridLayer(filter?:string): void {
     if (!this.#map) return;
@@ -222,10 +232,6 @@ export class MapComponent implements OnInit {
     if (this.#vectorGridLayer) {
       this.#map.removeLayer(this.#vectorGridLayer);
     }
-
-    // let joinTable: undefined;
-    // let additionalColumns: string[] = [];
-    // let filter: string | undefined;
 
     const vectorTileUrl = this.#generateVectorTileUrl(this.#tableName, this.#defaultColumns, filter);
 
@@ -252,23 +258,40 @@ export class MapComponent implements OnInit {
     });
   }
 
+  /**
+   * Applies filter to the dataset and reloads the VectorGrid layer.
+   * @param selectedUsages Array of selected usage categories as number array.
+   * @param selectedPeriods Array of selected building periods as number array.
+   */
+  applyFilter(selectedUsages: number[], selectedPeriods: number[]): void {
+    let filter: string[] = [];
 
-  applyUsageFilter(selectedUsages: number[]): void {
-    let filter: string | undefined;
-  
+    // Filter for usage
     if (selectedUsages.length > 0) {
-      filter = `dom_nutzung IN (${selectedUsages.join(', ')})`;
-      this.additionalColumns = ['dom_nutzung']; // Ensure the column is loaded
-    } else {
-      this.additionalColumns = [];
+        filter.push(`dom_nutzung IN (${selectedUsages.join(', ')})`);
     }
-  
-    // Reload vector grid with the new filter
-    this.#loadVectorGridLayer(filter);
+
+    // Filter for building periods
+    if (selectedPeriods.length > 0) {
+      const periodFilter = selectedPeriods.join(', ');
+      filter.push(`
+          EXISTS (
+              SELECT 1 FROM regexp_split_to_table(bp, ',') AS bp_value
+              WHERE bp_value::int IN (${periodFilter})
+          )
+      `);
+    }
+
+    let filterQuery = filter.length > 0 ? filter.join(' AND ') : undefined;
+
+    this.#loadVectorGridLayer(filterQuery);
   }
-  
 
-
+  /**
+   * Handles a click event on a building feature in the VectorGrid layer.
+   * Fetches detailed building data from the API and highlights the selected building.
+   * @param event Click event containing building feature properties.
+   */
   #handleBuildingClick(event: any): void {
     const properties = event.layer.properties;
   
@@ -276,9 +299,7 @@ export class MapComponent implements OnInit {
       const buildingId = parseInt(properties['bw_geb_id']);
       console.log('Clicked Building ID:', buildingId);
       
-      this.additionalColumns = ['dom_nutzung', 'bp', 'm3vol', 'm2bgf', 'm2bgf_use1', 'm2bgf_use2', 'm2bgf_use3', 'm2bgf_use4', 'm2flaeche', 'maxhoehe', 'bmg1', 'bmg2', 'bmg3', 'bmg4', 'bmg5', 'bmg6', 'bmg7', 'bmg8', 'bmg9'];
-
-      const queryColumns = [...this.#defaultColumns, ...this.additionalColumns];
+      const queryColumns = [...this.#defaultColumns, ...this.#additionalColumns];
 
       const url = `http://128.131.21.198:3002/v1/query/${this.#tableName}?columns=${encodeURIComponent(queryColumns.join(','))}&filter=${encodeURIComponent(`bw_geb_id = ${buildingId}`)}`;
 
@@ -367,9 +388,7 @@ export class MapComponent implements OnInit {
 
     const point = `${lng},${lat},${srid}`;
 
-    this.additionalColumns = ['dom_nutzung', 'bp', 'm3vol', 'm2bgf', 'm2bgf_use1', 'm2bgf_use2', 'm2bgf_use3', 'm2bgf_use4', 'm2flaeche', 'maxhoehe', 'bmg1', 'bmg2', 'bmg3', 'bmg4', 'bmg5', 'bmg6', 'bmg7', 'bmg8', 'bmg9'];
-
-    const queryColumns = [...this.#defaultColumns, ...this.additionalColumns];
+    const queryColumns = [...this.#defaultColumns, ...this.#additionalColumns];
     
     const url = `http://128.131.21.198:3002/v1/intersect_point/${this.#tableName}/${point}}?columns=${queryColumns}`;
 
@@ -395,10 +414,8 @@ export class MapComponent implements OnInit {
   toggleFilterPanel(): void {
     const filterButton = document.querySelector('.leaflet-control-filter') as HTMLElement;
     if (filterButton) {
-      L.DomEvent.disableClickPropagation(filterButton); // Disable click propagation
+      L.DomEvent.disableClickPropagation(filterButton);
     }
-
-    // Show a filter panel or if closed the button
 
     this.isFilterPanelVisible = !this.isFilterPanelVisible;
     console.log(`Filter menu visibility toggled: ${this.isFilterPanelVisible ? 'Visible' : 'Hidden'}`);
@@ -412,9 +429,8 @@ export class MapComponent implements OnInit {
     if (this.#map) {
       this.#map.dragging.disable();
       this.#map.scrollWheelZoom.disable();
-      this.#map.tapHold?.disable(); // Disable touch gestures
-
-      console.log('map interaction disabled');
+      this.#map.tapHold?.disable();
+      // console.log('map interaction disabled');
     }
   }
 
@@ -423,9 +439,7 @@ export class MapComponent implements OnInit {
       this.#map.dragging.enable();
       this.#map.scrollWheelZoom.enable();
       this.#map.tapHold?.enable();
-
-      console.log('map interaction enabled');
-
+      // console.log('map interaction enabled');
     }
   }
   

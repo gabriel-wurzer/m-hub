@@ -8,7 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatDividerModule } from '@angular/material/divider';
-import { Periods } from '../../models/periods.enum';
+import { Periods, PeriodLabels } from '../../models/periods.enum';
 import { Usage, UsageLabels } from '../../models/usage.enum';
 import { FilterService } from '../../../services/filter.service';
 
@@ -35,11 +35,13 @@ export class FilterMenuComponent implements OnInit {
 
   @Output() closePanel = new EventEmitter<void>();
 
-  periodOptions = Object.values(Periods);
+  periodOptions = Object.values(Periods).filter(value => typeof value === 'number') as number[];
+  periodLabels = PeriodLabels;
+
   usageOptions = Object.values(Usage).filter(value => typeof value === 'number') as number[];
   usageLabels = UsageLabels;
 
-  periodControl = new FormControl<string[]>([], { nonNullable: true });
+  periodControl = new FormControl<number[]>([], { nonNullable: true });
   usageControl = new FormControl<number[]>([], { nonNullable: true });
 
   constructor(private filterService: FilterService) {}
