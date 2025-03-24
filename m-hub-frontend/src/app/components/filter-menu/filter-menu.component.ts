@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatOptionModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,7 +9,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatDividerModule } from '@angular/material/divider';
 import { Periods } from '../../models/periods.enum';
-import { Usage } from '../../models/usage.enum';
+import { Usage, UsageLabels } from '../../models/usage.enum';
+import { FilterService } from '../../../services/filter.service';
 
 
 
@@ -30,27 +31,38 @@ import { Usage } from '../../models/usage.enum';
   templateUrl: './filter-menu.component.html',
   styleUrl: './filter-menu.component.scss'
 })
-export class FilterMenuComponent {
+export class FilterMenuComponent implements OnInit {
 
   @Output() closePanel = new EventEmitter<void>();
 
   periodOptions = Object.values(Periods);
-  usageOptions = Object.values(Usage);
+  usageOptions = Object.values(Usage).filter(value => typeof value === 'number') as number[];
+  usageLabels = UsageLabels;
 
   periodControl = new FormControl<string[]>([], { nonNullable: true });
-  usageControl = new FormControl<string[]>([], { nonNullable: true });
+  usageControl = new FormControl<number[]>([], { nonNullable: true });
 
-  removeBauperiode(value: string) {
-    this.periodControl.setValue(this.periodControl.value.filter(item => item !== value));
+  constructor(private filterService: FilterService) {}
+
+  ngOnInit() {
+    // Restore previously selected values
+    this.periodControl.setValue(this.filterService.getPeriodFilter());
+    this.usageControl.setValue(this.filterService.getUsageFilter());
   }
 
-  removeNutzung(value: string) {
-    this.usageControl.setValue(this.usageControl.value.filter(item => item !== value));
+  updatePeriodSelection(): void {
+    this.filterService.setPeriodFilter(this.periodControl.value);
   }
 
+  updateUsageSelection(): void {
+    this.filterService.setUsageFilter(this.usageControl.value);
+  }
+  
   resetForm() {
     this.periodControl.reset();
     this.usageControl.reset();
+    this.updatePeriodSelection();
+    this.updateUsageSelection();
   }
 
   isResetDisabled(): boolean {

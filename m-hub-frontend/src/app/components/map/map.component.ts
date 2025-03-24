@@ -10,6 +10,7 @@ import { environment } from '../../../environments/environment';
 import { FilterMenuComponent } from "../filter-menu/filter-menu.component";
 import { FilterButtonComponent } from "../buttons/filter-button/filter-button.component";
 import { BuildingInformationComponent } from "../building-information/building-information.component";
+import { FilterService } from '../../../services/filter.service';
 
 
 @Component({
@@ -38,10 +39,15 @@ export class MapComponent implements OnInit {
 
   isFilterPanelVisible = false;
 
-  constructor() {}
+  constructor(private filterService: FilterService) {}
 
   ngOnInit(): void {
     this.#initMap();
+
+    // Subscribe to filter changes and apply them
+    this.filterService.usageFilter$.subscribe(selectedUsages => {
+      this.applyUsageFilter(selectedUsages);
+    });
   }
 
   /**
@@ -74,7 +80,7 @@ export class MapComponent implements OnInit {
     }).addTo(this.#map);
 
 
-    this.#initVectorGridLayer();
+    this.#loadVectorGridLayer();
     this.#initGeocoder();
 
     this.#map.on('click', () => {
@@ -92,150 +98,107 @@ export class MapComponent implements OnInit {
 
 }
 
-#initGeocoder(): void {
+  #initGeocoder(): void {
 
-  L.Icon.Default.prototype.options.shadowUrl = "";
-  L.Icon.Default.prototype.options.shadowSize = [0, 0];
+    L.Icon.Default.prototype.options.shadowUrl = "";
+    L.Icon.Default.prototype.options.shadowSize = [0, 0];
 
-  const geocoderControl = L.Control.geocoder({
-    defaultMarkGeocode: false,
-    position: 'topleft',
-    placeholder: 'Suchen..'
-  });
-
-
-  // Customize geocode method to fetch suggestions dynamically and filter results
-  geocoderControl.options.geocoder.geocode = (query: string, cb: any) => {
-
-    // Construct the API URL with query, limiting results to 5, and filtering to Vienna and Austria
-    const url = `/nominatim/search?format=json&limit=5&q=${encodeURIComponent(query)}, Vienna&countrycodes=AT`;
-
-
-    console.log('Nominatim request URL:', url);
-
-    fetch(url)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      // Map the response data to the format expected by the callback
-      const results = data.map((result: { display_name: string; lat: string; lon: string; boundingbox: string[]; }) => {
-      const parts = result.display_name.split(',').map(part => part.trim());
-      
-      // Extract fields based on your desired structure
-      const name = parts[0] || '';
-      const addressDetail = parts.slice(1, 4).join(', ') || ''; // Address details (fields 1-3)
-
-      // Handle different part lengths for city field
-      let city = '';
-      if (parts.length === 8) {
-        city = parts.slice(5, 7).join(', ') || ''; // Fields 5-6
-      } else if (parts.length === 7) {
-        city = parts.slice(4, 6).join(', ') || ''; // Fields 4-5
-      } else if (parts.length === 6) {
-        city = parts.slice(3, 5).join(', ') || ''; // Fields 3-4
-      } else {
-        city = parts.slice(parts.length-3, parts.length-1).join(', ') || '';
-      }
-
-      return {
-        name: name,
-        center: [parseFloat(result.lat), parseFloat(result.lon)],
-        bbox: [
-          [parseFloat(result.boundingbox[0]), parseFloat(result.boundingbox[2])],
-          [parseFloat(result.boundingbox[1]), parseFloat(result.boundingbox[3])]
-        ],
-        html: `
-          <li>
-            <a href="#" onclick="return false;">
-              ${name} <br>
-              <span class="leaflet-control-geocoder-address-detail">
-                ${addressDetail}
-              </span><br>
-              <span class="leaflet-control-geocoder-address-context">
-                ${city}
-              </span>
-            </a>
-          </li>
-        `
-        };
-      });
-
-    // Invoke the callback with the processed results
-    cb(results);
-    })
-    .catch(error => {
-      console.error('Geocoding request failed:', error);
-      cb([]); // Return an empty result array on failure
+    const geocoderControl = L.Control.geocoder({
+      defaultMarkGeocode: false,
+      position: 'topleft',
+      placeholder: 'Suchen..'
     });
-  };
-
-  geocoderControl.on('markgeocode', (e: any) => {
-    
-    console.log('Geocode response:', e.geocode);
-
-    const center = e.geocode.center;
-    console.log("Geocode result center:", center);
-
-    const latLngCenter = L.latLng(center[0], center[1]);
-    console.log('Converted LatLng center:', latLngCenter);
-
-    const zoomLevel = this.#map.getZoom() > 18 ? this.#map.getZoom() : 18; // Zoom to 18 or keep current zoom if >18
-    this.#map.setView(center, zoomLevel); // Center the map on the marker position
-    
-    this.#addSearchMarker(center);
-
-    this.#selectBuildingFromLatLng(latLngCenter);
-  })
-
-  geocoderControl.addTo(this.#map);
-}
 
 
-/**
- * Initialize the VectorGrid Layer with default styles and event listeners.
- */
-#initVectorGridLayer(): void {
-//  private initVectorGridLayer(filter?: string): void {
-  if (!this.#map) return;
-  
-  if (this.#vectorGridLayer) {
-    this.#map.removeLayer(this.#vectorGridLayer);
-  }
+    // Customize geocode method to fetch suggestions dynamically and filter results
+    geocoderControl.options.geocoder.geocode = (query: string, cb: any) => {
 
-  // let joinTable: undefined;
-  // let additionalColumns: string[] = [];
-  let filter: string | undefined;
-  // let filter = "h_klasse >= " + 8;
+      // Construct the API URL with query, limiting results to 5, and filtering to Vienna and Austria
+      const url = `/nominatim/search?format=json&limit=5&q=${encodeURIComponent(query)}, Vienna&countrycodes=AT`;
 
-  const vectorTileUrl = this.#generateVectorTileUrl(this.#tableName, this.#defaultColumns, filter);
 
-  this.#vectorGridLayer = L.vectorGrid.protobuf(vectorTileUrl, {
-    vectorTileLayerStyles: {
-      [this.#tableName]: ({
-        weight: 2,
-        opacity: 0.8,
-        fill: true,
-        fillOpacity: 0.1,
+      console.log('Nominatim request URL:', url);
+
+      fetch(url)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
       })
-    },
-    interactive: true,
-    getFeatureId: (feature: any) => ((feature.properties as Building).bw_geb_id).toString() // set building_id as unique feature identifier; vector grid expects a string ID
-  });
+      .then(data => {
+        // Map the response data to the format expected by the callback
+        const results = data.map((result: { display_name: string; lat: string; lon: string; boundingbox: string[]; }) => {
+        const parts = result.display_name.split(',').map(part => part.trim());
+        
+        // Extract fields based on your desired structure
+        const name = parts[0] || '';
+        const addressDetail = parts.slice(1, 4).join(', ') || ''; // Address details (fields 1-3)
 
-  
-  this.#vectorGridLayer.addTo(this.#map);
+        // Handle different part lengths for city field
+        let city = '';
+        if (parts.length === 8) {
+          city = parts.slice(5, 7).join(', ') || ''; // Fields 5-6
+        } else if (parts.length === 7) {
+          city = parts.slice(4, 6).join(', ') || ''; // Fields 4-5
+        } else if (parts.length === 6) {
+          city = parts.slice(3, 5).join(', ') || ''; // Fields 3-4
+        } else {
+          city = parts.slice(parts.length-3, parts.length-1).join(', ') || '';
+        }
 
-  this.#vectorGridLayer.on('click', (event: any) => {
-    this.#buildingClicked = true;
-    event.originalEvent.stopPropagation(); // Prevent map click handler
-    this.#handleBuildingClick(event);
-  });
+        return {
+          name: name,
+          center: [parseFloat(result.lat), parseFloat(result.lon)],
+          bbox: [
+            [parseFloat(result.boundingbox[0]), parseFloat(result.boundingbox[2])],
+            [parseFloat(result.boundingbox[1]), parseFloat(result.boundingbox[3])]
+          ],
+          html: `
+            <li>
+              <a href="#" onclick="return false;">
+                ${name} <br>
+                <span class="leaflet-control-geocoder-address-detail">
+                  ${addressDetail}
+                </span><br>
+                <span class="leaflet-control-geocoder-address-context">
+                  ${city}
+                </span>
+              </a>
+            </li>
+          `
+          };
+        });
 
-}
+      // Invoke the callback with the processed results
+      cb(results);
+      })
+      .catch(error => {
+        console.error('Geocoding request failed:', error);
+        cb([]); // Return an empty result array on failure
+      });
+    };
+
+    geocoderControl.on('markgeocode', (e: any) => {
+      
+      console.log('Geocode response:', e.geocode);
+
+      const center = e.geocode.center;
+      console.log("Geocode result center:", center);
+
+      const latLngCenter = L.latLng(center[0], center[1]);
+      console.log('Converted LatLng center:', latLngCenter);
+
+      const zoomLevel = this.#map.getZoom() > 18 ? this.#map.getZoom() : 18; // Zoom to 18 or keep current zoom if >18
+      this.#map.setView(center, zoomLevel); // Center the map on the marker position
+      
+      this.#addSearchMarker(center);
+
+      this.#selectBuildingFromLatLng(latLngCenter);
+    })
+
+    geocoderControl.addTo(this.#map);
+  }
 
   /**
    * Generates a new vector tile URL string. URL resolved by Dirt Postgis API which connects to a PostgreSql DB 
@@ -250,56 +213,61 @@ export class MapComponent implements OnInit {
     (filter != undefined ? '&filter=' + filter : '');
   }
 
-  // updateFilter(filtervalue: number): void {
-  //   // const filter = this.hKlasseFilter ? `h_klasse > ${this.hKlasseFilter}` : undefined;
-  //   const filter = "h_klasse >= " + filtervalue;
-  //   this.#generateVectorTileUrl(this.#tableName, this.#defaultColumns, filter);
-  // }
-
-  // updateFilter(filterValue: number): void {
-  //   let additionalColumns: string[] = []; // here I would check for fields that should be filtered from filterComponent via a filterService and add these field to array?
-  
-  //   // Merge defaultColumns with additionalColumns
-  //   const updatedColumns = ['bw_geb_id', 'ST_AsGeoJSON(geom) as geometry', ...additionalColumns];
-  
-  //   const filter = `h_klasse >= ${filterValue}`; // I guess here I would need a more complex approach so I can add filterValues for each field that should be filtered.
-  //   this.#generateVectorTileUrl(this.#tableName, updatedColumns, filter);
-  // }
-
-
-  // applyFilter(filterColumn: string): void {
-  //   if (!this.additionalColumns.includes(filterColumn)) {
-  //     this.additionalColumns.push(filterColumn);
-  //   }
-  
-  //   const allColumns = [...this.#defaultColumns, ...this.additionalColumns];
-  //   const query = `SELECT ${allColumns.join(", ")} FROM ${this.#tableName} WHERE ${filterColumn} IS NOT NULL`;
-  
-  //   this.#reloadVectorGridLayer(query);
-  // }
-
-  // #reloadVectorGridLayer(query: string): void {
-  //   if (this.#vectorGridLayer) {
-  //     this.#map.removeLayer(this.#vectorGridLayer);
-  //   }
+  /**
+   * Load the VectorGrid Layer with default styles and event listeners.
+   */
+  #loadVectorGridLayer(filter?:string): void {
+    if (!this.#map) return;
     
-  //   this.#vectorGridLayer = L.vectorGrid.protobuf(`/api/buildings?query=${encodeURIComponent(query)}`, {
-  //     vectorTileLayerStyles: {
-  //       [this.#tableName]: ({
-  //         weight: 2,
-  //         opacity: 0.8,
-  //         fill: true,
-  //         fillOpacity: 0.1,
-  //       })
-  //     },
-  //     interactive: true
-  //   });
+    if (this.#vectorGridLayer) {
+      this.#map.removeLayer(this.#vectorGridLayer);
+    }
+
+    // let joinTable: undefined;
+    // let additionalColumns: string[] = [];
+    // let filter: string | undefined;
+
+    const vectorTileUrl = this.#generateVectorTileUrl(this.#tableName, this.#defaultColumns, filter);
+
+    this.#vectorGridLayer = L.vectorGrid.protobuf(vectorTileUrl, {
+      vectorTileLayerStyles: {
+        [this.#tableName]: ({
+          weight: 2,
+          opacity: 0.8,
+          fill: true,
+          fillOpacity: 0.1,
+        })
+      },
+      interactive: true,
+      getFeatureId: (feature: any) => ((feature.properties as Building).bw_geb_id).toString() // set building_id as unique feature identifier; vector grid expects a string ID
+    });
+
+    
+    this.#vectorGridLayer.addTo(this.#map);
+
+    this.#vectorGridLayer.on('click', (event: any) => {
+      this.#buildingClicked = true;
+      event.originalEvent.stopPropagation(); // Prevent map click handler
+      this.#handleBuildingClick(event);
+    });
+  }
+
+
+  applyUsageFilter(selectedUsages: number[]): void {
+    let filter: string | undefined;
   
-  //   this.#vectorGridLayer.on('click', this.#handleBuildingClick.bind(this));
+    if (selectedUsages.length > 0) {
+      filter = `dom_nutzung IN (${selectedUsages.join(', ')})`;
+      this.additionalColumns = ['dom_nutzung']; // Ensure the column is loaded
+    } else {
+      this.additionalColumns = [];
+    }
   
-  //   this.#vectorGridLayer.addTo(this.#map);
-  // }
+    // Reload vector grid with the new filter
+    this.#loadVectorGridLayer(filter);
+  }
   
+
 
   #handleBuildingClick(event: any): void {
     const properties = event.layer.properties;
