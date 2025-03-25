@@ -76,12 +76,11 @@ export class MapComponent implements OnInit {
     const bounds = L.latLngBounds([48.51, 17.35], [47.93, 15.41]);
     this.#map.setMaxBounds(bounds);
 
-    L.tileLayer('/mapbox/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+    L.tileLayer(`https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=${environment.mapboxToken}`, {
       minZoom: 12,
-      maxZoom: 22,  // 19
+      maxZoom: 22, // 19
       attribution: '© <a href="https://www.mapbox.com/">Mapbox</a>',
-      id: "simlabtuwien/cm3r2nlew003y01s6g5gtfwtd",
-      accessToken: environment.mapboxToken
+      id: "simlabtuwien/cm3r2nlew003y01s6g5gtfwtd"
     }).addTo(this.#map);
 
 
