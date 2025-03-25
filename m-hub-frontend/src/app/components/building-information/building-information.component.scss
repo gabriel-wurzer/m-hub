@@ -33,53 +33,26 @@
     }
 }
 
-mat-divider {
-    margin: 2px 12px 2rem auto;
+.building-info-data {
+    h3 {
+        margin: 10px 0;
+    }
+    p {
+        margin: 8px 0;
+    }
 }
 
-// :host {
-//     width: 100%;
-//     display: flex;
-//     // justify-content: center;
-//   }
-  
-//   .building-info-panel {
-//     width: 100%;
-//     max-width: 100%;
-//     padding: 8px 12px 12px;
-//     background: white;
-//     border: 2px solid #455a64;
-//     border-radius: 12px;
-//     box-shadow: -2px 0px 4px rgba(0, 0, 0, 0.2);
-//   }
+mat-divider {
+    margin: 2px 12px 1.6rem auto;
+}
 
-//   .building-info-header {
-//     display: flex;
-//     flex-direction: row;
-//     justify-content: space-between;
-
-//     h2 {
-//         margin: 10px 0;
-//         font-size: 1.6rem;
-//         line-height: 1;
-//     }
-
-//     button {
-//         cursor: pointer;
-//         border: none;
-//         background: none;
-//         align-items: center;
-//     }
-// }
-  
-//   /* Ensure full width on small screens */
-//   @media (max-width: 800px) {
-//     .building-info-panel {
-//       width: 100%;
-//       height: auto;
-//       border-radius: 0; /* Optional: Remove rounded corners for better look */
-//       border-left: none;
-//       border-right: none;
-//     }
-//   }
-  
+.chart-container {
+    width: 100%;
+    min-width: 300px;
+    max-width: 420px;
+    aspect-ratio: 1 / 1; // Ensures height is always equal to width
+    margin: 2rem auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
