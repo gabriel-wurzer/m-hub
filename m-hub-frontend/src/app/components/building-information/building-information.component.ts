@@ -4,12 +4,14 @@ import { Periods, PeriodLabels } from '../../models/periods.enum';
 import { Usage, UsageLabels } from '../../models/usage.enum';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
+
 
 
 @Component({
   selector: 'app-building-information',
   standalone: true,
-  imports: [ MatIconModule, MatButtonModule ],
+  imports: [ MatIconModule, MatButtonModule, MatDividerModule],
   templateUrl: './building-information.component.html',
   styleUrl: './building-information.component.scss'
 })

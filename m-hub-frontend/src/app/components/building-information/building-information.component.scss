@@ -6,4 +6,29 @@
 
 .building-info-panel {
     padding: 8px 12px 12px;
+    width: inherit;
+    height: inherit;
+}
+
+.building-info-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    h2 {
+        margin: 10px 0;
+        font-size: 1.6rem;
+        line-height: 1;
+    }
+
+    button {
+        cursor: pointer;
+        border: none;
+        background: none;
+        align-items: center;
+    }
+}
+
+mat-divider {
+    margin: 2px 12px 2rem auto;
 }
