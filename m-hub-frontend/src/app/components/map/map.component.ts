@@ -9,8 +9,8 @@ import { Building } from '../../models/building';
 import { environment } from '../../../environments/environment';
 import { FilterMenuComponent } from "../filter-menu/filter-menu.component";
 import { FilterButtonComponent } from "../buttons/filter-button/filter-button.component";
-import { BuildingInformationComponent } from "../building-information/building-information.component";
 import { FilterService } from '../../../services/filter.service';
+import { BuildingInformationComponent } from '../building-information/building-information.component';
 
 
 @Component({
@@ -46,10 +46,6 @@ export class MapComponent implements OnInit {
     this.#initMap();
 
     // Subscribe to filter changes and apply them
-    // this.filterService.usageFilter$.subscribe(selectedUsages => {
-    //   this.applyUsageFilter(selectedUsages);
-    // });
-
     this.filterService.usageFilter$.subscribe(selectedUsages => {
       this.applyFilter(selectedUsages, this.filterService.getPeriodFilter());
     });

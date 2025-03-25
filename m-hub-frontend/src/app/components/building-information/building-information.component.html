@@ -1,0 +1,34 @@
+<div class="building-info-panel">
+    <header class="building-info-header">
+        <h2 class="building-info-title">Gebäudeinformationen</h2>
+        <button mat-icon-button class="close-button">
+            <mat-icon>close</mat-icon>
+        </button>
+    </header>
+
+    <h3>Gebäude: {{ building?.bw_geb_id }}</h3>
+
+    <p>Nutzung: {{ usageLabel }}</p>
+    <p>Bauperiode: {{ periodLabel }}</p>
+    <p [innerHTML]="'Volumen: ' + (building?.m3vol ?? 'Keine Information') + ' m&sup3;'"></p>    
+    <p [innerHTML]="'Fläche: ' + (building?.m2flaeche ?? 'Keine Information') + ' m&sup2;'"></p>
+    <p>Maximale Höhe: {{ building?.maxhoehe}} m</p>
+    
+
+    <!-- m2bgf: number;
+    m2bgf_use1: number;
+    m2bgf_use2: number;
+    m2bgf_use3: number;
+    m2bgf_use4: number;
+
+
+    bmg1: number;
+    bmg2: number;
+    bmg3: number;
+    bmg4: number;
+    bmg5: number;
+    bmg6: number;
+    bmg7: number;
+    bmg8: number;
+    bmg9: number; -->
+</div>

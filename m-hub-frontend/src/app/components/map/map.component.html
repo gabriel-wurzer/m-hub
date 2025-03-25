@@ -1,11 +1,16 @@
 <main>
-  <div id="map">
-    <app-filter-menu *ngIf="isFilterPanelVisible" 
-      (closePanel)="toggleFilterPanel()" 
-      (mouseenter)="disableMapInteractions()" 
-      (mouseleave)="enableMapInteractions()" />
-    <app-filter-button *ngIf="!isFilterPanelVisible" (click)="toggleFilterPanel()" />
+  <div class="map-view-container">
+    <div id="map">
+      <app-filter-menu *ngIf="isFilterPanelVisible" 
+        (closePanel)="toggleFilterPanel()" 
+        (mouseenter)="disableMapInteractions()" 
+        (mouseleave)="enableMapInteractions()" />
+      <app-filter-button *ngIf="!isFilterPanelVisible" (click)="toggleFilterPanel()" />
+    </div>
+  
+    <app-building-information 
+        *ngIf="selectedBuilding" 
+        [building]="selectedBuilding"
+        class="building-info" />
   </div>
-
-  <!-- <app-building-information [buildingId]="selectedBuildingID"></app-building-information> -->
 </main>
