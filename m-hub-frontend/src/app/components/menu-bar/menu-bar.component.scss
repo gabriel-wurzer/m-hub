@@ -146,10 +146,14 @@ mat-divider {
 
 
 /* Mobile adjustments */
+@media (max-width: 1199px) {
+  .router-outlet-container {
+    margin-left: 0;
+  }
+}
+
 @media (max-width: 600px) {
   .router-outlet-container {
     padding: 8px;
-    margin-left: 0;
   }
-
 }
