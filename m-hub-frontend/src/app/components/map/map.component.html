@@ -11,6 +11,7 @@
     <app-building-information 
         *ngIf="selectedBuilding" 
         [building]="selectedBuilding"
+        (closePanel)="deselectBuilding()"
         class="building-info" />
   </div>
 </main>

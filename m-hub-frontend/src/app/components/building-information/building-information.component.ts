@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Building } from '../../models/building';
 import { Periods, PeriodLabels } from '../../models/periods.enum';
 import { Usage, UsageLabels } from '../../models/usage.enum';
@@ -17,6 +17,7 @@ import { MatDividerModule } from '@angular/material/divider';
 })
 export class BuildingInformationComponent {
   @Input() building!: Building | null;
+  @Output() closePanel = new EventEmitter<void>();
 
   periodOptions = Object.values(Periods).filter(value => typeof value === 'number') as number[];
   periodLabels = PeriodLabels;
@@ -43,5 +44,9 @@ export class BuildingInformationComponent {
       return this.usageLabels[this.building.dom_nutzung] || 'Keine Nutzung';
     }
     return 'Keine Nutzung';
+  }
+
+  onClose() {
+    this.closePanel.emit();
   }
 }

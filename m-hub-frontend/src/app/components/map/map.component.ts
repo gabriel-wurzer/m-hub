@@ -96,7 +96,7 @@ export class MapComponent implements OnInit {
       }
 
       if (!this.#buildingClicked) {
-        this.#deselectBuilding();
+        this.deselectBuilding();
       }
       this.#buildingClicked = false;
     });
@@ -356,7 +356,7 @@ export class MapComponent implements OnInit {
     }
   }
 
-  #deselectBuilding(): void {
+  deselectBuilding(): void {
     if (this.#highlightedFeatureLayer) {
       this.#map.removeLayer(this.#highlightedFeatureLayer); // Remove highlight layer
       this.#highlightedFeatureLayer = null;

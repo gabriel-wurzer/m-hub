@@ -5,9 +5,13 @@
 }
 
 .building-info-panel {
-    padding: 8px 12px 12px;
     width: inherit;
     height: inherit;
+    padding: 8px 12px 12px;
+    background: white;
+    border: 2px solid #455a64;
+    border-radius: 12px;
+    box-shadow: -2px 0px 4px rgba(0, 0, 0, 0.2);
 }
 
 .building-info-header {
