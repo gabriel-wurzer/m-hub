@@ -1,3 +1,5 @@
+import { BuildingPart } from "./building-part";
+
 /**
  * Interface of buildings.
  */
@@ -22,5 +24,6 @@ export interface Building {
     bmg7: number;
     bmg8: number;
     bmg9: number;
-    geometry: any; // geometry as GeoJSON object
+    geometry: any; // Geometry as GeoJSON object
+    buildingParts?: BuildingPart[];  // List of building parts
 }
