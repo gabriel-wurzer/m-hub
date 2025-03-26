@@ -18,9 +18,12 @@
         <p [innerHTML]="'Bruttogrundfläche: ' + (building?. m2bgf ?? 'Keine Information') + ' m&sup2;'"></p>
     </div>
    
-    <echarts [options]="pieChartOptions" class="chart-container"></echarts>
+    <echarts [options]="usagePieChartOptions" class="chart-container"></echarts>
 
-    <!-- Baumessgrößen
+    <!-- <echarts [options]="usagePieChartOptions" class="chart-container"></echarts> -->
+
+
+    <!-- Baumaterialgruppe
     bmg1: number;
     bmg2: number;
     bmg3: number;
@@ -33,6 +36,10 @@
 
     <mat-divider />
 
-    <!-- TODO: linked documents here-->
+    
+    <div class="documents-container">
+        <h3>Dokumente</h3>   
+        <!-- TODO: list of linked documents here-->
+    </div>
 
 </div>

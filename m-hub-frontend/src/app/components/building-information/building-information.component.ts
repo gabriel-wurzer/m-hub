@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Building } from '../../models/building';
-import { Periods, PeriodLabels } from '../../models/periods.enum';
-import { Usage, UsageLabels } from '../../models/usage.enum';
+import { Period, PeriodLabels } from '../../enums/period.enum';
+import { Usage, UsageLabels } from '../../enums/usage.enum';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
@@ -21,13 +21,13 @@ export class BuildingInformationComponent {
   @Input() building!: Building | null;
   @Output() closePanel = new EventEmitter<void>();
 
-  periodOptions = Object.values(Periods).filter(value => typeof value === 'number') as number[];
+  periodOptions = Object.values(Period).filter(value => typeof value === 'number') as number[];
   periodLabels = PeriodLabels;
 
   usageOptions = Object.values(Usage).filter(value => typeof value === 'number') as number[];
   usageLabels = UsageLabels;
 
-  pieChartOptions: EChartsOption = {};
+  usagePieChartOptions: EChartsOption = {};
 
   get periodLabel(): string {
     if (this.building && this.building.bp) {
@@ -49,10 +49,10 @@ export class BuildingInformationComponent {
   }
 
   ngOnChanges() {
-    this.updatePieChart();
+    this.updatePieCharts();
   }
 
-  updatePieChart() {
+  updatePieCharts() {
     if (!this.building) return;
 
     const usageData = [
@@ -62,7 +62,7 @@ export class BuildingInformationComponent {
       { value: this.building.m2bgf_use4, name: UsageLabels[Usage.SONSTIGES] }
     ].filter(entry => entry.value > 0);
 
-    this.pieChartOptions = {
+    this.usagePieChartOptions = {
       title: {
         left: 'center',
         text: 'Bruttogrundfläche',
