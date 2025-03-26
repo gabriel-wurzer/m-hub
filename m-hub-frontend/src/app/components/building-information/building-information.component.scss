@@ -2,6 +2,7 @@
     height: 100%;
     width: 100%;
     display: flex;
+    overflow-x: hidden;
 }
 
 .building-info-panel {
@@ -9,9 +10,9 @@
     height: inherit;
     padding: 8px 12px 12px;
     background: white;
-    border: 2px solid #455a64;
     border-radius: 12px;
     box-shadow: -2px 0px 4px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
 }
 
 .building-info-header {
@@ -48,11 +49,29 @@ mat-divider {
 
 .chart-container {
     width: 100%;
+    // width: 90%;
     min-width: 300px;
-    max-width: 420px;
-    aspect-ratio: 1 / 1; // Ensures height is always equal to width
+    aspect-ratio: 1 / 1.05; // Ensures height is always equal to width
     margin: 2rem auto;
     display: flex;
     justify-content: center;
     align-items: center;
 }
+
+.materials-chart-container {
+    aspect-ratio: 1 / 1.12;
+}
+
+.custom-legend-container {
+    display: flex;
+    flex-direction: row-reverse; /* Moves buttons to the right */
+    align-items: center;
+}
+
+/* Responsive behavior for mobile devices*/
+@media (max-width: 800px) {
+    .chart-container {
+        max-width: 420px;
+    }
+  }
+

@@ -17,28 +17,16 @@
         <p [innerHTML]="'Fläche: ' + (building?.m2flaeche ?? 'Keine Information') + ' m&sup2;'"></p>
         <p [innerHTML]="'Bruttogrundfläche: ' + (building?. m2bgf ?? 'Keine Information') + ' m&sup2;'"></p>
     </div>
-   
+
+
     <echarts [options]="usagePieChartOptions" class="chart-container"></echarts>
 
-    <!-- <echarts [options]="usagePieChartOptions" class="chart-container"></echarts> -->
-
-
-    <!-- Baumaterialgruppe
-    bmg1: number;
-    bmg2: number;
-    bmg3: number;
-    bmg4: number;
-    bmg5: number;
-    bmg6: number;
-    bmg7: number;
-    bmg8: number;
-    bmg9: number; -->
+    <echarts [options]="materialsPieChartOptions" class="chart-container materials-chart-container"></echarts>
 
     <mat-divider />
 
-    
     <div class="documents-container">
-        <h3>Dokumente</h3>   
+        <h3>Bauelemente</h3>   
         <!-- TODO: list of linked documents here-->
     </div>
 

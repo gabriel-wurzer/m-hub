@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { EChartsOption } from 'echarts';
 import { NgxEchartsModule } from 'ngx-echarts';
+import { MaterialGroup } from '../../enums/material-group.enum';
 
 
 
@@ -28,7 +29,8 @@ export class BuildingInformationComponent {
   usageLabels = UsageLabels;
 
   usagePieChartOptions: EChartsOption = {};
-
+  materialsPieChartOptions: EChartsOption = {};
+  
   get periodLabel(): string {
     if (this.building && this.building.bp) {
       const bpValues = this.building.bp.split(',').map(val => val.trim());
@@ -49,10 +51,11 @@ export class BuildingInformationComponent {
   }
 
   ngOnChanges() {
-    this.updatePieCharts();
+    this.updateUsagePieChart();
+    this.updateMaterialsPieChart();
   }
 
-  updatePieCharts() {
+  updateUsagePieChart() {
     if (!this.building) return;
 
     const usageData = [
@@ -89,7 +92,7 @@ export class BuildingInformationComponent {
       },
       series: [
         {
-          name: 'Nutzungen in m²',
+          name: 'Nutzungen',
           type: 'pie',
           radius: '60%',
           data: usageData,
@@ -97,6 +100,67 @@ export class BuildingInformationComponent {
             show: true,
             position: 'outside',
             alignTo: 'edge',
+          },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          }
+        }
+      ]
+    };
+  }
+
+  updateMaterialsPieChart() {
+    if (!this.building) return;
+
+    const materialsData = [
+      { value: this.building.bmg1, name: MaterialGroup.mg_mineral },
+      { value: this.building.bmg2, name: MaterialGroup.mg_wood },
+      { value: this.building.bmg3, name: MaterialGroup.mg_metals },
+      { value: this.building.bmg4, name: MaterialGroup.mg_plastics },
+      { value: this.building.bmg5, name: MaterialGroup.mg_insulation },
+      { value: this.building.bmg6, name: MaterialGroup.mg_building_technology }
+      // TODO: add bmg 7 to 9
+    ].filter(entry => entry.value > 0);
+
+    this.materialsPieChartOptions = {
+      title: {
+        left: 'center',
+        text: 'Baumaterialien',
+      },
+      tooltip: {
+        trigger: 'item',
+        confine: true,
+        formatter: (params: any) => {
+          const roundedValue = Number(params.value).toFixed(2);
+          return `${params.marker} ${params.name}: <b>${roundedValue} m&sup3;</b>`;
+        },
+        textStyle: {
+          fontSize: 15
+        },
+      },
+      legend: {
+        orient: 'vertical',
+        top: 'bottom',
+        left: 'right',
+        selectedMode: false,
+        type: 'scroll',
+        height: 110,
+        pageButtonPosition: 'start',
+        pageIconSize: 11,
+      },
+      series: [
+        {
+          name: 'Baumaterialgruppen',
+          type: 'pie',
+          radius: '60%',
+          center: ['50%', '38%'],
+          data: materialsData,
+          label: {
+            show: false
           },
           emphasis: {
             itemStyle: {
