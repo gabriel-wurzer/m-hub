@@ -25,9 +25,22 @@
 
     <mat-divider />
 
-    <div class="documents-container">
+    <div class="list-container">
         <h3>Bauelemente</h3>   
-        <!-- TODO: list of linked documents here-->
+        <mat-list>
+            <mat-list-item *ngFor="let part of buildingParts">
+                <!-- <mat-icon *ngIf="part.type === 'document'">insert_drive_file</mat-icon>
+                <mat-icon *ngIf="part.type === 'building_part'">category</mat-icon> -->   
+                <!-- construction, inventory, house, polyline  -->
+
+                <!-- <mat-icon class="list-icon" matListIcon> -->
+                <mat-icon class="list-icon">
+                    {{ part.type === 'document' ? 'insert_drive_file' : 'category' }}
+                </mat-icon>
+                <span class="list-text">{{ part.name }}</span>
+                <mat-icon *ngIf="!part.isPublic" class="lock-icon">lock</mat-icon>
+            </mat-list-item>
+        </mat-list>
     </div>
 
 </div>

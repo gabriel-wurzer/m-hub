@@ -1,20 +1,24 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Building } from '../../models/building';
 import { Period, PeriodLabels } from '../../enums/period.enum';
 import { Usage, UsageLabels } from '../../enums/usage.enum';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatListModule } from '@angular/material/list';
 import { EChartsOption } from 'echarts';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { MaterialGroup } from '../../enums/material-group.enum';
+import { BuildingPart } from '../../models/building-part';
+import { FileType } from '../../enums/file-type.enum';
 
 
 
 @Component({
   selector: 'app-building-information',
   standalone: true,
-  imports: [ MatIconModule, MatButtonModule, MatDividerModule, NgxEchartsModule],
+  imports: [ CommonModule, MatIconModule, MatButtonModule, MatDividerModule, MatListModule, NgxEchartsModule],
   templateUrl: './building-information.component.html',
   styleUrl: './building-information.component.scss'
 })
@@ -30,7 +34,64 @@ export class BuildingInformationComponent {
 
   usagePieChartOptions: EChartsOption = {};
   materialsPieChartOptions: EChartsOption = {};
-  
+
+  buildingParts: BuildingPart[] = [
+    {
+        id: "101",
+        name: "Main Roof",
+        description: "Primary roofing structure",
+        type: "building_part",
+        ownerId: "owner-001",
+        isPublic: true,
+        children: [
+            {
+                id: "102",
+                name: "Sub Roof Section A",
+                description: "Left side of the roof",
+                type: "building_part",
+                ownerId: "owner-001",
+                isPublic: true
+            },
+            {
+                id: "103",
+                name: "Sub Roof Section B",
+                description: "Right side of the roof",
+                type: "building_part",
+                ownerId: "owner-001",
+                isPublic: true
+            }
+        ]
+    },
+    {
+        id: "104",
+        name: "Foundation",
+        description: "Base structure of the building",
+        type: "building_part",
+        ownerId: "owner-002",
+        isPublic: false
+    },
+    {
+        id: "201",
+        name: "Bauplan.pdf",
+        description: "Architectural blueprint",
+        type: "document",
+        ownerId: "owner-003",
+        isPublic: true,
+        fileUrl: "https://example.com/blueprint.pdf",
+        fileType: FileType.PDF
+    },
+    {
+        id: "202",
+        name: "Sicherheitsbericht.docx",
+        description: "Building safety inspection report",
+        type: "document",
+        ownerId: "owner-004",
+        isPublic: false,
+        fileUrl: "https://example.com/inspection.docx",
+        fileType: FileType.DOCX
+    }
+  ];
+
   get periodLabel(): string {
     if (this.building && this.building.bp) {
       const bpValues = this.building.bp.split(',').map(val => val.trim());
