@@ -1,5 +1,5 @@
 <main>
-  <div class="map-view-container">
+  <div class="map-container" [hidden]="isStructureDetailsVisible">
     <div id="map">
       <app-filter-menu *ngIf="isFilterPanelVisible" 
         (closePanel)="toggleFilterPanel()" 
@@ -12,6 +12,13 @@
         *ngIf="selectedBuilding" 
         [building]="selectedBuilding"
         (closePanel)="deselectBuilding()"
+        (openStructureView)="showStructureDetails($event)"
         class="building-info" />
   </div>
+
+  <app-structure-details 
+      *ngIf="isStructureDetailsVisible" 
+      [entity]="selectedBuilding"
+      (closeDetails)="hideStructureDetails()" />
+
 </main>

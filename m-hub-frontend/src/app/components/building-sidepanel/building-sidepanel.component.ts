@@ -12,6 +12,7 @@ import { NgxEchartsModule } from 'ngx-echarts';
 import { MaterialGroup } from '../../enums/material-group.enum';
 import { BuildingPart } from '../../models/building-part';
 import { FileType } from '../../enums/file-type.enum';
+import { BuildingService } from '../../services/building.service';
 
 
 
@@ -26,6 +27,8 @@ export class BuildingSidepanelComponent {
   @Input() building!: Building | null;
   @Output() closePanel = new EventEmitter<void>();
 
+  @Output() openStructureView = new EventEmitter<Building>();
+
   periodOptions = Object.values(Period).filter(value => typeof value === 'number') as number[];
   periodLabels = PeriodLabels;
 
@@ -35,62 +38,15 @@ export class BuildingSidepanelComponent {
   usagePieChartOptions: EChartsOption = {};
   materialsPieChartOptions: EChartsOption = {};
 
-  buildingParts: BuildingPart[] = [
-    {
-        id: "101",
-        name: "Dach",
-        description: "Primary roofing structure",
-        type: "building_part",
-        ownerId: "owner-001",
-        isPublic: true,
-        children: [
-            {
-                id: "102",
-                name: "Dachziegel",
-                description: "Ziegel des Daches",
-                type: "building_part",
-                ownerId: "owner-001",
-                isPublic: true
-            },
-            {
-                id: "103",
-                name: "Dachbalken",
-                description: "Trägt die Dachkonstruktion. Besteht aus Fichtenholz.",
-                type: "building_part",
-                ownerId: "owner-001",
-                isPublic: true
-            }
-        ]
-    },
-    {
-        id: "104",
-        name: "Fundament",
-        description: "Base structure of the building",
-        type: "building_part",
-        ownerId: "owner-002",
-        isPublic: false
-    },
-    {
-        id: "201",
-        name: "Bauplan.pdf",
-        description: "Architectural blueprint",
-        type: "document",
-        ownerId: "owner-003",
-        isPublic: true,
-        fileUrl: "https://example.com/blueprint.pdf",
-        fileType: FileType.PDF
-    },
-    {
-        id: "202",
-        name: "Sicherheitsbericht.docx",
-        description: "Building safety inspection report",
-        type: "document",
-        ownerId: "owner-004",
-        isPublic: false,
-        fileUrl: "https://example.com/inspection.docx",
-        fileType: FileType.DOCX
+  documents: BuildingPart[] = [];
+
+  constructor(private buildingService: BuildingService) { }
+
+  ngOnInit() {
+    if(this.building) {
+      this.#loadDocuments(this.building?.bw_geb_id); 
     }
-  ];
+  }
 
   get periodLabel(): string {
     if (this.building && this.building.bp) {
@@ -237,6 +193,18 @@ export class BuildingSidepanelComponent {
     };
   }
 
+  #loadDocuments(buildingId: number) {
+    this.buildingService.getDocumentsByBuilding(buildingId).subscribe((docs) => {
+      this.documents = docs;
+    });
+  }
+
+  openStructureDetailsView() {
+    console.log('Open structure details view for building: ', this.building?.bw_geb_id);
+    if (this.building) {
+      this.openStructureView.emit(this.building);
+    }
+  }
 
   onClose() {
     this.closePanel.emit();

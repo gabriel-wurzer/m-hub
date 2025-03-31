@@ -9,14 +9,15 @@ import { Building } from '../../models/building';
 import { environment } from '../../../environments/environment';
 import { FilterMenuComponent } from "../filter-menu/filter-menu.component";
 import { FilterButtonComponent } from "../buttons/filter-button/filter-button.component";
-import { FilterService } from '../../../services/filter.service';
+import { FilterService } from '../../services/filter.service';
 import { BuildingSidepanelComponent } from '../building-sidepanel/building-sidepanel.component';
+import { StructureDetailsComponent } from '../structure-details/structure-details.component';
 
 
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [CommonModule, FilterMenuComponent, FilterButtonComponent, BuildingSidepanelComponent],
+  imports: [CommonModule, FilterMenuComponent, FilterButtonComponent, BuildingSidepanelComponent, StructureDetailsComponent],
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })
@@ -39,6 +40,7 @@ export class MapComponent implements OnInit {
   // additionalColumns: string[] = [];  // Stores extra columns dynamically
 
   isFilterPanelVisible = false;
+  isStructureDetailsVisible = false;
 
   constructor(private filterService: FilterService) {}
 
@@ -437,5 +439,28 @@ export class MapComponent implements OnInit {
       // console.log('map interaction enabled');
     }
   }
+
+  // // When the side panel emits openStructureView, show the structure details and hide other elements
+  // showStructureDetails(building: Building) {
+  //   this.selectedBuilding = building;
+  //   this.isStructureDetailsVisible = true;
+  // }
+
+  // // When closing structure details, show the map and side panel again
+  // hideStructureDetails() {
+  //   this.isStructureDetailsVisible = false;
+  // }
   
+  showStructureDetails(event: any): void {
+    this.isStructureDetailsVisible = true;
+
+    console.log(this.isStructureDetailsVisible);
+  }
+  
+  hideStructureDetails(): void {
+    this.isStructureDetailsVisible = false;
+
+    console.log(this.isStructureDetailsVisible);
+  }
+
 }

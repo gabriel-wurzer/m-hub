@@ -1,0 +1,55 @@
+<div class="structure-info-panel">
+
+    <div class="structure-tree-container">
+        <app-structure-tree [entity]="entity" />
+    </div>
+
+    <mat-divider [vertical]="true" class="vertical-divider"/>
+
+    <div class="structure-content-container">
+        <header class="structure-info-header">
+            <!-- TODO: check if entity is building or building part -->
+            <h2 class="structure-info-title">{{ isBuilding ? 'Gebäude: ' : 'Bauelement' }}  {{ building?.bw_geb_id }} </h2>
+            <button mat-icon-button class="close-button" (click)="onClose()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </header>
+    
+        <mat-divider class="horizontal-divider"/>
+    
+        <div class="structure-info-data">
+            <ng-container *ngIf="isBuilding; else buildingPartDetails">
+                <div class="info-container">
+                    <h3>Informationen</h3>
+                    <div class="info-content">
+                        <div class="information-container">
+                            <p>Nutzung: {{ usageLabel }}</p>
+                            <p>Bauperiode: {{ periodLabel }}</p>
+                            <p>Maximale Höhe: {{ building?.maxhoehe}} m</p>
+                            <p [innerHTML]="'Volumen: ' + (building?.m3vol ?? 'Keine Information') + ' m&sup3;'"></p>    
+                            <p [innerHTML]="'Fläche: ' + (building?.m2flaeche ?? 'Keine Information') + ' m&sup2;'"></p>
+                            <p [innerHTML]="'Bruttogeschoßfläche: ' + (building?. m2bgf ?? 'Keine Information') + ' m&sup2;'"></p>        
+                        </div>
+                        <div class="chart-container">
+                            <!-- TODO: add e-chart component for building -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="document-container">
+                    <h3>Dokumente</h3>
+                    <!-- TODO: add document list here -->
+                </div>
+
+                
+            </ng-container>
+    
+            <ng-template #buildingPartDetails>
+                <p>Name: {{ buildingPart?.name }}</p>
+                <p>Beschreibung: {{ buildingPart?.description }}</p>
+            </ng-template>
+        </div>
+    </div>
+    
+
+</div>
