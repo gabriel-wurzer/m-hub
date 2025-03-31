@@ -10,13 +10,13 @@ import { environment } from '../../../environments/environment';
 import { FilterMenuComponent } from "../filter-menu/filter-menu.component";
 import { FilterButtonComponent } from "../buttons/filter-button/filter-button.component";
 import { FilterService } from '../../../services/filter.service';
-import { BuildingInformationComponent } from '../building-information/building-information.component';
+import { BuildingSidepanelComponent } from '../building-sidepanel/building-sidepanel.component';
 
 
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [CommonModule, FilterMenuComponent, FilterButtonComponent, BuildingInformationComponent],
+  imports: [CommonModule, FilterMenuComponent, FilterButtonComponent, BuildingSidepanelComponent],
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })

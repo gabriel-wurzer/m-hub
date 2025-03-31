@@ -3,11 +3,14 @@
  */
 
 export enum MaterialGroup {
-    mg_mineral = 'Mineralische Baustoffe', 
-    mg_wood = 'Holz',
-    mg_metals = 'Metalle',
-    mg_plastics = 'Kunststoffe',
-    mg_insulation = 'Dämmstoffe',
-    mg_building_technology = 'Gebäudetechnik'
+    mg_1 = 'Beton inkl. Estrich',
+    mg_2 = 'Ziegelmauerwerk,',
+    mg_3 = 'Holz',
+    mg_4 = 'Stahl',
+    mg_5 = 'Glas',
+    mg_6 = 'Mineralwolle',
+    mg_7 = 'Polystyrol',
+    mg_8 = 'Gipsplatten, Gips',
+    mg_9 = 'Sand, Kies, Stein',
   } 
   

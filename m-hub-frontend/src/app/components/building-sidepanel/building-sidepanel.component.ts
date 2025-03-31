@@ -16,13 +16,13 @@ import { FileType } from '../../enums/file-type.enum';
 
 
 @Component({
-  selector: 'app-building-information',
+  selector: 'app-building-sidepanel',
   standalone: true,
   imports: [ CommonModule, MatIconModule, MatButtonModule, MatDividerModule, MatListModule, NgxEchartsModule],
-  templateUrl: './building-information.component.html',
-  styleUrl: './building-information.component.scss'
+  templateUrl: './building-sidepanel.component.html',
+  styleUrl: './building-sidepanel.component.scss'
 })
-export class BuildingInformationComponent {
+export class BuildingSidepanelComponent {
   @Input() building!: Building | null;
   @Output() closePanel = new EventEmitter<void>();
 
@@ -38,7 +38,7 @@ export class BuildingInformationComponent {
   buildingParts: BuildingPart[] = [
     {
         id: "101",
-        name: "Main Roof",
+        name: "Dach",
         description: "Primary roofing structure",
         type: "building_part",
         ownerId: "owner-001",
@@ -46,16 +46,16 @@ export class BuildingInformationComponent {
         children: [
             {
                 id: "102",
-                name: "Sub Roof Section A",
-                description: "Left side of the roof",
+                name: "Dachziegel",
+                description: "Ziegel des Daches",
                 type: "building_part",
                 ownerId: "owner-001",
                 isPublic: true
             },
             {
                 id: "103",
-                name: "Sub Roof Section B",
-                description: "Right side of the roof",
+                name: "Dachbalken",
+                description: "Trägt die Dachkonstruktion. Besteht aus Fichtenholz.",
                 type: "building_part",
                 ownerId: "owner-001",
                 isPublic: true
@@ -64,7 +64,7 @@ export class BuildingInformationComponent {
     },
     {
         id: "104",
-        name: "Foundation",
+        name: "Fundament",
         description: "Base structure of the building",
         type: "building_part",
         ownerId: "owner-002",
@@ -178,26 +178,28 @@ export class BuildingInformationComponent {
     if (!this.building) return;
 
     const materialsData = [
-      { value: this.building.bmg1, name: MaterialGroup.mg_mineral },
-      { value: this.building.bmg2, name: MaterialGroup.mg_wood },
-      { value: this.building.bmg3, name: MaterialGroup.mg_metals },
-      { value: this.building.bmg4, name: MaterialGroup.mg_plastics },
-      { value: this.building.bmg5, name: MaterialGroup.mg_insulation },
-      { value: this.building.bmg6, name: MaterialGroup.mg_building_technology }
-      // TODO: add bmg 7 to 9
+      { value: this.building.bmg1, name: MaterialGroup.mg_1 },
+      { value: this.building.bmg2, name: MaterialGroup.mg_2 },
+      { value: this.building.bmg3, name: MaterialGroup.mg_3 },
+      { value: this.building.bmg4, name: MaterialGroup.mg_4 },
+      { value: this.building.bmg5, name: MaterialGroup.mg_5 },
+      { value: this.building.bmg6, name: MaterialGroup.mg_6 },
+      { value: this.building.bmg7, name: MaterialGroup.mg_7 },
+      { value: this.building.bmg8, name: MaterialGroup.mg_8 },
+      { value: this.building.bmg9, name: MaterialGroup.mg_9 }
     ].filter(entry => entry.value > 0);
 
     this.materialsPieChartOptions = {
       title: {
         left: 'center',
-        text: 'Baumaterialien',
+        text: 'Baumatrialgruppen',
       },
       tooltip: {
         trigger: 'item',
         confine: true,
         formatter: (params: any) => {
           const roundedValue = Number(params.value).toFixed(2);
-          return `${params.marker} ${params.name}: <b>${roundedValue} m&sup3;</b>`;
+          return `${params.marker} ${params.name}: <b>${roundedValue} t/m&sup2;</b>`;
         },
         textStyle: {
           fontSize: 15
