@@ -10,7 +10,7 @@ import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatDividerModule } from '@angular/material/divider';
 import { Period, PeriodLabels } from '../../enums/period.enum';
 import { Usage, UsageLabels } from '../../enums/usage.enum';
-import { FilterService } from '../../../services/filter.service';
+import { FilterService } from '../../services/filter.service';
 
 
 
