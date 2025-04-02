@@ -9,7 +9,7 @@ import { Building } from '../../models/building';
 import { environment } from '../../../environments/environment';
 import { FilterMenuComponent } from "../filter-menu/filter-menu.component";
 import { FilterButtonComponent } from "../buttons/filter-button/filter-button.component";
-import { FilterService } from '../../services/filter.service';
+import { FilterService } from '../../services/filter/filter.service';
 import { BuildingSidepanelComponent } from '../building-sidepanel/building-sidepanel.component';
 import { StructureDetailsComponent } from '../structure-details/structure-details.component';
 
