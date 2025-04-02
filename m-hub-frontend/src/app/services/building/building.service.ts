@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, Observable, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
 import { BuildingPart } from '../../models/building-part';
 
 @Injectable({
@@ -13,10 +13,10 @@ export class BuildingService {
   constructor(private http: HttpClient) { }
 
   getDocumentsByBuilding(buildingId: number): Observable<BuildingPart[]> {
-    return this.http.get<BuildingPart[]>(`${this.apiUrl}/${buildingId}`);
+    return this.http.get<BuildingPart[]>(`${this.apiUrl}/${buildingId}/documents`);
   }
 
   getBuildingPartsByBuilding(buildingId: number): Observable<BuildingPart[]> {
-    return this.http.get<BuildingPart[]>(`${this.apiUrl}/${buildingId}`);
+    return this.http.get<BuildingPart[]>(`${this.apiUrl}/${buildingId}/parts`);
   }
 }
