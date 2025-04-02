@@ -120,8 +120,8 @@ export class MapComponent implements OnInit {
     geocoderControl.options.geocoder.geocode = (query: string, cb: any) => {
 
       // Construct the API URL with query, limiting results to 5, and filtering to Vienna and Austria
-      const url = `/nominatim/search?format=json&limit=5&q=${encodeURIComponent(query)}, Vienna&countrycodes=AT`;
-
+      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(query)}, Vienna&countrycodes=AT`;
+      // const url = `/nominatim/search?format=json&limit=5&q=${encodeURIComponent(query)}, Vienna&countrycodes=AT`;
 
       console.log('Nominatim request URL:', url);
 
