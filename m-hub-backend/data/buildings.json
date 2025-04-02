@@ -1,0 +1,134 @@
+[
+    {
+        "bw_geb_id": 1,
+        "buildingParts": [
+            {
+            "id": "4", 
+            "name": "Foundation",
+            "description": "Building foundation",
+            "type": "building_part",
+            "ownerId": "owner-002",
+            "isPublic": false,
+            "buildingParts": []
+            },
+            {
+            "id": "5", 
+            "name": "Energy_Report",
+            "description": "Energy efficiency assessment",
+            "type": "document",
+            "ownerId": "owner-002",
+            "isPublic": false,
+            "fileUrl": "https://example.com/energy.pdf",
+            "fileType": "pdf"
+            }
+        ]
+    },
+    {
+        "bw_geb_id": 5397325,
+        "buildingParts": [
+        {
+            "id": "1", 
+            "name": "Main Structure",
+            "description": "Core building structure",
+            "type": "building_part",
+            "ownerId": "owner-001",
+            "isPublic": true,
+            "buildingParts": [
+            {
+                "id": "2", 
+                "name": "Blueprint",
+                "description": "Architectural design",
+                "type": "document",
+                "ownerId": "owner-001",
+                "isPublic": true,
+                "fileUrl": "https://example.com/blueprint.pdf",
+                "fileType": "pdf"
+            },
+            {
+                "id": "3", 
+                "name": "Foundation",
+                "description": "Building foundation",
+                "type": "building_part",
+                "ownerId": "owner-002",
+                "isPublic": false,
+                "buildingParts": []
+            }
+            ]
+        }
+        ]
+    },
+    {
+        "bw_geb_id": 5363852,
+        "buildingParts": [
+        {
+            "id": "6", 
+            "name": "Safety Section",
+            "description": "Safety-related parts",
+            "type": "building_part",
+            "ownerId": "owner-003",
+            "isPublic": true,
+            "buildingParts": [
+            {
+                "id": "7", 
+                "name": "Fire_Safety_Report",
+                "description": "Building fire safety analysis",
+                "type": "document",
+                "ownerId": "owner-003",
+                "isPublic": false,
+                "fileUrl": "https://example.com/fire_safety.pdf",
+                "fileType": "pdf"
+            },
+            {
+                "id": "8", 
+                "name": "Evacuation_Plan",
+                "description": "Emergency evacuation map",
+                "type": "document",
+                "ownerId": "owner-003",
+                "isPublic": true,
+                "fileUrl": "https://example.com/evacuation.png",
+                "fileType": "png"
+            }
+            ]
+        },
+        {
+            "id": "9", 
+            "name": "Structural Analysis",
+            "description": "Engineering evaluation",
+            "type": "building_part",
+            "ownerId": "owner-004",
+            "isPublic": false,
+            "buildingParts": [
+            {
+                "id": "10", 
+                "name": "Load_Bearing_Report",
+                "description": "Structural load assessment",
+                "type": "document",
+                "ownerId": "owner-004",
+                "isPublic": false,
+                "fileUrl": "https://example.com/load_bearing.pdf",
+                "fileType": "pdf"
+            },
+            {
+                "id": "11", 
+                "name": "Component 1",
+                "description": "Engineering component",
+                "type": "building_part",
+                "ownerId": "owner-004",
+                "isPublic": false,
+                "buildingParts": [
+                {
+                    "id": "12", 
+                    "name": "Component 2",
+                    "description": "",
+                    "type": "building_part",
+                    "ownerId": "owner-004",
+                    "isPublic": false,
+                    "buildingParts": []
+                }
+                ]
+            }
+            ]
+        }
+        ]
+    }
+]
