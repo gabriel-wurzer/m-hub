@@ -13,13 +13,14 @@ import { MaterialGroup } from '../../enums/material-group.enum';
 import { BuildingPart } from '../../models/building-part';
 import { FileType } from '../../enums/file-type.enum';
 import { BuildingService } from '../../services/building/building.service';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 
 
 @Component({
   selector: 'app-building-sidepanel',
   standalone: true,
-  imports: [ CommonModule, MatIconModule, MatButtonModule, MatDividerModule, MatListModule, NgxEchartsModule],
+  imports: [ CommonModule, MatIconModule, MatButtonModule, MatDividerModule, MatListModule, MatProgressSpinnerModule, NgxEchartsModule],
   templateUrl: './building-sidepanel.component.html',
   styleUrl: './building-sidepanel.component.scss'
 })
@@ -223,6 +224,8 @@ export class BuildingSidepanelComponent {
       } else {
         this.errorMessage = 'An error occurred while loading documents. Please try again later.';
       }
+
+      this.documents = [];
       this.isLoading = false;
     },
     complete: () => {

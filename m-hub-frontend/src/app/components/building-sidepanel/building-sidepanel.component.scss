@@ -129,9 +129,17 @@ mat-list-item:last-child {
     align-items: center;
 }
 
-
 .expand-button mat-icon {
     transform: translateX(4px);
+}
+
+.no-docs {
+    color: gray;
+}
+
+.loading-spinner {
+    margin: 1rem auto;
+    text-align: center;
 }
 
 /* Responsive behavior for mobile devices*/
