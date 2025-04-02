@@ -1,5 +1,13 @@
 [
     {
+        "id": "e8d2c400a518975b",
+        "type": "tab",
+        "label": "API",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "f6f2187d.f17ca8",
         "type": "tab",
         "label": "Flow 1",
@@ -7,12 +15,59 @@
         "info": ""
     },
     {
-        "id": "e8d2c400a518975b",
+        "id": "bc8f71868ee8d8a0",
         "type": "tab",
-        "label": "API",
+        "label": "Flow 2",
         "disabled": false,
         "info": "",
         "env": []
+    },
+    {
+        "id": "1248ce57789522dd",
+        "type": "http in",
+        "z": "e8d2c400a518975b",
+        "name": "GET /test",
+        "url": "/test",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 100,
+        "y": 40,
+        "wires": [
+            [
+                "9c7509f21076669f"
+            ]
+        ]
+    },
+    {
+        "id": "9c7509f21076669f",
+        "type": "template",
+        "z": "e8d2c400a518975b",
+        "name": "hello world (html)",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "plain",
+        "template": "<html>\n    <head></head>\n    <body>\n        <h1>Hello World!</h1>\n    </body>\n</html>",
+        "output": "str",
+        "x": 290,
+        "y": 40,
+        "wires": [
+            [
+                "625e6556c0ae06ae"
+            ]
+        ]
+    },
+    {
+        "id": "625e6556c0ae06ae",
+        "type": "http response",
+        "z": "e8d2c400a518975b",
+        "name": "response",
+        "statusCode": "",
+        "headers": {},
+        "x": 480,
+        "y": 40,
+        "wires": []
     },
     {
         "id": "3cc11d24.ff01a2",
@@ -163,50 +218,107 @@
         "wires": []
     },
     {
-        "id": "1248ce57789522dd",
+        "id": "3c129ba07320274b",
         "type": "http in",
-        "z": "e8d2c400a518975b",
-        "name": "GET /test",
-        "url": "/test",
+        "z": "bc8f71868ee8d8a0",
+        "name": "GET building documents",
+        "url": "/api/building/:id",
         "method": "get",
         "upload": false,
         "swaggerDoc": "",
-        "x": 100,
-        "y": 40,
+        "x": 170,
+        "y": 200,
         "wires": [
             [
-                "9c7509f21076669f"
+                "cb482042e1d86a02"
             ]
         ]
     },
     {
-        "id": "9c7509f21076669f",
-        "type": "template",
-        "z": "e8d2c400a518975b",
-        "name": "hello world (html)",
-        "field": "payload",
-        "fieldType": "msg",
-        "format": "html",
-        "syntax": "plain",
-        "template": "<html>\n    <head></head>\n    <body>\n        <h1>Hello World!</h1>\n    </body>\n</html>",
-        "output": "str",
-        "x": 290,
-        "y": 40,
+        "id": "49d964f8fce72ce6",
+        "type": "function",
+        "z": "bc8f71868ee8d8a0",
+        "name": "return documents for building id",
+        "func": "var buildingId = parseInt(msg.req.params.id);  // Extract building ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Find the building with the correct \"bw_geb_id\"\nvar building = buildings.find(b => b.bw_geb_id === buildingId);\n\nif (!building) {\n    msg.payload = { error: \"Building not found\" };\n    msg.statusCode = 404;\n    return [msg];\n}\n\n// Function to recursively collect documents from building parts\nfunction collectDocuments(parts) {\n    let documents = [];\n    for (let part of parts) {\n        if (part.type === \"document\") {\n            documents.push(part);\n        }\n        if (part.buildingParts && part.buildingParts.length > 0) {\n            documents = documents.concat(collectDocuments(part.buildingParts));\n        }\n    }\n    return documents;\n}\n\n// Extract all documents\nmsg.payload = collectDocuments(building.buildingParts);\nreturn [msg];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 400,
         "wires": [
             [
-                "625e6556c0ae06ae"
+                "913d48767b346272"
             ]
         ]
     },
     {
-        "id": "625e6556c0ae06ae",
+        "id": "913d48767b346272",
         "type": "http response",
-        "z": "e8d2c400a518975b",
-        "name": "response",
+        "z": "bc8f71868ee8d8a0",
+        "name": "document response",
         "statusCode": "",
         "headers": {},
-        "x": 480,
-        "y": 40,
+        "x": 390,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "cb482042e1d86a02",
+        "type": "file in",
+        "z": "bc8f71868ee8d8a0",
+        "name": "buildings.json",
+        "filename": "/data/buildings.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 160,
+        "y": 300,
+        "wires": [
+            [
+                "4254b6e7778df55b"
+            ]
+        ]
+    },
+    {
+        "id": "4254b6e7778df55b",
+        "type": "json",
+        "z": "bc8f71868ee8d8a0",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 330,
+        "y": 300,
+        "wires": [
+            [
+                "49d964f8fce72ce6"
+            ]
+        ]
+    },
+    {
+        "id": "b8b50779ec0b04a0",
+        "type": "comment",
+        "z": "bc8f71868ee8d8a0",
+        "name": "http://localhost:1880/api/building/ID",
+        "info": "",
+        "x": 160,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "521eb13470c47853",
+        "type": "comment",
+        "z": "bc8f71868ee8d8a0",
+        "name": "mock: fetch documents for building with param ID",
+        "info": "",
+        "x": 680,
+        "y": 340,
         "wires": []
     }
 ]
