@@ -129,6 +129,11 @@ mat-list-item:last-child {
     align-items: center;
 }
 
+
+.expand-button mat-icon {
+    transform: translateX(4px);
+}
+
 /* Responsive behavior for mobile devices*/
 @media (max-width: 800px) {
     .chart-container {
