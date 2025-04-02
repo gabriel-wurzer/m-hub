@@ -38,9 +38,39 @@
   </mat-sidenav>
 
   <mat-sidenav-content class="main-content">
+
+    <mat-menu #menu="matMenu">
+      <div class="menu-item" (click)="onMenuClick('map')">
+        <button mat-menu-item>
+          <mat-icon>map</mat-icon> 
+        </button>
+        <span>Karte</span>
+      </div>
+
+      <div class="menu-item" (click)="onMenuClick('hub')">
+        <button mat-menu-item>
+          <mat-icon>hub</mat-icon> 
+        </button>
+        <span>Hub</span>
+      </div>
+
+      <div  class="menu-item" (click)="onMenuClick('data')">
+        <button mat-menu-item>
+          <mat-icon>grid_view</mat-icon> 
+        </button>
+        <span>Daten</span>
+      </div>
+    </mat-menu>
+
     <mat-toolbar *ngIf="isMobile" class="mobile-toolbar">
-      <button mat-icon-button><mat-icon>menu</mat-icon></button>
-      <span>M-Hub</span>
+      <button mat-icon-button [matMenuTriggerFor]="menu"><mat-icon>menu</mat-icon></button>
+      <div class="logo-section-mobile">
+        <img src="assets/images/logo.png" alt="Logo" class="logo" />
+      </div>
+      <div class="name-section-mobile">
+        <span>M</span>
+        <span>HUB</span>
+      </div>
     </mat-toolbar>
 
     <div class="router-outlet-container">
