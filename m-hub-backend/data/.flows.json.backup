@@ -23,6 +23,14 @@
         "env": []
     },
     {
+        "id": "38f9cc6750f8eb6f",
+        "type": "tab",
+        "label": "Flow 3",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "1248ce57789522dd",
         "type": "http in",
         "z": "e8d2c400a518975b",
@@ -222,7 +230,7 @@
         "type": "http in",
         "z": "bc8f71868ee8d8a0",
         "name": "GET building documents",
-        "url": "/api/building/:id",
+        "url": "/api/building/:id/documents",
         "method": "get",
         "upload": false,
         "swaggerDoc": "",
@@ -238,7 +246,7 @@
         "id": "49d964f8fce72ce6",
         "type": "function",
         "z": "bc8f71868ee8d8a0",
-        "name": "return documents for building id",
+        "name": "extract documents",
         "func": "var buildingId = parseInt(msg.req.params.id);  // Extract building ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Find the building with the correct \"bw_geb_id\"\nvar building = buildings.find(b => b.bw_geb_id === buildingId);\n\nif (!building) {\n    msg.payload = { error: \"Building not found\" };\n    msg.statusCode = 404;\n    return [msg];\n}\n\n// Function to recursively collect documents from building parts\nfunction collectDocuments(parts) {\n    let documents = [];\n    for (let part of parts) {\n        if (part.type === \"document\") {\n            documents.push(part);\n        }\n        if (part.buildingParts && part.buildingParts.length > 0) {\n            documents = documents.concat(collectDocuments(part.buildingParts));\n        }\n    }\n    return documents;\n}\n\n// Extract all documents\nmsg.payload = collectDocuments(building.buildingParts);\nreturn [msg];",
         "outputs": 1,
         "timeout": 0,
@@ -258,11 +266,11 @@
         "id": "913d48767b346272",
         "type": "http response",
         "z": "bc8f71868ee8d8a0",
-        "name": "document response",
+        "name": "documents response",
         "statusCode": "",
         "headers": {},
-        "x": 390,
-        "y": 520,
+        "x": 400,
+        "y": 500,
         "wires": []
     },
     {
@@ -305,9 +313,9 @@
         "id": "b8b50779ec0b04a0",
         "type": "comment",
         "z": "bc8f71868ee8d8a0",
-        "name": "http://localhost:1880/api/building/ID",
+        "name": "http://localhost:1880/api/building/ID/documents",
         "info": "",
-        "x": 160,
+        "x": 190,
         "y": 140,
         "wires": []
     },
@@ -315,10 +323,114 @@
         "id": "521eb13470c47853",
         "type": "comment",
         "z": "bc8f71868ee8d8a0",
-        "name": "mock db: fetch documents for building with param ID",
+        "name": "mock: fetch documents for building with param ID",
         "info": "",
-        "x": 690,
+        "x": 680,
         "y": 340,
+        "wires": []
+    },
+    {
+        "id": "f24d3eb7fd564ece",
+        "type": "http in",
+        "z": "38f9cc6750f8eb6f",
+        "name": "GET building parts",
+        "url": "/api/building/:id/parts",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 180,
+        "wires": [
+            [
+                "7c9eecbf76fd44f4"
+            ]
+        ]
+    },
+    {
+        "id": "90f4d4ea437e84c0",
+        "type": "function",
+        "z": "38f9cc6750f8eb6f",
+        "name": "extract building parts",
+        "func": "var buildingId = parseInt(msg.req.params.id);  // Extract building ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Find the building with the correct \"bw_geb_id\"\nvar building = buildings.find(b => b.bw_geb_id === buildingId);\n\nif (!building) {\n    msg.payload = { error: \"Building not found\" };\n    msg.statusCode = 404;\n    return [msg];\n}\n\n// Function to recursively collect parts from building parts\nfunction collectParts(parts) {\n    let temp_parts = [];\n    for (let part of parts) {\n        if (part.type === \"building_part\") {\n            temp_parts.push(part);\n        }\n        if (part.buildingParts && part.buildingParts.length > 0) {\n            temp_parts = temp_parts.concat(collectParts(part.buildingParts));\n        }\n    }\n    return temp_parts;\n}\n\n// Extract all documents\nmsg.payload = collectParts(building.buildingParts);\nreturn [msg];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 380,
+        "wires": [
+            [
+                "541d93095bb5472d"
+            ]
+        ]
+    },
+    {
+        "id": "541d93095bb5472d",
+        "type": "http response",
+        "z": "38f9cc6750f8eb6f",
+        "name": "parts response",
+        "statusCode": "",
+        "headers": {},
+        "x": 500,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "7c9eecbf76fd44f4",
+        "type": "file in",
+        "z": "38f9cc6750f8eb6f",
+        "name": "buildings.json",
+        "filename": "/data/buildings.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 260,
+        "y": 280,
+        "wires": [
+            [
+                "426d12c6563467b5"
+            ]
+        ]
+    },
+    {
+        "id": "426d12c6563467b5",
+        "type": "json",
+        "z": "38f9cc6750f8eb6f",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 430,
+        "y": 280,
+        "wires": [
+            [
+                "90f4d4ea437e84c0"
+            ]
+        ]
+    },
+    {
+        "id": "aca210ea30b6f97f",
+        "type": "comment",
+        "z": "38f9cc6750f8eb6f",
+        "name": "http://localhost:1880/api/building/ID/parts",
+        "info": "",
+        "x": 280,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "581b56679cf62dc8",
+        "type": "comment",
+        "z": "38f9cc6750f8eb6f",
+        "name": "mock: fetch parts for building with param ID",
+        "info": "",
+        "x": 760,
+        "y": 320,
         "wires": []
     }
 ]
