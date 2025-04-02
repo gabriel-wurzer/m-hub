@@ -12,7 +12,7 @@ import { NgxEchartsModule } from 'ngx-echarts';
 import { MaterialGroup } from '../../enums/material-group.enum';
 import { BuildingPart } from '../../models/building-part';
 import { FileType } from '../../enums/file-type.enum';
-import { BuildingService } from '../../services/building.service';
+import { BuildingService } from '../../services/building/building.service';
 
 
 
@@ -29,6 +29,8 @@ export class BuildingSidepanelComponent {
 
   @Output() openStructureView = new EventEmitter<Building>();
 
+  errorMessage = '';
+
   periodOptions = Object.values(Period).filter(value => typeof value === 'number') as number[];
   periodLabels = PeriodLabels;
 
@@ -39,6 +41,8 @@ export class BuildingSidepanelComponent {
   materialsPieChartOptions: EChartsOption = {};
 
   documents: BuildingPart[] = [];
+
+  isLoading = false; 
 
   constructor(private buildingService: BuildingService) { }
 
@@ -68,6 +72,8 @@ export class BuildingSidepanelComponent {
   }
 
   ngOnChanges() {
+    this.#loadDocuments(this.building!.bw_geb_id);
+
     this.updateUsagePieChart();
     this.updateMaterialsPieChart();
   }
@@ -193,11 +199,38 @@ export class BuildingSidepanelComponent {
     };
   }
 
+
   #loadDocuments(buildingId: number) {
-    this.buildingService.getDocumentsByBuilding(buildingId).subscribe((docs) => {
-      this.documents = docs;
-    });
-  }
+    if (this.isLoading) return;
+  this.isLoading = true;
+
+  console.log('Requesting documents for building:', buildingId);
+
+  this.buildingService.getDocumentsByBuilding(buildingId).subscribe({
+    next: (docs) => {
+      this.documents = docs.map(doc => ({
+        ...doc,
+        fileType: doc.fileType ? doc.fileType.toLowerCase() as FileType : undefined
+      }));
+
+      this.errorMessage = docs.length === 0 ? 'No documents found for this building.' : '';
+    },
+    error: (error) => {
+      console.error('Error loading documents:', error);
+
+      if (error.status === 404) {
+        this.errorMessage = 'No documents found for this building.';
+      } else {
+        this.errorMessage = 'An error occurred while loading documents. Please try again later.';
+      }
+      this.isLoading = false;
+    },
+    complete: () => {
+      this.isLoading = false;
+    }
+  });
+}
+  
 
   openStructureDetailsView() {
     console.log('Open structure details view for building: ', this.building?.bw_geb_id);

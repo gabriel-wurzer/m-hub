@@ -33,7 +33,7 @@
         <mat-list>
             <mat-list-item *ngFor="let doc of documents">
                 <mat-icon class="list-icon">insert_drive_file</mat-icon>
-                <span class="list-text">{{ doc.name }}</span>
+                <span class="list-text">{{ doc.name }}.{{ doc.fileType }}</span>
                 <mat-icon *ngIf="!doc.isPublic" class="lock-icon">lock</mat-icon>
             </mat-list-item>
         </mat-list>
