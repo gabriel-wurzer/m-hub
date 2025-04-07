@@ -41,5 +41,4 @@ typings
 # System files
 .DS_Store
 Thumbs.db
-Thumbs.dbsrc/environments/environment.ts
 m-hub-frontend/src/environments/environment.ts
