@@ -3,7 +3,8 @@
         "bw_geb_id": 1,
         "buildingParts": [
             {
-            "id": "4", 
+            "id": "4",
+            "buildingId": "1",
             "name": "Foundation",
             "description": "Building foundation",
             "type": "building_part",
@@ -12,7 +13,8 @@
             "buildingParts": []
             },
             {
-            "id": "5", 
+            "id": "5",
+            "buildingId": "1",
             "name": "Energy_Report",
             "description": "Energy efficiency assessment",
             "type": "document",
@@ -27,7 +29,8 @@
         "bw_geb_id": 5397325,
         "buildingParts": [
         {
-            "id": "1", 
+            "id": "1",
+            "buildingId": "5397325",
             "name": "Main Structure",
             "description": "Core building structure",
             "type": "building_part",
@@ -35,7 +38,8 @@
             "isPublic": true,
             "buildingParts": [
             {
-                "id": "2", 
+                "id": "2",
+                "buildingId": "5397325",
                 "name": "Blueprint",
                 "description": "Architectural design",
                 "type": "document",
@@ -45,7 +49,8 @@
                 "fileType": "pdf"
             },
             {
-                "id": "3", 
+                "id": "3",
+                "buildingId": "5397325",
                 "name": "Foundation",
                 "description": "Building foundation",
                 "type": "building_part",
@@ -61,7 +66,8 @@
         "bw_geb_id": 5363852,
         "buildingParts": [
         {
-            "id": "6", 
+            "id": "6",
+            "buildingId": "5363852",
             "name": "Safety Section",
             "description": "Safety-related parts",
             "type": "building_part",
@@ -69,7 +75,8 @@
             "isPublic": true,
             "buildingParts": [
             {
-                "id": "7", 
+                "id": "7",
+                "buildingId": "5363852",
                 "name": "Fire_Safety_Report",
                 "description": "Building fire safety analysis",
                 "type": "document",
@@ -79,7 +86,8 @@
                 "fileType": "pdf"
             },
             {
-                "id": "8", 
+                "id": "8",
+                "buildingId": "5363852",
                 "name": "Evacuation_Plan",
                 "description": "Emergency evacuation map",
                 "type": "document",
@@ -91,7 +99,8 @@
             ]
         },
         {
-            "id": "9", 
+            "id": "9",
+            "buildingId": "5363852",
             "name": "Structural Analysis",
             "description": "Engineering evaluation",
             "type": "building_part",
@@ -99,7 +108,8 @@
             "isPublic": false,
             "buildingParts": [
             {
-                "id": "10", 
+                "id": "10",
+                "buildingId": "5363852",
                 "name": "Load_Bearing_Report",
                 "description": "Structural load assessment",
                 "type": "document",
@@ -109,7 +119,8 @@
                 "fileType": "pdf"
             },
             {
-                "id": "11", 
+                "id": "11",
+                "buildingId": "5363852",
                 "name": "Component 1",
                 "description": "Engineering component",
                 "type": "building_part",
@@ -117,7 +128,8 @@
                 "isPublic": false,
                 "buildingParts": [
                 {
-                    "id": "12", 
+                    "id": "12",
+                    "buildingId": "5363852",
                     "name": "Component 2",
                     "description": "",
                     "type": "building_part",

@@ -5,6 +5,7 @@ import { FileType } from "../enums/file-type.enum";
  */
 export interface BuildingPart {
     id: string; // UUID of the building part
+    buildingId: string;
     name: string;
     description: string;
     type: 'document' | 'building_part'; // Defines whether it is a document or a nested building part
