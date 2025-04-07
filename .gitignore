@@ -29,6 +29,9 @@ yarn-error.log
 #!.vscode/extensions.json
 #.history/*
 
+# Environments
+/m-hub-frontend/src/environments/environment.ts
+
 # Miscellaneous
 .angular/
 .sass-cache/
@@ -41,4 +44,3 @@ typings
 # System files
 .DS_Store
 Thumbs.db
-m-hub-frontend/src/environments/environment.ts
