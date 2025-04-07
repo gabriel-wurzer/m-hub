@@ -14,11 +14,22 @@ mat-tree-node span {
 .structure-tree-node span {
     cursor: pointer;
 
+    font-size: 17px;
+
     &:hover {
         text-decoration: underline;
         color: rgb(60, 60, 60);
     }
 
+}
+
+.building-text {
+    font-weight: 500;
+    font-size: 18px !important;
+}
+
+.building-icon {
+    margin-right: 6px;
 }
 
 .structure-tree ul,
@@ -28,14 +39,5 @@ mat-tree-node span {
 }
   
 .structure-tree .mat-nested-tree-node div[role=group] {
-    padding-left: 28px;
-}
-
-.building-icon {
-    margin-right: 6px;
-}
-
-
-.building-icon  {
-    margin-right: 6px;
+    padding-left: 12px;
 }

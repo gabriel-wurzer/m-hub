@@ -454,13 +454,13 @@ export class MapComponent implements OnInit {
   showStructureDetails(event: any): void {
     this.isStructureDetailsVisible = true;
 
-    console.log(this.isStructureDetailsVisible);
+    // console.log(this.isStructureDetailsVisible);
   }
   
   hideStructureDetails(): void {
     this.isStructureDetailsVisible = false;
 
-    console.log(this.isStructureDetailsVisible);
+    // console.log(this.isStructureDetailsVisible);
   }
 
 }
