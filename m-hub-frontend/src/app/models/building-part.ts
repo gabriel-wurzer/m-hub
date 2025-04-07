@@ -13,5 +13,5 @@ export interface BuildingPart {
     isPublic: boolean;
     fileUrl?: string; // Optional file URL for documents
     fileType?: FileType; // optional file type (e.g., 'pdf', 'jpg', 'e57')
-    children?: BuildingPart[]; // Only exists if it's a non-document building part
+    buildingParts?: BuildingPart[]; // Only exists if it's a non-document building part
 }

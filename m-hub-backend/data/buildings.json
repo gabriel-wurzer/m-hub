@@ -9,8 +9,7 @@
             "description": "Building foundation",
             "type": "building_part",
             "ownerId": "owner-002",
-            "isPublic": false,
-            "buildingParts": []
+            "isPublic": false
             },
             {
             "id": "5",
@@ -55,8 +54,7 @@
                 "description": "Building foundation",
                 "type": "building_part",
                 "ownerId": "owner-002",
-                "isPublic": false,
-                "buildingParts": []
+                "isPublic": false
             }
             ]
         }
@@ -101,8 +99,8 @@
         {
             "id": "9",
             "buildingId": "5363852",
-            "name": "Structural Analysis",
-            "description": "Engineering evaluation",
+            "name": "Structural Section",
+            "description": "Structural-related parts",
             "type": "building_part",
             "ownerId": "owner-004",
             "isPublic": false,
@@ -134,8 +132,7 @@
                     "description": "",
                     "type": "building_part",
                     "ownerId": "owner-004",
-                    "isPublic": false,
-                    "buildingParts": []
+                    "isPublic": false
                 }
                 ]
             }
