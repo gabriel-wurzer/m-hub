@@ -7,8 +7,18 @@ mat-tree {
     background: inherit;
 }
 
-mat-tree-node {
-    width: fit-content;
+mat-tree-node span {
+    cursor: pointer;
+}
+
+.structure-tree-node span {
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+        color: rgb(60, 60, 60);
+    }
+
 }
 
 .structure-tree ul,

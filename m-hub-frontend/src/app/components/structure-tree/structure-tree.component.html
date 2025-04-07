@@ -1,20 +1,24 @@
 <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="structure-tree">
   <mat-nested-tree-node *matTreeNodeDef="let node" matTreeNodePadding class="structure-tree-node">
-    <div class="mat-tree-node">
+    <div class="mat-tree-node clickable" (click)="onNodeClick(node)">
       <button mat-icon-button disabled></button>
-      {{ node.name }}
+      <span>
+        {{ node.name }}
+      </span>
     </div>
   </mat-nested-tree-node>
 
   <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild" class="structure-tree-node">
-    <div class="mat-tree-node">
+    <div class="mat-tree-node clickable" (click)="onNodeClick(node)">
       <button mat-icon-button (click)="toggleNode(node)" [attr.aria-label]="'Toggle ' + node.name">
         <mat-icon class="mat-icon-rtl-mirror">
           {{ treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}
         </mat-icon>
       </button>
       <mat-icon *ngIf="node.type=='building'" class="building-icon">home</mat-icon>
-      {{ node.name }}
+      <span>
+        {{ node.name }}
+      </span>
     </div>
 
     <div *ngIf="treeControl.isExpanded(node)" role="group">

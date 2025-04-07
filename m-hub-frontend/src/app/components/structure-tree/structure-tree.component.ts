@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTreeModule } from '@angular/material/tree';
 import { MatIconModule } from '@angular/material/icon';
@@ -26,6 +26,7 @@ interface TreeNode {
 })
 export class StructureTreeComponent implements OnInit {
   @Input() entity!: Building | BuildingPart | null;
+  @Output() nodeClicked = new EventEmitter<TreeNode>();
 
   treeControl = new NestedTreeControl<TreeNode>(node => node.buildingParts);
   dataSource = new MatTreeNestedDataSource<TreeNode>();
@@ -92,5 +93,10 @@ export class StructureTreeComponent implements OnInit {
     this.treeControl.isExpanded(node)
       ? this.treeControl.collapse(node)
       : this.treeControl.expand(node);
+  }
+
+  onNodeClick(node: TreeNode): void {
+    console.log("clicked on node", node.name);
+    this.nodeClicked.emit(node);
   }
 }
