@@ -8,12 +8,13 @@ import { NestedTreeControl } from '@angular/cdk/tree';
 
 import { Building } from '../../models/building';
 import { BuildingPart } from '../../models/building-part';
+import { BuildingService } from '../../services/building/building.service';
 
 interface TreeNode {
   id: string;
   name: string;
   type: 'building' | 'building_part';
-  children?: TreeNode[];
+  buildingParts?: TreeNode[];
 }
 
 @Component({
@@ -25,34 +26,67 @@ interface TreeNode {
 })
 export class StructureTreeComponent implements OnInit {
   @Input() entity!: Building | BuildingPart | null;
-  treeControl = new NestedTreeControl<TreeNode>(node => node.children);
+
+  treeControl = new NestedTreeControl<TreeNode>(node => node.buildingParts);
   dataSource = new MatTreeNestedDataSource<TreeNode>();
 
+  constructor(private buildingService: BuildingService) { }
+
   ngOnInit() {
-    if (this.entity) {
-      this.dataSource.data = [this.buildTree(this.entity)];
-    }
-  }
+    if (!this.entity) return;
 
-  buildTree(entity: Building | BuildingPart): TreeNode {
-    const node: TreeNode = {
-      id: 'bw_geb_id' in entity ? entity.bw_geb_id.toString() : entity.id,
-      name: 'bw_geb_id' in entity ? `Gebäude ${entity.bw_geb_id}` : `Bauelement ${entity.id}`,
-      type: 'bw_geb_id' in entity ? 'building' : 'building_part',
-      children: []
-    };
-    
-    const parts = 'buildingParts' in entity ? entity.buildingParts : ('children' in entity ? entity.children : []);
-    if (parts) {
-      node.children = parts
-        .filter(part => part.type === 'building_part')
-        .map(part => this.buildTree(part));
+    let buildingId: number;
+  
+    if (this.isBuilding(this.entity)) {
+      buildingId = this.entity.bw_geb_id;
+    } else {
+      buildingId = parseInt(this.entity.buildingId);
     }
     
-    return node;
+    this.buildingService.getBuildingPartsByBuilding(buildingId).subscribe({
+      next: (parts) => {
+        const root: TreeNode = {
+          id: buildingId.toString(),
+          name: `Gebäude ${buildingId}`,
+          type: 'building',
+          buildingParts: this.buildChildren(parts)
+        };
+        this.dataSource.data = [root];
+
+        this.treeControl.dataNodes = this.dataSource.data;
+        this.treeControl.expandAll();
+      },
+      error: (err) => console.error('Failed to load building parts:', err)
+    });
   }
 
-  hasChild = (_: number, node: TreeNode) => !!node.children && node.children.length > 0;
+  private isBuilding(entity: Building | BuildingPart): entity is Building {
+    return (entity as Building).bw_geb_id !== undefined;
+  }
+
+  buildChildren(parts: BuildingPart[]): TreeNode[] {
+    return parts.map(part => ({
+      id: part.id,
+      name: part.name,
+      type: 'building_part',
+      buildingParts: this.buildChildren(part.buildingParts ?? [])
+    }));
+  }
+
+  findSubtree(targetId: string, parts: BuildingPart[]): TreeNode[] {
+    for (const part of parts) {
+      if (part.id === targetId) {
+        return this.buildChildren(part.buildingParts ?? []);
+      }
+      if (part.buildingParts?.length) {
+        const sub = this.findSubtree(targetId, part.buildingParts);
+        if (sub.length > 0) return sub;
+      }
+    }
+    return [];
+  }
+
+  hasChild = (_: number, node: TreeNode) => !!node.buildingParts && node.buildingParts.length > 0;
 
   toggleNode(node: TreeNode) {
     this.treeControl.isExpanded(node)
