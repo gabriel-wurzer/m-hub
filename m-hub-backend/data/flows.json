@@ -482,7 +482,7 @@
         "y": 360,
         "wires": [
             [
-                "8f927269b5342aec"
+                "f301ee9a5dbd2bad"
             ]
         ]
     },
@@ -493,7 +493,7 @@
         "name": "building response",
         "statusCode": "",
         "headers": {},
-        "x": 490,
+        "x": 750,
         "y": 460,
         "wires": []
     },
@@ -554,6 +554,31 @@
         "wires": []
     },
     {
+        "id": "f301ee9a5dbd2bad",
+        "type": "delay",
+        "z": "27011c5e3f9c0442",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 460,
+        "y": 460,
+        "wires": [
+            [
+                "8f927269b5342aec"
+            ]
+        ]
+    },
+    {
         "id": "01d1ad3529f51439",
         "type": "http in",
         "z": "334b2a9f8565f79d",
@@ -577,7 +602,7 @@
         "name": "building-part response",
         "statusCode": "",
         "headers": {},
-        "x": 460,
+        "x": 720,
         "y": 440,
         "wires": []
     },
@@ -651,6 +676,31 @@
         "libs": [],
         "x": 380,
         "y": 340,
+        "wires": [
+            [
+                "513f08822ac5a09a"
+            ]
+        ]
+    },
+    {
+        "id": "513f08822ac5a09a",
+        "type": "delay",
+        "z": "334b2a9f8565f79d",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 440,
+        "y": 440,
         "wires": [
             [
                 "2570eeb4e26197f4"
