@@ -32,7 +32,10 @@ export class StructureViewComponent implements OnInit{
 
   errorMessage = '';
 
-  constructor(private buildingService: BuildingService, private buildingPartService: BuildingPartService) {}
+  constructor(
+    private buildingService: BuildingService, 
+    private buildingPartService: BuildingPartService,
+  ) {}
 
   ngOnInit(): void {
     this.selectedEntity = this.entity;

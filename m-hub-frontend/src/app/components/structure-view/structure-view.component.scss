@@ -47,11 +47,13 @@
     position: absolute;
     top: 8px;
     right: 12px;
+    z-index: 1000;
 }
 
 @media (max-width: 820px) {
     .structure-info-panel {
         display: flex;
         flex-direction: column;
-  }
+        gap: 1.4rem;
+    }
 }
