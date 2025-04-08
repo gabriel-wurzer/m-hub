@@ -40,8 +40,6 @@ export class BuildingSidepanelComponent {
   usagePieChartOptions: EChartsOption = {};
   materialsPieChartOptions: EChartsOption = {};
 
-  documents: BuildingPart[] = [];
-
   isLoading = false; 
 
 
@@ -190,7 +188,7 @@ export class BuildingSidepanelComponent {
     };
   }
 
-  openStructureDetailsView() {
+  openStructureViewPanel() {
     console.log('Open structure details view for building: ', this.building?.bw_geb_id);
     if (this.building) {
       this.openStructureView.emit(this.building);

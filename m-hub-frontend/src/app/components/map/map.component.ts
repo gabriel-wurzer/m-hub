@@ -11,13 +11,13 @@ import { FilterMenuComponent } from "../filter-menu/filter-menu.component";
 import { FilterButtonComponent } from "../buttons/filter-button/filter-button.component";
 import { FilterService } from '../../services/filter/filter.service';
 import { BuildingSidepanelComponent } from '../building-sidepanel/building-sidepanel.component';
-import { StructureDetailsComponent } from '../structure-details/structure-details.component';
+import { StructureViewComponent } from "../structure-view/structure-view.component";
 
 
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [CommonModule, FilterMenuComponent, FilterButtonComponent, BuildingSidepanelComponent, StructureDetailsComponent],
+  imports: [CommonModule, FilterMenuComponent, FilterButtonComponent, BuildingSidepanelComponent, StructureViewComponent],
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })
@@ -40,7 +40,7 @@ export class MapComponent implements OnInit {
   // additionalColumns: string[] = [];  // Stores extra columns dynamically
 
   isFilterPanelVisible = false;
-  isStructureDetailsVisible = false;
+  isStructureViewVisible = false;
 
   constructor(private filterService: FilterService) {}
 
@@ -440,27 +440,13 @@ export class MapComponent implements OnInit {
     }
   }
 
-  // // When the side panel emits openStructureView, show the structure details and hide other elements
-  // showStructureDetails(building: Building) {
-  //   this.selectedBuilding = building;
-  //   this.isStructureDetailsVisible = true;
-  // }
 
-  // // When closing structure details, show the map and side panel again
-  // hideStructureDetails() {
-  //   this.isStructureDetailsVisible = false;
-  // }
-  
-  showStructureDetails(event: any): void {
-    this.isStructureDetailsVisible = true;
-
-    // console.log(this.isStructureDetailsVisible);
+  showStructureView(): void {
+    this.isStructureViewVisible = true;
   }
   
-  hideStructureDetails(): void {
-    this.isStructureDetailsVisible = false;
-
-    // console.log(this.isStructureDetailsVisible);
+  hideStructureView(): void {
+    this.isStructureViewVisible = false;
   }
 
 }

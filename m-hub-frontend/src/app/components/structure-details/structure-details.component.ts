@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,25 +9,21 @@ import { MatListModule } from '@angular/material/list';
 
 import { BuildingPart } from '../../models/building-part';
 import { Building } from '../../models/building';
-import { FileType } from '../../enums/file-type.enum';
 import { Period, PeriodLabels } from '../../enums/period.enum';
 import { Usage, UsageLabels } from '../../enums/usage.enum';
-import { StructureTreeComponent } from "../structure-tree/structure-tree.component";
-import { BuildingService } from '../../services/building/building.service';
 import { DocumentListComponent } from "../document-list/document-list.component";
 
 
 @Component({
   selector: 'app-structure-details',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatButtonModule, MatDividerModule, MatExpansionModule, MatProgressSpinnerModule, MatListModule, StructureTreeComponent, DocumentListComponent],
+  imports: [CommonModule, MatIconModule, MatButtonModule, MatDividerModule, MatExpansionModule, MatProgressSpinnerModule, MatListModule, DocumentListComponent],
   templateUrl: './structure-details.component.html',
   styleUrl: './structure-details.component.scss'
 })
 export class StructureDetailsComponent implements OnInit {
 
   @Input() entity!: Building | BuildingPart | null;
-  @Output() closeDetails = new EventEmitter<void>();
 
   errorMessage = '';
 
@@ -42,13 +38,27 @@ export class StructureDetailsComponent implements OnInit {
   usageOptions = Object.values(Usage).filter(value => typeof value === 'number') as number[];
   usageLabels = UsageLabels;
 
-  documents: BuildingPart[] = [];
-  
+
   isLoading = false;
 
   ngOnInit() {
     if (!this.entity) return;
   
+    this.setupEntity();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['entity']) {
+      this.setupEntity();
+    }
+  }
+
+  private setupEntity() {
+    this.building = undefined;
+    this.buildingPart = undefined;
+
+    if (!this.entity) return;
+
     'bw_geb_id' in this.entity
       ? (this.isBuilding = true, this.building = this.entity as Building)
       : (this.isBuilding = false, this.buildingPart = this.entity as BuildingPart);
@@ -71,10 +81,6 @@ export class StructureDetailsComponent implements OnInit {
       return this.usageLabels[this.building.dom_nutzung] || 'Nutzung unbekannt';
     }
     return 'Nutzung unbekannt';
-  }
-
-  onClose() {
-    this.closeDetails.emit();
   }
 
 }

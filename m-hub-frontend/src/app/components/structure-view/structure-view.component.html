@@ -1,0 +1,27 @@
+<div class="structure-info-panel">
+
+    <div class="structure-tree-container">
+        <app-structure-tree 
+            [entity]="entity"
+            (nodeClicked)="onNodeSelected($event)">
+        </app-structure-tree>
+
+    </div>
+
+    <mat-divider [vertical]="true" class="vertical-divider"/>
+
+    <mat-spinner *ngIf="isLoading" [diameter]="100" [strokeWidth]="6" class="loading-spinner" />
+
+    <div *ngIf="!isLoading && selectedEntity !== undefined" class="structure-content-container">
+
+        <app-structure-details
+            [entity]="selectedEntity">
+        </app-structure-details>
+        
+    </div>
+    
+    <button mat-icon-button class="close-button" (click)="onClose()">
+        <mat-icon>close</mat-icon>
+    </button>
+
+</div>
