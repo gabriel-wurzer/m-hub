@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,9 +9,11 @@ import { MatListModule } from '@angular/material/list';
 
 import { BuildingPart } from '../../models/building-part';
 import { Building } from '../../models/building';
+import { FileType } from '../../enums/file-type.enum';
 import { Period, PeriodLabels } from '../../enums/period.enum';
 import { Usage, UsageLabels } from '../../enums/usage.enum';
 import { StructureTreeComponent } from "../structure-tree/structure-tree.component";
+import { BuildingService } from '../../services/building/building.service';
 import { DocumentListComponent } from "../document-list/document-list.component";
 
 
@@ -22,7 +24,7 @@ import { DocumentListComponent } from "../document-list/document-list.component"
   templateUrl: './structure-details.component.html',
   styleUrl: './structure-details.component.scss'
 })
-export class StructureDetailsComponent {
+export class StructureDetailsComponent implements OnInit {
 
   @Input() entity!: Building | BuildingPart | null;
   @Output() closeDetails = new EventEmitter<void>();
@@ -43,6 +45,14 @@ export class StructureDetailsComponent {
   documents: BuildingPart[] = [];
   
   isLoading = false;
+
+  ngOnInit() {
+    if (!this.entity) return;
+  
+    'bw_geb_id' in this.entity
+      ? (this.isBuilding = true, this.building = this.entity as Building)
+      : (this.isBuilding = false, this.buildingPart = this.entity as BuildingPart);
+  }
 
   get periodLabel(): string {
     if (this.building && this.building.bp) {
