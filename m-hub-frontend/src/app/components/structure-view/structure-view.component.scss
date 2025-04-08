@@ -1,6 +1,8 @@
 :host {
     height: 100%;
     width: 100%;
+    display: flex;
+    overflow-x: hidden;
 }
 
 .structure-info-panel {
@@ -19,7 +21,7 @@
 }
 
 .structure-tree-container {
-    min-width: 350px;
+    min-width: 320px;
     height: fit-content;
 }
 

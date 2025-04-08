@@ -1,6 +1,6 @@
 <div class="building-info-panel">
     <header class="building-info-header">
-        <button mat-icon-button class="expand-button" (click)="openStructureViewPanel()">
+        <button mat-icon-button class="expand-button" [ngClass]="{ 'rotated-button': isMobile }" (click)="openStructureViewPanel()">
             <mat-icon>arrow_back_ios</mat-icon>
         </button>
         <h2 class="building-info-title">Gebäudeinfo</h2>

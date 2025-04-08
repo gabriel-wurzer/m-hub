@@ -67,6 +67,16 @@
     transform: translateX(4px);
 }
 
+.rotated-button {
+    transform: rotate(90deg);
+    transition: transform 0.2s ease;
+    display: inline-block;
+
+    mat-icon {
+        transform: translateX(8px);
+    }
+}
+
 mat-divider {
     margin: 2px 12px 1.6rem auto;
 }

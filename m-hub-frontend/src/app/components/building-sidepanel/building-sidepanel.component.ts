@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Building } from '../../models/building';
 import { Period, PeriodLabels } from '../../enums/period.enum';
@@ -10,10 +10,9 @@ import { MatListModule } from '@angular/material/list';
 import { EChartsOption } from 'echarts';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { MaterialGroup } from '../../enums/material-group.enum';
-import { BuildingPart } from '../../models/building-part';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DocumentListComponent } from "../document-list/document-list.component";
-
+import { BreakpointObserver } from '@angular/cdk/layout';
 
 
 @Component({
@@ -23,7 +22,7 @@ import { DocumentListComponent } from "../document-list/document-list.component"
   templateUrl: './building-sidepanel.component.html',
   styleUrl: './building-sidepanel.component.scss'
 })
-export class BuildingSidepanelComponent {
+export class BuildingSidepanelComponent implements OnInit {
   @Input() building!: Building | null;
   @Output() closePanel = new EventEmitter<void>();
 
@@ -42,7 +41,22 @@ export class BuildingSidepanelComponent {
 
   isLoading = false; 
 
+  isMobile = false;
 
+
+  constructor(private breakpointObserver: BreakpointObserver) {}
+
+  ngOnInit(): void {
+    this.breakpointObserver.observe(['(max-width: 800px)']).subscribe(result => {
+      this.isMobile = result.matches;
+    });
+  }
+
+  ngOnChanges() {
+    this.updateUsagePieChart();
+    this.updateMaterialsPieChart();
+  }
+  
   get periodLabel(): string {
     if (this.building && this.building.bp) {
       const bpValues = this.building.bp.split(',').map(val => val.trim());
@@ -60,11 +74,6 @@ export class BuildingSidepanelComponent {
       return this.usageLabels[this.building.dom_nutzung] || 'Nutzung unbekannt';
     }
     return 'Nutzung unbekannt';
-  }
-
-  ngOnChanges() {
-    this.updateUsagePieChart();
-    this.updateMaterialsPieChart();
   }
 
   updateUsagePieChart() {
