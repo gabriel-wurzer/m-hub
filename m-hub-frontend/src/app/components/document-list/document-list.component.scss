@@ -1,0 +1,83 @@
+.list-container {
+    max-width: 720px;
+}
+
+
+mat-list-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    transition: background-color 0.2s ease-in-out;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .list-content {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+      }
+
+    .list-icon {
+        margin-right: 12px;
+        padding-top: 2px;
+    }
+
+    .list-text {
+        margin: auto;
+        font-size: 18px;
+        vertical-align: text-bottom;
+        display: inline-block;
+        max-width: 75%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .lock-icon {
+        position:absolute;
+        right: 0;
+        bottom: 12px;
+    }
+
+}
+
+mat-list-item:first-child {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+  
+mat-list-item:last-child {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-bottom: none;
+  }
+
+
+.mat-mdc-list-item:not(.mat-mdc-list-item-interactive) {
+    cursor: pointer;
+}
+
+.mat-list {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.no-docs {
+    color: gray;
+}
+
+.loading-spinner {
+    margin: 1rem auto;
+    text-align: center;
+}
+
+h3 {
+    margin: 10px 0;
+}

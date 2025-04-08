@@ -11,16 +11,15 @@ import { EChartsOption } from 'echarts';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { MaterialGroup } from '../../enums/material-group.enum';
 import { BuildingPart } from '../../models/building-part';
-import { FileType } from '../../enums/file-type.enum';
-import { BuildingService } from '../../services/building/building.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DocumentListComponent } from "../document-list/document-list.component";
 
 
 
 @Component({
   selector: 'app-building-sidepanel',
   standalone: true,
-  imports: [ CommonModule, MatIconModule, MatButtonModule, MatDividerModule, MatListModule, MatProgressSpinnerModule, NgxEchartsModule],
+  imports: [CommonModule, MatIconModule, MatButtonModule, MatDividerModule, MatListModule, MatProgressSpinnerModule, NgxEchartsModule, DocumentListComponent],
   templateUrl: './building-sidepanel.component.html',
   styleUrl: './building-sidepanel.component.scss'
 })
@@ -45,13 +44,6 @@ export class BuildingSidepanelComponent {
 
   isLoading = false; 
 
-  constructor(private buildingService: BuildingService) { }
-
-  ngOnInit() {
-    if(this.building) {
-      this.#loadDocuments(this.building?.bw_geb_id); 
-    }
-  }
 
   get periodLabel(): string {
     if (this.building && this.building.bp) {
@@ -73,8 +65,6 @@ export class BuildingSidepanelComponent {
   }
 
   ngOnChanges() {
-    this.#loadDocuments(this.building!.bw_geb_id);
-
     this.updateUsagePieChart();
     this.updateMaterialsPieChart();
   }
@@ -199,41 +189,6 @@ export class BuildingSidepanelComponent {
       ]
     };
   }
-
-
-  #loadDocuments(buildingId: number) {
-    if (this.isLoading) return;
-  this.isLoading = true;
-
-  console.log('Requesting documents for building:', buildingId);
-
-  this.buildingService.getDocumentsByBuilding(buildingId).subscribe({
-    next: (docs) => {
-      this.documents = docs.map(doc => ({
-        ...doc,
-        fileType: doc.fileType ? doc.fileType.toLowerCase() as FileType : undefined
-      }));
-
-      this.errorMessage = docs.length === 0 ? 'No documents found for this building.' : '';
-    },
-    error: (error) => {
-      console.error('Error loading documents:', error);
-
-      if (error.status === 404) {
-        this.errorMessage = 'No documents found for this building.';
-      } else {
-        this.errorMessage = 'An error occurred while loading documents. Please try again later.';
-      }
-
-      this.documents = [];
-      this.isLoading = false;
-    },
-    complete: () => {
-      this.isLoading = false;
-    }
-  });
-}
-  
 
   openStructureDetailsView() {
     console.log('Open structure details view for building: ', this.building?.bw_geb_id);

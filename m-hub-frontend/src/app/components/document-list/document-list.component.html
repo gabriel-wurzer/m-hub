@@ -1,0 +1,16 @@
+<div class="list-container">
+    <h3>Dokumente</h3>
+
+    <mat-spinner *ngIf="isLoading" [diameter]="40" [strokeWidth]="3" class="loading-spinner" />
+
+    <mat-list  *ngIf="!isLoading && documents.length > 0; else noDocsMessage">
+        <mat-list-item *ngFor="let doc of documents">
+            <mat-icon class="list-icon">insert_drive_file</mat-icon>
+            <span class="list-text">{{ doc.name }}.{{ doc.fileType }}</span>
+            <mat-icon *ngIf="!doc.isPublic" class="lock-icon">lock</mat-icon>
+        </mat-list-item>
+    </mat-list>
+    <ng-template #noDocsMessage>
+        <p class="no-docs">Keine Dokumente vorhanden</p>
+    </ng-template>
+</div>
