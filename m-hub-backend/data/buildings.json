@@ -1,10 +1,10 @@
 [
     {
-        "bw_geb_id": 1,
+        "bw_geb_id": 100,
         "buildingParts": [
             {
             "id": "4",
-            "buildingId": "1",
+            "buildingId": "100",
             "name": "Foundation",
             "description": "Building foundation",
             "type": "building_part",
@@ -13,7 +13,7 @@
             },
             {
             "id": "5",
-            "buildingId": "1",
+            "buildingId": "100",
             "name": "Energy_Report",
             "description": "Energy efficiency assessment",
             "type": "document",
@@ -62,11 +62,30 @@
     },
     {
         "bw_geb_id": 5363852,
+        "dom_nutzung": 4,
+        "bp": "0",
+        "m3vol": 180230.85,
+        "m2bgf": 64263.93,
+        "m2bgf_use1": 0,
+        "m2bgf_use2": 0,
+        "m2bgf_use3": 0,
+        "m2bgf_use4": 64263.93,
+        "m2flaeche": 13306.13,
+        "maxhoehe": 16.83,
+        "bmg1": 54171.1785393775,
+        "bmg2": 0,
+        "bmg3": 0,
+        "bmg4": 3081.49961993168,
+        "bmg5": 66.56399642267,
+        "bmg6": 53.44241337939,
+        "bmg7": 67.43397184689,
+        "bmg8": 440.75285546136,
+        "bmg9": 3076.861697463,
         "buildingParts": [
         {
             "id": "6",
             "buildingId": "5363852",
-            "name": "Safety Section",
+            "name": "Safety-related Component",
             "description": "Safety-related parts",
             "type": "building_part",
             "ownerId": "owner-003",
@@ -99,7 +118,7 @@
         {
             "id": "9",
             "buildingId": "5363852",
-            "name": "Structural Section",
+            "name": "Structural Component",
             "description": "Structural-related parts",
             "type": "building_part",
             "ownerId": "owner-004",
