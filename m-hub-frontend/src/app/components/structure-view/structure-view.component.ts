@@ -43,6 +43,12 @@ export class StructureViewComponent implements OnInit{
   
   onNodeSelected(node: any) {
     if (!node) return;
+
+    const isSameEntity =
+    (node.type === 'building' && this.selectedEntity && 'bw_geb_id' in this.selectedEntity && parseInt(node.id) == this.selectedEntity.bw_geb_id) ||
+    (node.type === 'building_part' && this.selectedEntity && 'id' in this.selectedEntity && node.id === this.selectedEntity.id);
+
+  if (isSameEntity) return;
     
     node.type === 'building'
       ? this.loadBuilding(node.id)
