@@ -14,7 +14,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DocumentListComponent } from "../document-list/document-list.component";
 import { BreakpointObserver } from '@angular/cdk/layout';
 
-
 @Component({
   selector: 'app-building-sidepanel',
   standalone: true,

@@ -5,9 +5,15 @@
     
     <mat-divider class="horizontal-divider"/>
 
-    <div class="info-container">
-        <h3>Informationen</h3>
-        <div class="info-content">
+    <mat-accordion [multi]="true">
+        <mat-expansion-panel #infopanel [expanded]="true" class="info-container">
+            <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <h3 [class.expanded]="infopanel.expanded">Infromationen</h3> 
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+
+            
             <div class="information-container">
                 <p>Nutzung: {{ usageLabel }}</p>
                 <p>Bauperiode: {{ periodLabel }}</p>
@@ -16,18 +22,17 @@
                 <p [innerHTML]="'Fläche: ' + (building?.m2flaeche ?? 'Keine Information') + ' m&sup2;'"></p>
                 <p [innerHTML]="'Bruttogeschoßfläche: ' + (building?. m2bgf ?? 'Keine Information') + ' m&sup2;'"></p>        
             </div>
-        </div>
-    </div>
 
-    <div class="chart-container">
-        <!-- TODO: add e-chart component for building -->
-    </div>
+            <div class="chart-container">
+                <echarts [options]="usagePieChartOptions" class="e-chart-container"></echarts>
+                <echarts [options]="materialsPieChartOptions" class="e-chart-container materials-chart-container"></echarts>
+           </div>
+        </mat-expansion-panel>
 
-    <mat-accordion>
-        <mat-expansion-panel #panel [expanded]="true" class="document-container">
+        <mat-expansion-panel #docPanel [expanded]="true" class="document-container">
             <mat-expansion-panel-header>
               <mat-panel-title>
-                <h3 [class.expanded]="panel.expanded">Dokumente</h3> 
+                <h3 [class.expanded]="docPanel.expanded">Dokumente</h3> 
               </mat-panel-title>
             </mat-expansion-panel-header>
             

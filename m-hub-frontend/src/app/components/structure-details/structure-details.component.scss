@@ -22,6 +22,10 @@
     }
 }
 
+// mat-accordion {
+//     margin: 1rem auto;
+// }
+
 mat-panel-title {
     margin: 1.4rem auto 1rem;
 }
@@ -33,9 +37,74 @@ mat-expansion-panel {
   }
 
 mat-expansion-panel-header {
-    padding-left: 0;
+    padding-left: 12px;
+    padding-right: 20px;
 
     // h3.expanded {
     //     margin-top: 12px;
     // }
+}
+
+.chart-container {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    // gap: 15%;
+}
+
+// .chart-container {
+//     width: 100%;
+//     display: flex;
+//     flex-direction: row;
+//     flex-wrap: wrap; // allow wrapping to next row if needed
+//     justify-content: center;
+//     gap: 15%;
+//     // gap: 40px;
+//   }
+  
+
+
+.e-chart-container {
+    width: 100%;
+    min-width: 300px;
+    max-width: 420px;
+    aspect-ratio: 1 / 1.05; // Ensures height is always equal to width
+    margin: 2rem auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.materials-chart-container {
+    aspect-ratio: 1 / 1.12;
+}
+
+.custom-legend-container {
+    display: flex;
+    flex-direction: row-reverse; /* Moves buttons to the right */
+    align-items: center;
+}
+
+
+
+
+
+
+
+
+
+
+// @media (max-width: 1520) {
+//     .chart-container {
+//         flex-direction: column;
+//         // gap: 0;
+//     }
+//   }
+
+  @media (max-width: 800) {
+    mat-expansion-panel-header {
+        padding-right: 24px;
+    }
 }
