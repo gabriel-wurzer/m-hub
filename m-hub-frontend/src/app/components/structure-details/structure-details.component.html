@@ -23,7 +23,19 @@
         <!-- TODO: add e-chart component for building -->
     </div>
 
-    <app-document-list [entity]="entity" />
+    <mat-accordion>
+        <mat-expansion-panel #panel [expanded]="true" class="document-container">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <h3 [class.expanded]="panel.expanded">Dokumente</h3> 
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            
+            <app-document-list [entity]="entity" />
+
+        </mat-expansion-panel>
+    </mat-accordion>
+    
     
 </ng-container>
 
@@ -45,7 +57,7 @@
     </div>
 
     <div class="chart-container">
-        <!-- TODO: add e-chart component for building -->
+        <!-- TODO: add e-chart component for buildingPart -->
     </div>
 
     <app-document-list [entity]="entity" />

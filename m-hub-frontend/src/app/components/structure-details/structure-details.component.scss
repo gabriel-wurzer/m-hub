@@ -21,3 +21,21 @@
         align-items: center;
     }
 }
+
+mat-panel-title {
+    margin: 1.4rem auto 1rem;
+}
+
+mat-expansion-panel {
+    background: inherit !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+mat-expansion-panel-header {
+    padding-left: 0;
+
+    // h3.expanded {
+    //     margin-top: 12px;
+    // }
+}
