@@ -136,6 +136,7 @@ export class StructureDetailsComponent implements OnInit {
           name: 'Nutzungen',
           type: 'pie',
           radius: '60%',
+          center: ['50%', '45%'],
           data: usageData,
           label: {
             show: true,
@@ -172,7 +173,7 @@ export class StructureDetailsComponent implements OnInit {
     this.materialsPieChartOptions = {
       title: {
         left: 'center',
-        text: 'Baumatrialgruppen',
+        text: 'Baumaterialgruppen',
       },
       tooltip: {
         trigger: 'item',
@@ -200,7 +201,7 @@ export class StructureDetailsComponent implements OnInit {
           name: 'Baumaterialgruppen',
           type: 'pie',
           radius: '60%',
-          center: ['50%', '38%'],
+          center: ['50%', '45%'],
           data: materialsData,
           label: {
             show: false

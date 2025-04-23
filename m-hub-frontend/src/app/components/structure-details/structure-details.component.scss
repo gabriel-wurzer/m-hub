@@ -22,10 +22,6 @@
     }
 }
 
-// mat-accordion {
-//     margin: 1rem auto;
-// }
-
 mat-panel-title {
     margin: 1.4rem auto 1rem;
 }
@@ -40,9 +36,6 @@ mat-expansion-panel-header {
     padding-left: 12px;
     padding-right: 20px;
 
-    // h3.expanded {
-    //     margin-top: 12px;
-    // }
 }
 
 .chart-container {
@@ -51,20 +44,7 @@ mat-expansion-panel-header {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
-    // gap: 15%;
 }
-
-// .chart-container {
-//     width: 100%;
-//     display: flex;
-//     flex-direction: row;
-//     flex-wrap: wrap; // allow wrapping to next row if needed
-//     justify-content: center;
-//     gap: 15%;
-//     // gap: 40px;
-//   }
-  
-
 
 .e-chart-container {
     width: 100%;
@@ -83,25 +63,9 @@ mat-expansion-panel-header {
 
 .custom-legend-container {
     display: flex;
-    flex-direction: row-reverse; /* Moves buttons to the right */
+    flex-direction: row-reverse;
     align-items: center;
 }
-
-
-
-
-
-
-
-
-
-
-// @media (max-width: 1520) {
-//     .chart-container {
-//         flex-direction: column;
-//         // gap: 0;
-//     }
-//   }
 
   @media (max-width: 800) {
     mat-expansion-panel-header {

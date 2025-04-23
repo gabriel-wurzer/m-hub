@@ -151,7 +151,7 @@ export class BuildingSidepanelComponent implements OnInit {
     this.materialsPieChartOptions = {
       title: {
         left: 'center',
-        text: 'Baumatrialgruppen',
+        text: 'Baumaterialgruppen',
       },
       tooltip: {
         trigger: 'item',
