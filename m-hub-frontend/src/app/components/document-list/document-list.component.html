@@ -9,6 +9,6 @@
         </mat-list-item>
     </mat-list>
     <ng-template #noDocsMessage>
-        <p class="no-docs">Keine Dokumente vorhanden</p>
+        <p *ngIf="!isLoading" class="no-docs">Keine Dokumente vorhanden</p>
     </ng-template>
 </div>
