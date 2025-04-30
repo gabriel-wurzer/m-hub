@@ -2,9 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { distinctUntilChanged } from 'rxjs/operators';
 import * as L from 'leaflet';
-import 'leaflet.vectorgrid';
+import vectorTileLayer from 'leaflet-vector-tile-layer';
 import 'leaflet-control-geocoder';
-
 
 import { Building } from '../../models/building';
 import { environment } from '../../../environments/environment';
@@ -31,10 +30,10 @@ L.Icon.Default.mergeOptions({
 export class MapComponent implements OnInit {
 
   #map!: L.Map;
-  #vectorGridLayer: L.VectorGrid.Protobuf | null = null;
+  // #vectorGridLayer: L.VectorGrid.Protobuf | null = null;
+  #vectorTileLayer: L.Layer | null = null;
   #highlightedFeatureLayer: L.GeoJSON | null = null;
   #markerLayer: L.Marker | null = null;
-
 
   #selectedBuildingID: number | null = null;
   selectedBuilding!: Building | null;
@@ -48,7 +47,9 @@ export class MapComponent implements OnInit {
   isFilterPanelVisible = false;
   isStructureViewVisible = false;
 
-  constructor(private filterService: FilterService) {}
+  constructor(private filterService: FilterService) {
+    
+  }
 
   ngOnInit(): void {
     this.#initMap();
@@ -93,8 +94,6 @@ export class MapComponent implements OnInit {
       id: "simlabtuwien/cm3r2nlew003y01s6g5gtfwtd"
     }).addTo(this.#map);
 
-
-    // this.#loadVectorGridLayer();
     this.#initGeocoder();
 
     this.#map.on('click', () => {
@@ -227,42 +226,43 @@ export class MapComponent implements OnInit {
   }
 
   /**
-   * Load the VectorGrid Layer with default styles and event listeners.
+   * Load the Vector Tile Layer with default styles and event listeners.
    * @param filter [optional] SQL WHERE clause for filtering data (column dom_nutzung AND/OR bp).
    */
-  #loadVectorGridLayer(filter?:string): void {
+  #loadVectorTileLayer(filter?: string): void {
     if (!this.#map) return;
-    
-    if (this.#vectorGridLayer) {
-      this.#map.removeLayer(this.#vectorGridLayer);
+  
+    if (this.#vectorTileLayer) {
+      this.#map.removeLayer(this.#vectorTileLayer);
     }
-
+  
     const vectorTileUrl = this.#generateVectorTileUrl(this.#tableName, this.#defaultColumns, filter);
-    
-    console.log("loading the vector grid");
-
-    this.#vectorGridLayer = window.L.vectorGrid.protobuf(vectorTileUrl, { // temp fix with window
-      vectorTileLayerStyles: {
-        [this.#tableName]: ({
-          weight: 2,
-          opacity: 0.8,
-          fill: true,
-          fillOpacity: 0.1,
-        })
+  
+    this.#vectorTileLayer = vectorTileLayer(vectorTileUrl, {
+      style: {
+        fill: true,
+        fillColor: '#3388ff',
+        fillOpacity: 0.3,
+        color: '#3388ff',
+        weight: 1
       },
-      interactive: true,
-      getFeatureId: (feature: any) => ((feature.properties as Building).bw_geb_id).toString() // set building_id as unique feature identifier; vector grid expects a string ID
+      interactive: true
     });
 
-    
-    this.#vectorGridLayer.addTo(this.#map);
+    if(!this.#vectorTileLayer) {
+      console.error("Could not load Leaflet.VectorTileLayer");
+      return
+    }
+  
+    this.#map.addLayer(this.#vectorTileLayer);
 
-    this.#vectorGridLayer.on('click', (event: any) => {
+    this.#vectorTileLayer.on('click', (event: any) => {
       this.#buildingClicked = true;
-      event.originalEvent.stopPropagation(); // Prevent map click handler
+      event.originalEvent.stopPropagation();
       this.#handleBuildingClick(event);
     });
   }
+  
 
   /**
    * Applies filter to the dataset and reloads the VectorGrid layer.
@@ -290,7 +290,7 @@ export class MapComponent implements OnInit {
 
     let filterQuery = filter.length > 0 ? filter.join(' AND ') : undefined;
 
-    this.#loadVectorGridLayer(filterQuery);
+    this.#loadVectorTileLayer(filterQuery);
   }
 
   /**
@@ -372,7 +372,6 @@ export class MapComponent implements OnInit {
       this.#highlightedFeatureLayer = null;
     }
     if (this.#selectedBuildingID !== null) {
-      this.#vectorGridLayer?.resetFeatureStyle(this.#selectedBuildingID);
       console.log(`Building with ID ${this.#selectedBuildingID} deselected`);
     }
     this.#selectedBuildingID = null;
@@ -455,5 +454,4 @@ export class MapComponent implements OnInit {
   hideStructureView(): void {
     this.isStructureViewVisible = false;
   }
-
 }
