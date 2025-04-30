@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { combineLatest } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 import * as L from 'leaflet';
 import 'leaflet.vectorgrid';
@@ -15,6 +14,12 @@ import { FilterService } from '../../services/filter/filter.service';
 import { BuildingSidepanelComponent } from '../building-sidepanel/building-sidepanel.component';
 import { StructureViewComponent } from "../structure-view/structure-view.component";
 
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'assets/leaflet/marker-icon-2x.png',
+  iconUrl: 'assets/leaflet/marker-icon.png',
+  shadowUrl: 'assets/leaflet/marker-shadow.png',
+});
 
 @Component({
   selector: 'app-map',
@@ -39,7 +44,6 @@ export class MapComponent implements OnInit {
   #tableName = 'buildings_details';
   #defaultColumns = ['bw_geb_id', 'ST_AsGeoJSON(geom) as geometry'];
   #additionalColumns = ['dom_nutzung', 'bp', 'm3vol', 'm2bgf', 'm2bgf_use1', 'm2bgf_use2', 'm2bgf_use3', 'm2bgf_use4', 'm2flaeche', 'maxhoehe', 'bmg1', 'bmg2', 'bmg3', 'bmg4', 'bmg5', 'bmg6', 'bmg7', 'bmg8', 'bmg9'];    
-  // additionalColumns: string[] = [];  // Stores extra columns dynamically
 
   isFilterPanelVisible = false;
   isStructureViewVisible = false;
@@ -125,7 +129,6 @@ export class MapComponent implements OnInit {
 
       // Construct the API URL with query, limiting results to 5, and filtering to Vienna and Austria
       const url = `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(query)}, Vienna&countrycodes=AT`;
-      // const url = `/nominatim/search?format=json&limit=5&q=${encodeURIComponent(query)}, Vienna&countrycodes=AT`;
 
       console.log('Nominatim request URL:', url);
 
@@ -433,7 +436,6 @@ export class MapComponent implements OnInit {
       this.#map.dragging.disable();
       this.#map.scrollWheelZoom.disable();
       this.#map.tapHold?.disable();
-      // console.log('map interaction disabled');
     }
   }
 
@@ -442,7 +444,6 @@ export class MapComponent implements OnInit {
       this.#map.dragging.enable();
       this.#map.scrollWheelZoom.enable();
       this.#map.tapHold?.enable();
-      // console.log('map interaction enabled');
     }
   }
 
