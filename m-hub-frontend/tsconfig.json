@@ -23,7 +23,7 @@
       "dom"
     ],
     "typeRoots": ["node_modules/@types"],
-    "types": ["leaflet.vectorgrid"]
+    "types": []
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
