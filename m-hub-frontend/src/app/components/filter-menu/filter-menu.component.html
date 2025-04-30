@@ -8,26 +8,22 @@
 
     <mat-divider />
 
-    
     <h3>Bauperioden</h3>
 
     <mat-form-field appearance="outline" class="full-width">
         <mat-label>Bauperioden</mat-label>
-        
-        <mat-select [formControl]="periodControl" multiple (selectionChange)="updatePeriodSelection()">
+        <mat-select [formControl]="periodControl" multiple (selectionChange)="updateFilterSelection()">
           <mat-option *ngFor="let period of periodOptions" [value]="period">
             {{ periodLabels[period] }}
           </mat-option>
         </mat-select>
     </mat-form-field>
 
-
-
     <h3>Nutzung</h3>  
 
     <mat-form-field appearance="outline" class="full-width">
         <mat-label>Nutzung</mat-label>
-        <mat-select [formControl]="usageControl" multiple (selectionChange)="updateUsageSelection()">
+        <mat-select [formControl]="usageControl" multiple (selectionChange)="updateFilterSelection()">
           <mat-option *ngFor="let usage of usageOptions" [value]="usage">
             {{ usageLabels[usage] }}
           </mat-option>

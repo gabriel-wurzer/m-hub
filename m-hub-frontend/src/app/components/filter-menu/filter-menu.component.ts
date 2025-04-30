@@ -47,24 +47,19 @@ export class FilterMenuComponent implements OnInit {
   constructor(private filterService: FilterService) {}
 
   ngOnInit() {
-    // Restore previously selected values
+    // load previously selected values
     this.periodControl.setValue(this.filterService.getPeriodFilter());
     this.usageControl.setValue(this.filterService.getUsageFilter());
   }
 
-  updatePeriodSelection(): void {
-    this.filterService.setPeriodFilter(this.periodControl.value);
-  }
-
-  updateUsageSelection(): void {
-    this.filterService.setUsageFilter(this.usageControl.value);
+  updateFilterSelection(): void {
+    this.filterService.setFilters(this.usageControl.value, this.periodControl.value);
   }
   
   resetForm() {
     this.periodControl.reset();
     this.usageControl.reset();
-    this.updatePeriodSelection();
-    this.updateUsageSelection();
+    this.filterService.setFilters([], []);
   }
 
   isResetDisabled(): boolean {

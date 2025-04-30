@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { combineLatest } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs/operators';
 import * as L from 'leaflet';
 import 'leaflet.vectorgrid';
 import 'leaflet-control-geocoder';
@@ -47,14 +49,16 @@ export class MapComponent implements OnInit {
   ngOnInit(): void {
     this.#initMap();
 
-    // Subscribe to filter changes and apply them
-    this.filterService.usageFilter$.subscribe(selectedUsages => {
-      this.applyFilter(selectedUsages, this.filterService.getPeriodFilter());
-    });
-
-    this.filterService.periodFilter$.subscribe(selectedPeriods => {
-      this.applyFilter(this.filterService.getUsageFilter(), selectedPeriods);
-    });
+    this.filterService.filters$
+      .pipe(
+        distinctUntilChanged((a, b) =>
+          JSON.stringify(a.usages) === JSON.stringify(b.usages) &&
+          JSON.stringify(a.periods) === JSON.stringify(b.periods)
+        )
+      )
+      .subscribe(({ usages, periods }) => {
+        this.applyFilter(usages, periods);
+      });
   }
 
   /**
@@ -86,7 +90,7 @@ export class MapComponent implements OnInit {
     }).addTo(this.#map);
 
 
-    this.#loadVectorGridLayer();
+    // this.#loadVectorGridLayer();
     this.#initGeocoder();
 
     this.#map.on('click', () => {
@@ -231,8 +235,10 @@ export class MapComponent implements OnInit {
     }
 
     const vectorTileUrl = this.#generateVectorTileUrl(this.#tableName, this.#defaultColumns, filter);
+    
+    console.log("loading the vector grid");
 
-    this.#vectorGridLayer = L.vectorGrid.protobuf(vectorTileUrl, {
+    this.#vectorGridLayer = window.L.vectorGrid.protobuf(vectorTileUrl, { // temp fix with window
       vectorTileLayerStyles: {
         [this.#tableName]: ({
           weight: 2,

@@ -1,33 +1,44 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
+type Filters = { usages: number[], periods: number[] };
+
 @Injectable({
   providedIn: 'root'
 })
 export class FilterService {
 
-  private periodFilterSubject = new BehaviorSubject<number[]>([]);
-  private usageFilterSubject = new BehaviorSubject<number[]>([]);
+  private filtersSubject = new BehaviorSubject<Filters>({ usages: [], periods: [] });
+  filters$ = this.filtersSubject.asObservable();
 
-  periodFilter$ = this.periodFilterSubject.asObservable();
-  usageFilter$ = this.usageFilterSubject.asObservable();
+  /**
+   * Updates the current filter state by setting both usage and period filters in a single, batched operation.
+   * Prevents redundant emissions if the new filter values are identical to the current ones.
+   * 
+   * @param usages Array of selected usage category options.
+   * @param periods Array of selected building period options.
+   */
+  setFilters(usages: number[], periods: number[]) {
+    const current = this.filtersSubject.value;
+    const updated = {
+      usages,
+      periods,
+    };
 
-  getPeriodFilter(): number[] {
-    return this.periodFilterSubject.value;
+    if (
+      JSON.stringify(updated.usages) !== JSON.stringify(current.usages) ||
+      JSON.stringify(updated.periods) !== JSON.stringify(current.periods)
+    ) {
+      this.filtersSubject.next(updated);
+      console.log('setFilters (batched):', updated);
+    }
   }
-
-  setPeriodFilter(selectedPeriods: number[]): void {
-    this.periodFilterSubject.next(selectedPeriods);
-    console.log('current period selection: ', this.periodFilterSubject.value)
-  }
-
 
   getUsageFilter(): number[] {
-    return this.usageFilterSubject.value;
+    return this.filtersSubject.value.usages;
   }
 
-  setUsageFilter(selectedUsages: number[]): void {
-    this.usageFilterSubject.next(selectedUsages);
-    console.log('current usage selection: ', this.usageFilterSubject.value)
+  getPeriodFilter(): number[] {
+    return this.filtersSubject.value.periods;
   }
 }
