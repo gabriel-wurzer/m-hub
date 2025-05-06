@@ -48,7 +48,9 @@ export class StructureDetailsComponent implements OnInit {
   isLoading = false;
 
   ngOnInit() {
-    if (!this.entity) return;
+    if (this.entity) {
+      this.setupEntity();
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
