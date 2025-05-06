@@ -47,6 +47,14 @@
         "env": []
     },
     {
+        "id": "d0cf828cb89c2dcd",
+        "type": "tab",
+        "label": "Documents by Part",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "1248ce57789522dd",
         "type": "http in",
         "z": "e8d2c400a518975b",
@@ -706,5 +714,109 @@
                 "2570eeb4e26197f4"
             ]
         ]
+    },
+    {
+        "id": "227b61fe0c3f3ede",
+        "type": "http in",
+        "z": "d0cf828cb89c2dcd",
+        "name": "GET building-part documents",
+        "url": "/api/building-part/:id/documents",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 240,
+        "y": 160,
+        "wires": [
+            [
+                "5710296329ebc5b1"
+            ]
+        ]
+    },
+    {
+        "id": "53494e7a6a417d0e",
+        "type": "function",
+        "z": "d0cf828cb89c2dcd",
+        "name": "extract documents",
+        "func": "var buildingPartId = msg.req.params.id;  // Extract part ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Recursive search to find the building part with the given ID\nfunction findBuildingPartById(parts, id) {\n    for (let part of parts) {\n        if (part.id === id) return part;\n        if (part.buildingParts) {\n            const found = findBuildingPartById(part.buildingParts, id);\n            if (found) return found;\n        }\n    }\n    return null;\n}\n\nlet foundPart = null;\nfor (let building of buildings) {\n    if (building.buildingParts) {\n        foundPart = findBuildingPartById(building.buildingParts, buildingPartId);\n        if (foundPart) break;\n    }\n}\n\nif (foundPart) {\n    // Filter only direct children that are documents\n    let documents = [];\n    if (foundPart.buildingParts && Array.isArray(foundPart.buildingParts)) {\n        documents = foundPart.buildingParts.filter(p => p.type === \"document\");\n    }\n    msg.payload = documents;\n} else {\n    msg.payload = { error: `Building part with id '${buildingPartId}' not found.` };\n    msg.statusCode = 404;\n}\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 360,
+        "wires": [
+            [
+                "a4e5785afd8adbf4"
+            ]
+        ]
+    },
+    {
+        "id": "a4e5785afd8adbf4",
+        "type": "http response",
+        "z": "d0cf828cb89c2dcd",
+        "name": "documents response",
+        "statusCode": "",
+        "headers": {},
+        "x": 460,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "5710296329ebc5b1",
+        "type": "file in",
+        "z": "d0cf828cb89c2dcd",
+        "name": "buildings.json",
+        "filename": "/data/buildings.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 220,
+        "y": 260,
+        "wires": [
+            [
+                "94c35f8a852da9df"
+            ]
+        ]
+    },
+    {
+        "id": "94c35f8a852da9df",
+        "type": "json",
+        "z": "d0cf828cb89c2dcd",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 390,
+        "y": 260,
+        "wires": [
+            [
+                "53494e7a6a417d0e"
+            ]
+        ]
+    },
+    {
+        "id": "0886b77e488fa7c2",
+        "type": "comment",
+        "z": "d0cf828cb89c2dcd",
+        "name": "http://localhost:1880/api/building-part/ID/documents",
+        "info": "",
+        "x": 270,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "ceb57d29adfd0ee4",
+        "type": "comment",
+        "z": "d0cf828cb89c2dcd",
+        "name": "mock: fetch documents for building-part with param ID",
+        "info": "",
+        "x": 760,
+        "y": 300,
+        "wires": []
     }
 ]
