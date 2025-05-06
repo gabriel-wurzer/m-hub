@@ -16,6 +16,7 @@ import { Period, PeriodLabels } from '../../enums/period.enum';
 import { Usage, UsageLabels } from '../../enums/usage.enum';
 import { DocumentListComponent } from "../document-list/document-list.component";
 import { MaterialGroup } from '../../enums/material-group.enum';
+import { isBuilding } from '../../utils/model-guard';
 
 
 @Component({
@@ -31,7 +32,6 @@ export class StructureDetailsComponent implements OnInit {
 
   errorMessage = '';
 
-  // check on init if entity is building or building part
   isBuilding = false;
   building!: Building | null;
   buildingPart!: BuildingPart | null;
@@ -58,23 +58,28 @@ export class StructureDetailsComponent implements OnInit {
   }
 
   private setupEntity() {
-    this.building = null;
-    this.buildingPart = null;
 
     if (!this.entity) return;
 
-    'bw_geb_id' in this.entity
-      ? (this.isBuilding = true, this.building = this.entity as Building)
-      : (this.isBuilding = false, this.buildingPart = this.entity as BuildingPart);
+    if(isBuilding(this.entity)) {
+      this.isBuilding = true;
+      this.building = this.entity;
+      this.buildingPart = null;
+
+      console.log("Current building: ", this.building);
+
+      this.#updateUsagePieChart();
+      this.#updateMaterialsPieChart();
 
 
-      console.log("current building: ", this.building);
+    } else {
+      this.isBuilding = false;
+      this.building = null;
+      this.buildingPart = this.entity;
+      console.log("Current building part: ", this.buildingPart);
 
-
-      if(this.isBuilding) {
-        this.#updateUsagePieChart();
-        this.#updateMaterialsPieChart();
-      }
+      // TODO: add Chart options call here
+    }
   }
 
   get periodLabel(): string {
