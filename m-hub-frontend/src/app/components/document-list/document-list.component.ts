@@ -6,6 +6,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Building } from '../../models/building';
 import { BuildingPart } from '../../models/building-part';
 import { BuildingService } from '../../services/building/building.service';
+import { isBuilding } from '../../utils/model-guard';
+import { BuildingPartService } from '../../services/building-part/building-part.service';
 
 
 @Component({
@@ -22,49 +24,73 @@ export class DocumentListComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
 
-  constructor(private buildingService: BuildingService) {}
+  constructor(private buildingService: BuildingService, private buildingPartService: BuildingPartService) {}
 
   ngOnInit() {
     if (!this.entity) return;
-
-    const buildingId = 'bw_geb_id' in this.entity ? this.entity.bw_geb_id : parseInt(this.entity.buildingId);
-    this.loadDocuments(buildingId);
+    this.loadDocumentsForEntity(this.entity);
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['entity'] && this.entity) {
-
-      const buildingId = 'bw_geb_id' in this.entity ? this.entity.bw_geb_id : parseInt(this.entity.buildingId);
-      this.loadDocuments(buildingId);
+      this.loadDocumentsForEntity(this.entity);
     }
   }
 
-  private loadDocuments(buildingId: number) {
+  private loadDocumentsForEntity(entity: Building | BuildingPart): void {
     if (this.isLoading) return;
     this.isLoading = true;
+    this.errorMessage = '';
+    this.documents = [];
 
-    console.log('Requesting documents for building:', buildingId);
+    if(isBuilding(entity)) {
+      this.loadDocumentsByBuilding(entity.bw_geb_id);
+    }
+    else {
+      this.loadDocumentsByComponent(entity.id);
+    }
+  }
 
+  private loadDocumentsByBuilding(buildingId: number): void {
     this.buildingService.getDocumentsByBuilding(buildingId).subscribe({
       next: (docs) => {
         this.documents = docs.map(doc => ({
           ...doc,
-          fileType: doc.fileType ? doc.fileType.toLowerCase() : undefined
+          fileType: doc.fileType?.toLowerCase()
         }));
-
         this.errorMessage = docs.length === 0 ? 'No documents found for this building.' : '';
       },
       error: (error) => {
-        console.error('Error loading documents:', error);
-
-        this.errorMessage = error.status === 404 ? 'No documents found for this building.' : 'An error occurred while loading documents. Please try again later.';
-
-        this.documents = [];
-        this.isLoading = false;
+        console.error('Error loading building documents:', error);
+        this.errorMessage = error.status === 404
+          ? 'No documents found for this building.'
+          : 'An error occurred while loading documents.';
       },
       complete: () => {
         this.isLoading = false;
       }
     });
+  }
+
+  private loadDocumentsByComponent(componentId: string): void {
+    this.buildingPartService.getDocumentsByBuildingPart(componentId).subscribe({
+      next: (docs) => {
+        this.documents = docs.map(doc => ({
+          ...doc,
+          fileType: doc.fileType?.toLowerCase()
+        }));
+        this.errorMessage = docs.length === 0 ? 'No documents found for this building part.' : '';
+      },
+      error: (error) => {
+        console.error('Error loading building part documents:', error);
+        this.errorMessage = error.status === 404
+          ? 'No documents found for this building part.'
+          : 'An error occurred while loading documents.';
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
+  
   }
 }
