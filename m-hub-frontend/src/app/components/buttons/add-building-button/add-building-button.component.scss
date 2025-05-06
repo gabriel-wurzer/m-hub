@@ -1,8 +1,14 @@
 .button-container {
-    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
     text-align: center;
+    margin-bottom: 20px;
 }
 
 .add-button {
     min-width: 200px;
 }
+
+.loading-spinner {
+    margin: 8px;
+  }

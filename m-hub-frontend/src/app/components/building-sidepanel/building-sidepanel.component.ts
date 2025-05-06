@@ -40,8 +40,9 @@ export class BuildingSidepanelComponent implements OnInit {
   materialsPieChartOptions: EChartsOption = {};
 
   isLoading = false; 
-
   isMobile = false;
+
+  userId = "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71";
 
 
   constructor(private breakpointObserver: BreakpointObserver) {}
