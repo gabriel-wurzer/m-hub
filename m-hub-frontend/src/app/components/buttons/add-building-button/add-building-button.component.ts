@@ -19,6 +19,7 @@ export class AddBuildingButtonComponent implements OnInit {
 
   isAdded = false;
   isLoading = false;
+  errorMessage = '';
 
   constructor(private userService: UserService) {}
 
@@ -37,6 +38,7 @@ export class AddBuildingButtonComponent implements OnInit {
   checkIfBuildingAdded(): void {
 
     this.isLoading = true;
+    this.errorMessage = '';
 
     this.userService.isBuildingInUser(this.userId, this.building.bw_geb_id).subscribe({
       next: (exists) => {
@@ -57,11 +59,15 @@ export class AddBuildingButtonComponent implements OnInit {
     this.userService.addBuildingToUser(this.userId, this.building.bw_geb_id).subscribe({
       next: () => {
         this.isAdded = true;
-        this.isLoading = false;
       },
-      error: () => {
+      error: (error) => {
+        console.error('Error loading building exists:', error);
+        this.errorMessage = error.status === 404
+          ? 'No buidling found for that buidlingId.'
+          : 'An error occurred while checking building exists.';
+      },
+      complete: () => {
         this.isLoading = false;
-        // optionally show error UI
       }
     });
   }
