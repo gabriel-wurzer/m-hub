@@ -8,7 +8,7 @@
             "name": "Foundation",
             "description": "Building foundation",
             "type": "building_part",
-            "ownerId": "owner-002",
+            "ownerId": "79e7432d-f1a0-4f31-9469-1e27b8d8c6cd",
             "isPublic": false
             },
             {
@@ -17,7 +17,7 @@
             "name": "Energy_Report",
             "description": "Energy efficiency assessment",
             "type": "document",
-            "ownerId": "owner-002",
+            "ownerId": "79e7432d-f1a0-4f31-9469-1e27b8d8c6cd",
             "isPublic": false,
             "fileUrl": "https://example.com/energy.pdf",
             "fileType": "pdf"
@@ -33,7 +33,7 @@
             "name": "Main Structure",
             "description": "Core building structure",
             "type": "building_part",
-            "ownerId": "owner-001",
+            "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
             "isPublic": true,
             "buildingParts": [
             {
@@ -42,7 +42,7 @@
                 "name": "Blueprint",
                 "description": "Architectural design",
                 "type": "document",
-                "ownerId": "owner-001",
+                "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
                 "isPublic": true,
                 "fileUrl": "https://example.com/blueprint.pdf",
                 "fileType": "pdf"
@@ -53,7 +53,7 @@
                 "name": "Foundation",
                 "description": "Building foundation",
                 "type": "building_part",
-                "ownerId": "owner-002",
+                "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
                 "isPublic": false
             }
             ]
@@ -88,7 +88,7 @@
             "name": "Safety-related Component",
             "description": "Safety-related parts",
             "type": "building_part",
-            "ownerId": "owner-003",
+            "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
             "isPublic": true,
             "buildingParts": [
             {
@@ -97,7 +97,7 @@
                 "name": "Fire_Safety_Report",
                 "description": "Building fire safety analysis",
                 "type": "document",
-                "ownerId": "owner-003",
+                "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
                 "isPublic": false,
                 "fileUrl": "https://example.com/fire_safety.pdf",
                 "fileType": "pdf"
@@ -108,7 +108,7 @@
                 "name": "Evacuation_Plan",
                 "description": "Emergency evacuation map",
                 "type": "document",
-                "ownerId": "owner-003",
+                "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
                 "isPublic": true,
                 "fileUrl": "https://example.com/evacuation.png",
                 "fileType": "png"
@@ -121,7 +121,7 @@
             "name": "Structural Component",
             "description": "Structural-related parts",
             "type": "building_part",
-            "ownerId": "owner-004",
+            "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
             "isPublic": false,
             "buildingParts": [
             {
@@ -130,7 +130,7 @@
                 "name": "Load_Bearing_Report",
                 "description": "Structural load assessment",
                 "type": "document",
-                "ownerId": "owner-004",
+                "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
                 "isPublic": false,
                 "fileUrl": "https://example.com/load_bearing.pdf",
                 "fileType": "pdf"
@@ -141,7 +141,7 @@
                 "name": "Component 1",
                 "description": "Engineering component",
                 "type": "building_part",
-                "ownerId": "owner-004",
+                "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
                 "isPublic": false,
                 "buildingParts": [
                 {
@@ -150,7 +150,7 @@
                     "name": "Component 2",
                     "description": "",
                     "type": "building_part",
-                    "ownerId": "owner-004",
+                    "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
                     "isPublic": false
                 }
                 ]

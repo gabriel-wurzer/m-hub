@@ -1,0 +1,20 @@
+[
+    {
+        "id": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
+        "username": "alice",
+        "email": "alice@example.com",
+        "buildings": [5397325, 5363852]
+    },
+    {
+        "id": "79e7432d-f1a0-4f31-9469-1e27b8d8c6cd",
+        "username": "bob",
+        "email": "bob@example.com",
+        "buildings": [100]
+    },
+    {
+        "id": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
+        "username": "dave",
+        "email": "dave@example.com",
+        "buildings": [5363852]
+    }
+]
