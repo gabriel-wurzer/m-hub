@@ -15,4 +15,8 @@ export class BuildingPartService {
   getBuildingPartById(buildingPartId: string): Observable<BuildingPart> {
     return this.http.get<BuildingPart>(`${this.apiUrl}/${buildingPartId}`);
   } 
+
+  getDocumentsByBuildingPart(buildingPartId: string): Observable<BuildingPart[]> {
+    return this.http.get<BuildingPart[]>(`${this.apiUrl}/${buildingPartId}/documents`);
+  }
 }

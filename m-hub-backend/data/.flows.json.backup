@@ -15,9 +15,17 @@
         "info": ""
     },
     {
+        "id": "27011c5e3f9c0442",
+        "type": "tab",
+        "label": "Building by ID",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "bc8f71868ee8d8a0",
         "type": "tab",
-        "label": "Flow 2",
+        "label": "Documents by Building",
         "disabled": false,
         "info": "",
         "env": []
@@ -25,15 +33,7 @@
     {
         "id": "38f9cc6750f8eb6f",
         "type": "tab",
-        "label": "Flow 3",
-        "disabled": false,
-        "info": "",
-        "env": []
-    },
-    {
-        "id": "27011c5e3f9c0442",
-        "type": "tab",
-        "label": "Flow 4",
+        "label": "Parts by Building",
         "disabled": false,
         "info": "",
         "env": []
@@ -41,7 +41,7 @@
     {
         "id": "334b2a9f8565f79d",
         "type": "tab",
-        "label": "Flow 5",
+        "label": "Part by ID",
         "disabled": false,
         "info": "",
         "env": []
@@ -240,6 +240,135 @@
         "x": 400,
         "y": 380,
         "wires": []
+    },
+    {
+        "id": "2ad372cdad61e38b",
+        "type": "http in",
+        "z": "27011c5e3f9c0442",
+        "name": "GET building",
+        "url": "/api/building/:id",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 190,
+        "y": 160,
+        "wires": [
+            [
+                "1ffa461e79c2a7a7"
+            ]
+        ]
+    },
+    {
+        "id": "0d8b2076de2cb5f5",
+        "type": "function",
+        "z": "27011c5e3f9c0442",
+        "name": "find building by id",
+        "func": "var buildingId = parseInt(msg.req.params.id);  // Extract building ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Find the building with the correct \"bw_geb_id\"\nvar building = buildings.find(b => b.bw_geb_id === buildingId);\n\nif (!building) {\n    msg.payload = { error: \"Building not found\" };\n    msg.statusCode = 404;\n    return [msg];\n}\n\n// Apply filtering\nmsg.payload = building;\n\nreturn [msg];\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 360,
+        "wires": [
+            [
+                "f301ee9a5dbd2bad"
+            ]
+        ]
+    },
+    {
+        "id": "8f927269b5342aec",
+        "type": "http response",
+        "z": "27011c5e3f9c0442",
+        "name": "building response",
+        "statusCode": "",
+        "headers": {},
+        "x": 750,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "1ffa461e79c2a7a7",
+        "type": "file in",
+        "z": "27011c5e3f9c0442",
+        "name": "buildings.json",
+        "filename": "/data/buildings.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 240,
+        "y": 260,
+        "wires": [
+            [
+                "b3523b0ca03c53b8"
+            ]
+        ]
+    },
+    {
+        "id": "b3523b0ca03c53b8",
+        "type": "json",
+        "z": "27011c5e3f9c0442",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 410,
+        "y": 260,
+        "wires": [
+            [
+                "0d8b2076de2cb5f5"
+            ]
+        ]
+    },
+    {
+        "id": "320ab5806cc47a5d",
+        "type": "comment",
+        "z": "27011c5e3f9c0442",
+        "name": "http://localhost:1880/api/building/ID",
+        "info": "",
+        "x": 240,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "ed2ad698a995b590",
+        "type": "comment",
+        "z": "27011c5e3f9c0442",
+        "name": "mock: fetch building with param ID",
+        "info": "",
+        "x": 720,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "f301ee9a5dbd2bad",
+        "type": "delay",
+        "z": "27011c5e3f9c0442",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 460,
+        "y": 460,
+        "wires": [
+            [
+                "8f927269b5342aec"
+            ]
+        ]
     },
     {
         "id": "3c129ba07320274b",
@@ -450,110 +579,6 @@
         "wires": []
     },
     {
-        "id": "2ad372cdad61e38b",
-        "type": "http in",
-        "z": "27011c5e3f9c0442",
-        "name": "GET building",
-        "url": "/api/building/:id",
-        "method": "get",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 190,
-        "y": 160,
-        "wires": [
-            [
-                "1ffa461e79c2a7a7"
-            ]
-        ]
-    },
-    {
-        "id": "0d8b2076de2cb5f5",
-        "type": "function",
-        "z": "27011c5e3f9c0442",
-        "name": "find building by id",
-        "func": "var buildingId = parseInt(msg.req.params.id);  // Extract building ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Find the building with the correct \"bw_geb_id\"\nvar building = buildings.find(b => b.bw_geb_id === buildingId);\n\nif (!building) {\n    msg.payload = { error: \"Building not found\" };\n    msg.statusCode = 404;\n    return [msg];\n}\n\n// Apply filtering\nmsg.payload = building;\n\nreturn [msg];\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 410,
-        "y": 360,
-        "wires": [
-            [
-                "8f927269b5342aec"
-            ]
-        ]
-    },
-    {
-        "id": "8f927269b5342aec",
-        "type": "http response",
-        "z": "27011c5e3f9c0442",
-        "name": "building response",
-        "statusCode": "",
-        "headers": {},
-        "x": 490,
-        "y": 460,
-        "wires": []
-    },
-    {
-        "id": "1ffa461e79c2a7a7",
-        "type": "file in",
-        "z": "27011c5e3f9c0442",
-        "name": "buildings.json",
-        "filename": "/data/buildings.json",
-        "filenameType": "str",
-        "format": "utf8",
-        "chunk": false,
-        "sendError": false,
-        "encoding": "none",
-        "allProps": false,
-        "x": 240,
-        "y": 260,
-        "wires": [
-            [
-                "b3523b0ca03c53b8"
-            ]
-        ]
-    },
-    {
-        "id": "b3523b0ca03c53b8",
-        "type": "json",
-        "z": "27011c5e3f9c0442",
-        "name": "",
-        "property": "payload",
-        "action": "",
-        "pretty": false,
-        "x": 410,
-        "y": 260,
-        "wires": [
-            [
-                "0d8b2076de2cb5f5"
-            ]
-        ]
-    },
-    {
-        "id": "320ab5806cc47a5d",
-        "type": "comment",
-        "z": "27011c5e3f9c0442",
-        "name": "http://localhost:1880/api/building/ID",
-        "info": "",
-        "x": 240,
-        "y": 100,
-        "wires": []
-    },
-    {
-        "id": "ed2ad698a995b590",
-        "type": "comment",
-        "z": "27011c5e3f9c0442",
-        "name": "mock: fetch building with param ID",
-        "info": "",
-        "x": 720,
-        "y": 300,
-        "wires": []
-    },
-    {
         "id": "01d1ad3529f51439",
         "type": "http in",
         "z": "334b2a9f8565f79d",
@@ -577,7 +602,7 @@
         "name": "building-part response",
         "statusCode": "",
         "headers": {},
-        "x": 460,
+        "x": 720,
         "y": 440,
         "wires": []
     },
@@ -651,6 +676,31 @@
         "libs": [],
         "x": 380,
         "y": 340,
+        "wires": [
+            [
+                "513f08822ac5a09a"
+            ]
+        ]
+    },
+    {
+        "id": "513f08822ac5a09a",
+        "type": "delay",
+        "z": "334b2a9f8565f79d",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 440,
+        "y": 440,
         "wires": [
             [
                 "2570eeb4e26197f4"
