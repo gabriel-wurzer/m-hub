@@ -977,7 +977,7 @@
         "type": "function",
         "z": "7928a23a3a61c00d",
         "name": "find buildingIds by userId",
-        "func": "// Extract user ID parameter from msg.req.params\nconst userId = msg.req.params.userId;\n\n// Check if the payload (users array) is valid\nif (!Array.isArray(msg.payload)) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Invalid users data\" };\n    return msg;\n}\n\n// Find the user by ID\nconst user = msg.payload.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { exists: false, error: \"User not found\" };\n    return msg;\n}\n\nmsg.payload = user.buildings || [];\nreturn [msg, null];\n",
+        "func": "// Extract user ID parameter from msg.req.params\nconst userId = msg.req.params.id;\n\n// Check if the payload (users array) is valid\nif (!Array.isArray(msg.payload)) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Invalid users data\" };\n    return msg;\n}\n\n// Find the user by ID\nconst user = msg.payload.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { exists: false, error: \"User not found\" };\n    return msg;\n}\n\nmsg.payload = user.buildings || [];\nreturn [msg, null];\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -1211,6 +1211,175 @@
             [
                 "97faa15e1922b1d8"
             ]
+        ]
+    },
+    {
+        "id": "40e4e7158283284d",
+        "type": "http in",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "POST add building",
+        "url": "/api/user/:userId/buildings",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 140,
+        "wires": [
+            [
+                "d4910f247512e86a"
+            ]
+        ]
+    },
+    {
+        "id": "17384baf5cf51a55",
+        "type": "function",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "append building to user",
+        "func": "// Extract user ID parameter from msg.req.params\nconst userId = msg.req.params.userId;\n\n// Extract building ID payload from msg.payload\nconst buildingId =  parseInt(msg.payload.buildingId);\n\nconst users = msg.users;\n\n// Find user by ID\nconst user = users.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { error: \"User not found\" };\n    return [null, msg];\n}\n\n// Ensure buildings is an array\nif (!Array.isArray(user.buildings)) {\n    user.buildings = [];\n}\n\n// Append only if not already present to avoid duplicates\nif (!user.buildings.includes(buildingId)) {\n    user.buildings.push(buildingId);\n}\n\n// Output 1: write entire updated users array to file\nconst writeMsg = { payload: JSON.stringify(users, null, 2) };\n\n// Output 2: respond to client with updated user\nconst responseMsg = { payload: user };\nresponseMsg.statusCode = 200;\n\nreturn [writeMsg, responseMsg];\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 460,
+        "wires": [
+            [
+                "870eeba346f6ccc9"
+            ],
+            [
+                "a49af9af0629b6cb"
+            ]
+        ]
+    },
+    {
+        "id": "afefbf7ab5b161c5",
+        "type": "http response",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "buildings array response",
+        "statusCode": "",
+        "headers": {},
+        "x": 870,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "d4910f247512e86a",
+        "type": "file in",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "users.json",
+        "filename": "/data/users.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 190,
+        "y": 240,
+        "wires": [
+            [
+                "3ee93f57c37545f0"
+            ]
+        ]
+    },
+    {
+        "id": "3ee93f57c37545f0",
+        "type": "json",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 370,
+        "y": 240,
+        "wires": [
+            [
+                "4d363dfea9a48309"
+            ]
+        ]
+    },
+    {
+        "id": "9d527f52b2ee5208",
+        "type": "comment",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "http://localhost:1880/api/user/UID/buildings",
+        "info": "",
+        "x": 220,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "78f8737e64888d41",
+        "type": "comment",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "mock: append buildingId (payload) to user with userId (param)",
+        "info": "",
+        "x": 660,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "a49af9af0629b6cb",
+        "type": "delay",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 600,
+        "y": 520,
+        "wires": [
+            [
+                "afefbf7ab5b161c5"
+            ]
+        ]
+    },
+    {
+        "id": "4d363dfea9a48309",
+        "type": "function",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "pre-function",
+        "func": "msg.users = msg.payload;  // parsed users.json\nmsg.payload = msg.req.body; // { buildingId: 123 }\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 210,
+        "y": 340,
+        "wires": [
+            [
+                "17384baf5cf51a55"
+            ]
+        ]
+    },
+    {
+        "id": "870eeba346f6ccc9",
+        "type": "file",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "updated user.json",
+        "filename": "/data/users.json",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 610,
+        "y": 420,
+        "wires": [
+            []
         ]
     }
 ]
