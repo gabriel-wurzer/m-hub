@@ -1,35 +1,40 @@
-<div class="building-info-panel">
-    <header class="building-info-header">
-        <button mat-icon-button class="expand-button" [ngClass]="{ 'rotated-button': isMobile }" (click)="openStructureViewPanel()">
-            <mat-icon>arrow_back_ios</mat-icon>
-        </button>
-        <h2 class="building-info-title">Gebäudeinfo</h2>
-        <button mat-icon-button class="close-button" (click)="onClose()">
-            <mat-icon>close</mat-icon>
-        </button>
-    </header>
-
-    <mat-divider />
-
-    <div class="building-info-data">
-        <h3>Gebäude ID: {{ building?.bw_geb_id }}</h3>
-        <p>Nutzung: {{ usageLabel }}</p>
-        <p>Bauperiode: {{ periodLabel }}</p>
-        <p>Maximale Höhe: {{ building?.maxhoehe}} m</p>
-        <p [innerHTML]="'Volumen: ' + (building?.m3vol ?? 'Keine Information') + ' m&sup3;'"></p>    
-        <p [innerHTML]="'Fläche: ' + (building?.m2flaeche ?? 'Keine Information') + ' m&sup2;'"></p>
-        <p [innerHTML]="'Bruttogrundfläche: ' + (building?. m2bgf ?? 'Keine Information') + ' m&sup2;'"></p>
+<ng-container *ngIf="building; else noBuildingData">
+    <div class="building-info-panel">
+        <header class="building-info-header">
+            <button mat-icon-button class="expand-button" [ngClass]="{ 'rotated-button': isMobile }" (click)="openStructureViewPanel()">
+                <mat-icon>arrow_back_ios</mat-icon>
+            </button>
+            <h2 class="building-info-title">Gebäudeinfo</h2>
+            <button mat-icon-button class="close-button" (click)="onClose()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </header>
+    
+        <mat-divider />
+    
+        <div class="building-info-data">
+            <app-add-building-button [building]="building" [userId]="'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'"></app-add-building-button>
+    
+            <h3>Gebäude ID: {{ building.bw_geb_id }}</h3>
+            <p>Nutzung: {{ usageLabel }}</p>
+            <p>Bauperiode: {{ periodLabel }}</p>
+            <p>Maximale Höhe: {{ building.maxhoehe}} m</p>
+            <p [innerHTML]="'Volumen: ' + building.m3vol  + ' m&sup3;'"></p>    
+            <p [innerHTML]="'Fläche: ' + building.m2flaeche  + ' m&sup2;'"></p>
+            <p [innerHTML]="'Bruttogrundfläche: ' + building.m2bgf + ' m&sup2;'"></p>
+        </div>
+    
+        <echarts [options]="usagePieChartOptions" class="chart-container"></echarts>
+        <echarts [options]="materialsPieChartOptions" class="chart-container materials-chart-container"></echarts>
+    
+        <mat-divider />
+    
+        <h3>Dokumente</h3>
+        <app-document-list [entity]="building" />
     </div>
+</ng-container>
 
+<ng-template #noBuildingData>
+    <p *ngIf="!isLoading" class="no-data">Keine Daten für das Gebäude vorhanden</p>
+</ng-template>
 
-    <echarts [options]="usagePieChartOptions" class="chart-container"></echarts>
-    <!-- <app-usage-pie-chart [building]="building"></app-usage-pie-chart> -->
-
-    <echarts [options]="materialsPieChartOptions" class="chart-container materials-chart-container"></echarts>
-
-    <mat-divider />
-
-    <h3>Dokumente</h3>
-    <app-document-list [entity]="building" />
-
-</div>

@@ -1,0 +1,9 @@
+<div class="button-container">
+    <button mat-raised-button
+        class="add-button"
+        color="primary"
+        [disabled]="isAdded || isLoading"
+        (click)="addBuilding()">
+        {{ isAdded ? 'Gebäude hinzugefügt' : 'Gebäude hinzufügen' }}
+    </button>
+</div>

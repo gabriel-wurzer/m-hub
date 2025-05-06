@@ -13,16 +13,17 @@ import { MaterialGroup } from '../../enums/material-group.enum';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DocumentListComponent } from "../document-list/document-list.component";
 import { BreakpointObserver } from '@angular/cdk/layout';
+import { AddBuildingButtonComponent } from "../buttons/add-building-button/add-building-button.component";
 
 @Component({
   selector: 'app-building-sidepanel',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatButtonModule, MatDividerModule, MatListModule, MatProgressSpinnerModule, NgxEchartsModule, DocumentListComponent],
+  imports: [CommonModule, MatIconModule, MatButtonModule, MatDividerModule, MatListModule, MatProgressSpinnerModule, NgxEchartsModule, DocumentListComponent, AddBuildingButtonComponent],
   templateUrl: './building-sidepanel.component.html',
   styleUrl: './building-sidepanel.component.scss'
 })
 export class BuildingSidepanelComponent implements OnInit {
-  @Input() building!: Building | null;
+  @Input() building: Building | null = null;
   @Output() closePanel = new EventEmitter<void>();
 
   @Output() openStructureView = new EventEmitter<Building>();
@@ -46,12 +47,16 @@ export class BuildingSidepanelComponent implements OnInit {
   constructor(private breakpointObserver: BreakpointObserver) {}
 
   ngOnInit(): void {
+    if (!this.building) return;
+
     this.breakpointObserver.observe(['(max-width: 800px)']).subscribe(result => {
       this.isMobile = result.matches;
     });
   }
 
   ngOnChanges() {
+    if (!this.building) return;
+
     this.updateUsagePieChart();
     this.updateMaterialsPieChart();
   }
