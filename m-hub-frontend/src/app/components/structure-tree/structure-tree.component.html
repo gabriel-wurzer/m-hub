@@ -15,7 +15,12 @@
           {{ treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}
         </mat-icon>
       </button>
-      <mat-icon *ngIf="node.type=='building'" class="building-icon">home</mat-icon>
+      <!-- <mat-icon *ngIf="node.type=='building'" class="building-icon">home</mat-icon> -->
+      <img *ngIf="node.type=='building'"
+        src="assets/images/house_icon_black.svg" 
+        alt="House Icon" 
+        class="house-icon" 
+      />
       <span [ngClass]="{ 'building-text': node.type === 'building' }" (click)="onNodeClick(node)">
         {{ node.name }}
       </span>

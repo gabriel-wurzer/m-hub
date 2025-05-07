@@ -1,1 +1,48 @@
-<p>user-data works!</p>
+<main>
+    <!-- <div class="user-data-container" [hidden]="isStructureViewVisible"> -->
+    <div class="user-data-container">
+      <div id="user-data">
+        <header class="user-data-header">
+            <img 
+            src="assets/images/house_icon_primary.svg" 
+            alt="House Icon" 
+            class="house-icon" 
+            />
+            <h1>Meine Gebäude</h1>
+        </header>
+        
+        <mat-divider class="horizontal-divider"/>
+
+        <div class="user-data-content">
+
+            <mat-spinner *ngIf="isLoading" [diameter]="48" [strokeWidth]="3" class="loading-spinner" />
+
+            <ng-container *ngIf="!isLoading && buildingIds.length > 0; else noBuildings">
+                <mat-list>
+                    <mat-list-item *ngFor="let id of buildingIds">
+                      Gebäude {{ id }}
+                    </mat-list-item>
+                  </mat-list>
+            </ng-container>
+            
+            <ng-template #noBuildings>
+                <p *ngIf="!isLoading" class="no-data">Keine Gebäude gespeichert</p>
+            </ng-template>
+        </div>
+
+      </div>
+    
+      <!-- <app-analysis-sidepanel 
+          *ngIf="selectedBuilding" 
+          [building]="selectedBuilding"
+          (closePanel)="deselectBuilding()"
+          (openStructureView)="showStructureView()"
+          class="building-analyses" /> --> 
+    </div>
+  
+    <!-- <app-structure-view
+      *ngIf="isStructureViewVisible" 
+      [entity]="selectedBuilding"
+      (closeStructureView)="hideStructureView()" />
+   -->
+  </main>
