@@ -67,12 +67,16 @@ main {
     align-items: center;
     justify-content: space-between;
     padding: 8px 12px;
-    transition: background-color 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
     border-bottom: 1px solid rgb(255, 255, 255);
     background: #179bde;
 
+    &.selected {
+      background: #107bbc;
+    }
+
     &:hover {
-        background: #148dcf;
+        filter: brightness(90%);
     }
   
     .list-content {
@@ -126,7 +130,7 @@ mat-list-item:last-child {
   overflow: hidden;
 }
 
-.building-analyses {
+.building-info {
   width: 360px;
   min-width: 350px;
   transition: all 0.4s ease-in-out;
@@ -153,7 +157,7 @@ mat-list-item:last-child {
 @media (max-width: 800px) {
 
   .user-data-content {
-    padding: 0;
+    padding: 12px 0 8px 0;
   }
 
   .user-data-container {
@@ -165,7 +169,7 @@ mat-list-item:last-child {
       max-width: 100%;
   }
 
-  .building-analyses {
+  .building-info {
     width: 100%;
     max-width: 100%;
     min-width: unset;

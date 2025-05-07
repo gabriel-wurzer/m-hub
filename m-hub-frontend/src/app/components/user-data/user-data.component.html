@@ -1,6 +1,5 @@
 <main>
-    <!-- <div class="user-data-container" [hidden]="isStructureViewVisible"> -->
-    <div class="user-data-container">
+    <div class="user-data-container" [hidden]="isStructureViewVisible">
       <div id="user-data">
 
         <header class="user-data-header">
@@ -21,10 +20,10 @@
         <div class="user-data-content"> 
           <div class="list-container">
 
-            <!-- <mat-spinner *ngIf="isLoading" [diameter]="48" [strokeWidth]="3" class="loading-spinner" /> -->
-
             <mat-list *ngIf="!isLoading && buildings.length > 0; else noBuildings">
-                <mat-list-item *ngFor="let buildingId of buildings">
+                <mat-list-item *ngFor="let buildingId of buildings"
+                  (click)="selectBuilding(buildingId)"
+                  [class.selected]="isSelected(buildingId)">
                   <span class="list-text">Gebäude {{ buildingId }}</span>
                 </mat-list-item>
             </mat-list>
@@ -35,18 +34,18 @@
         </div>
 
       </div>
-    
-      <!-- <app-analysis-sidepanel 
-          *ngIf="selectedBuilding" 
-          [building]="selectedBuilding"
-          (closePanel)="deselectBuilding()"
-          (openStructureView)="showStructureView()"
-          class="building-analyses" /> --> 
+
+      <app-building-sidepanel 
+        *ngIf="selectedBuilding" 
+        [building]="selectedBuilding"
+        (closePanel)="deselectBuilding()"
+        (openStructureView)="showStructureView()"
+        class="building-info" />
     </div>
-  
-    <!-- <app-structure-view
+    
+    <app-structure-view
       *ngIf="isStructureViewVisible" 
       [entity]="selectedBuilding"
       (closeStructureView)="hideStructureView()" />
-   -->
+  
   </main>
