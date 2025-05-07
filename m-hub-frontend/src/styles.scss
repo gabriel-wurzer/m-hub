@@ -12,10 +12,10 @@ $my-primary: mat.define-palette((
   200: #7fccef,
   300: #50b8e7,
   400: #30a9e3,
-  500: #179bde,
+  500: #179bde, // primary color base
   600: #148dcf,
   700: #107bbc,
-  800: #0e6aa8, // primary color base
+  800: #0e6aa8, 
   900: #084b86,
   contrast: (
     50: #000,
