@@ -2,6 +2,7 @@
     <!-- <div class="user-data-container" [hidden]="isStructureViewVisible"> -->
     <div class="user-data-container">
       <div id="user-data">
+
         <header class="user-data-header">
             <img 
             src="assets/images/house_icon_primary.svg" 
@@ -13,21 +14,24 @@
         
         <mat-divider class="horizontal-divider"/>
 
-        <div class="user-data-content">
+        <div *ngIf="isLoading" class="spinner-container">
+          <mat-spinner [diameter]="100" [strokeWidth]="6" class="loading-spinner" />
+        </div>
 
-            <mat-spinner *ngIf="isLoading" [diameter]="48" [strokeWidth]="3" class="loading-spinner" />
+        <div class="user-data-content"> 
+          <div class="list-container">
 
-            <ng-container *ngIf="!isLoading && buildingIds.length > 0; else noBuildings">
-                <mat-list>
-                    <mat-list-item *ngFor="let id of buildingIds">
-                      Gebäude {{ id }}
-                    </mat-list-item>
-                  </mat-list>
-            </ng-container>
-            
+            <!-- <mat-spinner *ngIf="isLoading" [diameter]="48" [strokeWidth]="3" class="loading-spinner" /> -->
+
+            <mat-list *ngIf="!isLoading && buildings.length > 0; else noBuildings">
+                <mat-list-item *ngFor="let buildingId of buildings">
+                  <span class="list-text">Gebäude {{ buildingId }}</span>
+                </mat-list-item>
+            </mat-list>
             <ng-template #noBuildings>
-                <p *ngIf="!isLoading" class="no-data">Keine Gebäude gespeichert</p>
+              <p *ngIf="!isLoading" class="no-data">Keine Gebäude gespeichert</p>
             </ng-template>
+          </div>
         </div>
 
       </div>

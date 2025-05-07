@@ -17,7 +17,7 @@ import { UserService } from '../../services/user/user.service';
 export class UserDataComponent implements OnInit {
 
   userId = "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71";
-  buildingIds: number[] = [];
+  buildings: number[] = [];
 
   isLoading = false; 
   errorMessage = '';
@@ -34,7 +34,7 @@ export class UserDataComponent implements OnInit {
     this.isLoading = true;
     this.userService.getBuildingsByUser(this.userId).subscribe({
       next: (ids) => {
-        this.buildingIds = ids;
+        this.buildings = ids;
         this.isLoading = false;
       },
       error: (error) => {
