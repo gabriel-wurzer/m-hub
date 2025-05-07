@@ -164,7 +164,7 @@ export class BuildingSidepanelComponent implements OnInit {
         confine: true,
         formatter: (params: any) => {
           const roundedValue = Number(params.value).toFixed(2);
-          return `${params.marker} ${params.name}: <b>${roundedValue} t/m&sup2;</b>`;
+          return `${params.marker} ${params.name}: <b>${roundedValue} t</b>`;
         },
         textStyle: {
           fontSize: 15
