@@ -49,8 +49,8 @@
         {
             "id": "1",
             "buildingId": "5397325",
-            "name": "Main Structure",
-            "description": "Core building structure",
+            "name": "Rohbau",
+            "description": "Rohbau des Gebäudes",
             "type": "building_part",
             "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
             "isPublic": true,
@@ -58,8 +58,8 @@
             {
                 "id": "2",
                 "buildingId": "5397325",
-                "name": "Blueprint",
-                "description": "Architectural design",
+                "name": "Bauplan",
+                "description": "Architektonischer Bauplan des Fundaments",
                 "type": "document",
                 "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
                 "isPublic": true,
@@ -69,8 +69,8 @@
             {
                 "id": "3",
                 "buildingId": "5397325",
-                "name": "Foundation",
-                "description": "Building foundation",
+                "name": "Fundament",
+                "description": "Fundament des Gebäudes",
                 "type": "building_part",
                 "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
                 "isPublic": false
@@ -104,8 +104,8 @@
         {
             "id": "6",
             "buildingId": "5363852",
-            "name": "Safety-related Component",
-            "description": "Safety-related parts",
+            "name": "Aufzugsschacht",
+            "description": "Aufzugsschacht",
             "type": "building_part",
             "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
             "isPublic": true,
@@ -113,8 +113,8 @@
             {
                 "id": "7",
                 "buildingId": "5363852",
-                "name": "Fire_Safety_Report",
-                "description": "Building fire safety analysis",
+                "name": "Brandschutzkonzept",
+                "description": "Konzept für das Vorgehen in einem Brandfall",
                 "type": "document",
                 "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
                 "isPublic": false,
@@ -124,8 +124,8 @@
             {
                 "id": "8",
                 "buildingId": "5363852",
-                "name": "Evacuation_Plan",
-                "description": "Emergency evacuation map",
+                "name": "Fluchtplan",
+                "description": "Plan für Evakuierung des Gebäudes in einem Notfall",
                 "type": "document",
                 "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
                 "isPublic": true,
@@ -137,8 +137,8 @@
         {
             "id": "9",
             "buildingId": "5363852",
-            "name": "Structural Component",
-            "description": "Structural-related parts",
+            "name": "Tragwerk",
+            "description": "Tragende Struktur des Gebäudes inkl. Fundament, Wänden und Dach",
             "type": "building_part",
             "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
             "isPublic": false,
@@ -146,7 +146,7 @@
             {
                 "id": "10",
                 "buildingId": "5363852",
-                "name": "Load_Bearing_Report",
+                "name": "Tragwerksnachweis",
                 "description": "Structural load assessment",
                 "type": "document",
                 "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
@@ -157,8 +157,8 @@
             {
                 "id": "11",
                 "buildingId": "5363852",
-                "name": "Component 1",
-                "description": "Engineering component",
+                "name": "Fundament",
+                "description": "Fundament des Gebäudes",
                 "type": "building_part",
                 "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
                 "isPublic": false,
@@ -166,13 +166,22 @@
                 {
                     "id": "12",
                     "buildingId": "5363852",
-                    "name": "Component 2",
-                    "description": "",
+                    "name": "Bodenplatte",
+                    "description": "Bodenplatte im Fundament des Gebäudes",
                     "type": "building_part",
                     "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
                     "isPublic": false
                 }
                 ]
+            },
+            {
+                "id": "13",
+                "buildingId": "5363852",
+                "name": "Dach",
+                "description": "Dach des Gebäudes",
+                "type": "building_part",
+                "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
+                "isPublic": false
             }
             ]
         }
