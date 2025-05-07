@@ -13,10 +13,6 @@ export class BuildingService {
 
   constructor(private http: HttpClient) { }
 
-  getBuildingPartById(buildingPartId: string): Observable<BuildingPart> {
-    return this.http.get<BuildingPart>(`${this.apiUrl}/${buildingPartId}`);
-  } 
-
   getBuildingById(buildingId: number): Observable<Building> {
     return this.http.get<Building>(`${this.apiUrl}/${buildingId}`);
   } 
