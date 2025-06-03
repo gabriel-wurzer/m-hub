@@ -1,5 +1,5 @@
 /**
- * Interface of user.
+ * Interface for users.
  */
 export interface User {
     id: string;
