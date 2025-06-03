@@ -1,28 +1,31 @@
 [
     {
         "bw_geb_id": 100,
-        "buildingParts": [
+        "buildingComponents": [
             {
-            "id": "4",
-            "buildingId": "100",
-            "name": "Foundation",
-            "description": "Building foundation",
-            "type": "building_part",
-            "ownerId": "79e7432d-f1a0-4f31-9469-1e27b8d8c6cd",
-            "isPublic": false
-            },
-            {
-            "id": "5",
-            "buildingId": "100",
-            "name": "Energy_Report",
-            "description": "Energy efficiency assessment",
-            "type": "document",
-            "ownerId": "79e7432d-f1a0-4f31-9469-1e27b8d8c6cd",
-            "isPublic": false,
-            "fileUrl": "https://example.com/energy.pdf",
-            "fileType": "pdf"
+                "id": "1",
+                "buildingId": "100",
+                "ownerId": "79e7432d-f1a0-4f31-9469-1e27b8d8c6cd",
+                "location": "KG",
+                "name": "Fundament",
+                "description": "Gebäudefundament",
+                "type": "Fundament",
+                "isPublic": false
             }
-        ]
+        ],
+        "documents":
+        [
+            {
+                "id": "2",
+                "buildingId": "100",
+                "ownerId": "79e7432d-f1a0-4f31-9469-1e27b8d8c6cd",
+                "name": "Energieverbauchsbericht",
+                "isPublic": false,
+                "fileUrl": "https://example.com/energy.pdf",
+                "fileType": "pdf"
+            }
+        ],
+        "structure": "KG, EG, OG"
     },
     {
         "bw_geb_id": 5397325,
@@ -45,39 +48,55 @@
         "bmg7": 139.65982898866,
         "bmg8": 991.10736748163,
         "bmg9": 2176.9852674641,
-        "buildingParts": [
-        {
-            "id": "1",
-            "buildingId": "5397325",
-            "name": "Rohbau",
-            "description": "Rohbau des Gebäudes",
-            "type": "building_part",
-            "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
-            "isPublic": true,
-            "buildingParts": [
-            {
-                "id": "2",
-                "buildingId": "5397325",
-                "name": "Bauplan",
-                "description": "Architektonischer Bauplan des Fundaments",
-                "type": "document",
-                "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
-                "isPublic": true,
-                "fileUrl": "https://example.com/blueprint.pdf",
-                "fileType": "pdf"
-            },
+        "buildingComponents?": [
             {
                 "id": "3",
                 "buildingId": "5397325",
-                "name": "Fundament",
-                "description": "Fundament des Gebäudes",
-                "type": "building_part",
                 "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
+                "location": "EG, OG1, OG2, DG",
+                "name": "Kaminwand",
+                "description": "Kaminwand des Gebäudes",
+                "type": "Wand",
+                "isPublic": true,
+                "documents": [
+                    {
+                        "id": "4",
+                        "buildingId": "5397325",
+                        "componentId": "3",
+                        "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
+                        "name": "Wandaufbau",
+                        "description": "Aufbau der Kaminwand des Gebäudes",
+                        "isPublic": true,
+                        "fileUrl": "https://example.com/blueprint.pdf",
+                        "fileType": "pdf"
+                    }
+                ]
+            },
+            {
+                "id": "5",
+                "buildingId": "5397325",
+                "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
+                "location": "KG",
+                "name": "Gebäudefundament",
+                "description": "Fundament des Gebäudes",
+                "type": "Fundament",
                 "isPublic": false
             }
-            ]
-        }
-        ]
+        ],
+        "documents":
+        [
+            {
+                "id": "6",
+                "parentId": "5397325",
+                "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
+                "name": "Bauplan",
+                "description": "Architektonischer Bauplan des Gebäudes",
+                "isPublic": true,
+                "fileUrl": "https://example.com/blueprint.pdf",
+                "fileType": "pdf"
+            }
+        ],
+        "structure": "KG, EG, OG1, OG2, DG"
     },
     {
         "bw_geb_id": 5363852,
@@ -100,91 +119,94 @@
         "bmg7": 67.43397184689,
         "bmg8": 440.75285546136,
         "bmg9": 3076.861697463,
-        "buildingParts": [
-        {
-            "id": "6",
-            "buildingId": "5363852",
-            "name": "Aufzugsschacht",
-            "description": "Aufzugsschacht",
-            "type": "building_part",
-            "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
-            "isPublic": true,
-            "buildingParts": [
+        "buildingComponents": [
             {
                 "id": "7",
                 "buildingId": "5363852",
-                "name": "Brandschutzkonzept",
-                "description": "Konzept für das Vorgehen in einem Brandfall",
-                "type": "document",
                 "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
-                "isPublic": false,
-                "fileUrl": "https://example.com/fire_safety.pdf",
-                "fileType": "pdf"
+                "location": "KG, EG, OG, DG",
+                "name": "Aufzugsschacht",
+                "description": "Aufzugsschacht",
+                "type": "Wand",
+                "isPublic": true,
+                "documents": [
+                    {
+                        "id": "8",
+                        "buildingId": "5363852",
+                        "componentId": "7",
+                        "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
+                        "name": "Fluchtplan",
+                        "description": "Plan für Evakuierung des Gebäudes in einem Notfall",
+                        "isPublic": true,
+                        "fileUrl": "https://example.com/evacuation.png",
+                        "fileType": "png"
+                    }
+                ]
             },
             {
-                "id": "8",
+                "id": "9",
                 "buildingId": "5363852",
-                "name": "Fluchtplan",
-                "description": "Plan für Evakuierung des Gebäudes in einem Notfall",
-                "type": "document",
-                "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
-                "isPublic": true,
-                "fileUrl": "https://example.com/evacuation.png",
-                "fileType": "png"
-            }
-            ]
-        },
-        {
-            "id": "9",
-            "buildingId": "5363852",
-            "name": "Tragwerk",
-            "description": "Tragende Struktur des Gebäudes inkl. Fundament, Wänden und Dach",
-            "type": "building_part",
-            "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
-            "isPublic": false,
-            "buildingParts": [
-            {
-                "id": "10",
-                "buildingId": "5363852",
-                "name": "Tragwerksnachweis",
-                "description": "Structural load assessment",
-                "type": "document",
+                "name": "Eingangstüre",
                 "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
+                "description": "Eingangstüre des Gebäudes",
+                "type": "Tür",
                 "isPublic": false,
-                "fileUrl": "https://example.com/load_bearing.pdf",
-                "fileType": "pdf"
+                "documents": [
+                    {
+                        "id": "10",
+                        "buildingId": "5363852",
+                        "componentId": "10",
+                        "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
+                        "name": "Schlossaustausch - Protokoll",
+                        "isPublic": false,
+                        "fileUrl": "https://example.com/load_bearing.pdf",
+                        "fileType": "pdf"
+                    }
+                ]
             },
             {
                 "id": "11",
                 "buildingId": "5363852",
-                "name": "Fundament",
-                "description": "Fundament des Gebäudes",
-                "type": "building_part",
                 "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
-                "isPublic": false,
-                "buildingParts": [
-                {
-                    "id": "12",
-                    "buildingId": "5363852",
-                    "name": "Bodenplatte",
-                    "description": "Bodenplatte im Fundament des Gebäudes",
-                    "type": "building_part",
-                    "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
-                    "isPublic": false
-                }
-                ]
+                "location": "DG",
+                "name": "Dachfenster",
+                "type": "Fenster",
+                "isPublic": false
+            },
+            {
+                "id": "12",
+                "buildingId": "5363852",
+                "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
+                "location": "KG",
+                "name": "Heizkessel",
+                "description": "Hauptheizkessel des Gebäudes",
+                "type": "Sonstige",
+                "isPublic": false
             },
             {
                 "id": "13",
                 "buildingId": "5363852",
+                "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
+                "location": "DG",
                 "name": "Dach",
                 "description": "Dach des Gebäudes",
                 "type": "building_part",
-                "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
                 "isPublic": false
             }
-            ]
-        }
-        ]
+        ],
+        "documents":
+        [
+            {
+                "id": "14",
+                "buildingId": "5363852",
+                "name": "Brandschutzkonzept",
+                "description": "Konzept für das Vorgehen in einem Brandfall",
+                "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
+                "isPublic": false,
+                "fileUrl": "https://example.com/fire_safety.pdf",
+                "fileType": "pdf"
+            }
+        ],
+        "structure": "KG, EG, OG, DG"
     }
 ]
