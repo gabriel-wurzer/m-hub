@@ -30,7 +30,7 @@ yarn-error.log
 #.history/*
 
 # Environments
-/m-hub-frontend/src/environments/environment.ts
+m-hub-frontend/src/environments/environment.ts
 
 # Miscellaneous
 .angular/
