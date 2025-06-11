@@ -48,7 +48,7 @@
         "bmg7": 139.65982898866,
         "bmg8": 991.10736748163,
         "bmg9": 2176.9852674641,
-        "buildingComponents?": [
+        "buildingComponents": [
             {
                 "id": "3",
                 "buildingId": "5397325",
@@ -157,7 +157,7 @@
                         "buildingId": "5363852",
                         "componentId": "10",
                         "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
-                        "name": "Schlossaustausch - Protokoll",
+                        "name": "Protokoll: Schlossaustausch",
                         "isPublic": false,
                         "fileUrl": "https://example.com/load_bearing.pdf",
                         "fileType": "pdf"
@@ -190,7 +190,7 @@
                 "location": "DG",
                 "name": "Dach",
                 "description": "Dach des Gebäudes",
-                "type": "building_part",
+                "type": "Dach",
                 "isPublic": false
             }
         ],
