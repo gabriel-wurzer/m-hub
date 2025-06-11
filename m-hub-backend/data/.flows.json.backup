@@ -19,46 +19,43 @@
         "type": "tab",
         "label": "Building by ID",
         "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
     {
         "id": "bc8f71868ee8d8a0",
         "type": "tab",
-        "label": "Documents by Building",
+        "label": "Documents by BuildingID",
         "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
     {
-        "id": "38f9cc6750f8eb6f",
+        "id": "b1df49c7184ded33",
         "type": "tab",
-        "label": "Parts by Building",
+        "label": "Component by ID",
         "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
     {
-        "id": "334b2a9f8565f79d",
+        "id": "ac18e646bf8d0c36",
         "type": "tab",
-        "label": "Part by ID",
+        "label": "Components by BuildingID",
         "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
     {
-        "id": "d0cf828cb89c2dcd",
+        "id": "57d67887e6ddfe9a",
         "type": "tab",
-        "label": "Documents by Part",
+        "label": "Documents by Component",
         "disabled": false,
-        "info": "",
-        "env": []
-    },
-    {
-        "id": "364c116a7e63a2e0",
-        "type": "tab",
-        "label": "Parts by Part",
-        "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
@@ -83,6 +80,38 @@
         "type": "tab",
         "label": "Add Building to User",
         "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "38f9cc6750f8eb6f",
+        "type": "tab",
+        "label": "Parts by Building",
+        "disabled": true,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "334b2a9f8565f79d",
+        "type": "tab",
+        "label": "Part by ID",
+        "disabled": true,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "d0cf828cb89c2dcd",
+        "type": "tab",
+        "label": "Documents by Part",
+        "disabled": true,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "364c116a7e63a2e0",
+        "type": "tab",
+        "label": "Parts by Part",
+        "disabled": true,
         "info": "",
         "env": []
     },
@@ -286,7 +315,7 @@
         "type": "http in",
         "z": "27011c5e3f9c0442",
         "name": "GET building",
-        "url": "/api/building/:id",
+        "url": "/api/building/:ID",
         "method": "get",
         "upload": false,
         "swaggerDoc": "",
@@ -303,7 +332,7 @@
         "type": "function",
         "z": "27011c5e3f9c0442",
         "name": "find building by id",
-        "func": "var buildingId = parseInt(msg.req.params.id);  // Extract building ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Find the building with the correct \"bw_geb_id\"\nvar building = buildings.find(b => b.bw_geb_id === buildingId);\n\nif (!building) {\n    msg.payload = { error: \"Building not found\" };\n    msg.statusCode = 404;\n    return [msg];\n}\n\n// Apply filtering\nmsg.payload = building;\n\nreturn [msg];\n",
+        "func": "var buildingId = parseInt(msg.req.params.ID);  // Extract building ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Find the building with the correct \"bw_geb_id\"\nvar building = buildings.find(b => b.bw_geb_id === buildingId);\n\nif (!building) {\n    msg.payload = { error: `Building with ID '${buildingId}' not found` };\n    msg.statusCode = 404;\n    return [msg];\n}\n\n// Apply filtering\nmsg.payload = building;\n\nreturn [msg];\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -415,7 +444,7 @@
         "type": "http in",
         "z": "bc8f71868ee8d8a0",
         "name": "GET building documents",
-        "url": "/api/building/:id/documents",
+        "url": "/api/building/:ID/documents",
         "method": "get",
         "upload": false,
         "swaggerDoc": "",
@@ -432,7 +461,7 @@
         "type": "function",
         "z": "bc8f71868ee8d8a0",
         "name": "extract documents",
-        "func": "var buildingId = parseInt(msg.req.params.id);  // Extract building ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Find the building with the correct \"bw_geb_id\"\nvar building = buildings.find(b => b.bw_geb_id === buildingId);\n\nif (!building) {\n    msg.payload = { error: \"Building not found\" };\n    msg.statusCode = 404;\n    return [msg];\n}\n\n// Function to recursively collect documents from building parts\nfunction collectDocuments(parts) {\n    let documents = [];\n    for (let part of parts) {\n        if (part.type === \"document\") {\n            documents.push(part);\n        }\n        if (part.buildingParts && part.buildingParts.length > 0) {\n            documents = documents.concat(collectDocuments(part.buildingParts));\n        }\n    }\n    return documents;\n}\n\n// Extract all documents\nmsg.payload = collectDocuments(building.buildingParts);\nreturn [msg];",
+        "func": "var buildingId = parseInt(msg.req.params.ID);  // Extract building ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Find the building with the correct \"bw_geb_id\"\nvar building = buildings.find(b => b.bw_geb_id === buildingId);\n\nif (!building) {\n    msg.payload = { error: `Building with ID '${buildingId}' not found` };\n    msg.statusCode = 404;\n    return [msg];\n}\n\n// Start collecting documents\nlet documents = [];\n\n// Add top-level building documents\nif (Array.isArray(building.documents)) {\n    documents = documents.concat(building.documents);\n}\n\n// Add documents from each buildingComponent\nif (Array.isArray(building.buildingComponents)) {\n    for (let component of building.buildingComponents) {\n        if (Array.isArray(component.documents)) {\n            documents = documents.concat(component.documents);\n        }\n    }\n}\n\nmsg.payload = documents;\nreturn [msg];\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -513,6 +542,770 @@
         "x": 680,
         "y": 340,
         "wires": []
+    },
+    {
+        "id": "7ad6badf4ae5091e",
+        "type": "http in",
+        "z": "b1df49c7184ded33",
+        "name": "GET building-component",
+        "url": "/api/component/:ID",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 180,
+        "wires": [
+            [
+                "471960e37c1d3a39"
+            ]
+        ]
+    },
+    {
+        "id": "fa2fc321647a0a3d",
+        "type": "http response",
+        "z": "b1df49c7184ded33",
+        "name": "building-component response",
+        "statusCode": "",
+        "headers": {},
+        "x": 790,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "471960e37c1d3a39",
+        "type": "file in",
+        "z": "b1df49c7184ded33",
+        "name": "buildings.json",
+        "filename": "/data/buildings.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 240,
+        "y": 280,
+        "wires": [
+            [
+                "a76e0c7d529b20d9"
+            ]
+        ]
+    },
+    {
+        "id": "a76e0c7d529b20d9",
+        "type": "json",
+        "z": "b1df49c7184ded33",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 410,
+        "y": 280,
+        "wires": [
+            [
+                "a3ed23e521fe0d08"
+            ]
+        ]
+    },
+    {
+        "id": "a63770cd71c53057",
+        "type": "comment",
+        "z": "b1df49c7184ded33",
+        "name": "http://localhost:1880/api/component/ID",
+        "info": "",
+        "x": 250,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "6a3faf00d23c2935",
+        "type": "comment",
+        "z": "b1df49c7184ded33",
+        "name": "mock: fetch building-component with param ID",
+        "info": "",
+        "x": 750,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "747506942604e96a",
+        "type": "delay",
+        "z": "b1df49c7184ded33",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 480,
+        "y": 480,
+        "wires": [
+            [
+                "fa2fc321647a0a3d"
+            ]
+        ]
+    },
+    {
+        "id": "a3ed23e521fe0d08",
+        "type": "function",
+        "z": "b1df49c7184ded33",
+        "name": "find building-component by id",
+        "func": "// Get the component ID from the request parameters\nconst componentId = msg.req.params.ID;\n\n// Access the full buildings array (from buildings.json)\nconst buildings = msg.payload;\n\n// Search through all buildingComponents in all buildings\nlet foundComponent = null;\n\nfor (const building of buildings) {\n    if (Array.isArray(building.buildingComponents)) {\n        for (const component of building.buildingComponents) {\n            if (component.id === componentId) {\n                foundComponent = component;\n                break;\n            }\n        }\n    }\n\n    if (foundComponent) break;\n}\n\n// Return the component or a 404 if not found\nif (foundComponent) {\n    msg.payload = foundComponent;\n    return msg;\n} else {\n    msg.statusCode = 404;\n    msg.payload = { error: `Component with ID '${componentId}' not found` };\n    return msg;\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 380,
+        "wires": [
+            [
+                "747506942604e96a"
+            ]
+        ]
+    },
+    {
+        "id": "3fc16a751fac0ce4",
+        "type": "http in",
+        "z": "ac18e646bf8d0c36",
+        "name": "GET building components",
+        "url": "/api/building/:ID/components",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 210,
+        "y": 160,
+        "wires": [
+            [
+                "da02924c65ed6de3"
+            ]
+        ]
+    },
+    {
+        "id": "a0b078e726d40da0",
+        "type": "function",
+        "z": "ac18e646bf8d0c36",
+        "name": "extract building components",
+        "func": "var buildingId = parseInt(msg.req.params.ID);  // Extract building ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Find the building with the correct \"bw_geb_id\"\nvar building = buildings.find(b => b.bw_geb_id === buildingId);\n\nif (!building) {\n    msg.payload = { error: `Building with ID '${buildingId}' not found` };\n    msg.statusCode = 404;\n    return [msg];\n}\n\n// Just return the components directly\nmsg.payload = building.buildingComponents || [];\n\nreturn [msg];\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 360,
+        "wires": [
+            [
+                "ed4c299ed36a7f44"
+            ]
+        ]
+    },
+    {
+        "id": "ed4c299ed36a7f44",
+        "type": "http response",
+        "z": "ac18e646bf8d0c36",
+        "name": "components response",
+        "statusCode": "",
+        "headers": {},
+        "x": 480,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "da02924c65ed6de3",
+        "type": "file in",
+        "z": "ac18e646bf8d0c36",
+        "name": "buildings.json",
+        "filename": "/data/buildings.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 220,
+        "y": 260,
+        "wires": [
+            [
+                "407d19d480f0bb3a"
+            ]
+        ]
+    },
+    {
+        "id": "407d19d480f0bb3a",
+        "type": "json",
+        "z": "ac18e646bf8d0c36",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 390,
+        "y": 260,
+        "wires": [
+            [
+                "a0b078e726d40da0"
+            ]
+        ]
+    },
+    {
+        "id": "8fd6c4c6a8c5041e",
+        "type": "comment",
+        "z": "ac18e646bf8d0c36",
+        "name": "http://localhost:1880/api/building/ID/components",
+        "info": "",
+        "x": 260,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "d004c89ae82233a4",
+        "type": "comment",
+        "z": "ac18e646bf8d0c36",
+        "name": "mock: fetch components for building with param ID",
+        "info": "",
+        "x": 750,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "3a3e6d1a077cbf77",
+        "type": "http in",
+        "z": "57d67887e6ddfe9a",
+        "name": "GET building-component documents",
+        "url": "/api/component/:ID/documents",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 240,
+        "y": 140,
+        "wires": [
+            [
+                "9d1992cfaaf486a1"
+            ]
+        ]
+    },
+    {
+        "id": "04254c8bede6eb55",
+        "type": "function",
+        "z": "57d67887e6ddfe9a",
+        "name": "extract documents",
+        "func": "// Get the component ID from the request parameters\nconst componentId = msg.req.params.ID;\n\n// Access the full buildings array (from buildings.json)\nconst buildings = msg.payload;\n\n// Search through all buildingComponents in all buildings\nlet foundComponent = null;\n\nfor (const building of buildings) {\n    if (Array.isArray(building.buildingComponents)) {\n        for (const component of building.buildingComponents) {\n            if (component.id === componentId) {\n                foundComponent = component;\n                break;\n            }\n        }\n    }\n\n    if (foundComponent) break;\n}\n\n// Return the component's documents or a 404 if not found or no documents\nif (foundComponent) {\n    const documents = foundComponent.documents || [];  // default to empty array if undefined\n    msg.payload = documents;\n    return msg;\n} else {\n    msg.statusCode = 404;\n    msg.payload = { error: `Component with ID '${componentId}' not found` };\n    return msg;\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 340,
+        "wires": [
+            [
+                "364cdf4871d3fc7f"
+            ]
+        ]
+    },
+    {
+        "id": "364cdf4871d3fc7f",
+        "type": "http response",
+        "z": "57d67887e6ddfe9a",
+        "name": "documents response",
+        "statusCode": "",
+        "headers": {},
+        "x": 440,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "9d1992cfaaf486a1",
+        "type": "file in",
+        "z": "57d67887e6ddfe9a",
+        "name": "buildings.json",
+        "filename": "/data/buildings.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 200,
+        "y": 240,
+        "wires": [
+            [
+                "9e3759ad5a14c662"
+            ]
+        ]
+    },
+    {
+        "id": "9e3759ad5a14c662",
+        "type": "json",
+        "z": "57d67887e6ddfe9a",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 370,
+        "y": 240,
+        "wires": [
+            [
+                "04254c8bede6eb55"
+            ]
+        ]
+    },
+    {
+        "id": "a5e9b8b30a94858e",
+        "type": "comment",
+        "z": "57d67887e6ddfe9a",
+        "name": "http://localhost:1880/api/component/ID/documents",
+        "info": "",
+        "x": 250,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "f2e61bdcfff91ebf",
+        "type": "comment",
+        "z": "57d67887e6ddfe9a",
+        "name": "mock: fetch documents for building-component with param ID",
+        "info": "",
+        "x": 760,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "1a99ee929f4bb38f",
+        "type": "http in",
+        "z": "7928a23a3a61c00d",
+        "name": "GET buildings",
+        "url": "/api/user/:ID/buildings",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 150,
+        "y": 140,
+        "wires": [
+            [
+                "d22ab6e80db60931"
+            ]
+        ]
+    },
+    {
+        "id": "0b34b6762788ca15",
+        "type": "function",
+        "z": "7928a23a3a61c00d",
+        "name": "find buildingIds by userId",
+        "func": "// Extract user ID parameter from msg.req.params\nconst userId = msg.req.params.ID;\n\n// Check if the payload (users array) is valid\nif (!Array.isArray(msg.payload)) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Invalid users data\" };\n    return msg;\n}\n\n// Find the user by ID\nconst user = msg.payload.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { exists: false, error: `User with ID '${userId}' not found` };\n    return msg;\n}\n\nmsg.payload = user.buildings || [];\nreturn [msg, null];\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 340,
+        "wires": [
+            [
+                "423d647526ab999d"
+            ]
+        ]
+    },
+    {
+        "id": "cd3718c20e42d278",
+        "type": "http response",
+        "z": "7928a23a3a61c00d",
+        "name": "building response",
+        "statusCode": "",
+        "headers": {},
+        "x": 710,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "d22ab6e80db60931",
+        "type": "file in",
+        "z": "7928a23a3a61c00d",
+        "name": "users.json",
+        "filename": "/data/users.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 190,
+        "y": 240,
+        "wires": [
+            [
+                "3826fe9dee562d15"
+            ]
+        ]
+    },
+    {
+        "id": "3826fe9dee562d15",
+        "type": "json",
+        "z": "7928a23a3a61c00d",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 370,
+        "y": 240,
+        "wires": [
+            [
+                "0b34b6762788ca15"
+            ]
+        ]
+    },
+    {
+        "id": "606c6a672845dccd",
+        "type": "comment",
+        "z": "7928a23a3a61c00d",
+        "name": "http://localhost:1880/api/user/UID/buildings",
+        "info": "",
+        "x": 220,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "15451039e043dbed",
+        "type": "comment",
+        "z": "7928a23a3a61c00d",
+        "name": "mock: fetch buildingIds with param userId",
+        "info": "",
+        "x": 700,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "423d647526ab999d",
+        "type": "delay",
+        "z": "7928a23a3a61c00d",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 420,
+        "y": 440,
+        "wires": [
+            [
+                "cd3718c20e42d278"
+            ]
+        ]
+    },
+    {
+        "id": "87161bccab4bd3aa",
+        "type": "http in",
+        "z": "16119a8b0b0654ef",
+        "name": "GET building in user",
+        "url": "/api/user/:userId/buildings/:buildingId/exists",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 190,
+        "y": 120,
+        "wires": [
+            [
+                "cd451dcc92ad85ec"
+            ]
+        ]
+    },
+    {
+        "id": "68642bc661dfd2df",
+        "type": "function",
+        "z": "16119a8b0b0654ef",
+        "name": "check if building exists in user buildings",
+        "func": "// Extract path parameters from msg.req.params\nconst userId = msg.req.params.userId;\nconst buildingId = parseInt(msg.req.params.buildingId);\n\n// Check if the payload (users array) is valid\nif (!Array.isArray(msg.payload)) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Invalid users data\" };\n    return msg;\n}\n\n// Find the user by ID\nconst user = msg.payload.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { exists: false, error: `User with ID '${userId}' not found` };\n    return msg;\n}\n\n// Check if building ID is in user's buildings array\nconst exists = Array.isArray(user.buildings) && user.buildings.includes(buildingId);\n\n// Return boolean as JSON\nmsg.payload = exists.toString();\nmsg.statusCode = 200;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 320,
+        "wires": [
+            [
+                "a47c9c685b1f861c"
+            ]
+        ]
+    },
+    {
+        "id": "97faa15e1922b1d8",
+        "type": "http response",
+        "z": "16119a8b0b0654ef",
+        "name": "building in user response",
+        "statusCode": "",
+        "headers": {},
+        "x": 750,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "cd451dcc92ad85ec",
+        "type": "file in",
+        "z": "16119a8b0b0654ef",
+        "name": "users.json",
+        "filename": "/data/users.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 210,
+        "y": 220,
+        "wires": [
+            [
+                "41b9ecc42da04bd8"
+            ]
+        ]
+    },
+    {
+        "id": "41b9ecc42da04bd8",
+        "type": "json",
+        "z": "16119a8b0b0654ef",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 390,
+        "y": 220,
+        "wires": [
+            [
+                "68642bc661dfd2df"
+            ]
+        ]
+    },
+    {
+        "id": "ab81e89fd21e376e",
+        "type": "comment",
+        "z": "16119a8b0b0654ef",
+        "name": "http://localhost:1880/api/user/UID/buildings/BID/exists",
+        "info": "",
+        "x": 280,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "d1c8504c8886d058",
+        "type": "comment",
+        "z": "16119a8b0b0654ef",
+        "name": "mock: check if building param buildingId exists",
+        "info": "",
+        "x": 730,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "a47c9c685b1f861c",
+        "type": "delay",
+        "z": "16119a8b0b0654ef",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 440,
+        "y": 420,
+        "wires": [
+            [
+                "97faa15e1922b1d8"
+            ]
+        ]
+    },
+    {
+        "id": "40e4e7158283284d",
+        "type": "http in",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "POST add building",
+        "url": "/api/user/:UID/buildings",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 140,
+        "wires": [
+            [
+                "d4910f247512e86a"
+            ]
+        ]
+    },
+    {
+        "id": "17384baf5cf51a55",
+        "type": "function",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "append building to user",
+        "func": "// Extract user ID parameter from msg.req.params\nconst userId = msg.req.params.UID;\n\n// Extract building ID payload from msg.payload\nconst buildingId =  parseInt(msg.payload.buildingId);\n\nconst users = msg.users;\n\n// Find user by ID\nconst user = users.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { error: `User with ID '${userId}' not found` };\n    return [null, msg];\n}\n\n// Ensure buildings is an array\nif (!Array.isArray(user.buildings)) {\n    user.buildings = [];\n}\n\n// Append only if not already present to avoid duplicates\nif (!user.buildings.includes(buildingId)) {\n    user.buildings.push(buildingId);\n}\n\n// Output 1: write entire updated users array to file\nconst writeMsg = { payload: JSON.stringify(users, null, 2) };\n\n// Output 2: respond to client — reuse original msg to preserve req/res context\nmsg.statusCode = 200;\nmsg.payload = user;\n\nreturn [writeMsg, msg];\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 460,
+        "wires": [
+            [
+                "870eeba346f6ccc9"
+            ],
+            [
+                "a49af9af0629b6cb"
+            ]
+        ]
+    },
+    {
+        "id": "afefbf7ab5b161c5",
+        "type": "http response",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "buildings array response",
+        "statusCode": "",
+        "headers": {},
+        "x": 870,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "d4910f247512e86a",
+        "type": "file in",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "users.json",
+        "filename": "/data/users.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 190,
+        "y": 240,
+        "wires": [
+            [
+                "3ee93f57c37545f0"
+            ]
+        ]
+    },
+    {
+        "id": "3ee93f57c37545f0",
+        "type": "json",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 370,
+        "y": 240,
+        "wires": [
+            [
+                "4d363dfea9a48309"
+            ]
+        ]
+    },
+    {
+        "id": "9d527f52b2ee5208",
+        "type": "comment",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "http://localhost:1880/api/user/UID/buildings",
+        "info": "",
+        "x": 220,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "78f8737e64888d41",
+        "type": "comment",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "mock: append buildingId (payload) to user with userId (param)",
+        "info": "",
+        "x": 660,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "a49af9af0629b6cb",
+        "type": "delay",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 600,
+        "y": 520,
+        "wires": [
+            [
+                "afefbf7ab5b161c5"
+            ]
+        ]
+    },
+    {
+        "id": "4d363dfea9a48309",
+        "type": "function",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "pre-function",
+        "func": "msg.users = msg.payload;  // parsed users.json\nmsg.payload = msg.req.body; // { buildingId: 123 }\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 210,
+        "y": 340,
+        "wires": [
+            [
+                "17384baf5cf51a55"
+            ]
+        ]
+    },
+    {
+        "id": "870eeba346f6ccc9",
+        "type": "file",
+        "z": "0cd2d786f9f2ee5b",
+        "name": "updated user.json",
+        "filename": "/data/users.json",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 610,
+        "y": 420,
+        "wires": [
+            []
+        ]
     },
     {
         "id": "f24d3eb7fd564ece",
@@ -954,432 +1747,5 @@
         "x": 760,
         "y": 280,
         "wires": []
-    },
-    {
-        "id": "1a99ee929f4bb38f",
-        "type": "http in",
-        "z": "7928a23a3a61c00d",
-        "name": "GET buildings",
-        "url": "/api/user/:id/buildings",
-        "method": "get",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 150,
-        "y": 140,
-        "wires": [
-            [
-                "d22ab6e80db60931"
-            ]
-        ]
-    },
-    {
-        "id": "0b34b6762788ca15",
-        "type": "function",
-        "z": "7928a23a3a61c00d",
-        "name": "find buildingIds by userId",
-        "func": "// Extract user ID parameter from msg.req.params\nconst userId = msg.req.params.id;\n\n// Check if the payload (users array) is valid\nif (!Array.isArray(msg.payload)) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Invalid users data\" };\n    return msg;\n}\n\n// Find the user by ID\nconst user = msg.payload.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { exists: false, error: \"User not found\" };\n    return msg;\n}\n\nmsg.payload = user.buildings || [];\nreturn [msg, null];\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 390,
-        "y": 340,
-        "wires": [
-            [
-                "423d647526ab999d"
-            ]
-        ]
-    },
-    {
-        "id": "cd3718c20e42d278",
-        "type": "http response",
-        "z": "7928a23a3a61c00d",
-        "name": "building response",
-        "statusCode": "",
-        "headers": {},
-        "x": 710,
-        "y": 440,
-        "wires": []
-    },
-    {
-        "id": "d22ab6e80db60931",
-        "type": "file in",
-        "z": "7928a23a3a61c00d",
-        "name": "users.json",
-        "filename": "/data/users.json",
-        "filenameType": "str",
-        "format": "utf8",
-        "chunk": false,
-        "sendError": false,
-        "encoding": "none",
-        "allProps": false,
-        "x": 190,
-        "y": 240,
-        "wires": [
-            [
-                "3826fe9dee562d15"
-            ]
-        ]
-    },
-    {
-        "id": "3826fe9dee562d15",
-        "type": "json",
-        "z": "7928a23a3a61c00d",
-        "name": "",
-        "property": "payload",
-        "action": "",
-        "pretty": false,
-        "x": 370,
-        "y": 240,
-        "wires": [
-            [
-                "0b34b6762788ca15"
-            ]
-        ]
-    },
-    {
-        "id": "606c6a672845dccd",
-        "type": "comment",
-        "z": "7928a23a3a61c00d",
-        "name": "http://localhost:1880/api/user/UID/buildings",
-        "info": "",
-        "x": 220,
-        "y": 80,
-        "wires": []
-    },
-    {
-        "id": "15451039e043dbed",
-        "type": "comment",
-        "z": "7928a23a3a61c00d",
-        "name": "mock: fetch buildingIds with param userId",
-        "info": "",
-        "x": 700,
-        "y": 280,
-        "wires": []
-    },
-    {
-        "id": "423d647526ab999d",
-        "type": "delay",
-        "z": "7928a23a3a61c00d",
-        "name": "",
-        "pauseType": "delay",
-        "timeout": "1",
-        "timeoutUnits": "seconds",
-        "rate": "1",
-        "nbRateUnits": "1",
-        "rateUnits": "second",
-        "randomFirst": "1",
-        "randomLast": "5",
-        "randomUnits": "seconds",
-        "drop": false,
-        "allowrate": false,
-        "outputs": 1,
-        "x": 420,
-        "y": 440,
-        "wires": [
-            [
-                "cd3718c20e42d278"
-            ]
-        ]
-    },
-    {
-        "id": "87161bccab4bd3aa",
-        "type": "http in",
-        "z": "16119a8b0b0654ef",
-        "name": "GET building in user",
-        "url": "/api/user/:userId/buildings/:buildingId/exists",
-        "method": "get",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 190,
-        "y": 120,
-        "wires": [
-            [
-                "cd451dcc92ad85ec"
-            ]
-        ]
-    },
-    {
-        "id": "68642bc661dfd2df",
-        "type": "function",
-        "z": "16119a8b0b0654ef",
-        "name": "check if building exists in user buildings",
-        "func": "// Extract path parameters from msg.req.params\nconst userId = msg.req.params.userId;\nconst buildingId = parseInt(msg.req.params.buildingId);\n\n// Check if the payload (users array) is valid\nif (!Array.isArray(msg.payload)) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Invalid users data\" };\n    return msg;\n}\n\n// Find the user by ID\nconst user = msg.payload.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { exists: false, error: \"User not found\" };\n    return msg;\n}\n\n// Check if building ID is in user's buildings array\nconst exists = Array.isArray(user.buildings) && user.buildings.includes(buildingId);\n\n// Return boolean as JSON\nmsg.payload = exists.toString();\nmsg.statusCode = 200;\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 360,
-        "y": 320,
-        "wires": [
-            [
-                "a47c9c685b1f861c"
-            ]
-        ]
-    },
-    {
-        "id": "97faa15e1922b1d8",
-        "type": "http response",
-        "z": "16119a8b0b0654ef",
-        "name": "building in user response",
-        "statusCode": "",
-        "headers": {},
-        "x": 750,
-        "y": 420,
-        "wires": []
-    },
-    {
-        "id": "cd451dcc92ad85ec",
-        "type": "file in",
-        "z": "16119a8b0b0654ef",
-        "name": "users.json",
-        "filename": "/data/users.json",
-        "filenameType": "str",
-        "format": "utf8",
-        "chunk": false,
-        "sendError": false,
-        "encoding": "none",
-        "allProps": false,
-        "x": 210,
-        "y": 220,
-        "wires": [
-            [
-                "41b9ecc42da04bd8"
-            ]
-        ]
-    },
-    {
-        "id": "41b9ecc42da04bd8",
-        "type": "json",
-        "z": "16119a8b0b0654ef",
-        "name": "",
-        "property": "payload",
-        "action": "",
-        "pretty": false,
-        "x": 390,
-        "y": 220,
-        "wires": [
-            [
-                "68642bc661dfd2df"
-            ]
-        ]
-    },
-    {
-        "id": "ab81e89fd21e376e",
-        "type": "comment",
-        "z": "16119a8b0b0654ef",
-        "name": "http://localhost:1880/api/user/UID/buildings/BID/exists",
-        "info": "",
-        "x": 280,
-        "y": 60,
-        "wires": []
-    },
-    {
-        "id": "d1c8504c8886d058",
-        "type": "comment",
-        "z": "16119a8b0b0654ef",
-        "name": "mock: check if building param buildingId exists",
-        "info": "",
-        "x": 730,
-        "y": 260,
-        "wires": []
-    },
-    {
-        "id": "a47c9c685b1f861c",
-        "type": "delay",
-        "z": "16119a8b0b0654ef",
-        "name": "",
-        "pauseType": "delay",
-        "timeout": "1",
-        "timeoutUnits": "seconds",
-        "rate": "1",
-        "nbRateUnits": "1",
-        "rateUnits": "second",
-        "randomFirst": "1",
-        "randomLast": "5",
-        "randomUnits": "seconds",
-        "drop": false,
-        "allowrate": false,
-        "outputs": 1,
-        "x": 440,
-        "y": 420,
-        "wires": [
-            [
-                "97faa15e1922b1d8"
-            ]
-        ]
-    },
-    {
-        "id": "40e4e7158283284d",
-        "type": "http in",
-        "z": "0cd2d786f9f2ee5b",
-        "name": "POST add building",
-        "url": "/api/user/:userId/buildings",
-        "method": "post",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 170,
-        "y": 140,
-        "wires": [
-            [
-                "d4910f247512e86a"
-            ]
-        ]
-    },
-    {
-        "id": "17384baf5cf51a55",
-        "type": "function",
-        "z": "0cd2d786f9f2ee5b",
-        "name": "append building to user",
-        "func": "// Extract user ID parameter from msg.req.params\nconst userId = msg.req.params.userId;\n\n// Extract building ID payload from msg.payload\nconst buildingId =  parseInt(msg.payload.buildingId);\n\nconst users = msg.users;\n\n// Find user by ID\nconst user = users.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { error: \"User not found\" };\n    return [null, msg];\n}\n\n// Ensure buildings is an array\nif (!Array.isArray(user.buildings)) {\n    user.buildings = [];\n}\n\n// Append only if not already present to avoid duplicates\nif (!user.buildings.includes(buildingId)) {\n    user.buildings.push(buildingId);\n}\n\n// Output 1: write entire updated users array to file\nconst writeMsg = { payload: JSON.stringify(users, null, 2) };\n\n// Output 2: respond to client with updated user\nconst responseMsg = { payload: user };\nresponseMsg.statusCode = 200;\n\nreturn [writeMsg, responseMsg];\n",
-        "outputs": 2,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 290,
-        "y": 460,
-        "wires": [
-            [
-                "870eeba346f6ccc9"
-            ],
-            [
-                "a49af9af0629b6cb"
-            ]
-        ]
-    },
-    {
-        "id": "afefbf7ab5b161c5",
-        "type": "http response",
-        "z": "0cd2d786f9f2ee5b",
-        "name": "buildings array response",
-        "statusCode": "",
-        "headers": {},
-        "x": 870,
-        "y": 520,
-        "wires": []
-    },
-    {
-        "id": "d4910f247512e86a",
-        "type": "file in",
-        "z": "0cd2d786f9f2ee5b",
-        "name": "users.json",
-        "filename": "/data/users.json",
-        "filenameType": "str",
-        "format": "utf8",
-        "chunk": false,
-        "sendError": false,
-        "encoding": "none",
-        "allProps": false,
-        "x": 190,
-        "y": 240,
-        "wires": [
-            [
-                "3ee93f57c37545f0"
-            ]
-        ]
-    },
-    {
-        "id": "3ee93f57c37545f0",
-        "type": "json",
-        "z": "0cd2d786f9f2ee5b",
-        "name": "",
-        "property": "payload",
-        "action": "",
-        "pretty": false,
-        "x": 370,
-        "y": 240,
-        "wires": [
-            [
-                "4d363dfea9a48309"
-            ]
-        ]
-    },
-    {
-        "id": "9d527f52b2ee5208",
-        "type": "comment",
-        "z": "0cd2d786f9f2ee5b",
-        "name": "http://localhost:1880/api/user/UID/buildings",
-        "info": "",
-        "x": 220,
-        "y": 80,
-        "wires": []
-    },
-    {
-        "id": "78f8737e64888d41",
-        "type": "comment",
-        "z": "0cd2d786f9f2ee5b",
-        "name": "mock: append buildingId (payload) to user with userId (param)",
-        "info": "",
-        "x": 660,
-        "y": 320,
-        "wires": []
-    },
-    {
-        "id": "a49af9af0629b6cb",
-        "type": "delay",
-        "z": "0cd2d786f9f2ee5b",
-        "name": "",
-        "pauseType": "delay",
-        "timeout": "1",
-        "timeoutUnits": "seconds",
-        "rate": "1",
-        "nbRateUnits": "1",
-        "rateUnits": "second",
-        "randomFirst": "1",
-        "randomLast": "5",
-        "randomUnits": "seconds",
-        "drop": false,
-        "allowrate": false,
-        "outputs": 1,
-        "x": 600,
-        "y": 520,
-        "wires": [
-            [
-                "afefbf7ab5b161c5"
-            ]
-        ]
-    },
-    {
-        "id": "4d363dfea9a48309",
-        "type": "function",
-        "z": "0cd2d786f9f2ee5b",
-        "name": "pre-function",
-        "func": "msg.users = msg.payload;  // parsed users.json\nmsg.payload = msg.req.body; // { buildingId: 123 }\nreturn msg;\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 210,
-        "y": 340,
-        "wires": [
-            [
-                "17384baf5cf51a55"
-            ]
-        ]
-    },
-    {
-        "id": "870eeba346f6ccc9",
-        "type": "file",
-        "z": "0cd2d786f9f2ee5b",
-        "name": "updated user.json",
-        "filename": "/data/users.json",
-        "filenameType": "str",
-        "appendNewline": true,
-        "createDir": false,
-        "overwriteFile": "true",
-        "encoding": "none",
-        "x": 610,
-        "y": 420,
-        "wires": [
-            []
-        ]
     }
 ]
