@@ -4,10 +4,10 @@ import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Building } from '../../models/building';
-import { BuildingPart } from '../../models/building-part';
 import { BuildingService } from '../../services/building/building.service';
 import { isBuilding } from '../../utils/model-guard';
-import { BuildingPartService } from '../../services/building-part/building-part.service';
+import { BuildingComponent } from '../../models/building-component';
+import { BuildingComponentService } from '../../services/component/component.service';
 
 
 @Component({
@@ -18,13 +18,13 @@ import { BuildingPartService } from '../../services/building-part/building-part.
   styleUrls: ['./document-list.component.scss']
 })
 export class DocumentListComponent implements OnInit {
-  @Input() entity!: Building | BuildingPart | null;
+  @Input() entity!: Building | BuildingComponent | null;
 
   documents: any[] = [];
   isLoading = false;
   errorMessage = '';
 
-  constructor(private buildingService: BuildingService, private buildingPartService: BuildingPartService) {}
+  constructor(private buildingService: BuildingService, private buildingComponentService: BuildingComponentService) {}
 
   ngOnInit() {
     if (!this.entity) return;
@@ -37,7 +37,7 @@ export class DocumentListComponent implements OnInit {
     }
   }
 
-  private loadDocumentsForEntity(entity: Building | BuildingPart): void {
+  private loadDocumentsForEntity(entity: Building | BuildingComponent): void {
     if (this.isLoading) return;
     this.isLoading = true;
     this.errorMessage = '';
@@ -73,18 +73,18 @@ export class DocumentListComponent implements OnInit {
   }
 
   private loadDocumentsByComponent(componentId: string): void {
-    this.buildingPartService.getDocumentsByBuildingPart(componentId).subscribe({
+    this.buildingComponentService.getDocumentsByBuildingComponent(componentId).subscribe({
       next: (docs) => {
         this.documents = docs.map(doc => ({
           ...doc,
           fileType: doc.fileType?.toLowerCase()
         }));
-        this.errorMessage = docs.length === 0 ? 'No documents found for this building part.' : '';
+        this.errorMessage = docs.length === 0 ? 'No documents found for this building component.' : '';
       },
       error: (error) => {
-        console.error('Error loading building part documents:', error);
+        console.error('Error loading building component documents:', error);
         this.errorMessage = error.status === 404
-          ? 'No documents found for this building part.'
+          ? 'No documents found for this building component.'
           : 'An error occurred while loading documents.';
       },
       complete: () => {

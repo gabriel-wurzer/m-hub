@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { BuildingPart } from '../../models/building-part';
+
 import { Building } from '../../models/building';
+import { BuildingComponent } from '../../models/building-component';
+import { Document } from '../../models/document';
 
 @Injectable({
   providedIn: 'root'
@@ -17,11 +19,11 @@ export class BuildingService {
     return this.http.get<Building>(`${this.apiUrl}/${buildingId}`);
   } 
 
-  getDocumentsByBuilding(buildingId: number): Observable<BuildingPart[]> {
-    return this.http.get<BuildingPart[]>(`${this.apiUrl}/${buildingId}/documents`);
+  getDocumentsByBuilding(buildingId: number): Observable<Document[]> {
+    return this.http.get<Document[]>(`${this.apiUrl}/${buildingId}/documents`);
   }
 
-  getBuildingPartsByBuilding(buildingId: number): Observable<BuildingPart[]> {
-    return this.http.get<BuildingPart[]>(`${this.apiUrl}/${buildingId}/parts`);
+  getBuildingComponentsByBuilding(buildingId: number): Observable<BuildingComponent[]> {
+    return this.http.get<BuildingComponent[]>(`${this.apiUrl}/${buildingId}/components`);
   }
 }

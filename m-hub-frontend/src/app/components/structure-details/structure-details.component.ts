@@ -10,13 +10,13 @@ import { MatListModule } from '@angular/material/list';
 import { EChartsOption } from 'echarts';
 import { NgxEchartsModule } from 'ngx-echarts';
 
-import { BuildingPart } from '../../models/building-part';
 import { Building } from '../../models/building';
 import { Period, PeriodLabels } from '../../enums/period.enum';
 import { Usage, UsageLabels } from '../../enums/usage.enum';
 import { DocumentListComponent } from "../document-list/document-list.component";
 import { MaterialGroup } from '../../enums/material-group.enum';
 import { isBuilding } from '../../utils/model-guard';
+import { BuildingComponent } from '../../models/building-component';
 
 
 @Component({
@@ -28,13 +28,13 @@ import { isBuilding } from '../../utils/model-guard';
 })
 export class StructureDetailsComponent implements OnInit {
 
-  @Input() entity!: Building | BuildingPart | null;
+  @Input() entity!: Building | BuildingComponent | null;
 
   errorMessage = '';
 
   isBuilding = false;
   building!: Building | null;
-  buildingPart!: BuildingPart | null;
+  buildingComponent!: BuildingComponent | null;
 
   periodOptions = Object.values(Period).filter(value => typeof value === 'number') as number[];
   periodLabels = PeriodLabels;
@@ -66,7 +66,7 @@ export class StructureDetailsComponent implements OnInit {
     if(isBuilding(this.entity)) {
       this.isBuilding = true;
       this.building = this.entity;
-      this.buildingPart = null;
+      this.buildingComponent = null;
 
       console.log("Current building: ", this.building);
 
@@ -77,8 +77,8 @@ export class StructureDetailsComponent implements OnInit {
     } else {
       this.isBuilding = false;
       this.building = null;
-      this.buildingPart = this.entity;
-      console.log("Current building part: ", this.buildingPart);
+      this.buildingComponent = this.entity;
+      console.log("Current building component: ", this.buildingComponent);
 
       // TODO: add Chart options call here
     }

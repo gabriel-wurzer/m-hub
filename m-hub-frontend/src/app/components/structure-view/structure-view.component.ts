@@ -7,12 +7,12 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatListModule } from '@angular/material/list';
 
-import { BuildingPart } from '../../models/building-part';
 import { Building } from '../../models/building';
 import { StructureTreeComponent } from "../structure-tree/structure-tree.component";
 import { StructureDetailsComponent } from "../structure-details/structure-details.component";
 import { BuildingService } from '../../services/building/building.service';
-import { BuildingPartService } from '../../services/building-part/building-part.service';
+import { BuildingComponent } from '../../models/building-component';
+import { BuildingComponentService } from '../../services/component/component.service';
 
 @Component({
   selector: 'app-structure-view',
@@ -23,10 +23,10 @@ import { BuildingPartService } from '../../services/building-part/building-part.
 })
 export class StructureViewComponent implements OnInit{
 
-  @Input() entity!: Building | BuildingPart | null;
+  @Input() entity!: Building | BuildingComponent | null;
   @Output() closeStructureView = new EventEmitter<void>();
 
-  selectedEntity: Building | BuildingPart | null = null;
+  selectedEntity: Building | BuildingComponent | null = null;
 
   isLoading = false;
 
@@ -34,7 +34,7 @@ export class StructureViewComponent implements OnInit{
 
   constructor(
     private buildingService: BuildingService, 
-    private buildingPartService: BuildingPartService,
+    private buildingComponentService: BuildingComponentService,
   ) {}
 
   ngOnInit(): void {
@@ -46,13 +46,13 @@ export class StructureViewComponent implements OnInit{
 
     const isSameEntity =
     (node.type === 'building' && this.selectedEntity && 'bw_geb_id' in this.selectedEntity && parseInt(node.id) == this.selectedEntity.bw_geb_id) ||
-    (node.type === 'building_part' && this.selectedEntity && 'id' in this.selectedEntity && node.id === this.selectedEntity.id);
+    (node.type === 'component' && this.selectedEntity && 'id' in this.selectedEntity && node.id === this.selectedEntity.id);
 
   if (isSameEntity) return;
     
     node.type === 'building'
       ? this.loadBuilding(node.id)
-      : this.loadBuildingPart(node.id);
+      : this.loadBuildingComponent(node.id);
   }
 
   private loadBuilding(buildingId: string) {
@@ -72,7 +72,7 @@ export class StructureViewComponent implements OnInit{
       error: (error) => {
         console.error('Error loading building:', error);
 
-        this.errorMessage = error.status === 404 ? 'No building found for this buildingId.' : 'An error occurred while loading building. Please try again later.';
+        this.errorMessage = error.status === 404 ? 'No building found for this ID.' : 'An error occurred while loading building. Please try again later.';
 
         this.selectedEntity = null;
         this.isLoading = false;
@@ -84,22 +84,22 @@ export class StructureViewComponent implements OnInit{
     });
   }
 
-  private loadBuildingPart(buildingPartId: string) { 
+  private loadBuildingComponent(componentId: string) { 
     if (this.isLoading) return;
     this.isLoading = true;
 
-    console.log('Requesting building-part by id:', buildingPartId);
+    console.log('Requesting building-component by id:', componentId);
 
-    this.buildingPartService.getBuildingPartById(buildingPartId).subscribe({
-      next: (buildingPart) => {
-        if(buildingPart && buildingPart.id !== undefined) {
-          this.selectedEntity = buildingPart;
+    this.buildingComponentService.getBuildingComponentById(componentId).subscribe({
+      next: (component) => {
+        if(component && component.id !== undefined) {
+          this.selectedEntity = component;
         }
       },
       error: (error) => {
-        console.error('Error loading building-part:', error);
+        console.error('Error loading building-componet:', error);
 
-        this.errorMessage = error.status === 404 ? 'No building-part found for this buildingPartId.' : 'An error occurred while loading building-part. Please try again later.';
+        this.errorMessage = error.status === 404 ? 'No building-component found for this ID.' : 'An error occurred while loading building-component. Please try again later.';
 
         this.selectedEntity = null;
         this.isLoading = false;

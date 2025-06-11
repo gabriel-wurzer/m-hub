@@ -1,4 +1,4 @@
-<ng-container *ngIf="isBuilding; else buildingPartDetails">
+<ng-container *ngIf="isBuilding; else buildingComponentDetails">
     <header class="structure-info-header">
         <h2 class="structure-info-title"> Gebäude: {{ building?.bw_geb_id }} </h2>
     </header>
@@ -44,9 +44,9 @@
     
 </ng-container>
 
-<ng-template #buildingPartDetails>
+<ng-template #buildingComponentDetails>
     <header class="structure-info-header">
-        <h2 class="structure-info-title"> Bauelement: {{ buildingPart?.id }} </h2>
+        <h2 class="structure-info-title"> Bauelement: {{ buildingComponent?.id }} </h2>
     </header>
 
     <mat-divider class="horizontal-divider"/>
@@ -63,8 +63,8 @@
               <div class="info-container">
                 <div class="info-content">
                     <div class="information-container">
-                        <p>Name: {{ buildingPart?.name }}</p>
-                        <p>Beschreibung: {{ buildingPart?.description }}</p>
+                        <p>Name: {{ buildingComponent?.name }}</p>
+                        <p>Beschreibung: {{ buildingComponent?.description }}</p>
                     </div>
                 </div>
             </div>

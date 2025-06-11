@@ -1,33 +1,21 @@
 <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="structure-tree">
-  <mat-nested-tree-node *matTreeNodeDef="let node" matTreeNodePadding class="structure-tree-node">
+
+  <!-- Root node: Building -->
+  <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding class="structure-tree-node">
     <div class="mat-tree-node clickable">
-      <button mat-icon-button disabled></button>
-      <span (click)="onNodeClick(node)">
+      <img src="assets/images/house_icon_black.svg" alt="House Icon" class="house-icon" />
+      <span class="building-text" (click)="onNodeClick(node)">
         {{ node.name }}
       </span>
     </div>
-  </mat-nested-tree-node>
-
-  <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild" class="structure-tree-node">
-    <div class="mat-tree-node clickable">
-      <button mat-icon-button (click)="toggleNode(node)" [attr.aria-label]="'Toggle ' + node.name">
-        <mat-icon class="mat-icon-rtl-mirror">
-          {{ treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}
-        </mat-icon>
-      </button>
-      <!-- <mat-icon *ngIf="node.type=='building'" class="building-icon">home</mat-icon> -->
-      <img *ngIf="node.type=='building'"
-        src="assets/images/house_icon_black.svg" 
-        alt="House Icon" 
-        class="house-icon" 
-      />
-      <span [ngClass]="{ 'building-text': node.type === 'building' }" (click)="onNodeClick(node)">
-        {{ node.name }}
-      </span>
-    </div>
-
-    <div *ngIf="treeControl.isExpanded(node)" role="group">
+    <div role="group">
       <ng-container matTreeNodeOutlet></ng-container>
     </div>
   </mat-nested-tree-node>
+
+  <!-- Leaf nodes: Components -->
+  <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+    <span (click)="onNodeClick(node)">{{ node.name }}</span>
+  </mat-tree-node>
+
 </mat-tree>

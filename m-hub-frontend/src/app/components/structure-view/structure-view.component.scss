@@ -23,6 +23,7 @@
 .structure-tree-container {
     min-width: 320px;
     height: fit-content;
+    margin-left: 8px;
 }
 
 .structure-content-container {
@@ -57,5 +58,9 @@
         display: flex;
         flex-direction: column;
         gap: 1.4rem;
+    }
+
+    .structure-tree-container {
+        margin-left: 0;
     }
 }
