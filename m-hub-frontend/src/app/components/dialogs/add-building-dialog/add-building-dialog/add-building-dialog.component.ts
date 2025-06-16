@@ -15,8 +15,7 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class AddBuildingDialogComponent {
   
-  // floors = ["KG", "EG", "OG", "DG"];
-    floors = [
+  floors = [
     { label: 'Kellergeschoss (KG)', name: 'KG' },
     { label: 'Erdgeschoss (EG)', name: 'EG' },
     { label: 'Obergeschoss (OG)', name: 'OG' },
@@ -25,17 +24,15 @@ export class AddBuildingDialogComponent {
 
   valueOptions = Array.from({ length: 100 }, (_, i) => i);
   
-  floorValues = [0, 0, 0, 0];
+  floorValues: number[];
   highlightedFloor: string = '';
   svgContent: string = '';
 
-  // structure: string;
-
- constructor(
-  public dialogRef: MatDialogRef<AddBuildingDialogComponent>,
-  @Inject(MAT_DIALOG_DATA) public data: { structure?: number[] }
+  constructor(
+    public dialogRef: MatDialogRef<AddBuildingDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: { structure?: number[] }
   ) {
-    const defaultStructure = [0, 1, 0, 0];
+    const defaultStructure = [0, 0, 0, 0];
     this.floorValues = data.structure && data.structure.length === 4
       ? [...data.structure]
       : defaultStructure;
