@@ -81,8 +81,14 @@ export class AddBuildingButtonComponent implements OnInit {
         data: { structure: this.building.structure }
       });
 
-      dialogRef.afterClosed().subscribe(() => {
-        this.finalizeAdd(); // Proceed even if user only views it
+      dialogRef.afterClosed().subscribe(result => {
+        if (result?.structure) {
+          this.building.structure = result.structure;
+          if (result.name) this.building.name = result.name;
+          if (result.address) this.building.address = result.address;
+
+          this.finalizeAdd();
+        }
       });
     }
   }
