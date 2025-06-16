@@ -25,7 +25,7 @@
                 "fileType": "pdf"
             }
         ],
-        "structure": "KG, EG, OG"
+        "structure": [1,1,1,0]
     },
     {
         "bw_geb_id": 5397325,
@@ -96,7 +96,7 @@
                 "fileType": "pdf"
             }
         ],
-        "structure": "KG, EG, OG1, OG2, DG"
+        "structure": [1,1,2,1]
     },
     {
         "bw_geb_id": 5363852,
@@ -207,6 +207,6 @@
                 "fileType": "pdf"
             }
         ],
-        "structure": "KG, EG, OG, DG"
+        "structure": [1,1,1,1]
     }
 ]

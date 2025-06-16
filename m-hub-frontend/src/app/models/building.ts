@@ -30,5 +30,5 @@ export interface Building {
 
     name?: string;
     address?: string;
-    structure: string; // add model for Storey[];
+    structure?: number[]; // Array of numbers representing the structure of the building -> [KG, EG, OG, DG]
 }
