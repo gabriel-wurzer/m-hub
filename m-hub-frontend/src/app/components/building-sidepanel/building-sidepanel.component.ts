@@ -14,6 +14,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DocumentListComponent } from "../document-list/document-list.component";
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { AddBuildingButtonComponent } from "../buttons/add-building-button/add-building-button.component";
+import { BuildingService } from '../../services/building/building.service';
 
 @Component({
   selector: 'app-building-sidepanel',
@@ -29,6 +30,7 @@ export class BuildingSidepanelComponent implements OnInit {
   @Output() openStructureView = new EventEmitter<Building>();
 
   errorMessage = '';
+  skipFetchDocuments = false;
 
   periodOptions = Object.values(Period).filter(value => typeof value === 'number') as number[];
   periodLabels = PeriodLabels;
@@ -45,7 +47,10 @@ export class BuildingSidepanelComponent implements OnInit {
   userId = "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71";
 
 
-  constructor(private breakpointObserver: BreakpointObserver) {}
+  constructor(
+    private buildingService: BuildingService,
+    private breakpointObserver: BreakpointObserver
+  ) {}
 
   ngOnInit(): void {
     if (!this.building) return;
@@ -56,10 +61,9 @@ export class BuildingSidepanelComponent implements OnInit {
   }
 
   ngOnChanges() {
-    if (!this.building) return;
-
-    this.updateUsagePieChart();
-    this.updateMaterialsPieChart();
+    if (this.building) {
+      this.fetchBuildingData(this.building.bw_geb_id);
+    }
   }
   
   get periodLabel(): string {
@@ -201,6 +205,31 @@ export class BuildingSidepanelComponent implements OnInit {
       ]
     };
   }
+
+  fetchBuildingData(buildingId: number): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.skipFetchDocuments = false;
+    
+    this.buildingService.getBuildingById(buildingId).subscribe({
+      next: (freshBuilding) => {
+        this.building = freshBuilding;
+        this.updateUsagePieChart();
+        this.updateMaterialsPieChart();
+        this.skipFetchDocuments = false;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.errorMessage = 'Fehler beim Laden der Gebäudedaten. Lokale Daten werden angezeigt.';
+        console.error(this.errorMessage, err);
+        this.updateUsagePieChart();
+        this.updateMaterialsPieChart();
+        this.skipFetchDocuments = true;
+        this.isLoading = false;
+      }
+    });
+  }
+
 
   openStructureViewPanel() {
     console.log('Open structure details view for building: ', this.building?.bw_geb_id);

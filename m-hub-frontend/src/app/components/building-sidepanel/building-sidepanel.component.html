@@ -11,26 +11,32 @@
         </header>
     
         <mat-divider />
-    
-        <div class="building-info-data">
-            <app-add-building-button [building]="building" [userId]="userId"></app-add-building-button>
-    
-            <h3>Gebäude ID: {{ building.bw_geb_id }}</h3>
-            <p>Nutzung: {{ usageLabel }}</p>
-            <p>Bauperiode: {{ periodLabel }}</p>
-            <p>Maximale Höhe: {{ building.maxhoehe}} m</p>
-            <p [innerHTML]="'Volumen: ' + building.m3vol  + ' m&sup3;'"></p>    
-            <p [innerHTML]="'Fläche: ' + building.m2flaeche  + ' m&sup2;'"></p>
-            <p [innerHTML]="'Bruttogrundfläche: ' + building.m2bgf + ' m&sup2;'"></p>
+
+        <div class="spinner-container" *ngIf="isLoading">
+            <mat-spinner [diameter]="80" [strokeWidth]="6" class="loading-spinner"></mat-spinner>
         </div>
+
+        <div class="content-wrapper" *ngIf="!isLoading">
+            <div class="building-info-data">
+                <app-add-building-button [building]="building" [userId]="userId"></app-add-building-button>
+        
+                <h3>Gebäude ID: {{ building.bw_geb_id }}</h3>
+                <p>Nutzung: {{ usageLabel }}</p>
+                <p>Bauperiode: {{ periodLabel }}</p>
+                <p>Maximale Höhe: {{ building.maxhoehe}} m</p>
+                <p [innerHTML]="'Volumen: ' + building.m3vol  + ' m&sup3;'"></p>    
+                <p [innerHTML]="'Fläche: ' + building.m2flaeche  + ' m&sup2;'"></p>
+                <p [innerHTML]="'Bruttogrundfläche: ' + building.m2bgf + ' m&sup2;'"></p>
+            </div>
     
-        <echarts [options]="usagePieChartOptions" class="chart-container"></echarts>
-        <echarts [options]="materialsPieChartOptions" class="chart-container materials-chart-container"></echarts>
-    
-        <mat-divider />
-    
-        <h3>Dokumente</h3>
-        <app-document-list [entity]="building" />
+            <echarts [options]="usagePieChartOptions" class="chart-container"></echarts>
+            <echarts [options]="materialsPieChartOptions" class="chart-container materials-chart-container"></echarts>
+        
+            <mat-divider />
+        
+            <h3>Dokumente</h3>
+            <app-document-list [entity]="building" [skipFetch]="skipFetchDocuments" />
+        </div>
     </div>
 </ng-container>
 

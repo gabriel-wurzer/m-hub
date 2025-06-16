@@ -57,28 +57,10 @@ export class AddBuildingButtonComponent implements OnInit {
     });
   }
 
-  // addBuilding(): void {
-  //   if (!this.building || this.isAdded || this.isLoading) return;
-
-  //   this.isLoading = true;
-  //   this.userService.addBuildingToUser(this.userId, this.building.bw_geb_id).subscribe({
-  //     next: () => {
-  //       this.isAdded = true;
-  //     },
-  //     error: (error) => {
-  //       console.error('Error loading building exists:', error);
-  //       this.errorMessage = error.status === 404
-  //         ? 'No buidling found for that buidlingId.'
-  //         : 'An error occurred while checking building exists.';
-  //     },
-  //     complete: () => {
-  //       this.isLoading = false;
-  //     }
-  //   });
-  // }
-
   addBuilding(): void {
     if (!this.building || this.isAdded || this.isLoading) return;
+
+    console.log('Adding building:', this.building);
 
     // Check structure
     if (!this.building.structure) {

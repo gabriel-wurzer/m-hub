@@ -19,6 +19,7 @@ import { BuildingComponentService } from '../../services/component/component.ser
 })
 export class DocumentListComponent implements OnInit {
   @Input() entity!: Building | BuildingComponent | null;
+  @Input() skipFetch = false;
 
   documents: any[] = [];
   isLoading = false;
@@ -27,12 +28,12 @@ export class DocumentListComponent implements OnInit {
   constructor(private buildingService: BuildingService, private buildingComponentService: BuildingComponentService) {}
 
   ngOnInit() {
-    if (!this.entity) return;
+    if (!this.entity || this.skipFetch) return;
     this.loadDocumentsForEntity(this.entity);
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['entity'] && this.entity) {
+    if ((changes['entity'] || changes['skipFetch']) && this.entity && !this.skipFetch) {
       this.loadDocumentsForEntity(this.entity);
     }
   }

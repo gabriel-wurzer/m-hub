@@ -86,6 +86,13 @@ mat-divider {
     margin: 2px 12px 1.6rem auto;
 }
 
+.spinner-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80%;
+}
+
 // /* Responsive behavior for mobile devices*/
 // @media (max-width: 800px) {
 //     .chart-container {
