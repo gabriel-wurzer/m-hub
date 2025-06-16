@@ -1,25 +1,50 @@
 <div class="dialog-container">
-    <h2 mat-dialog-title class="header">Gebäudestruktur</h2>
+    <h2 mat-dialog-title class="header">Gebäude hinzufügen</h2>
 
-    <div mat-dialog-content class="content">
+    <div mat-dialog-content class="content-wrapper">
         
-        <div class="selectors">
-            <h3>Anzahl der Geschosse</h3>
-            <mat-form-field *ngFor="let floor of floors.slice().reverse(); let i = index" appearance="outline">
-                <mat-label>{{ floor.label }}</mat-label>
-                <mat-select [(ngModel)]="floorValues[floors.length - 1 - i]" (focus)="highlightFloor(floor.name)" (blur)="clearHighlight()">
-                    <mat-option *ngFor="let val of valueOptions" [value]="val">{{ val }}</mat-option>
-                </mat-select>
-            </mat-form-field>
-        </div>
+        <div class="description-wrapper">
+            <div class="name-wrapper">
+                <h3>Name</h3>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Name</mat-label>
+                    <input matInput [(ngModel)]="name" />
+                </mat-form-field>
+            </div>
+            
+            <div class="address-wrapper">
+                <h3>Adresse</h3>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Adresse</mat-label>
+                    <input matInput [(ngModel)]="address" />
+                </mat-form-field>
+            </div>
 
-        <div class="house-chart">
-            <img src="assets/images/house_icon_primary.svg" class="house-icon" />
-            <!-- <svg src="assets/images/house_icon_primary.svg" 
-                alt="House Icon" 
-                class="house-icon" 
-            ></svg> -->
         </div>
+        
+        <div>
+            <h3 style="margin-bottom: 12px;">Gebäudestruktur</h3>
+            <div class="structure-wrapper">
+                <div class="selectors">
+                    <mat-form-field *ngFor="let floor of floors.slice().reverse(); let i = index" appearance="outline">
+                        <mat-label>{{ floor.label }}</mat-label>
+                        <mat-select [(ngModel)]="floorValues[i]" (focus)="highlightFloor(floor.name)" (blur)="clearHighlight()">
+                            <mat-option *ngFor="let val of valueOptions" [value]="val">{{ val }}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+
+                <div class="house-chart">
+                    <img src="assets/images/house_icon_primary.svg" class="house-icon" />
+                    <!-- <svg src="assets/images/house_icon_primary.svg" 
+                        alt="House Icon" 
+                        class="house-icon" 
+                    ></svg> -->
+                </div>
+            </div>
+        </div>
+        
+        
     </div>
 
     <div mat-dialog-actions class="actions">

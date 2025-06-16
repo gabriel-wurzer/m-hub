@@ -15,6 +15,9 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class AddBuildingDialogComponent {
   
+  name: string = '';
+  address: string = '';
+
   floors = [
     { label: 'Kellergeschoss (KG)', name: 'KG' },
     { label: 'Erdgeschoss (EG)', name: 'EG' },
@@ -54,6 +57,11 @@ export class AddBuildingDialogComponent {
   }
 
   save(): void {
-    this.dialogRef.close(this.floorValues);
+    this.dialogRef.close({
+      structure: this.floorValues,
+      name: this.name,
+      address: this.address
+    });
   }
+
 }
