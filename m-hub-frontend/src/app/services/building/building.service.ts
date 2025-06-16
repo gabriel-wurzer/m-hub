@@ -26,4 +26,8 @@ export class BuildingService {
   getBuildingComponentsByBuilding(buildingId: number): Observable<BuildingComponent[]> {
     return this.http.get<BuildingComponent[]>(`${this.apiUrl}/${buildingId}/components`);
   }
+
+  updateBuildingStructure(buildingId: number, structure: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${buildingId}`, { structure });
+  }
 }

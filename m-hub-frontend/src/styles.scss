@@ -98,6 +98,13 @@ $my-theme: mat.define-light-theme((
 // Apply the theme to Angular Material components
 @include mat.all-component-themes($my-theme);
 
+.custom-dialog, .mat-dialog-container {
+  width: 1200px;
+  max-width: 90vw;
+  height: fit-content;
+  max-height: 90vh;
+  padding: 8px 12px 12px
+}
 
 .leaflet-control-geocoder button:hover {
     background-color: #f4f4f4;

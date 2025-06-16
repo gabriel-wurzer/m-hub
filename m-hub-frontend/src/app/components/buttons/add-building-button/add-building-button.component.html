@@ -1,7 +1,7 @@
 <div class="button-container">
 
     <mat-spinner *ngIf="isLoading" [diameter]="32" [strokeWidth]="3" class="loading-spinner" />
-
+    
     <button 
         *ngIf="!isLoading"
         mat-raised-button
@@ -9,6 +9,6 @@
         color="primary"
         [disabled]="isAdded"
         (click)="addBuilding()">
-        {{ isAdded ? 'Gebäude hinzugefügt' : 'Gebäude hinzufügen' }}
+        {{ isAdded ? 'Gebäude bereits hinzugefügt' : 'Gebäude hinzufügen' }}
     </button>
 </div>
