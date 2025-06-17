@@ -222,6 +222,19 @@ module.exports = {
     //    //req.skipRawBodyParser = true;
     //    next();
     //},
+    httpNodeMiddleware: function(req, res, next) {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        
+        // Handle preflight request
+        if (req.method === 'OPTIONS') {
+            res.sendStatus(204);
+        } else {
+            next();
+        }
+    },
+
 
     /** When httpAdminRoot is used to move the UI to a different root path, the
      * following property can be used to identify a directory of static content
