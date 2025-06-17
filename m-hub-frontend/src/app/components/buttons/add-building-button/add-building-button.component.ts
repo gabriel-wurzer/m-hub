@@ -86,13 +86,14 @@ export class AddBuildingButtonComponent implements OnInit {
         
         console.log('Strukturänderung: ', result.structure);
 
-        this.buildingService.updateBuildingStructure(this.building.bw_geb_id, result.structure).subscribe({
+        // this.buildingService.updateBuildingStructure(this.building.bw_geb_id, result.structure).subscribe({
+        this.buildingService.updateBuilding(this.building).subscribe({
           next: () => {
             this.runAddBuildingToUser();
           },
           error: (error) => {
-            console.error('Fehler beim Aktualisieren der Struktur:', error);
-            this.errorMessage = 'Struktur konnte nicht aktualisiert werden.';
+            this.errorMessage = 'Fehler beim Aktualisieren der Struktur des Gebäudes.';
+            console.error(error);
             this.isLoading = false;
           },
           complete: () => {
