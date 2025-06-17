@@ -24,7 +24,7 @@ export class UserService {
   }
 
   removeBuildingFromUser(userId: string, buildingId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${userId}/buildings/${buildingId}`);  //TODO: add in node red --> DELETE /api/user/:userId/buildings/:buildingId
+    return this.http.delete(`${this.apiUrl}/${userId}/buildings/${buildingId}`);
   }
   
 }

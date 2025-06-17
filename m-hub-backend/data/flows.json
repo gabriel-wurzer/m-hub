@@ -90,7 +90,14 @@
         "type": "tab",
         "label": "Add Building to User",
         "disabled": false,
-        "locked": true,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "ca28e1e423cf6c08",
+        "type": "tab",
+        "label": "Remove Building from User",
+        "disabled": false,
         "info": "",
         "env": []
     },
@@ -1483,6 +1490,155 @@
         "encoding": "none",
         "x": 610,
         "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7bdeb83320e15b3a",
+        "type": "http in",
+        "z": "ca28e1e423cf6c08",
+        "name": "DELETE building",
+        "url": "/api/user/:UID/buildings/:BID",
+        "method": "delete",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 300,
+        "y": 160,
+        "wires": [
+            [
+                "9b9a4935cb6f1f61"
+            ]
+        ]
+    },
+    {
+        "id": "cc19f1e2185367fa",
+        "type": "function",
+        "z": "ca28e1e423cf6c08",
+        "name": "append building to user",
+        "func": "// Extract user and building ID parameters from msg.req.params\nconst userId = msg.req.params.UID;\nconst buildingId = parseInt(msg.req.params.BID);\n\nconst users = msg.payload;\n\n// Find user by ID\nconst user = users.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { error: `User with ID '${userId}' not found` };\n    return [null, msg];\n}\n\n// Ensure buildings is an array\nif (!Array.isArray(user.buildings)) {\n    user.buildings = [];\n}\n\n// Remove the building ID if it exists\nconst index = user.buildings.indexOf(buildingId);\nif (index !== -1) {\n    user.buildings.splice(index, 1); // Remove one item at that index\n}\n\n// Prepare output 1: Updated full users array (write to file)\nconst writeMsg = {\n    payload: JSON.stringify(users, null, 2)\n};\n\n// Prepare output 2: Success response with updated user\nmsg.statusCode = 200;\nmsg.payload = user;\n\nreturn [writeMsg, msg];\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 380,
+        "wires": [
+            [
+                "0d03d9784e5768c6"
+            ],
+            [
+                "996ce82d3115534d"
+            ]
+        ]
+    },
+    {
+        "id": "6e4af95c1e140b91",
+        "type": "http response",
+        "z": "ca28e1e423cf6c08",
+        "name": "buildings array response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1050,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "9b9a4935cb6f1f61",
+        "type": "file in",
+        "z": "ca28e1e423cf6c08",
+        "name": "users.json",
+        "filename": "/data/users.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 330,
+        "y": 260,
+        "wires": [
+            [
+                "c4955c234c812ad1"
+            ]
+        ]
+    },
+    {
+        "id": "c4955c234c812ad1",
+        "type": "json",
+        "z": "ca28e1e423cf6c08",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 510,
+        "y": 260,
+        "wires": [
+            [
+                "cc19f1e2185367fa"
+            ]
+        ]
+    },
+    {
+        "id": "8d92558f6b2ec9ec",
+        "type": "comment",
+        "z": "ca28e1e423cf6c08",
+        "name": "http://localhost:1880/api/user/UID/buildings/BID",
+        "info": "",
+        "x": 380,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "b85ab86c9d240e19",
+        "type": "comment",
+        "z": "ca28e1e423cf6c08",
+        "name": "mock: remove buildingId from user with userId",
+        "info": "",
+        "x": 850,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "996ce82d3115534d",
+        "type": "delay",
+        "z": "ca28e1e423cf6c08",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 780,
+        "y": 420,
+        "wires": [
+            [
+                "6e4af95c1e140b91"
+            ]
+        ]
+    },
+    {
+        "id": "0d03d9784e5768c6",
+        "type": "file",
+        "z": "ca28e1e423cf6c08",
+        "name": "updated user.json",
+        "filename": "/data/users.json",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 790,
+        "y": 320,
         "wires": [
             []
         ]
