@@ -70,8 +70,15 @@
     </div>
 
     <div mat-dialog-actions class="actions">
-    <button mat-button (click)="close()">Abbruch</button>
-    <button mat-button color="primary" (click)="save()"  [disabled]="!isFormValid() || (structureIsAvailable && hasStructureChanged() && !confirmStructureChange)">Hinzufügen</button>
+        <button mat-button (click)="close()">Abbruch</button>
+        <button 
+            mat-button 
+            color="primary" 
+            (click)="confirmAddBuilding()"  
+            [disabled]="!isFormValid() || (structureIsAvailable && hasStructureChanged() && !confirmStructureChange)"
+        >
+            Hinzufügen
+        </button>
     </div>
 </div>
 

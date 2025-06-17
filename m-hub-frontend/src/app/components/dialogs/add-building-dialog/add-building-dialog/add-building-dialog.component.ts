@@ -6,7 +6,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { FormControl, FormGroupDirective, NgForm } from '@angular/forms';
+import { FormControl } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import {MatCardModule} from '@angular/material/card';
 
@@ -100,7 +100,7 @@ export class AddBuildingDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  save(): void {
+  confirmAddBuilding(): void {
     if (!this.isFormValid()) return;
 
     if (this.hasStructureChanged() && !this.confirmStructureChange) return;
