@@ -22,6 +22,10 @@ export class UserService {
   addBuildingToUser(userId: string, buildingId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${userId}/buildings`, { buildingId });
   }
+
+  removeBuildingFromUser(userId: string, buildingId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${userId}/buildings/${buildingId}`);  //TODO: add in node red --> DELETE /api/user/:userId/buildings/:buildingId
+  }
   
 }
 
