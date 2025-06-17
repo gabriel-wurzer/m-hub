@@ -24,6 +24,14 @@
         "env": []
     },
     {
+        "id": "407023a188d5f43b",
+        "type": "tab",
+        "label": "Update Building Structure",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "bc8f71868ee8d8a0",
         "type": "tab",
         "label": "Documents by BuildingID",
@@ -64,6 +72,7 @@
         "type": "tab",
         "label": "Buildings by User",
         "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
@@ -72,6 +81,7 @@
         "type": "tab",
         "label": "Building in User",
         "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
@@ -80,6 +90,7 @@
         "type": "tab",
         "label": "Add Building to User",
         "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
@@ -436,6 +447,175 @@
         "wires": [
             [
                 "8f927269b5342aec"
+            ]
+        ]
+    },
+    {
+        "id": "a2e77efc11f9785e",
+        "type": "http in",
+        "z": "407023a188d5f43b",
+        "name": "PATCH building structure",
+        "url": "/api/building/:ID",
+        "method": "patch",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 270,
+        "y": 120,
+        "wires": [
+            [
+                "7f3aa380878ec28a"
+            ]
+        ]
+    },
+    {
+        "id": "51338e97cc131e66",
+        "type": "function",
+        "z": "407023a188d5f43b",
+        "name": "update building structure",
+        "func": "const buildingId = parseInt(msg.req.params.ID); // Extract building ID from URL\nconst newStructure = msg.payload.structure;\nconst buildings = msg.buildings;  // buildings file data is attached here\n\n// Validate input: structure must be an array of numbers\nif (!Array.isArray(newStructure) || !newStructure.every(n => typeof n === 'number')) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Invalid structure format. Must be an array of numbers.' };\n    return [null, msg];\n}\n\n// Find building index\nconst index = buildings.findIndex(b => b.bw_geb_id === buildingId);\n\nif (index === -1) {\n    msg.statusCode = 404;\n    msg.payload = { error: `Building with ID '${buildingId}' not found.` };\n    return [null, msg];\n}\n\n// Update structure\nbuildings[index].structure = newStructure;\n\n// Output 1: write the full updated buildings array to file\nconst writeMsg = { payload: JSON.stringify(buildings, null, 2) };\n\n// utput 2: return the updated building object\nmsg.statusCode = 200;\nmsg.payload = buildings[index];\n\nreturn [writeMsg, msg];\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 440,
+        "wires": [
+            [
+                "5789ec208fc9cc61"
+            ],
+            [
+                "4261897e6d6f9d07"
+            ]
+        ]
+    },
+    {
+        "id": "466889aa62a2d4e3",
+        "type": "http response",
+        "z": "407023a188d5f43b",
+        "name": "update request response",
+        "statusCode": "",
+        "headers": {},
+        "x": 950,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "7f3aa380878ec28a",
+        "type": "file in",
+        "z": "407023a188d5f43b",
+        "name": "buildings.json",
+        "filename": "/data/buildings.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 280,
+        "y": 220,
+        "wires": [
+            [
+                "f9913b5180bc4f1c"
+            ]
+        ]
+    },
+    {
+        "id": "f9913b5180bc4f1c",
+        "type": "json",
+        "z": "407023a188d5f43b",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 450,
+        "y": 220,
+        "wires": [
+            [
+                "5ecc60292f81cb83"
+            ]
+        ]
+    },
+    {
+        "id": "e9d07dbe582dc974",
+        "type": "comment",
+        "z": "407023a188d5f43b",
+        "name": "http://localhost:1880/api/building/ID",
+        "info": "",
+        "x": 280,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "0fee26345dbd2d83",
+        "type": "comment",
+        "z": "407023a188d5f43b",
+        "name": "mock: patch update building structure",
+        "info": "",
+        "x": 790,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "4261897e6d6f9d07",
+        "type": "delay",
+        "z": "407023a188d5f43b",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 720,
+        "y": 500,
+        "wires": [
+            [
+                "466889aa62a2d4e3"
+            ]
+        ]
+    },
+    {
+        "id": "5789ec208fc9cc61",
+        "type": "file",
+        "z": "407023a188d5f43b",
+        "name": "updated buildings.json",
+        "filename": "/data/buildings.json",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 740,
+        "y": 400,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "5ecc60292f81cb83",
+        "type": "function",
+        "z": "407023a188d5f43b",
+        "name": "pre-function",
+        "func": "msg.buildings = msg.payload;\nmsg.payload = msg.req.body;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 340,
+        "wires": [
+            [
+                "51338e97cc131e66"
             ]
         ]
     },
@@ -1275,7 +1455,7 @@
         "type": "function",
         "z": "0cd2d786f9f2ee5b",
         "name": "pre-function",
-        "func": "msg.users = msg.payload;  // parsed users.json\nmsg.payload = msg.req.body; // { buildingId: 123 }\nreturn msg;\n",
+        "func": "msg.users = msg.payload;\nmsg.payload = msg.req.body;\nreturn msg;\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
