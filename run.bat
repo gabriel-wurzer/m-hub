@@ -16,7 +16,7 @@ ECHO [OK] npm gefunden
 cmd /c "ng version > ng.ver 2>&1"
 for /f %%a in ('type ng.ver ^| find /c /i "err"') do set err=%%a
 del ng.ver /f /q
-if "%err%" GTR "0" [FEHLER] ng ist derzeit nicht installiert. hint: npm install -g @angular/cli & GOTO ENDSCRIPT
+if "%err%" GTR "0" echo [FEHLER] ng ist derzeit nicht installiert. hint: npm install -g @angular/cli & GOTO ENDSCRIPT
 ECHO [OK] ng gefunden
 echo.
 echo [INSTALL] backend...
