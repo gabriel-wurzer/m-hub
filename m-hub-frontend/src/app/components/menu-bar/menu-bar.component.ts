@@ -9,11 +9,23 @@ import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-menu-bar',
   standalone: true,
-  imports: [ RouterOutlet, CommonModule, MatToolbarModule, MatMenuModule, MatSidenavModule, MatListModule, MatIconModule, MatButtonModule, MatDividerModule],
+  imports: [ 
+    RouterOutlet, 
+    CommonModule, 
+    MatToolbarModule, 
+    MatMenuModule, 
+    MatSidenavModule, 
+    MatListModule, 
+    MatIconModule, 
+    MatButtonModule, 
+    MatDividerModule,
+    MatTooltipModule
+  ],
   templateUrl: './menu-bar.component.html',
   styleUrl: './menu-bar.component.scss'
 })
