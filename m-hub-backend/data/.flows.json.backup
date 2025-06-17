@@ -454,16 +454,17 @@
         "id": "a2e77efc11f9785e",
         "type": "http in",
         "z": "407023a188d5f43b",
-        "name": "PATCH building structure",
+        "name": "PUT building structure",
         "url": "/api/building/:ID",
-        "method": "patch",
+        "method": "put",
         "upload": false,
         "swaggerDoc": "",
-        "x": 270,
+        "x": 260,
         "y": 120,
         "wires": [
             [
-                "7f3aa380878ec28a"
+                "7f3aa380878ec28a",
+                "9ed39687051ff47f"
             ]
         ]
     },
@@ -472,7 +473,7 @@
         "type": "function",
         "z": "407023a188d5f43b",
         "name": "update building structure",
-        "func": "const buildingId = parseInt(msg.req.params.ID); // Extract building ID from URL\nconst newStructure = msg.payload.structure;\nconst buildings = msg.buildings;  // buildings file data is attached here\n\n// Validate input: structure must be an array of numbers\nif (!Array.isArray(newStructure) || !newStructure.every(n => typeof n === 'number')) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Invalid structure format. Must be an array of numbers.' };\n    return [null, msg];\n}\n\n// Find building index\nconst index = buildings.findIndex(b => b.bw_geb_id === buildingId);\n\nif (index === -1) {\n    msg.statusCode = 404;\n    msg.payload = { error: `Building with ID '${buildingId}' not found.` };\n    return [null, msg];\n}\n\n// Update structure\nbuildings[index].structure = newStructure;\n\n// Output 1: write the full updated buildings array to file\nconst writeMsg = { payload: JSON.stringify(buildings, null, 2) };\n\n// utput 2: return the updated building object\nmsg.statusCode = 200;\nmsg.payload = buildings[index];\n\nreturn [writeMsg, msg];\n",
+        "func": "const buildingId = parseInt(msg.req.params.ID); // Extract building ID from URL\nconst newStructure = msg.payload.structure;\nlet buildings = msg.buildings;  // buildings file data is attached here\n\n// Validate input: structure must be an array of numbers\nif (!Array.isArray(newStructure) || !newStructure.every(n => typeof n === 'number')) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Invalid structure format. Must be an array of numbers.' };\n    return [null, msg];\n}\n\n// Find building index\nconst index = buildings.findIndex(b => b.bw_geb_id === buildingId);\n\nif (index === -1) {\n    msg.statusCode = 404;\n    msg.payload = { error: `Building with ID '${buildingId}' not found.` };\n    return [null, msg];\n}\n\n// Update structure\nbuildings[index].structure = newStructure;\n\n// Output 1: write the full updated buildings array to file\nconst writeMsg = { payload: JSON.stringify(buildings, null, 2) };\n\n// utput 2: return the updated building object\nmsg.statusCode = 200;\nmsg.payload = buildings[index];\n\nreturn [writeMsg, msg];\n",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -618,6 +619,23 @@
                 "51338e97cc131e66"
             ]
         ]
+    },
+    {
+        "id": "9ed39687051ff47f",
+        "type": "debug",
+        "z": "407023a188d5f43b",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 580,
+        "y": 100,
+        "wires": []
     },
     {
         "id": "3c129ba07320274b",

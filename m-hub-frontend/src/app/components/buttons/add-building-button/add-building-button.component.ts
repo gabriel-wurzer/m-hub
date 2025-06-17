@@ -83,6 +83,9 @@ export class AddBuildingButtonComponent implements OnInit {
 
       // structure was missing OR changed
       if (result.structureChanged || !this.building.structure) {
+        
+        console.log('Strukturänderung: ', result.structure);
+
         this.buildingService.updateBuildingStructure(this.building.bw_geb_id, result.structure).subscribe({
           next: () => {
             this.runAddBuildingToUser();

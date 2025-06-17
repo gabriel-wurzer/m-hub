@@ -198,10 +198,12 @@ module.exports = {
      * See https://github.com/troygoode/node-cors#configuration-options for
      * details on its contents. The following is a basic permissive set of options:
      */
-    //httpNodeCors: {
-    //    origin: "*",
-    //    methods: "GET,PUT,POST,DELETE"
-    //},
+    httpNodeCors: {
+        origin: "*",
+        methods: "GET,PUT,POST,PATCH,DELETE,OPTIONS",
+        allowedHeaders: "Content-Type,Authorization",
+    },
+
 
     /** If you need to set an http proxy please set an environment variable
      * called http_proxy (or HTTP_PROXY) outside of Node-RED in the operating system.
@@ -222,19 +224,6 @@ module.exports = {
     //    //req.skipRawBodyParser = true;
     //    next();
     //},
-    httpNodeMiddleware: function(req, res, next) {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-        
-        // Handle preflight request
-        if (req.method === 'OPTIONS') {
-            res.sendStatus(204);
-        } else {
-            next();
-        }
-    },
-
 
     /** When httpAdminRoot is used to move the UI to a different root path, the
      * following property can be used to identify a directory of static content
