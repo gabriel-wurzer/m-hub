@@ -84,7 +84,10 @@ export class AddBuildingDialogComponent implements OnInit {
   }
 
   isFormValid(): boolean {
-    return this.floorValues.every(val => Number.isInteger(val));
+    // return this.floorValues.every(val => Number.isInteger(val));
+    const allSelected = this.floorValues.every(val => Number.isInteger(val));
+    const atLeastOneFloor = this.floorValues.some(val => val && val > 0);
+    return allSelected && atLeastOneFloor;
   }
 
 
@@ -111,6 +114,10 @@ export class AddBuildingDialogComponent implements OnInit {
       address: this.address,
       structureChanged: this.hasStructureChanged()
     });
+  }
+
+  get allFloorsSelectedAndZero(): boolean {
+    return this.floorValues.every(v => v !== null) && this.floorValues.every(v => v === 0);
   }
 
 }

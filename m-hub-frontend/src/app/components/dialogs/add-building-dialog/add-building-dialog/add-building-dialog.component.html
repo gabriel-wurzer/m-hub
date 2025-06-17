@@ -26,6 +26,7 @@
             <h3 style="margin-bottom: 12px;">Gebäudestruktur</h3>
             <div class="structure-wrapper">
                 <div class="selectors">
+                    
                     <mat-form-field *ngFor="let floor of floors.slice().reverse(); let i = index" appearance="outline">
                         <mat-label>{{ floor.label }}</mat-label>
                         <mat-select
@@ -40,11 +41,16 @@
                             <mat-option [value]="null" disabled>-- Anzahl der Geschosse auswählen --</mat-option>
                             <mat-option *ngFor="let val of valueOptions" [value]="val">{{ val }}</mat-option>
                         </mat-select>
-                        <mat-error *ngIf="floorValues[i] === null">Bitte Anzahl der Geschosse auswählen</mat-error>                        
-                        
-                    </mat-form-field>
-                </div>
+                        <mat-error *ngIf="floorValues[i] === null">Bitte Anzahl der Geschosse auswählen</mat-error>
 
+                    </mat-form-field>
+
+                    <mat-error *ngIf="allFloorsSelectedAndZero" style="font-size: 16px;">
+                        Gebäude muss mindestens ein Geschoss haben.
+                    </mat-error>
+                    
+                </div>
+                
                 <div class="house-chart">
                     <img src="assets/images/house_icon_primary.svg" class="house-icon" />
                     <!-- <svg src="assets/images/house_icon_primary.svg" 
