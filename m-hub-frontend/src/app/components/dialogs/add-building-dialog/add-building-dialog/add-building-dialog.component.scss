@@ -35,7 +35,7 @@ h3 {
 
 mat-form-field {
   width: 100%;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 
@@ -105,8 +105,35 @@ mat-form-field {
   }
 }
 
+.warning-box {
+  margin-top: 1.5rem;
+  padding: 16px;
+  background-color: #ececec;
+}
+
+.toggle-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+::ng-deep .confirm-toggle .mdc-switch {
+  transform: scale(1.2);
+  margin-right: 8px;
+}
+
+.confirm-toggle {
+  font-size: 18px;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;
   margin-top: 1rem;
+}
+
+mat-error {
+  font-size: 14px;
 }
