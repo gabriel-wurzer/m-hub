@@ -15,11 +15,23 @@ import { DocumentListComponent } from "../document-list/document-list.component"
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { AddBuildingButtonComponent } from "../buttons/add-building-button/add-building-button.component";
 import { BuildingService } from '../../services/building/building.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-building-sidepanel',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatButtonModule, MatDividerModule, MatListModule, MatProgressSpinnerModule, NgxEchartsModule, DocumentListComponent, AddBuildingButtonComponent],
+  imports: [
+    CommonModule, 
+    MatIconModule, 
+    MatButtonModule, 
+    MatDividerModule,
+    MatListModule, 
+    MatProgressSpinnerModule, 
+    MatTooltipModule,
+    NgxEchartsModule, 
+    DocumentListComponent, 
+    AddBuildingButtonComponent
+  ],
   templateUrl: './building-sidepanel.component.html',
   styleUrl: './building-sidepanel.component.scss'
 })

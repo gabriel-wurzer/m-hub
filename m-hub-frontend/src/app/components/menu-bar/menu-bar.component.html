@@ -15,13 +15,13 @@
 
     <!-- Navigation Buttons -->
     <div class="nav-buttons">
-      <button mat-icon-button matTooltip="Karte" matTooltipPosition="after" (click)="onMenuClick('map')" [ngClass]="{'active': currentRoute.includes('/map')}">
+      <button mat-icon-button matTooltip="Karte" matTooltipPosition="after" matTooltipShowDelay="500" (click)="onMenuClick('map')" [ngClass]="{'active': currentRoute.includes('/map')}">
         <mat-icon>map</mat-icon>
       </button>
-      <button mat-icon-button matTooltip="Hub" matTooltipPosition="after" (click)="onMenuClick('hub')" [ngClass]="{'active': currentRoute.includes('/hub')}">
+      <button mat-icon-button matTooltip="Hub" matTooltipPosition="after" matTooltipShowDelay="500" (click)="onMenuClick('hub')" [ngClass]="{'active': currentRoute.includes('/hub')}">
         <mat-icon>hub</mat-icon>
       </button>
-      <button mat-icon-button matTooltip="Gebäudeliste" matTooltipPosition="after" (click)="onMenuClick('data')" [ngClass]="{'active': currentRoute.includes('/data')}">
+      <button mat-icon-button matTooltip="Gebäudeliste" matTooltipPosition="after" matTooltipShowDelay="500" (click)="onMenuClick('data')" [ngClass]="{'active': currentRoute.includes('/data')}">
         <mat-icon>grid_view</mat-icon>
       </button>
     </div>
