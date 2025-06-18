@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { UserService } from '../../services/user/user.service';
@@ -14,14 +16,24 @@ import { StructureViewComponent } from "../structure-view/structure-view.compone
 @Component({
   selector: 'app-user-data',
   standalone: true,
-  imports: [CommonModule, MatDividerModule, MatListModule, MatProgressSpinnerModule, BuildingSidepanelComponent, StructureViewComponent],
+  imports: [
+    CommonModule, 
+    MatDividerModule, 
+    MatListModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule, 
+    BuildingSidepanelComponent, 
+    StructureViewComponent
+  ],
   templateUrl: './user-data.component.html',
   styleUrl: './user-data.component.scss'
 })
 export class UserDataComponent implements OnInit {
 
   userId = "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71";
-  buildings: number[] = [];
+  // buildings: number[] = [];
+  buildings: Building[] = [];
 
   selectedBuilding: Building | null = null;
 
@@ -41,20 +53,24 @@ export class UserDataComponent implements OnInit {
   private loadBuildings(): void {
     this.isLoading = true;
     this.userService.getBuildingsByUser(this.userId).subscribe({
-      next: (ids) => {
-        this.buildings = ids;
+      next: (buildingList) => {
+        this.buildings = buildingList;
         this.isLoading = false;
       },
       error: (error) => {
-        this.errorMessage = 'Failed to load buildings.';
+        this.errorMessage = 'Failed to load buildings for user.';
         this.isLoading = false;
         console.error(error);
       }
     });
   }
 
-  isSelected(buildingId: number): boolean {
-    return this.selectedBuilding?.bw_geb_id === buildingId;
+  // isSelected(buildingId: number): boolean {
+  //   return this.selectedBuilding?.bw_geb_id === buildingId;
+  // }
+  isSelected(building: Building): boolean {
+    if (!building || !this.selectedBuilding) return false;
+    return this.selectedBuilding.bw_geb_id === building.bw_geb_id;
   }
 
   deselectBuilding(): void {
@@ -64,42 +80,63 @@ export class UserDataComponent implements OnInit {
     this.selectedBuilding = null;
   }
 
-  selectBuilding(buildingId: number): void {
+  // selectBuilding(buildingId: number): void {
 
-    if(!buildingId || buildingId===undefined) return;
+  //   if(!buildingId || buildingId===undefined) return;
 
-    this.#loadBuilding(buildingId);
-    
-    // this.selectedBuildingId = buildingId;
-    // You could also emit an event here or call a sidepanel, etc.
+  //   this.#loadBuilding(buildingId);
+  // }
+
+  selectBuilding(building: Building): void {
+    if (!building) return;
+    this.selectedBuilding = building;
   }
 
-  #loadBuilding(buildingId: number) {
-    if (this.isLoadingBuilding) return;
-    this.isLoadingBuilding = true;
+  deleteBuilding(buildingId: number): void {
+    if (!confirm(`Gebäude mit ID ${buildingId} wirklich entfernen?`)) return;
 
-    console.log('Requesting building by id:', buildingId);
-
-    this.buildingService.getBuildingById(buildingId).subscribe({
-      next: (building) => {
-        if(building && building.bw_geb_id !== undefined) {
-          this.selectedBuilding = building;
+    this.userService.removeBuildingFromUser(this.userId, buildingId).subscribe({
+      next: () => {
+        this.buildings = this.buildings.filter(b => b.bw_geb_id !== buildingId);
+        if (this.selectedBuilding?.bw_geb_id === buildingId) {
+          this.selectedBuilding = null;
         }
       },
       error: (error) => {
-        console.error('Error loading building:', error);
-
-        this.errorMessage = error.status === 404 ? 'No building found for this buildingId.' : 'An error occurred while loading building. Please try again later.';
-
-        this.selectedBuilding = null;
-        this.isLoadingBuilding = false;
-      },
-      complete: () => {
-        this.isLoadingBuilding = false;
-        console.log('Selected building: ', this.selectBuilding);
+        console.error('Failed to delete building:', error);
+        this.errorMessage = 'Gebäude konnte nicht entfernt werden.';
       }
     });
   }
+
+  
+
+  // #loadBuilding(buildingId: number) {
+  //   if (this.isLoadingBuilding) return;
+  //   this.isLoadingBuilding = true;
+
+  //   console.log('Requesting building by id:', buildingId);
+
+  //   this.buildingService.getBuildingById(buildingId).subscribe({
+  //     next: (building) => {
+  //       if(building && building.bw_geb_id !== undefined) {
+  //         this.selectedBuilding = building;
+  //       }
+  //     },
+  //     error: (error) => {
+  //       console.error('Error loading building:', error);
+
+  //       this.errorMessage = error.status === 404 ? 'No building found for this buildingId.' : 'An error occurred while loading building. Please try again later.';
+
+  //       this.selectedBuilding = null;
+  //       this.isLoadingBuilding = false;
+  //     },
+  //     complete: () => {
+  //       this.isLoadingBuilding = false;
+  //       console.log('Selected building: ', this.selectBuilding);
+  //     }
+  //   });
+  // }
 
 
 
