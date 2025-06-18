@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { Building } from '../../models/building';
 import { Period, PeriodLabels } from '../../enums/period.enum';
 import { Usage, UsageLabels } from '../../enums/usage.enum';
@@ -61,6 +62,7 @@ export class BuildingSidepanelComponent implements OnInit {
 
   constructor(
     private buildingService: BuildingService,
+    public router: Router,
     private breakpointObserver: BreakpointObserver
   ) {}
 
@@ -252,5 +254,9 @@ export class BuildingSidepanelComponent implements OnInit {
 
   onClose() {
     this.closePanel.emit();
+  }
+
+  isOnMap(): boolean {
+    return this.router.url === '/map';
   }
 }
