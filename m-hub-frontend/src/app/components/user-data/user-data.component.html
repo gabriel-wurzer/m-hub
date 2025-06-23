@@ -3,11 +3,11 @@
       <div id="user-data">
 
         <header class="user-data-header">
-            <img 
+            <!-- <img 
             src="assets/images/house_icon_primary.svg" 
             alt="House Icon" 
             class="house-icon" 
-            />
+            /> -->
             <h1>Gebäudeliste</h1>
         </header>
         
@@ -16,15 +16,58 @@
         <div *ngIf="isLoading" class="spinner-container">
           <mat-spinner [diameter]="100" [strokeWidth]="6" class="loading-spinner" />
         </div>
+        
+        <div class="user-data-content">
+          <div class="card-container" *ngIf="!isLoading && buildings.length > 0; else noBuildings">
+            
+            <mat-card class="building-card" *ngFor="let building of buildings" (click)="selectBuilding(building)" [class.selected]="isSelected(building)">
+              
+              <div class="card-header">
+                <div class="card-header-text">
+                  <img 
+                    src="assets/images/house_icon_primary.svg" 
+                    alt="House Icon" 
+                    class="house-icon"
+                    loading="eager"
+                    />
+                  <h2>{{ building.name?.trim() || 'Gebäude ' + building.bw_geb_id }}</h2>
+                </div>
+                <button *ngIf="isSelected(building)" mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #menu="matMenu">
+                  <button mat-menu-item (click)="deleteBuilding(building.bw_geb_id); $event.stopPropagation()"> <mat-icon>edit</mat-icon> Gebäude bearbeiten</button>
+                  <button mat-menu-item (click)="deleteBuilding(building.bw_geb_id); $event.stopPropagation()"> <mat-icon>delete</mat-icon> Gebäude entfernen</button>
+                </mat-menu>
+              </div>
 
-        <div class="user-data-content"> 
+              <mat-divider></mat-divider>
+
+              <div class="card-info">
+                <div class="info-text">
+                  <p>Gebäude ID: {{ building.bw_geb_id }}</p>
+                  <p *ngIf="building.name">Name: {{ building.name }}</p>
+                  <p *ngIf="building.address">Adresse: {{ building.address }}</p>
+                </div>
+              </div>
+
+            </mat-card>
+            
+          </div>
+
+          <ng-template #noBuildings>
+            <p *ngIf="!isLoading" class="no-data">Keine Gebäude gespeichert</p>
+          </ng-template>
+        </div>
+
+        
+        <!-- <div class="user-data-content"> 
           <div class="list-container">
 
             <mat-list *ngIf="!isLoading && buildings.length > 0; else noBuildings">
                 <mat-list-item *ngFor="let building of buildings"
                   (click)="selectBuilding(building)"
                   [class.selected]="isSelected(building)">
-                  <!-- <span class="list-text">Gebäude {{ buildingId }}</span> -->
                   <span class="list-text" *ngIf="building.name?.trim(); else fallback">
                     {{ building.name }} (Gebäude {{ building.bw_geb_id }})
                   </span>
@@ -45,7 +88,7 @@
               <p *ngIf="!isLoading" class="no-data">Keine Gebäude gespeichert</p>
             </ng-template>
           </div>
-        </div>
+        </div> -->
 
       </div>
 
