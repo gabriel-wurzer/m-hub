@@ -27,6 +27,7 @@
         "type": "tab",
         "label": "Update Building Structure",
         "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
@@ -71,7 +72,6 @@
         "type": "tab",
         "label": "Buildings by User",
         "disabled": false,
-        "locked": true,
         "info": "",
         "env": []
     },
@@ -88,6 +88,7 @@
         "type": "tab",
         "label": "Add Building to User",
         "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
@@ -96,6 +97,7 @@
         "type": "tab",
         "label": "Remove Building from User",
         "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
@@ -1082,31 +1084,12 @@
         "method": "get",
         "upload": false,
         "swaggerDoc": "",
-        "x": 150,
-        "y": 140,
+        "x": 90,
+        "y": 240,
         "wires": [
             [
-                "d22ab6e80db60931"
-            ]
-        ]
-    },
-    {
-        "id": "0b34b6762788ca15",
-        "type": "function",
-        "z": "7928a23a3a61c00d",
-        "name": "find buildingIds by userId",
-        "func": "// Extract user ID parameter from msg.req.params\nconst userId = msg.req.params.ID;\n\n// Check if the payload (users array) is valid\nif (!Array.isArray(msg.payload)) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Invalid users data\" };\n    return msg;\n}\n\n// Find the user by ID\nconst user = msg.payload.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { exists: false, error: `User with ID '${userId}' not found` };\n    return msg;\n}\n\nmsg.payload = user.buildings || [];\nreturn [msg, null];\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 390,
-        "y": 340,
-        "wires": [
-            [
-                "423d647526ab999d"
+                "d22ab6e80db60931",
+                "2e17b7bfa269882e"
             ]
         ]
     },
@@ -1117,8 +1100,8 @@
         "name": "building response",
         "statusCode": "",
         "headers": {},
-        "x": 710,
-        "y": 440,
+        "x": 1210,
+        "y": 600,
         "wires": []
     },
     {
@@ -1133,8 +1116,8 @@
         "sendError": false,
         "encoding": "none",
         "allProps": false,
-        "x": 190,
-        "y": 240,
+        "x": 330,
+        "y": 180,
         "wires": [
             [
                 "3826fe9dee562d15"
@@ -1149,11 +1132,11 @@
         "property": "payload",
         "action": "",
         "pretty": false,
-        "x": 370,
-        "y": 240,
+        "x": 490,
+        "y": 180,
         "wires": [
             [
-                "0b34b6762788ca15"
+                "0f98f914243af5cb"
             ]
         ]
     },
@@ -1171,10 +1154,10 @@
         "id": "15451039e043dbed",
         "type": "comment",
         "z": "7928a23a3a61c00d",
-        "name": "mock: fetch buildingIds with param userId",
+        "name": "mock: fetch buildings with param userId",
         "info": "",
-        "x": 700,
-        "y": 280,
+        "x": 1320,
+        "y": 500,
         "wires": []
     },
     {
@@ -1194,13 +1177,260 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 420,
-        "y": 440,
+        "x": 980,
+        "y": 600,
         "wires": [
             [
                 "cd3718c20e42d278"
             ]
         ]
+    },
+    {
+        "id": "4bc6e44fe1289e18",
+        "type": "function",
+        "z": "7928a23a3a61c00d",
+        "name": "find buildings by userId",
+        "func": "// Extract user ID parameter from msg.req.params\nconst userId = msg.req.params.ID;\n\nconst users = msg.payload.users;\nconst buildings = msg.payload.buildings;\n\n// Check if the payload (users array) is valid\nif (!Array.isArray(users)) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Invalid users data\" };\n    return msg;\n}\n\nif (!Array.isArray(buildings)) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Invalid buildings data\" };\n    return msg;\n}\n\n// Find the user by ID\nconst user = users.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { exists: false, error: `User with ID '${userId}' not found` };\n    return msg;\n}\n\n// user.buildings is an array of building IDs\nconst userBuildingIds = user.buildings || [];\n\n// Map building IDs to full building objects\nconst userBuildings = buildings.filter(b => userBuildingIds.includes(b.bw_geb_id));\n\nmsg.payload = userBuildings;\nreturn [msg, null];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 970,
+        "y": 440,
+        "wires": [
+            [
+                "423d647526ab999d",
+                "4514d061075f37b0"
+            ]
+        ]
+    },
+    {
+        "id": "2e17b7bfa269882e",
+        "type": "file in",
+        "z": "7928a23a3a61c00d",
+        "name": "buildings.json",
+        "filename": "/data/buildings.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 320,
+        "y": 300,
+        "wires": [
+            [
+                "ac341b81be71a03d"
+            ]
+        ]
+    },
+    {
+        "id": "ac341b81be71a03d",
+        "type": "json",
+        "z": "7928a23a3a61c00d",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 490,
+        "y": 300,
+        "wires": [
+            [
+                "1ba15a5faebb6c4b"
+            ]
+        ]
+    },
+    {
+        "id": "0f98f914243af5cb",
+        "type": "change",
+        "z": "7928a23a3a61c00d",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "users",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 660,
+        "y": 180,
+        "wires": [
+            [
+                "df749ecb61ebd22b"
+            ]
+        ]
+    },
+    {
+        "id": "1ba15a5faebb6c4b",
+        "type": "change",
+        "z": "7928a23a3a61c00d",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "buildings",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 680,
+        "y": 300,
+        "wires": [
+            [
+                "648a7d4d9ceb65fb"
+            ]
+        ]
+    },
+    {
+        "id": "df749ecb61ebd22b",
+        "type": "change",
+        "z": "7928a23a3a61c00d",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "users",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 900,
+        "y": 180,
+        "wires": [
+            [
+                "a0e9a47e42bd9f37",
+                "ce1b7a5dcfbc1613"
+            ]
+        ]
+    },
+    {
+        "id": "648a7d4d9ceb65fb",
+        "type": "change",
+        "z": "7928a23a3a61c00d",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "buildings",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 900,
+        "y": 300,
+        "wires": [
+            [
+                "ce1b7a5dcfbc1613"
+            ]
+        ]
+    },
+    {
+        "id": "a0e9a47e42bd9f37",
+        "type": "debug",
+        "z": "7928a23a3a61c00d",
+        "name": "debug users data",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1170,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "ce1b7a5dcfbc1613",
+        "type": "join",
+        "z": "7928a23a3a61c00d",
+        "name": "join inputs",
+        "mode": "custom",
+        "build": "object",
+        "property": "payload",
+        "propertyType": "msg",
+        "key": "topic",
+        "joiner": "\\n",
+        "joinerType": "str",
+        "useparts": false,
+        "accumulate": false,
+        "timeout": "",
+        "count": "2",
+        "reduceRight": false,
+        "reduceExp": "",
+        "reduceInit": "",
+        "reduceInitType": "",
+        "reduceFixup": "",
+        "x": 1190,
+        "y": 240,
+        "wires": [
+            [
+                "6e9c380429b5809e",
+                "4bc6e44fe1289e18"
+            ]
+        ]
+    },
+    {
+        "id": "6e9c380429b5809e",
+        "type": "debug",
+        "z": "7928a23a3a61c00d",
+        "name": "debug join data",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1400,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "4514d061075f37b0",
+        "type": "debug",
+        "z": "7928a23a3a61c00d",
+        "name": "debug response",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1220,
+        "y": 400,
+        "wires": []
     },
     {
         "id": "87161bccab4bd3aa",

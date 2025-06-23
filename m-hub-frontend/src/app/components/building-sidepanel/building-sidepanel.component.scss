@@ -64,19 +64,19 @@ p {
     align-items: center;
 }
 
-.expand-button mat-icon {
-    transform: translateX(4px);
-}
+// .expand-button mat-icon {
+//     transform: translateX(4px);
+// }
 
-.rotated-button {
-    transform: rotate(90deg);
-    transition: transform 0.2s ease;
-    display: inline-block;
+// .rotated-button {
+//     transform: rotate(90deg);
+//     transition: transform 0.2s ease;
+//     display: inline-block;
 
-    mat-icon {
-        transform: translateX(8px);
-    }
-}
+//     mat-icon {
+//         transform: translateX(8px);
+//     }
+// }
 
 .no-docs {
     color: gray;

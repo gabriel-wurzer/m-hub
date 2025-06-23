@@ -8,7 +8,7 @@
             alt="House Icon" 
             class="house-icon" 
             />
-            <h1>Meine Gebäude</h1>
+            <h1>Gebäudeliste</h1>
         </header>
         
         <mat-divider class="horizontal-divider"/>
@@ -21,10 +21,24 @@
           <div class="list-container">
 
             <mat-list *ngIf="!isLoading && buildings.length > 0; else noBuildings">
-                <mat-list-item *ngFor="let buildingId of buildings"
-                  (click)="selectBuilding(buildingId)"
-                  [class.selected]="isSelected(buildingId)">
-                  <span class="list-text">Gebäude {{ buildingId }}</span>
+                <mat-list-item *ngFor="let building of buildings"
+                  (click)="selectBuilding(building)"
+                  [class.selected]="isSelected(building)">
+                  <!-- <span class="list-text">Gebäude {{ buildingId }}</span> -->
+                  <span class="list-text" *ngIf="building.name?.trim(); else fallback">
+                    {{ building.name }} (Gebäude {{ building.bw_geb_id }})
+                  </span>
+                  <ng-template #fallback>
+                    <span class="list-text">Gebäude {{ building.bw_geb_id }}</span>
+                  </ng-template>
+                  
+                  <button *ngIf="isSelected(building)"
+                    mat-icon-button 
+                    color="warn" 
+                    (click)="deleteBuilding(building.bw_geb_id); $event.stopPropagation()">
+                    <mat-icon>delete</mat-icon>
+                  </button>                  
+
                 </mat-list-item>
             </mat-list>
             <ng-template #noBuildings>

@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { Building } from '../../models/building';
 import { Period, PeriodLabels } from '../../enums/period.enum';
@@ -16,12 +17,24 @@ import { DocumentListComponent } from "../document-list/document-list.component"
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { AddBuildingButtonComponent } from "../buttons/add-building-button/add-building-button.component";
 import { BuildingService } from '../../services/building/building.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserService } from '../../services/user/user.service';
 
 @Component({
   selector: 'app-building-sidepanel',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatButtonModule, MatDividerModule, MatListModule, MatProgressSpinnerModule, NgxEchartsModule, DocumentListComponent, AddBuildingButtonComponent],
+  imports: [
+    CommonModule, 
+    MatIconModule, 
+    MatButtonModule, 
+    MatDividerModule,
+    MatListModule, 
+    MatProgressSpinnerModule, 
+    MatTooltipModule,
+    NgxEchartsModule, 
+    DocumentListComponent, 
+    AddBuildingButtonComponent
+  ],
   templateUrl: './building-sidepanel.component.html',
   styleUrl: './building-sidepanel.component.scss'
 })
@@ -52,6 +65,7 @@ export class BuildingSidepanelComponent implements OnInit {
 
   constructor(
     private buildingService: BuildingService,
+    public router: Router,
     private userService: UserService,
     private breakpointObserver: BreakpointObserver
   ) {}
@@ -331,5 +345,9 @@ export class BuildingSidepanelComponent implements OnInit {
 
   onClose() {
     this.closePanel.emit();
+  }
+
+  isOnMap(): boolean {
+    return this.router.url === '/map';
   }
 }

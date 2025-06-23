@@ -1,8 +1,11 @@
 <ng-container *ngIf="building; else noBuildingData">
     <div class="building-info-panel">
         <header class="building-info-header">
-            <button mat-icon-button class="expand-button" [ngClass]="{ 'rotated-button': isMobile }" (click)="openStructureViewPanel()">
+            <!-- <button mat-icon-button class="expand-button" [ngClass]="{ 'rotated-button': isMobile }" (click)="openStructureViewPanel()">
                 <mat-icon>arrow_back_ios</mat-icon>
+            </button> -->
+            <button mat-icon-button class="expand-button" matTooltip="Gebäudeansicht öffnen" matTooltipPosition="before" matTooltipShowDelay="400" (click)="openStructureViewPanel()">
+                <mat-icon>launch</mat-icon>
             </button>
             <h2 class="building-info-title">Gebäudeinfo</h2>
             <button mat-icon-button class="close-button" (click)="onClose()">
@@ -19,6 +22,7 @@
         <div class="content-wrapper" *ngIf="!isLoading">
             <div class="building-info-data">
                 <app-add-building-button [building]="building" [userId]="userId" [isInitiallyAdded]="isBuildingAdded"></app-add-building-button>
+                <app-add-building-button *ngIf="isOnMap()" [building]="building" [userId]="userId"></app-add-building-button>
         
                 <h3>Gebäude ID: {{ building.bw_geb_id }}</h3>
                 <p *ngIf="building.name">Name: {{ building.name }}</p>
