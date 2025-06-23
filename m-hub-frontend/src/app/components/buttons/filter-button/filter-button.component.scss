@@ -5,9 +5,30 @@
     top: 50px;
     left: 10px;
     cursor: pointer;
-  }
-  
-  .leaflet-control-filter mat-icon {
-    position: relative;
-    transform: translate(-5%);
-  }
+
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.leaflet-control-filter mat-icon {
+    font-size: 24px;
+    line-height: 1;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.leaflet-control-filter mat-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+mat-icon {
+    line-height: 1;
+    font-size: 24px;
+}
