@@ -19,6 +19,10 @@ export class UserService {
     return this.http.get<boolean>(`${this.apiUrl}/${userId}/buildings/${buildingId}/exists`);
   }
   
+  getUserBuildingData(userId: string, buildingId: number): Observable<{ name: string, address: string }> {
+    return this.http.get<{ name: string, address: string }>(`${this.apiUrl}/${userId}/buildings/${buildingId}/details`);
+  }
+
   addBuildingToUser(userId: string, buildingId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${userId}/buildings`, { buildingId });
   }

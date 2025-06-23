@@ -100,11 +100,13 @@
       }
     ],
     "structure": [
-      1,
+      0,
       1,
       2,
       1
-    ]
+    ],
+    "name": null,
+    "address": null
   },
   {
     "bw_geb_id": 5363852,
@@ -215,7 +217,7 @@
       }
     ],
     "structure": [
-      1,
+      0,
       1,
       1,
       1

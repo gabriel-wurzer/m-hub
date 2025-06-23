@@ -27,8 +27,9 @@ export interface Building {
     geometry: any; // Geometry as GeoJSON object
     buildingComponents?: BuildingComponent[];  // Optional list of building parts
     documents?: Document[]; // Optional list of appended documents
-
-    name?: string;
-    address?: string;
     structure?: number[]; // Array of numbers representing the structure of the building -> [KG, EG, OG, DG]
+
+    // user-specific fields
+    name?: string; // user specific name of the building
+    address?: string; // user specific address of the building
 }
