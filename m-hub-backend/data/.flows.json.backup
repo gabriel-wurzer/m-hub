@@ -19,7 +19,6 @@
         "type": "tab",
         "label": "Building by ID",
         "disabled": false,
-        "locked": true,
         "info": "",
         "env": []
     },
@@ -81,7 +80,6 @@
         "type": "tab",
         "label": "Building in User",
         "disabled": false,
-        "locked": true,
         "info": "",
         "env": []
     },
@@ -130,6 +128,14 @@
         "type": "tab",
         "label": "Parts by Part",
         "disabled": true,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "494a592c87260810",
+        "type": "tab",
+        "label": "User-specific Building Data",
+        "disabled": false,
         "info": "",
         "env": []
     },
@@ -1524,7 +1530,7 @@
         "finalize": "",
         "libs": [],
         "x": 430,
-        "y": 480,
+        "y": 380,
         "wires": [
             [
                 "0d03d9784e5768c6"
@@ -1541,8 +1547,8 @@
         "name": "buildings array response",
         "statusCode": "",
         "headers": {},
-        "x": 1010,
-        "y": 540,
+        "x": 1050,
+        "y": 420,
         "wires": []
     },
     {
@@ -1597,8 +1603,8 @@
         "z": "ca28e1e423cf6c08",
         "name": "mock: remove buildingId from user with userId",
         "info": "",
-        "x": 750,
-        "y": 340,
+        "x": 850,
+        "y": 260,
         "wires": []
     },
     {
@@ -1618,8 +1624,8 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 740,
-        "y": 540,
+        "x": 780,
+        "y": 420,
         "wires": [
             [
                 "6e4af95c1e140b91"
@@ -1637,8 +1643,8 @@
         "createDir": false,
         "overwriteFile": "true",
         "encoding": "none",
-        "x": 750,
-        "y": 440,
+        "x": 790,
+        "y": 320,
         "wires": [
             []
         ]
@@ -2083,5 +2089,134 @@
         "x": 760,
         "y": 280,
         "wires": []
+    },
+    {
+        "id": "202af4e4ff054da0",
+        "type": "http in",
+        "z": "494a592c87260810",
+        "name": "GET user-specific building data",
+        "url": "/api/user/:UID/buildings/:BID/details",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 160,
+        "wires": [
+            [
+                "790662da6c3641fa"
+            ]
+        ]
+    },
+    {
+        "id": "7be045fcc2485d0b",
+        "type": "function",
+        "z": "494a592c87260810",
+        "name": "check if building exists in user buildings",
+        "func": "var buildingId = parseInt(msg.req.params.BID);  // Extract building ID from URL\nvar userId = msg.req.params.UID;  // Extract user ID from URL\nvar userBuildings = msg.payload;  // Loaded JSON file\n\n// Find the matching entry\nvar userBuilding = userBuildings.find(ub => ub.userId === userId && ub.buildingId === buildingId);\n\nif (!userBuilding) {\n    // No match found -> return name and address as null\n    msg.payload = {\n        name: null,\n        address: null\n    };\n    msg.statusCode = 200;  // It's a valid request, just no user-specific data\n    return msg;\n}\n\n// Match found -> return name and address (if they exist) or null if missing\nmsg.payload = {\n    name: userBuilding.name || null,\n    address: userBuilding.address || null\n};\n\nmsg.statusCode = 200;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 360,
+        "wires": [
+            [
+                "28d390d5ba3f6246"
+            ]
+        ]
+    },
+    {
+        "id": "1eede441926c0df5",
+        "type": "http response",
+        "z": "494a592c87260810",
+        "name": "building in user response",
+        "statusCode": "",
+        "headers": {},
+        "x": 750,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "790662da6c3641fa",
+        "type": "file in",
+        "z": "494a592c87260810",
+        "name": "user_buildings.json",
+        "filename": "/data/user_buildings.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 230,
+        "y": 260,
+        "wires": [
+            [
+                "47aa9aa1d6055373"
+            ]
+        ]
+    },
+    {
+        "id": "47aa9aa1d6055373",
+        "type": "json",
+        "z": "494a592c87260810",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 390,
+        "y": 260,
+        "wires": [
+            [
+                "7be045fcc2485d0b"
+            ]
+        ]
+    },
+    {
+        "id": "7a308b09bfae9098",
+        "type": "comment",
+        "z": "494a592c87260810",
+        "name": "http://localhost:1880/api/user/UID/buildings/BID/details",
+        "info": "",
+        "x": 280,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "d164877e5828f8ab",
+        "type": "comment",
+        "z": "494a592c87260810",
+        "name": "mock: fetch user-specific building data",
+        "info": "",
+        "x": 710,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "28d390d5ba3f6246",
+        "type": "delay",
+        "z": "494a592c87260810",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 440,
+        "y": 460,
+        "wires": [
+            [
+                "1eede441926c0df5"
+            ]
+        ]
     }
 ]
