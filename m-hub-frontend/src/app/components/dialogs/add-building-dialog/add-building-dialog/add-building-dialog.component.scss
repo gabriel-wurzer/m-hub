@@ -80,8 +80,8 @@ mat-form-field {
   align-items: center;
 
   .house-icon{
-    height: 350px;
-    width: auto;
+    width: 380px;
+    height: 100%;
     
     // width: 100%;
     // height: auto;
@@ -135,4 +135,39 @@ mat-form-field {
 
 mat-error {
   font-size: 14px;
+}
+
+
+@media (max-width: 520px) {
+  .dialog-container {
+    padding: 6px 8px;
+    gap: 1rem;
+  }
+
+  .header {
+    margin-bottom: 0;
+  }
+
+  .content-wrapper {
+    gap: 0.5rem;
+  }
+
+  .description-wrapper {
+    gap: 2px;
+  }
+
+  .house-chart {
+      width: 100%;
+      height: auto;
+  }
+}
+
+@media (max-width: 400px) {
+  .house-chart {
+    display: none !important;
+  }
+
+  .actions {
+    margin-top: 4px;
+  }
 }
