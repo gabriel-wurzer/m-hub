@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { forkJoin } from 'rxjs';
 import { Building } from '../../models/building';
 import { Period, PeriodLabels } from '../../enums/period.enum';
 import { Usage, UsageLabels } from '../../enums/usage.enum';
@@ -15,6 +16,7 @@ import { DocumentListComponent } from "../document-list/document-list.component"
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { AddBuildingButtonComponent } from "../buttons/add-building-button/add-building-button.component";
 import { BuildingService } from '../../services/building/building.service';
+import { UserService } from '../../services/user/user.service';
 
 @Component({
   selector: 'app-building-sidepanel',
@@ -41,6 +43,7 @@ export class BuildingSidepanelComponent implements OnInit {
   usagePieChartOptions: EChartsOption = {};
   materialsPieChartOptions: EChartsOption = {};
 
+  isBuildingAdded = false;
   isLoading = false; 
   isMobile = false;
 
@@ -49,6 +52,7 @@ export class BuildingSidepanelComponent implements OnInit {
 
   constructor(
     private buildingService: BuildingService,
+    private userService: UserService,
     private breakpointObserver: BreakpointObserver
   ) {}
 
@@ -210,14 +214,42 @@ export class BuildingSidepanelComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
     this.skipFetchDocuments = false;
-    
-    this.buildingService.getBuildingById(buildingId).subscribe({
-      next: (freshBuilding) => {
+
+    // Prepare both observables
+    const buildingRequest$ = this.buildingService.getBuildingById(buildingId);
+    const userBuildingCheck$ = this.userService.isBuildingInUser(this.userId, buildingId);
+
+    forkJoin([buildingRequest$, userBuildingCheck$]).subscribe({
+      next: ([freshBuilding, isUserBuilding]) => {
         this.building = freshBuilding;
+
+        // Update charts immediately
         this.updateUsagePieChart();
         this.updateMaterialsPieChart();
+
+        this.isBuildingAdded = isUserBuilding;
+
+        if (isUserBuilding) {
+          // Fetch user-specific building data
+          this.userService.getUserBuildingData(this.userId, buildingId).subscribe({
+            next: (userBuildingData) => {
+              if (this.building) {
+                this.building.name = userBuildingData.name;
+                this.building.address = userBuildingData.address;
+              }
+              this.isLoading = false; // Finish loading AFTER user-specific data is loaded
+            },
+            error: (err) => {
+              console.error('Fehler beim Laden der benutzerspezifischen Gebäudedaten.', err);
+              this.isLoading = false; // Finish loading even if user-specific data fails
+            }
+          });
+        } else {
+          // If the building is not in user's list, finish loading here
+          this.isLoading = false;
+        }
+
         this.skipFetchDocuments = false;
-        this.isLoading = false;
       },
       error: (err) => {
         this.errorMessage = 'Fehler beim Laden der Gebäudedaten. Lokale Daten werden angezeigt.';
@@ -226,6 +258,65 @@ export class BuildingSidepanelComponent implements OnInit {
         this.updateMaterialsPieChart();
         this.skipFetchDocuments = true;
         this.isLoading = false;
+
+        this.isBuildingAdded = false; // set to false if building is not in buildings.json
+      }
+    });
+  }
+
+  // fetchBuildingData(buildingId: number): void {
+  //   this.isLoading = true;
+  //   this.errorMessage = '';
+  //   this.skipFetchDocuments = false;
+    
+  //   this.buildingService.getBuildingById(buildingId).subscribe({
+  //     next: (freshBuilding) => {
+  //       this.building = freshBuilding;
+  //       this.updateUsagePieChart();
+  //       this.updateMaterialsPieChart();
+
+  //       this.userService.isBuildingInUser(this.userId, buildingId).subscribe({
+  //         next: (isUserBuilding: boolean) => {
+  //           this.isBuildingAdded = isUserBuilding;
+  //           if (isUserBuilding) {
+  //             // Fetch user-specific data (name, address) if the building is in the user's list
+  //             this.fetchUserSpecificBuildingData(buildingId);
+  //           }
+  //         },
+  //         error: (err) => {
+  //           console.error('Fehler beim Prüfen der Benutzerzugehörigkeit.', err);
+  //         }
+  //       });
+
+  //       this.skipFetchDocuments = false;
+  //       this.isLoading = false;
+  //     },
+  //     error: (err) => {
+  //       this.errorMessage = 'Fehler beim Laden der Gebäudedaten. Lokale Daten werden angezeigt.';
+  //       console.error(this.errorMessage, err);
+  //       this.updateUsagePieChart();
+  //       this.updateMaterialsPieChart();
+  //       this.skipFetchDocuments = true;
+  //       this.isLoading = false;
+  //     }
+  //   });
+  // }
+
+  fetchUserSpecificBuildingData(buildingId: number): void {
+    this.userService.getUserBuildingData(this.userId, buildingId).subscribe({
+      next: (userBuildingData) => {
+        console.log('Benutzerspezifische Gebäudedaten: ', userBuildingData);
+
+        if (this.building) {
+
+          this.building.name = userBuildingData.name;
+          this.building.address = userBuildingData.address;
+        }
+        // this.userBuildingName = userBuildingData.name;
+        // this.userBuildingAddress = userBuildingData.address;
+      },
+      error: (err) => {
+        console.error('Fehler beim Laden der benutzerspezifischen Gebäudedaten.', err);
       }
     });
   }

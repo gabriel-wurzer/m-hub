@@ -19,6 +19,7 @@ import { AddBuildingDialogComponent } from '../../dialogs/add-building-dialog/ad
 export class AddBuildingButtonComponent implements OnInit {
   @Input() building!: Building;
   @Input() userId!: string;
+  @Input() isInitiallyAdded: boolean | null = null;
 
   isAdded = false;
   isLoading = false;
@@ -30,15 +31,27 @@ export class AddBuildingButtonComponent implements OnInit {
     private dialog: MatDialog
   ) {}
 
+  // ngOnInit(): void {
+  //   if (this.userId && this.building) {
+  //     this.checkIfBuildingAdded();
+  //   }
+  // }
   ngOnInit(): void {
-    if (this.userId && this.building) {
+    if (this.isInitiallyAdded !== null) {
+      this.isAdded = this.isInitiallyAdded;
+    } else if (this.userId && this.building) {
       this.checkIfBuildingAdded();
     }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['building'] && this.building && this.userId) {
-      this.checkIfBuildingAdded();
+      // this.checkIfBuildingAdded();
+      if (this.isInitiallyAdded !== null) {
+        this.isAdded = this.isInitiallyAdded;
+      } else if (this.userId && this.building) {
+        this.checkIfBuildingAdded();
+      }
     }
   }
 

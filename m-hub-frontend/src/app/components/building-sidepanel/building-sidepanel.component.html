@@ -18,9 +18,11 @@
 
         <div class="content-wrapper" *ngIf="!isLoading">
             <div class="building-info-data">
-                <app-add-building-button [building]="building" [userId]="userId"></app-add-building-button>
+                <app-add-building-button [building]="building" [userId]="userId" [isInitiallyAdded]="isBuildingAdded"></app-add-building-button>
         
                 <h3>Gebäude ID: {{ building.bw_geb_id }}</h3>
+                <p *ngIf="building.name">Name: {{ building.name }}</p>
+                <p *ngIf="building.address">Adresse:  {{ building.address }}</p>
                 <p>Nutzung: {{ usageLabel }}</p>
                 <p>Bauperiode: {{ periodLabel }}</p>
                 <p>Maximale Höhe: {{ building.maxhoehe}} m</p>
