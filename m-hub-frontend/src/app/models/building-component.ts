@@ -1,4 +1,5 @@
 import { BuildingComponentType } from '../enums/building-component-type.enum';
+import { Document } from "./document";
 
 /**
  * Interface for building components.

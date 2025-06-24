@@ -1,4 +1,6 @@
 import { BuildingComponent } from "./building-component";
+import { Document } from "./document";
+
 
 /**
  * Interface of buildings.
