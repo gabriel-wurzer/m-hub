@@ -86,23 +86,18 @@ export class AddBuildingButtonComponent implements OnInit {
         return;
       }
 
-      // Update local building data
-      this.building.structure = result.structure;
-      if (result.name) this.building.name = result.name;
-      if (result.address) this.building.address = result.address;
-
       const structureChanged = result.structureChanged || !this.building.structure;
 
       const updateStructure$ = structureChanged
-        ? this.buildingService.updateBuilding(this.building)
+        ? this.buildingService.updateBuilding({ ...this.building, structure: result.structure })
         : of(null); // Skip if no update needed
 
       const addBuildingToUser$ = this.userService.addBuildingToUser(this.userId, this.building.bw_geb_id);
       const addUserBuildingData$ = this.userService.addUserBuildingData(
         this.userId,
         this.building.bw_geb_id,
-        this.building.name ?? null,
-        this.building.address ?? null
+        result.name ?? this.building.name ?? null,
+        result.address ?? this.building.address ?? null
       );
 
       forkJoin({
@@ -120,12 +115,19 @@ export class AddBuildingButtonComponent implements OnInit {
           return of(null);
         })
       )
-      .subscribe(result => {
-        if (result) {
+      .subscribe(response => {
+        if (response) {
           console.log('Gebäude erfolgreich hinzugefügt.');
           this.isAdded = true;
+
+          // Update local building data
+          this.building.structure = result.structure;
+          if (result.name) this.building.name = result.name;
+          if (result.address) this.building.address = result.address;
+
         }
       });
     });
   }
+
 }
