@@ -8,7 +8,7 @@ import { UserService } from '../../../services/user/user.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { AddBuildingDialogComponent } from '../../dialogs/add-building-dialog/add-building-dialog/add-building-dialog.component';
+import { AddBuildingDialogComponent } from '../../dialogs/add-building-dialog/add-building-dialog.component';
 
 
 @Component({
