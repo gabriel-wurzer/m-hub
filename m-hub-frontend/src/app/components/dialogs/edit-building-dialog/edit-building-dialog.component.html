@@ -1,0 +1,42 @@
+<div class="dialog-container">
+    <h2 mat-dialog-title class="header">Gebäude bearbeiten</h2>
+
+    <div mat-dialog-content class="content-wrapper">
+        
+        <div class="user-specific-wrapper">
+            <div class="name-wrapper">
+                <h3>Name</h3>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Name</mat-label>
+                    <input matInput [(ngModel)]="name" />
+                </mat-form-field>
+            </div>
+            
+            <div class="address-wrapper">
+                <h3>Adresse</h3>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Adresse</mat-label>
+                    <input matInput [(ngModel)]="address" />
+                </mat-form-field>
+            </div>
+
+        </div>
+        
+        
+        
+        
+    </div>
+
+    <div mat-dialog-actions class="actions">
+        <button mat-button (click)="close()">Abbruch</button>
+        <button 
+            mat-button 
+            color="primary" 
+            (click)="confirmEditBuilding()"  
+            [disabled]="!isFormValid()"
+        >
+            Bearbeiten
+        </button>
+    </div>
+</div>
+

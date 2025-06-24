@@ -36,7 +36,7 @@
                   <mat-icon>more_vert</mat-icon>
                 </button>
                 <mat-menu #menu="matMenu">
-                  <button mat-menu-item (click)="deleteBuilding(building.bw_geb_id); $event.stopPropagation()"> <mat-icon>edit</mat-icon> Gebäude bearbeiten</button>
+                  <button mat-menu-item (click)="editBuilding(building); $event.stopPropagation()"> <mat-icon>edit</mat-icon> Gebäude bearbeiten</button>
                   <button mat-menu-item (click)="deleteBuilding(building.bw_geb_id); $event.stopPropagation()"> <mat-icon>delete</mat-icon> Gebäude entfernen</button>
                 </mat-menu>
               </div>

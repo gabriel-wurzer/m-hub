@@ -6,14 +6,16 @@ import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import {MatCardModule} from '@angular/material/card';
-import {MatMenuModule} from '@angular/material/menu';
+import { MatCardModule } from '@angular/material/card';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { UserService } from '../../services/user/user.service';
 import { Building } from '../../models/building';
 import { BuildingSidepanelComponent } from "../building-sidepanel/building-sidepanel.component";
 import { BuildingService } from '../../services/building/building.service';
 import { StructureViewComponent } from "../structure-view/structure-view.component";
+import { EditBuildingDialogComponent } from '../dialogs/edit-building-dialog/edit-building-dialog.component';
 
 
 @Component({
@@ -27,6 +29,7 @@ import { StructureViewComponent } from "../structure-view/structure-view.compone
     MatIconModule,
     MatCardModule,
     MatMenuModule,
+    MatDialogModule,
     MatProgressSpinnerModule, 
     BuildingSidepanelComponent, 
     StructureViewComponent
@@ -46,7 +49,11 @@ export class UserDataComponent implements OnInit {
   isLoadingBuilding = false;
   errorMessage = '';
 
-  constructor(private buildingService: BuildingService, private userService: UserService) {}
+  constructor(
+    private buildingService: BuildingService, 
+    private userService: UserService,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     if(!this.userId) return;
@@ -139,6 +146,43 @@ export class UserDataComponent implements OnInit {
         console.error('Failed to delete building:', error);
         this.errorMessage = 'Gebäude konnte nicht entfernt werden.';
       }
+    });
+  }
+
+  editBuilding(building: Building): void {
+    if (!building) return;
+
+    const dialogRef = this.dialog.open(EditBuildingDialogComponent, {
+      panelClass: 'custom-dialog',
+      data: { name:building.name, address: building.address, buildingComponents: building.buildingComponents, documents: building.documents }
+    });
+
+
+    // TODO: handle dialog result
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) {
+        console.log('Bearbeiten des Gebäudes von Benutzer abgebrochen.');
+        this.isLoading = false;
+        return;
+      }
+
+      const updatedBuilding: Building = {
+        ...building,
+        name: result.name,
+        address: result.address,
+        buildingComponents: result.buildingComponents,
+        documents: result.documents,
+      };
+
+
+      //TODO: Update local building data and user-specific data
+
+      // TODO: brauche indices in buildings array um local zu verändern!
+      
+      // this.building.structure = result.structure;
+      // if (result.name) this.building.name = result.name;
+      // if (result.address) this.building.address = result.address;
+
     });
   }
 
