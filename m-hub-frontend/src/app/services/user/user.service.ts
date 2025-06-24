@@ -21,7 +21,12 @@ export class UserService {
   }
   
   getUserBuildingData(userId: string, buildingId: number): Observable<{ name: string, address: string }> {
-    return this.http.get<{ name: string, address: string }>(`${this.apiUrl}/${userId}/buildings/${buildingId}/details`);
+    return this.http.get<{ name: string, address: string }>(`${this.apiUrl}/${userId}/buildings/${buildingId}/data`);
+  }
+
+  addUserBuildingData(userId: string, buildingId: number, name: string | null, address: string | null): Observable<{ userId: string, buildingId: number, name: string | null, address: string | null }> {
+    const body = { name, address };
+    return this.http.post<{ userId: string, buildingId: number, name: string | null, address: string | null }>(`${this.apiUrl}/${userId}/buildings/${buildingId}/data`, body);
   }
 
   addBuildingToUser(userId: string, buildingId: number): Observable<any> {

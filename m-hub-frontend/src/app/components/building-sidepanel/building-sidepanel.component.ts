@@ -254,7 +254,7 @@ export class BuildingSidepanelComponent implements OnInit {
               this.isLoading = false; // Finish loading AFTER user-specific data is loaded
             },
             error: (err) => {
-              console.error('Fehler beim Laden der benutzerspezifischen Gebäudedaten.', err);
+              console.error('Fehler beim Laden der benutzer-spezifischen Gebäudedaten:', err);
               this.isLoading = false; // Finish loading even if user-specific data fails
             }
           });

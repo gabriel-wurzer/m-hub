@@ -19,6 +19,7 @@
         "type": "tab",
         "label": "Building by ID",
         "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
@@ -72,6 +73,7 @@
         "type": "tab",
         "label": "Buildings by User",
         "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
@@ -80,6 +82,7 @@
         "type": "tab",
         "label": "Building in User",
         "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
@@ -88,7 +91,6 @@
         "type": "tab",
         "label": "Add Building to User",
         "disabled": false,
-        "locked": true,
         "info": "",
         "env": []
     },
@@ -136,7 +138,15 @@
     {
         "id": "494a592c87260810",
         "type": "tab",
-        "label": "User-specific Building Data",
+        "label": "User-specific Building Data by IDs",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "f85e317b58138888",
+        "type": "tab",
+        "label": "Add User-specific Building Data",
         "disabled": false,
         "info": "",
         "env": []
@@ -2325,7 +2335,7 @@
         "type": "http in",
         "z": "494a592c87260810",
         "name": "GET user-specific building data",
-        "url": "/api/user/:UID/buildings/:BID/details",
+        "url": "/api/user/:UID/buildings/:BID/data",
         "method": "get",
         "upload": false,
         "swaggerDoc": "",
@@ -2446,6 +2456,192 @@
         "wires": [
             [
                 "1eede441926c0df5"
+            ]
+        ]
+    },
+    {
+        "id": "faa427dade4613c2",
+        "type": "http in",
+        "z": "f85e317b58138888",
+        "name": "POST user-specific building data",
+        "url": "/api/user/:UID/buildings/:BID/data",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 330,
+        "y": 200,
+        "wires": [
+            [
+                "75273458573b2e65"
+            ]
+        ]
+    },
+    {
+        "id": "f5c6922760c1d470",
+        "type": "function",
+        "z": "f85e317b58138888",
+        "name": "create list entry and append to user buildings data",
+        "func": "var buildingId = parseInt(msg.req.params.BID);  // Extract building ID from URL\nvar userId = msg.req.params.UID;  // Extract user ID from URL\nvar userBuildings = msg.userBuildings;  // Loaded JSON file\n\n// Extract name and address from request body\nvar name = msg.payload.name ?? null;\nvar address = msg.payload.address ?? null;\n\n// Build new entry\nvar newEntry = {\n    userId: userId,\n    buildingId: buildingId,\n    name: name,\n    address: address\n};\n\n// Append new entry\nuserBuildings.push(newEntry);\n\n// Prepare messages for outputs\nvar msgFile = { ...msg }; // Copy message for file writing\nmsgFile.payload = JSON.stringify(userBuildings, null, 2); // Save as nicely formatted JSON\n\n//var msgResponse = { payload: newEntry }; // Return only the new entry\n//return [msgFile, msgResponse];\n\nmsg.statusCode = 200;\nmsg.payload = newEntry;\n\nreturn [msgFile, msg];\n\n\n\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 520,
+        "wires": [
+            [
+                "466d38a4ec1a0352"
+            ],
+            [
+                "78ff2d6ec1e00377",
+                "abfbd1601294ddee"
+            ]
+        ]
+    },
+    {
+        "id": "d75c46e8ee472ada",
+        "type": "http response",
+        "z": "f85e317b58138888",
+        "name": "building in user response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1090,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "75273458573b2e65",
+        "type": "file in",
+        "z": "f85e317b58138888",
+        "name": "user_buildings.json",
+        "filename": "/data/user_buildings.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 330,
+        "y": 300,
+        "wires": [
+            [
+                "d334ae99795eeaf4"
+            ]
+        ]
+    },
+    {
+        "id": "d334ae99795eeaf4",
+        "type": "json",
+        "z": "f85e317b58138888",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 490,
+        "y": 300,
+        "wires": [
+            [
+                "8c1f7abe123f44ff"
+            ]
+        ]
+    },
+    {
+        "id": "30cb62a495ba5a64",
+        "type": "comment",
+        "z": "f85e317b58138888",
+        "name": "http://localhost:1880/api/user/UID/buildings/BID/data",
+        "info": "",
+        "x": 370,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "49f75b90573c3dff",
+        "type": "comment",
+        "z": "f85e317b58138888",
+        "name": "mock: create user-specific building data",
+        "info": "",
+        "x": 830,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "78ff2d6ec1e00377",
+        "type": "delay",
+        "z": "f85e317b58138888",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "0.5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 870,
+        "y": 580,
+        "wires": [
+            [
+                "d75c46e8ee472ada"
+            ]
+        ]
+    },
+    {
+        "id": "466d38a4ec1a0352",
+        "type": "file",
+        "z": "f85e317b58138888",
+        "name": "updated user_buildings.json",
+        "filename": "/data/user_buildings.json",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 900,
+        "y": 460,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "abfbd1601294ddee",
+        "type": "debug",
+        "z": "f85e317b58138888",
+        "name": "debug 4",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 780,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "8c1f7abe123f44ff",
+        "type": "function",
+        "z": "f85e317b58138888",
+        "name": "pre-function",
+        "func": "msg.userBuildings = msg.payload;\nmsg.payload = msg.req.body;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 400,
+        "wires": [
+            [
+                "f5c6922760c1d470"
             ]
         ]
     }
