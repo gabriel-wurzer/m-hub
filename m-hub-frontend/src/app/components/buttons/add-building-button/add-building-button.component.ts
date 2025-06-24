@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { iif, of, forkJoin } from 'rxjs';
-import { switchMap, catchError, finalize } from 'rxjs/operators';
+import { of, forkJoin } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
 import { Building } from '../../../models/building';
 import { BuildingService } from '../../../services/building/building.service';
 import { UserService } from '../../../services/user/user.service';
@@ -43,7 +43,6 @@ export class AddBuildingButtonComponent implements OnInit {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['building'] && this.building && this.userId) {
-      // this.checkIfBuildingAdded();
       if (this.isInitiallyAdded !== null) {
         this.isAdded = this.isInitiallyAdded;
       } else if (this.userId && this.building) {
@@ -68,68 +67,6 @@ export class AddBuildingButtonComponent implements OnInit {
       }
     });
   }
-
-//   addBuilding(): void {
-//   if (!this.building || this.isAdded || this.isLoading) return;
-
-//   this.isLoading = true;
-//   this.errorMessage = '';
-
-//   const dialogRef = this.dialog.open(AddBuildingDialogComponent, {
-//     panelClass: 'custom-dialog',
-//     data: { structure: this.building.structure }
-//   });
-
-//   dialogRef.afterClosed().subscribe(result => {
-//     if (!result) {
-//       console.log('Hinzufügen des Gebäudes von Benutzer abgebrochen.');
-//       this.isLoading = false;
-//       return;
-//     }
-
-//     this.building.structure = result.structure;
-//     if (result.name) this.building.name = result.name;
-//     if (result.address) this.building.address = result.address;
-
-//     console.log('User-specific data: ', this.building.name, this.building.address);
-
-//     const structureChanged = result.structureChanged || !this.building.structure;
-
-//     iif(
-//       () => structureChanged,
-//       // If structure changed: first update building
-//       this.buildingService.updateBuilding(this.building).pipe(
-//         switchMap(() => this.addBuildingToUserAndData())
-//       ),
-//       // If structure not changed: directly add building to user and data
-//       this.addBuildingToUserAndData()
-//     ).pipe(
-//       catchError(error => {
-//         console.error('Fehler im Prozess:', error);
-//         this.errorMessage = 'Fehler beim Hinzufügen des Gebäudes oder beim Aktualisieren der Struktur.';
-//         return of(null); // trigger finalize
-//       }),
-//       finalize(() => {
-//         this.isLoading = false;
-//       })
-//     ).subscribe({
-//       next: () => {
-//         console.log('Gebäude erfolgreich hinzugefügt.');
-//         this.isAdded = true;
-//       }
-//     });
-//   });
-// }
-
-
-// private addBuildingToUserAndData() {
-//   const name = this.building.name ?? null;
-//   const address = this.building.address ?? null;
-
-//   return this.userService.addBuildingToUser(this.userId, this.building.bw_geb_id).pipe(
-//     switchMap(() => this.userService.addUserBuildingData(this.userId, this.building.bw_geb_id, name, address))
-//   );
-// }
 
   addBuilding(): void {
     if (!this.building || this.isAdded || this.isLoading) return;
@@ -180,7 +117,7 @@ export class AddBuildingButtonComponent implements OnInit {
         catchError(error => {
           this.errorMessage = 'Fehler beim Hinzufügen des Gebäudes:';
           console.error(this.errorMessage, error);
-          return of(null); // Prevent crash
+          return of(null);
         })
       )
       .subscribe(result => {

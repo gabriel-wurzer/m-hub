@@ -8,7 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { FormControl } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import {MatCardModule} from '@angular/material/card';
+import { MatCardModule } from '@angular/material/card';
 
 class FloorSelectMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
