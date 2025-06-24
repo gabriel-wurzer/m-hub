@@ -26,9 +26,8 @@
     {
         "id": "407023a188d5f43b",
         "type": "tab",
-        "label": "Update Building Structure",
+        "label": "Update Building",
         "disabled": false,
-        "locked": true,
         "info": "",
         "env": []
     },
@@ -487,12 +486,12 @@
         "id": "a2e77efc11f9785e",
         "type": "http in",
         "z": "407023a188d5f43b",
-        "name": "PUT building structure",
+        "name": "PUT building",
         "url": "/api/building/:ID",
         "method": "put",
         "upload": false,
         "swaggerDoc": "",
-        "x": 260,
+        "x": 230,
         "y": 120,
         "wires": [
             [
@@ -504,7 +503,7 @@
         "id": "51338e97cc131e66",
         "type": "function",
         "z": "407023a188d5f43b",
-        "name": "update building structure",
+        "name": "update building",
         "func": "const buildingId = parseInt(msg.req.params.ID); // Extract building ID from URL\nconst updatedBuilding = msg.payload;\nlet buildings = msg.buildings;\n\n// Validate required building properties\nif (!updatedBuilding || typeof updatedBuilding !== 'object') {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Missing building payload.' };\n    return [null, msg];\n}\n\nconst index = buildings.findIndex(b => b.bw_geb_id === buildingId);\n\nif (index === -1) {\n    msg.statusCode = 404;\n    msg.payload = { error: `Building with ID '${buildingId}' not found.` };\n    return [null, msg];\n}\n\n// Replace entire building object\nupdatedBuilding.bw_geb_id = buildingId; // Ensure ID remains consistent\nbuildings[index] = updatedBuilding;\n\n// Output 1: write full array\nconst writeMsg = { payload: JSON.stringify(buildings, null, 2) };\n\n// Output 2: response with updated building\nmsg.statusCode = 200;\nmsg.payload = updatedBuilding;\n\nreturn [writeMsg, msg];\n",
         "outputs": 2,
         "timeout": 0,
@@ -512,7 +511,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 430,
+        "x": 400,
         "y": 440,
         "wires": [
             [
@@ -584,9 +583,9 @@
         "id": "0fee26345dbd2d83",
         "type": "comment",
         "z": "407023a188d5f43b",
-        "name": "mock: patch update building structure",
+        "name": "mock: patch update building",
         "info": "",
-        "x": 790,
+        "x": 760,
         "y": 260,
         "wires": []
     },
@@ -2674,15 +2673,15 @@
         "id": "2a4e92211ea6c8a6",
         "type": "function",
         "z": "cd2a82c3ad69ca34",
-        "name": "create list entry and append to user buildings data",
-        "func": "var buildingId = parseInt(msg.req.params.BID);  // Extract building ID from URL\nvar userId = msg.req.params.UID;  // Extract user ID from URL\nvar userBuildings = msg.userBuildings;  // Loaded JSON file\n\n// Extract name and address from request body\nvar name = msg.payload.name ?? null;\nvar address = msg.payload.address ?? null;\n\n// Build new entry\nvar newEntry = {\n    userId: userId,\n    buildingId: buildingId,\n    name: name,\n    address: address\n};\n\n// Append new entry\nuserBuildings.push(newEntry);\n\n// Prepare messages for outputs\nvar msgFile = { ...msg }; // Copy message for file writing\nmsgFile.payload = JSON.stringify(userBuildings, null, 2); // Save as nicely formatted JSON\n\n//var msgResponse = { payload: newEntry }; // Return only the new entry\n//return [msgFile, msgResponse];\n\nmsg.statusCode = 200;\nmsg.payload = newEntry;\n\nreturn [msgFile, msg];\n\n\n\n",
+        "name": "update list entry for given IDs",
+        "func": "var buildingId = parseInt(msg.req.params.BID);  // Extract building ID from URL\nvar userId = msg.req.params.UID;  // Extract user ID from URL\nvar userBuildings = msg.userBuildings;  // Loaded JSON file\n\n// Extract name and address from request body\nvar name = msg.payload.name ?? null;\nvar address = msg.payload.address ?? null;\n\n// Find the existing entry\nvar existingEntry = userBuildings.find(entry => entry.userId === userId && entry.buildingId === buildingId);\n\nif (existingEntry) {\n    // Update the existing entry\n    existingEntry.name = name;\n    existingEntry.address = address;\n\n    // Prepare messages for outputs\n    var msgFile = { ...msg }; // Copy message for file writing\n    msgFile.payload = JSON.stringify(userBuildings, null, 2); // Save as nicely formatted JSON\n\n    msg.statusCode = 200;\n    msg.payload = existingEntry;\n\n    return [msgFile, msg];\n} else {\n    // Entry not found\n    msg.statusCode = 404;\n    msg.payload = { error: \"User-specific data for given IDs not found\" };\n    return [null, msg];\n}",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 490,
+        "x": 420,
         "y": 480,
         "wires": [
             [
@@ -2755,9 +2754,9 @@
         "id": "db287f4f6647a377",
         "type": "comment",
         "z": "cd2a82c3ad69ca34",
-        "name": "mock: create user-specific building data",
+        "name": "mock: update user-specific building data for given IDs",
         "info": "",
-        "x": 810,
+        "x": 860,
         "y": 320,
         "wires": []
     },

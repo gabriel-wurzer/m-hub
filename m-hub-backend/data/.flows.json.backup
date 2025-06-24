@@ -28,7 +28,6 @@
         "type": "tab",
         "label": "Update Building Structure",
         "disabled": false,
-        "locked": true,
         "info": "",
         "env": []
     },
@@ -147,6 +146,14 @@
         "id": "f85e317b58138888",
         "type": "tab",
         "label": "Add User-specific Building Data",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "cd2a82c3ad69ca34",
+        "type": "tab",
+        "label": "Update User-specific Building Data",
         "disabled": false,
         "info": "",
         "env": []
@@ -2642,6 +2649,192 @@
         "wires": [
             [
                 "f5c6922760c1d470"
+            ]
+        ]
+    },
+    {
+        "id": "ce080e9bb9edb12d",
+        "type": "http in",
+        "z": "cd2a82c3ad69ca34",
+        "name": "PUT user-specific building data",
+        "url": "/api/user/:UID/buildings/:BID/data",
+        "method": "put",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 310,
+        "y": 160,
+        "wires": [
+            [
+                "efd4aba11d1fbc58"
+            ]
+        ]
+    },
+    {
+        "id": "2a4e92211ea6c8a6",
+        "type": "function",
+        "z": "cd2a82c3ad69ca34",
+        "name": "update list entry for given IDs",
+        "func": "var buildingId = parseInt(msg.req.params.BID);  // Extract building ID from URL\nvar userId = msg.req.params.UID;  // Extract user ID from URL\nvar userBuildings = msg.userBuildings;  // Loaded JSON file\n\n// Extract name and address from request body\nvar name = msg.payload.name ?? null;\nvar address = msg.payload.address ?? null;\n\n// Find the existing entry\nvar existingEntry = userBuildings.find(entry => entry.userId === userId && entry.buildingId === buildingId);\n\nif (existingEntry) {\n    // Update the existing entry\n    existingEntry.name = name;\n    existingEntry.address = address;\n\n    // Prepare messages for outputs\n    var msgFile = { ...msg }; // Copy message for file writing\n    msgFile.payload = JSON.stringify(userBuildings, null, 2); // Save as nicely formatted JSON\n\n    msg.statusCode = 200;\n    msg.payload = existingEntry;\n\n    return [msgFile, msg];\n} else {\n    // Entry not found\n    msg.statusCode = 404;\n    msg.payload = { error: \"User-specific data for given IDs not found\" };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 480,
+        "wires": [
+            [
+                "0f642e31bd912756"
+            ],
+            [
+                "047c8ee516c3fedf",
+                "35eea487f0922139"
+            ]
+        ]
+    },
+    {
+        "id": "2ad3445420e18398",
+        "type": "http response",
+        "z": "cd2a82c3ad69ca34",
+        "name": "building in user response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1070,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "efd4aba11d1fbc58",
+        "type": "file in",
+        "z": "cd2a82c3ad69ca34",
+        "name": "user_buildings.json",
+        "filename": "/data/user_buildings.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 310,
+        "y": 260,
+        "wires": [
+            [
+                "1ba883759f43ecb2"
+            ]
+        ]
+    },
+    {
+        "id": "1ba883759f43ecb2",
+        "type": "json",
+        "z": "cd2a82c3ad69ca34",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 470,
+        "y": 260,
+        "wires": [
+            [
+                "187f56ed08f35985"
+            ]
+        ]
+    },
+    {
+        "id": "698d9a66113794d2",
+        "type": "comment",
+        "z": "cd2a82c3ad69ca34",
+        "name": "http://localhost:1880/api/user/UID/buildings/BID/data",
+        "info": "",
+        "x": 350,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "db287f4f6647a377",
+        "type": "comment",
+        "z": "cd2a82c3ad69ca34",
+        "name": "mock: update user-specific building data for given IDs",
+        "info": "",
+        "x": 860,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "047c8ee516c3fedf",
+        "type": "delay",
+        "z": "cd2a82c3ad69ca34",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "0.5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 850,
+        "y": 540,
+        "wires": [
+            [
+                "2ad3445420e18398"
+            ]
+        ]
+    },
+    {
+        "id": "0f642e31bd912756",
+        "type": "file",
+        "z": "cd2a82c3ad69ca34",
+        "name": "updated user_buildings.json",
+        "filename": "/data/user_buildings.json",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 880,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "35eea487f0922139",
+        "type": "debug",
+        "z": "cd2a82c3ad69ca34",
+        "name": "debug 2",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 760,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "187f56ed08f35985",
+        "type": "function",
+        "z": "cd2a82c3ad69ca34",
+        "name": "pre-function",
+        "func": "msg.userBuildings = msg.payload;\nmsg.payload = msg.req.body;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 360,
+        "wires": [
+            [
+                "2a4e92211ea6c8a6"
             ]
         ]
     }
