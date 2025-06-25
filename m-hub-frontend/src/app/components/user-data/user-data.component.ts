@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { forkJoin } from 'rxjs';
+import { catchError, finalize, forkJoin, of } from 'rxjs';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
@@ -149,31 +149,77 @@ export class UserDataComponent implements OnInit {
     });
   }
 
-  editBuilding(building: Building): void {
-    if (!building) return;
+  updateBuilding(building: Building): void {
+    if (!building || !this.selectedBuilding) return;
+
+    this.isLoading = true;
 
     const dialogRef = this.dialog.open(EditBuildingDialogComponent, {
       panelClass: 'custom-dialog',
       data: { name:building.name, address: building.address, buildingComponents: building.buildingComponents, documents: building.documents }
     });
 
-
-    // TODO: handle dialog result
     dialogRef.afterClosed().subscribe(result => {
-      if (!result) {
+      if (!result || !this.selectedBuilding) {
         console.log('Bearbeiten des Gebäudes von Benutzer abgebrochen.');
         this.isLoading = false;
         return;
       }
 
-      const updatedBuilding: Building = {
-        ...building,
-        name: result.name,
-        address: result.address,
-        buildingComponents: result.buildingComponents,
-        documents: result.documents,
-      };
+      const updateUserBuildingData$ = this.userService.updateUserBuildingData(
+        this.userId,
+        this.selectedBuilding.bw_geb_id,
+        result.name ?? this.selectedBuilding.name,
+        result.address ?? this.selectedBuilding.address
+      );
 
+      let requestBuilding = this.selectedBuilding;
+      requestBuilding.buildingComponents = result.buildingComponents;
+      requestBuilding.documents = result.documents;
+
+
+      const updateBuilding$ = this.buildingService.updateBuilding(requestBuilding);
+
+      forkJoin({
+        userDataUpdate: updateUserBuildingData$,
+        buildingUpdate: updateBuilding$,
+      })
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        }),
+        catchError(error => {
+          this.errorMessage = 'Fehler beim Aktualisieren des Gebäudes:';
+          console.error(this.errorMessage, error);
+          return of(null);
+        })
+      )
+      .subscribe(response => {
+        if (response) {
+          console.log('Gebäude erfolgreich aktualisiert.');
+
+          // Optionally update local building data
+          if (this.selectedBuilding) {
+            this.selectedBuilding.name = result.name;
+            this.selectedBuilding.address = result.address;
+            this.selectedBuilding.buildingComponents = result.buildingComponents;
+            this.selectedBuilding.documents = result.documents;
+          }
+        }
+      });
+    });
+  }
+
+      // const updatedBuilding: Building = {
+      //   ...building,
+      //   name: result.name,
+      //   address: result.address,
+      //   buildingComponents: result.buildingComponents,
+      //   documents: result.documents,
+      // };
+
+
+      // console.log('Bearbeitetes Gebäude:', updatedBuilding);
 
       //TODO: Update local building data and user-specific data
 
@@ -183,8 +229,8 @@ export class UserDataComponent implements OnInit {
       // if (result.name) this.building.name = result.name;
       // if (result.address) this.building.address = result.address;
 
-    });
-  }
+  //   });
+  // }
 
   showStructureView(): void {
     this.isStructureViewVisible = true;
