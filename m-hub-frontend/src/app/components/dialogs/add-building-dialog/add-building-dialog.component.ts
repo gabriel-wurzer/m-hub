@@ -83,11 +83,19 @@ export class AddBuildingDialogComponent implements OnInit {
     this.confirmStructureChange = false;
   }
 
+  getNameError(): string | null {
+    if (this.name.trim().length === 0) {
+      return 'Bitte Namen für das Gebäude angeben';
+    }
+    return null;
+  }
+
   isFormValid(): boolean {
-    // return this.floorValues.every(val => Number.isInteger(val));
     const allSelected = this.floorValues.every(val => Number.isInteger(val));
     const atLeastOneFloor = this.floorValues.some(val => val && val > 0);
-    return allSelected && atLeastOneFloor;
+    const isNameValid = this.name.trim().length > 0;
+
+    return allSelected && atLeastOneFloor && isNameValid;
   }
 
 
@@ -108,10 +116,13 @@ export class AddBuildingDialogComponent implements OnInit {
 
     if (this.hasStructureChanged() && !this.confirmStructureChange) return;
 
+    const trimmedAddress = this.address.trim();
+    const finalAddress = trimmedAddress.length === 0 ? null : trimmedAddress;
+
     this.dialogRef.close({
       structure: this.floorValues,
-      name: this.name,
-      address: this.address,
+      name: this.name.trim(),
+      address: finalAddress,
       structureChanged: this.hasStructureChanged()
     });
   }
