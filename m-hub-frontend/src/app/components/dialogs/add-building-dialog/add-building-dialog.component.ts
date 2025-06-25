@@ -90,10 +90,15 @@ export class AddBuildingDialogComponent implements OnInit {
     return null;
   }
 
+  private normalizeOptionalInput(input: string): string | null {
+    const trimmed = input.trim();
+    return trimmed.length === 0 ? null : trimmed;
+  }
+
   isFormValid(): boolean {
     const allSelected = this.floorValues.every(val => Number.isInteger(val));
     const atLeastOneFloor = this.floorValues.some(val => val && val > 0);
-    const isNameValid = this.name.trim().length > 0;
+    const isNameValid = !!this.name && this.name.trim().length > 0;
 
     return allSelected && atLeastOneFloor && isNameValid;
   }
@@ -116,13 +121,12 @@ export class AddBuildingDialogComponent implements OnInit {
 
     if (this.hasStructureChanged() && !this.confirmStructureChange) return;
 
-    const trimmedAddress = this.address.trim();
-    const finalAddress = trimmedAddress.length === 0 ? null : trimmedAddress;
+    const trimmedAddress = this.normalizeOptionalInput(this.address);
 
     this.dialogRef.close({
       structure: this.floorValues,
       name: this.name.trim(),
-      address: finalAddress,
+      address: trimmedAddress,
       structureChanged: this.hasStructureChanged()
     });
   }
