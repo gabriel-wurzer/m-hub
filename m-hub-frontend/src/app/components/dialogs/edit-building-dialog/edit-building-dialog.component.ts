@@ -67,7 +67,7 @@ export class EditBuildingDialogComponent {
     this.dialogRef.close({
       name: this.name.trim(),
       address: trimmedAddress, 
-      components: this.components,
+      buildingComponents: this.components,
       documents: this.documents
     });
   }
