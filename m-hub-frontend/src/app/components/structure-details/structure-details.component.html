@@ -15,6 +15,8 @@
 
             
             <div class="information-container">
+                <p *ngIf="building?.name">Name: {{ building?.name }}</p>
+                <p *ngIf="building?.address">Adresse:  {{ building?.address }}</p>
                 <p>Nutzung: {{ usageLabel }}</p>
                 <p>Bauperiode: {{ periodLabel }}</p>
                 <p>Maximale Höhe: {{ building?.maxhoehe}} m</p>
