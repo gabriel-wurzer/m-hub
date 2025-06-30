@@ -48,7 +48,7 @@ export class AddBuildingDialogComponent implements OnInit {
   
   floorValues: (number | null)[];
   highlightedFloor: string = '';
-  svgContent: string = '';
+  svgUrl = 'assets/images/house_interactive.svg';
 
   structureIsAvailable: boolean = false;
   confirmStructureChange: boolean = false;
@@ -103,9 +103,8 @@ export class AddBuildingDialogComponent implements OnInit {
     return allSelected && atLeastOneFloor && isNameValid;
   }
 
-
   highlightFloor(floor: string): void {
-    this.highlightedFloor = `highlight-${floor}`;
+    this.highlightedFloor = floor;
   }
 
   clearHighlight(): void {

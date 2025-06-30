@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Outline" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 800 800">
+  <!-- Generator: Adobe Illustrator 29.4.0, SVG Export Plug-In . SVG Version: 2.1.0 Build 152)  -->
+  <g id="Dach">
+    <line x1="400" y1="59.36" x2="21.68" y2="363.12" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 42px;"/>
+    <line x1="400" y1="59.36" x2="778.32" y2="363.12" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 42px;"/>
+  </g>
+  <g id="Schornstein">
+    <line x1="201.35" y1="160.65" x2="200.55" y2="45.9" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 32px;"/>
+    <line x1="260.02" y1="113.47" x2="259.22" y2="45.9" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 32px;"/>
+    <line x1="259.22" y1="45.01" x2="201.35" y2="45.9" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 32px;"/>
+  </g>
+  <g id="Fassade">
+    <g>
+      <path d="M686,771c0-26.14,0-52.28,0-78.42,0-107.58,0-214.58.02-322.9" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 40px;"/>
+      <path d="M486.41,770.86c66.44.14,133.52.14,199.59.14,0-1.98-14.61,0,0,0" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 40px;"/>
+    </g>
+    <path d="M114.84,369.68c1.21,134.32-2.91,267.32,2.24,401.32,65.8,0,130.57,0,196.52-.18" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 40px;"/>
+    <path d="M316.68,771c.78-72.07-1.15-145.08.78-217.22,55.2,0,111.36,0,166.22.43-.06.3.02.58-.09.86-.04-.38.02-.53.09-.86.33,71.7.33,143.83-.14,215.63" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 36px;"/>
+  </g>
+</svg>

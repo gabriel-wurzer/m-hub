@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="house" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 786.63 828.81">
+  <!-- Generator: Adobe Illustrator 29.4.0, SVG Export Plug-In . SVG Version: 2.1.0 Build 152)  -->
+  <g id="Dach">
+    <line x1="393.32" y1="34.03" x2="15" y2="307.64" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 30px;"/>
+    <line x1="393.32" y1="34.03" x2="771.63" y2="307.64" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 30px;"/>
+  </g>
+  <g id="Schornstein">
+    <line x1="215.94" y1="114.95" x2="215.14" y2="10.81" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 20px;"/>
+    <line x1="274.56" y1="68.61" x2="273.81" y2="10.81" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 20px;"/>
+    <line x1="273.81" y1="10" x2="215.94" y2="10.81" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 20px;"/>
+  </g>
+  <g id="Stockwerke">
+    <g id="KG">
+      <rect id="pane-KG" x="103.23" y="671.06" width="577.7" height="143.75" style="fill: none;"/>
+    </g>
+    <g id="EG">
+      <rect id="pane-EG" x="104.46" y="512.99" width="577.7" height="157.75" style="fill: none;"/>
+      <path id="tuer" d="M355.33,664.78c.36-33.52-.52-67.47.36-101.02,25.09,0,50.62,0,75.56.2-.03.14.01.27-.04.4-.02-.18,0-.24.04-.4.15,33.34.15,66.89-.07,100.28" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 15px;"/>
+    </g>
+    <g id="OG">
+      <rect id="pane-OG" x="104.77" y="355.24" width="577.7" height="157.75" style="fill: none;"/>
+      <g>
+        <path id="fenster" d="M266.82,460.76c.13-17.8.13-35.69.04-53.47-.02.08-.04.12-.03.21.03-.07,0-.14.03-.21-15.28-.11-30.92-.11-46.29-.11-.54,17.88,0,35.99-.22,53.86l46.47-.29Z" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 10px;"/>
+        <path id="fenster1" data-name="fenster" d="M566.2,460.76c.13-17.8.13-35.69.04-53.47-.02.08-.04.12-.03.21.03-.07,0-.14.03-.21-15.28-.11-30.92-.11-46.29-.11-.54,17.88,0,35.99-.22,53.86l46.47-.29Z" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 10px;"/>
+      </g>
+    </g>
+    <g id="DG">
+      <polygon id="pane-DG" points="682.47 299.31 682.47 355.24 104.79 355.24 104.79 299.31 392.3 89.95 682.47 299.31" style="fill: none; stroke: #fff; stroke-linecap: round; stroke-miterlimit: 10;"/>
+      <g>
+        <path id="dachfenster" d="M349.56,290.33c.1-26.26.1-52.65.03-78.87-.02.12-.03.18-.02.32.03-.1,0-.21.02-.32-12-.16-24.29-.16-36.36-.16-.42,26.38,0,53.09-.17,79.45l36.5-.42Z" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 10px;"/>
+        <path id="dachfenster1" data-name="dachfenster" d="M473.51,290.33c.1-26.26.1-52.65.03-78.87-.02.12-.03.18-.02.32.03-.1,0-.21.02-.32-12-.16-24.29-.16-36.36-.16-.42,26.38,0,53.09-.17,79.45l36.5-.42Z" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 10px;"/>
+      </g>
+    </g>
+    <line id="floor3" x1="112.71" y1="355.06" x2="679.1" y2="355.06" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 22px;"/>
+    <line id="floor2" x1="110.55" y1="512.99" x2="676.94" y2="512.99" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 22px;"/>
+    <line id="floor1" x1="112.71" y1="670.91" x2="679.1" y2="670.91" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 22px;"/>
+  </g>
+  <path id="Fassade" d="M104.79,299.31L392.3,89.95l290.17,209.36v55.75s0,157.92,0,157.92v157.92s0,143.9,0,143.9H104.16l.18-143.9.19-157.92.19-157.92.07-55.75" style="fill: none; stroke: #455a64; stroke-linecap: round; stroke-linejoin: round; stroke-width: 28px;"/>
+</svg>
