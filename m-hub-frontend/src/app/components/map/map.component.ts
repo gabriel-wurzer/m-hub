@@ -41,7 +41,8 @@ export class MapComponent implements OnInit {
 
   #buildingClicked = false;
 
-  #tableName = 'buildings_details_dev';
+  // #tableName = 'buildings_details_dev';
+  #tableName = 'buildings_details';
   #defaultColumns = ['bw_geb_id', 'ST_AsGeoJSON(geom) as geometry'];
   #additionalColumns = ['dom_nutzung', 'bp', 'm3vol', 'm2bgf', 'm2bgf_use1', 'm2bgf_use2', 'm2bgf_use3', 'm2bgf_use4', 'm2flaeche', 'maxhoehe', 'bmg1', 'bmg2', 'bmg3', 'bmg4', 'bmg5', 'bmg6', 'bmg7', 'bmg8', 'bmg9'];    
 
@@ -303,12 +304,13 @@ export class MapComponent implements OnInit {
     const properties = event.layer.properties;
   
     if (properties) {
-      const buildingId = parseInt(properties['bw_geb_id']);
+      const buildingId = properties['bw_geb_id'];
       console.log('Clicked Building ID:', buildingId);
       
       const queryColumns = [...this.#defaultColumns, ...this.#additionalColumns];
 
-      const url = `http://128.131.21.198:3002/v1/query/${this.#tableName}?columns=${encodeURIComponent(queryColumns.join(','))}&filter=${encodeURIComponent(`bw_geb_id = ${buildingId}`)}`;
+      const url = `http://128.131.21.198:3002/v1/query/${this.#tableName}?columns=${encodeURIComponent(queryColumns.join(','))}&filter=${encodeURIComponent(`bw_geb_id = '${buildingId}'`)}`;
+
 
       fetch(url)
         .then(response => response.text())
