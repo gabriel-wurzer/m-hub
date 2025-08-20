@@ -28,6 +28,7 @@
         "type": "tab",
         "label": "Update Building",
         "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
@@ -90,6 +91,7 @@
         "type": "tab",
         "label": "Add Building to User",
         "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
@@ -97,6 +99,33 @@
         "id": "ca28e1e423cf6c08",
         "type": "tab",
         "label": "Remove Building from User",
+        "disabled": false,
+        "locked": true,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "494a592c87260810",
+        "type": "tab",
+        "label": "User-specific Building Data by IDs",
+        "disabled": false,
+        "locked": true,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "f85e317b58138888",
+        "type": "tab",
+        "label": "Add User-specific Building Data",
+        "disabled": false,
+        "locked": true,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "cd2a82c3ad69ca34",
+        "type": "tab",
+        "label": "Update User-specific Building Data",
         "disabled": false,
         "locked": true,
         "info": "",
@@ -131,30 +160,6 @@
         "type": "tab",
         "label": "Parts by Part",
         "disabled": true,
-        "info": "",
-        "env": []
-    },
-    {
-        "id": "494a592c87260810",
-        "type": "tab",
-        "label": "User-specific Building Data by IDs",
-        "disabled": false,
-        "info": "",
-        "env": []
-    },
-    {
-        "id": "f85e317b58138888",
-        "type": "tab",
-        "label": "Add User-specific Building Data",
-        "disabled": false,
-        "info": "",
-        "env": []
-    },
-    {
-        "id": "cd2a82c3ad69ca34",
-        "type": "tab",
-        "label": "Update User-specific Building Data",
-        "disabled": false,
         "info": "",
         "env": []
     },
@@ -361,6 +366,7 @@
         "url": "/api/building/:ID",
         "method": "get",
         "upload": false,
+        "skipBodyParsing": false,
         "swaggerDoc": "",
         "x": 190,
         "y": 160,
@@ -375,7 +381,7 @@
         "type": "function",
         "z": "27011c5e3f9c0442",
         "name": "find building by id",
-        "func": "var buildingId = parseInt(msg.req.params.ID);  // Extract building ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Find the building with the correct \"bw_geb_id\"\nvar building = buildings.find(b => b.bw_geb_id === buildingId);\n\nif (!building) {\n    msg.payload = { error: `Building with ID '${buildingId}' not found` };\n    msg.statusCode = 404;\n    return [msg];\n}\n\n// Apply filtering\nmsg.payload = building;\n\nreturn [msg];\n",
+        "func": "var buildingId = msg.req.params.ID; // Extract building ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Find the building with the correct \"bw_geb_id\"\nvar building = buildings.find(b => b.bw_geb_id === buildingId);\n\nif (!building) {\n    msg.payload = { error: `Building with ID '${buildingId}' not found` };\n    msg.statusCode = 404;\n    return [msg];\n}\n\n// Apply filtering\nmsg.payload = building;\n\nreturn [msg];\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -490,6 +496,7 @@
         "url": "/api/building/:ID",
         "method": "put",
         "upload": false,
+        "skipBodyParsing": false,
         "swaggerDoc": "",
         "x": 230,
         "y": 120,
@@ -504,7 +511,7 @@
         "type": "function",
         "z": "407023a188d5f43b",
         "name": "update building",
-        "func": "const buildingId = parseInt(msg.req.params.ID); // Extract building ID from URL\nconst updatedBuilding = msg.payload;\nlet buildings = msg.buildings;\n\n// Validate required building properties\nif (!updatedBuilding || typeof updatedBuilding !== 'object') {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Missing building payload.' };\n    return [null, msg];\n}\n\nconst index = buildings.findIndex(b => b.bw_geb_id === buildingId);\n\nif (index === -1) {\n    msg.statusCode = 404;\n    msg.payload = { error: `Building with ID '${buildingId}' not found.` };\n    return [null, msg];\n}\n\n// Replace entire building object\nupdatedBuilding.bw_geb_id = buildingId; // Ensure ID remains consistent\nbuildings[index] = updatedBuilding;\n\n// Output 1: write full array\nconst writeMsg = { payload: JSON.stringify(buildings, null, 2) };\n\n// Output 2: response with updated building\nmsg.statusCode = 200;\nmsg.payload = updatedBuilding;\n\nreturn [writeMsg, msg];\n",
+        "func": "const buildingId = msg.req.params.ID; // Extract building ID from URL\nconst updatedBuilding = msg.payload;\nlet buildings = msg.buildings;\n\n// Validate required building properties\nif (!updatedBuilding || typeof updatedBuilding !== 'object') {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Missing building payload.' };\n    return [null, msg];\n}\n\nconst index = buildings.findIndex(b => b.bw_geb_id === buildingId);\n\nif (index === -1) {\n    msg.statusCode = 404;\n    msg.payload = { error: `Building with ID '${buildingId}' not found.` };\n    return [null, msg];\n}\n\n// Replace entire building object\nupdatedBuilding.bw_geb_id = buildingId; // Ensure ID remains consistent\nbuildings[index] = updatedBuilding;\n\n// Output 1: write full array\nconst writeMsg = { payload: JSON.stringify(buildings, null, 2) };\n\n// Output 2: response with updated building\nmsg.statusCode = 200;\nmsg.payload = updatedBuilding;\n\nreturn [writeMsg, msg];\n",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -659,6 +666,7 @@
         "url": "/api/building/:ID/documents",
         "method": "get",
         "upload": false,
+        "skipBodyParsing": false,
         "swaggerDoc": "",
         "x": 170,
         "y": 200,
@@ -673,7 +681,7 @@
         "type": "function",
         "z": "bc8f71868ee8d8a0",
         "name": "extract documents",
-        "func": "var buildingId = parseInt(msg.req.params.ID);  // Extract building ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Find the building with the correct \"bw_geb_id\"\nvar building = buildings.find(b => b.bw_geb_id === buildingId);\n\nif (!building) {\n    msg.payload = { error: `Building with ID '${buildingId}' not found` };\n    msg.statusCode = 404;\n    return [msg];\n}\n\n// Start collecting documents\nlet documents = [];\n\n// Add top-level building documents\nif (Array.isArray(building.documents)) {\n    documents = documents.concat(building.documents);\n}\n\n// Add documents from each buildingComponent\nif (Array.isArray(building.buildingComponents)) {\n    for (let component of building.buildingComponents) {\n        if (Array.isArray(component.documents)) {\n            documents = documents.concat(component.documents);\n        }\n    }\n}\n\nmsg.payload = documents;\nreturn [msg];\n",
+        "func": "var buildingId = msg.req.params.ID;  // Extract building ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Find the building with the correct \"bw_geb_id\"\nvar building = buildings.find(b => b.bw_geb_id === buildingId);\n\nif (!building) {\n    msg.payload = { error: `Building with ID '${buildingId}' not found` };\n    msg.statusCode = 404;\n    return [msg];\n}\n\n// Start collecting documents\nlet documents = [];\n\n// Add top-level building documents\nif (Array.isArray(building.documents)) {\n    documents = documents.concat(building.documents);\n}\n\n// Add documents from each buildingComponent\nif (Array.isArray(building.buildingComponents)) {\n    for (let component of building.buildingComponents) {\n        if (Array.isArray(component.documents)) {\n            documents = documents.concat(component.documents);\n        }\n    }\n}\n\nmsg.payload = documents;\nreturn [msg];\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -906,7 +914,7 @@
         "type": "function",
         "z": "ac18e646bf8d0c36",
         "name": "extract building components",
-        "func": "var buildingId = parseInt(msg.req.params.ID);  // Extract building ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Find the building with the correct \"bw_geb_id\"\nvar building = buildings.find(b => b.bw_geb_id === buildingId);\n\nif (!building) {\n    msg.payload = { error: `Building with ID '${buildingId}' not found` };\n    msg.statusCode = 404;\n    return [msg];\n}\n\n// Just return the components directly\nmsg.payload = building.buildingComponents || [];\n\nreturn [msg];\n",
+        "func": "var buildingId = msg.req.params.ID;  // Extract building ID from URL\nvar buildings = msg.payload;  // Loaded JSON file\n\n// Find the building with the correct \"bw_geb_id\"\nvar building = buildings.find(b => b.bw_geb_id === buildingId);\n\nif (!building) {\n    msg.payload = { error: `Building with ID '${buildingId}' not found` };\n    msg.statusCode = 404;\n    return [msg];\n}\n\n// Just return the components directly\nmsg.payload = building.buildingComponents || [];\n\nreturn [msg];\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -1471,7 +1479,7 @@
         "type": "function",
         "z": "16119a8b0b0654ef",
         "name": "check if building exists in user buildings",
-        "func": "// Extract path parameters from msg.req.params\nconst userId = msg.req.params.userId;\nconst buildingId = parseInt(msg.req.params.buildingId);\n\n// Check if the payload (users array) is valid\nif (!Array.isArray(msg.payload)) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Invalid users data\" };\n    return msg;\n}\n\n// Find the user by ID\nconst user = msg.payload.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { exists: false, error: `User with ID '${userId}' not found` };\n    return msg;\n}\n\n// Check if building ID is in user's buildings array\nconst exists = Array.isArray(user.buildings) && user.buildings.includes(buildingId);\n\n// Return boolean as JSON\nmsg.payload = exists.toString();\nmsg.statusCode = 200;\nreturn msg;",
+        "func": "// Extract path parameters from msg.req.params\nconst userId = msg.req.params.userId;\nconst buildingId = msg.req.params.buildingId;\n\n// Check if the payload (users array) is valid\nif (!Array.isArray(msg.payload)) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Invalid users data\" };\n    return msg;\n}\n\n// Find the user by ID\nconst user = msg.payload.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { exists: false, error: `User with ID '${userId}' not found` };\n    return msg;\n}\n\n// Check if building ID is in user's buildings array\nconst exists = Array.isArray(user.buildings) && user.buildings.includes(buildingId);\n\n// Return boolean as JSON\nmsg.payload = exists.toString();\nmsg.statusCode = 200;\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -1600,7 +1608,7 @@
         "type": "function",
         "z": "0cd2d786f9f2ee5b",
         "name": "append building to user",
-        "func": "// Extract user ID parameter from msg.req.params\nconst userId = msg.req.params.UID;\n\n// Extract building ID payload from msg.payload\nconst buildingId =  parseInt(msg.payload.buildingId);\n\nconst users = msg.users;\n\n// Find user by ID\nconst user = users.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { error: `User with ID '${userId}' not found` };\n    return [null, msg];\n}\n\n// Ensure buildings is an array\nif (!Array.isArray(user.buildings)) {\n    user.buildings = [];\n}\n\n// Append only if not already present to avoid duplicates\nif (!user.buildings.includes(buildingId)) {\n    user.buildings.push(buildingId);\n}\n\n// Output 1: write entire updated users array to file\nconst writeMsg = { payload: JSON.stringify(users, null, 2) };\n\n// Output 2: respond to client — reuse original msg to preserve req/res context\nmsg.statusCode = 200;\nmsg.payload = user;\n\nreturn [writeMsg, msg];\n",
+        "func": "// Extract user ID parameter from msg.req.params\nconst userId = msg.req.params.UID;\n\n// Extract building ID payload from msg.payload\nconst buildingId =  msg.payload.buildingId;\n\nconst users = msg.users;\n\n// Find user by ID\nconst user = users.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { error: `User with ID '${userId}' not found` };\n    return [null, msg];\n}\n\n// Ensure buildings is an array\nif (!Array.isArray(user.buildings)) {\n    user.buildings = [];\n}\n\n// Append only if not already present to avoid duplicates\nif (!user.buildings.includes(buildingId)) {\n    user.buildings.push(buildingId);\n}\n\n// Output 1: write entire updated users array to file\nconst writeMsg = { payload: JSON.stringify(users, null, 2) };\n\n// Output 2: respond to client — reuse original msg to preserve req/res context\nmsg.statusCode = 200;\nmsg.payload = user;\n\nreturn [writeMsg, msg];\n",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -1769,7 +1777,7 @@
         "type": "function",
         "z": "ca28e1e423cf6c08",
         "name": "append building to user",
-        "func": "// Extract user and building ID parameters from msg.req.params\nconst userId = msg.req.params.UID;\nconst buildingId = parseInt(msg.req.params.BID);\n\nconst users = msg.payload;\n\n// Find user by ID\nconst user = users.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { error: `User with ID '${userId}' not found` };\n    return [null, msg];\n}\n\n// Ensure buildings is an array\nif (!Array.isArray(user.buildings)) {\n    user.buildings = [];\n}\n\n// Remove the building ID if it exists\nconst index = user.buildings.indexOf(buildingId);\nif (index !== -1) {\n    user.buildings.splice(index, 1); // Remove one item at that index\n}\n\n// Prepare output 1: Updated full users array (write to file)\nconst writeMsg = {\n    payload: JSON.stringify(users, null, 2)\n};\n\n// Prepare output 2: Success response with updated user\nmsg.statusCode = 200;\nmsg.payload = user;\n\nreturn [writeMsg, msg];\n",
+        "func": "// Extract user and building ID parameters from msg.req.params\nconst userId = msg.req.params.UID;\nconst buildingId = msg.req.params.BID;\n\nconst users = msg.payload;\n\n// Find user by ID\nconst user = users.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { error: `User with ID '${userId}' not found` };\n    return [null, msg];\n}\n\n// Ensure buildings is an array\nif (!Array.isArray(user.buildings)) {\n    user.buildings = [];\n}\n\n// Remove the building ID if it exists\nconst index = user.buildings.indexOf(buildingId);\nif (index !== -1) {\n    user.buildings.splice(index, 1); // Remove one item at that index\n}\n\n// Prepare output 1: Updated full users array (write to file)\nconst writeMsg = {\n    payload: JSON.stringify(users, null, 2)\n};\n\n// Prepare output 2: Success response with updated user\nmsg.statusCode = 200;\nmsg.payload = user;\n\nreturn [writeMsg, msg];\n",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -1894,6 +1902,507 @@
         "y": 320,
         "wires": [
             []
+        ]
+    },
+    {
+        "id": "202af4e4ff054da0",
+        "type": "http in",
+        "z": "494a592c87260810",
+        "name": "GET user-specific building data",
+        "url": "/api/user/:UID/buildings/:BID/data",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 160,
+        "wires": [
+            [
+                "790662da6c3641fa"
+            ]
+        ]
+    },
+    {
+        "id": "7be045fcc2485d0b",
+        "type": "function",
+        "z": "494a592c87260810",
+        "name": "check if building exists in user buildings",
+        "func": "var buildingId = msg.req.params.BID;  // Extract building ID from URL\nvar userId = msg.req.params.UID;  // Extract user ID from URL\nvar userBuildings = msg.payload;  // Loaded JSON file\n\n// Find the matching entry\nvar userBuilding = userBuildings.find(ub => ub.userId === userId && ub.buildingId === buildingId);\n\nif (!userBuilding) {\n    // No match found -> return name and address as null\n    msg.payload = {\n        name: null,\n        address: null\n    };\n    msg.statusCode = 200;  // It's a valid request, just no user-specific data\n    return msg;\n}\n\n// Match found -> return name and address (if they exist) or null if missing\nmsg.payload = {\n    name: userBuilding.name || null,\n    address: userBuilding.address || null\n};\n\nmsg.statusCode = 200;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 360,
+        "wires": [
+            [
+                "28d390d5ba3f6246"
+            ]
+        ]
+    },
+    {
+        "id": "1eede441926c0df5",
+        "type": "http response",
+        "z": "494a592c87260810",
+        "name": "building in user response",
+        "statusCode": "",
+        "headers": {},
+        "x": 750,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "790662da6c3641fa",
+        "type": "file in",
+        "z": "494a592c87260810",
+        "name": "user_buildings.json",
+        "filename": "/data/user_buildings.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 230,
+        "y": 260,
+        "wires": [
+            [
+                "47aa9aa1d6055373"
+            ]
+        ]
+    },
+    {
+        "id": "47aa9aa1d6055373",
+        "type": "json",
+        "z": "494a592c87260810",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 390,
+        "y": 260,
+        "wires": [
+            [
+                "7be045fcc2485d0b"
+            ]
+        ]
+    },
+    {
+        "id": "7a308b09bfae9098",
+        "type": "comment",
+        "z": "494a592c87260810",
+        "name": "http://localhost:1880/api/user/UID/buildings/BID/details",
+        "info": "",
+        "x": 280,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "d164877e5828f8ab",
+        "type": "comment",
+        "z": "494a592c87260810",
+        "name": "mock: fetch user-specific building data",
+        "info": "",
+        "x": 710,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "28d390d5ba3f6246",
+        "type": "delay",
+        "z": "494a592c87260810",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 440,
+        "y": 460,
+        "wires": [
+            [
+                "1eede441926c0df5"
+            ]
+        ]
+    },
+    {
+        "id": "faa427dade4613c2",
+        "type": "http in",
+        "z": "f85e317b58138888",
+        "name": "POST user-specific building data",
+        "url": "/api/user/:UID/buildings/:BID/data",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 330,
+        "y": 200,
+        "wires": [
+            [
+                "75273458573b2e65"
+            ]
+        ]
+    },
+    {
+        "id": "f5c6922760c1d470",
+        "type": "function",
+        "z": "f85e317b58138888",
+        "name": "create list entry and append to user buildings data",
+        "func": "var buildingId = msg.req.params.BID;  // Extract building ID from URL\nvar userId = msg.req.params.UID;  // Extract user ID from URL\nvar userBuildings = msg.userBuildings;  // Loaded JSON file\n\n// Extract name and address from request body\nvar name = msg.payload.name ?? null;\nvar address = msg.payload.address ?? null;\n\n// Build new entry\nvar newEntry = {\n    userId: userId,\n    buildingId: buildingId,\n    name: name,\n    address: address\n};\n\n// Append new entry\nuserBuildings.push(newEntry);\n\n// Prepare messages for outputs\nvar msgFile = { ...msg }; // Copy message for file writing\nmsgFile.payload = JSON.stringify(userBuildings, null, 2); // Save as nicely formatted JSON\n\n//var msgResponse = { payload: newEntry }; // Return only the new entry\n//return [msgFile, msgResponse];\n\nmsg.statusCode = 200;\nmsg.payload = newEntry;\n\nreturn [msgFile, msg];\n\n\n\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 520,
+        "wires": [
+            [
+                "466d38a4ec1a0352"
+            ],
+            [
+                "78ff2d6ec1e00377",
+                "abfbd1601294ddee"
+            ]
+        ]
+    },
+    {
+        "id": "d75c46e8ee472ada",
+        "type": "http response",
+        "z": "f85e317b58138888",
+        "name": "building in user response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1090,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "75273458573b2e65",
+        "type": "file in",
+        "z": "f85e317b58138888",
+        "name": "user_buildings.json",
+        "filename": "/data/user_buildings.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 330,
+        "y": 300,
+        "wires": [
+            [
+                "d334ae99795eeaf4"
+            ]
+        ]
+    },
+    {
+        "id": "d334ae99795eeaf4",
+        "type": "json",
+        "z": "f85e317b58138888",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 490,
+        "y": 300,
+        "wires": [
+            [
+                "8c1f7abe123f44ff"
+            ]
+        ]
+    },
+    {
+        "id": "30cb62a495ba5a64",
+        "type": "comment",
+        "z": "f85e317b58138888",
+        "name": "http://localhost:1880/api/user/UID/buildings/BID/data",
+        "info": "",
+        "x": 370,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "49f75b90573c3dff",
+        "type": "comment",
+        "z": "f85e317b58138888",
+        "name": "mock: create user-specific building data",
+        "info": "",
+        "x": 830,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "78ff2d6ec1e00377",
+        "type": "delay",
+        "z": "f85e317b58138888",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "0.5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 870,
+        "y": 580,
+        "wires": [
+            [
+                "d75c46e8ee472ada"
+            ]
+        ]
+    },
+    {
+        "id": "466d38a4ec1a0352",
+        "type": "file",
+        "z": "f85e317b58138888",
+        "name": "updated user_buildings.json",
+        "filename": "/data/user_buildings.json",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 900,
+        "y": 460,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "abfbd1601294ddee",
+        "type": "debug",
+        "z": "f85e317b58138888",
+        "name": "debug 4",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 780,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "8c1f7abe123f44ff",
+        "type": "function",
+        "z": "f85e317b58138888",
+        "name": "pre-function",
+        "func": "msg.userBuildings = msg.payload;\nmsg.payload = msg.req.body;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 400,
+        "wires": [
+            [
+                "f5c6922760c1d470"
+            ]
+        ]
+    },
+    {
+        "id": "ce080e9bb9edb12d",
+        "type": "http in",
+        "z": "cd2a82c3ad69ca34",
+        "name": "PUT user-specific building data",
+        "url": "/api/user/:UID/buildings/:BID/data",
+        "method": "put",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 310,
+        "y": 160,
+        "wires": [
+            [
+                "efd4aba11d1fbc58"
+            ]
+        ]
+    },
+    {
+        "id": "2a4e92211ea6c8a6",
+        "type": "function",
+        "z": "cd2a82c3ad69ca34",
+        "name": "update list entry for given IDs",
+        "func": "var buildingId = msg.req.params.BID;  // Extract building ID from URL\nvar userId = msg.req.params.UID;  // Extract user ID from URL\nvar userBuildings = msg.userBuildings;  // Loaded JSON file\n\n// Extract name and address from request body\nvar name = msg.payload.name ?? null;\nvar address = msg.payload.address ?? null;\n\n// Find the existing entry\nvar existingEntry = userBuildings.find(entry => entry.userId === userId && entry.buildingId === buildingId);\n\nif (existingEntry) {\n    // Update the existing entry\n    existingEntry.name = name;\n    existingEntry.address = address;\n\n    // Prepare messages for outputs\n    var msgFile = { ...msg }; // Copy message for file writing\n    msgFile.payload = JSON.stringify(userBuildings, null, 2); // Save as nicely formatted JSON\n\n    msg.statusCode = 200;\n    msg.payload = existingEntry;\n\n    return [msgFile, msg];\n} else {\n    // Entry not found\n    msg.statusCode = 404;\n    msg.payload = { error: \"User-specific data for given IDs not found\" };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 480,
+        "wires": [
+            [
+                "0f642e31bd912756"
+            ],
+            [
+                "047c8ee516c3fedf",
+                "35eea487f0922139"
+            ]
+        ]
+    },
+    {
+        "id": "2ad3445420e18398",
+        "type": "http response",
+        "z": "cd2a82c3ad69ca34",
+        "name": "building in user response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1070,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "efd4aba11d1fbc58",
+        "type": "file in",
+        "z": "cd2a82c3ad69ca34",
+        "name": "user_buildings.json",
+        "filename": "/data/user_buildings.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 310,
+        "y": 260,
+        "wires": [
+            [
+                "1ba883759f43ecb2"
+            ]
+        ]
+    },
+    {
+        "id": "1ba883759f43ecb2",
+        "type": "json",
+        "z": "cd2a82c3ad69ca34",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 470,
+        "y": 260,
+        "wires": [
+            [
+                "187f56ed08f35985"
+            ]
+        ]
+    },
+    {
+        "id": "698d9a66113794d2",
+        "type": "comment",
+        "z": "cd2a82c3ad69ca34",
+        "name": "http://localhost:1880/api/user/UID/buildings/BID/data",
+        "info": "",
+        "x": 350,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "db287f4f6647a377",
+        "type": "comment",
+        "z": "cd2a82c3ad69ca34",
+        "name": "mock: update user-specific building data for given IDs",
+        "info": "",
+        "x": 860,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "047c8ee516c3fedf",
+        "type": "delay",
+        "z": "cd2a82c3ad69ca34",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "0.5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 850,
+        "y": 540,
+        "wires": [
+            [
+                "2ad3445420e18398"
+            ]
+        ]
+    },
+    {
+        "id": "0f642e31bd912756",
+        "type": "file",
+        "z": "cd2a82c3ad69ca34",
+        "name": "updated user_buildings.json",
+        "filename": "/data/user_buildings.json",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 880,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "35eea487f0922139",
+        "type": "debug",
+        "z": "cd2a82c3ad69ca34",
+        "name": "debug 2",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 760,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "187f56ed08f35985",
+        "type": "function",
+        "z": "cd2a82c3ad69ca34",
+        "name": "pre-function",
+        "func": "msg.userBuildings = msg.payload;\nmsg.payload = msg.req.body;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 360,
+        "wires": [
+            [
+                "2a4e92211ea6c8a6"
+            ]
         ]
     },
     {
@@ -2336,506 +2845,5 @@
         "x": 760,
         "y": 280,
         "wires": []
-    },
-    {
-        "id": "202af4e4ff054da0",
-        "type": "http in",
-        "z": "494a592c87260810",
-        "name": "GET user-specific building data",
-        "url": "/api/user/:UID/buildings/:BID/data",
-        "method": "get",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 230,
-        "y": 160,
-        "wires": [
-            [
-                "790662da6c3641fa"
-            ]
-        ]
-    },
-    {
-        "id": "7be045fcc2485d0b",
-        "type": "function",
-        "z": "494a592c87260810",
-        "name": "check if building exists in user buildings",
-        "func": "var buildingId = parseInt(msg.req.params.BID);  // Extract building ID from URL\nvar userId = msg.req.params.UID;  // Extract user ID from URL\nvar userBuildings = msg.payload;  // Loaded JSON file\n\n// Find the matching entry\nvar userBuilding = userBuildings.find(ub => ub.userId === userId && ub.buildingId === buildingId);\n\nif (!userBuilding) {\n    // No match found -> return name and address as null\n    msg.payload = {\n        name: null,\n        address: null\n    };\n    msg.statusCode = 200;  // It's a valid request, just no user-specific data\n    return msg;\n}\n\n// Match found -> return name and address (if they exist) or null if missing\nmsg.payload = {\n    name: userBuilding.name || null,\n    address: userBuilding.address || null\n};\n\nmsg.statusCode = 200;\nreturn msg;\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 360,
-        "y": 360,
-        "wires": [
-            [
-                "28d390d5ba3f6246"
-            ]
-        ]
-    },
-    {
-        "id": "1eede441926c0df5",
-        "type": "http response",
-        "z": "494a592c87260810",
-        "name": "building in user response",
-        "statusCode": "",
-        "headers": {},
-        "x": 750,
-        "y": 460,
-        "wires": []
-    },
-    {
-        "id": "790662da6c3641fa",
-        "type": "file in",
-        "z": "494a592c87260810",
-        "name": "user_buildings.json",
-        "filename": "/data/user_buildings.json",
-        "filenameType": "str",
-        "format": "utf8",
-        "chunk": false,
-        "sendError": false,
-        "encoding": "none",
-        "allProps": false,
-        "x": 230,
-        "y": 260,
-        "wires": [
-            [
-                "47aa9aa1d6055373"
-            ]
-        ]
-    },
-    {
-        "id": "47aa9aa1d6055373",
-        "type": "json",
-        "z": "494a592c87260810",
-        "name": "",
-        "property": "payload",
-        "action": "",
-        "pretty": false,
-        "x": 390,
-        "y": 260,
-        "wires": [
-            [
-                "7be045fcc2485d0b"
-            ]
-        ]
-    },
-    {
-        "id": "7a308b09bfae9098",
-        "type": "comment",
-        "z": "494a592c87260810",
-        "name": "http://localhost:1880/api/user/UID/buildings/BID/details",
-        "info": "",
-        "x": 280,
-        "y": 100,
-        "wires": []
-    },
-    {
-        "id": "d164877e5828f8ab",
-        "type": "comment",
-        "z": "494a592c87260810",
-        "name": "mock: fetch user-specific building data",
-        "info": "",
-        "x": 710,
-        "y": 300,
-        "wires": []
-    },
-    {
-        "id": "28d390d5ba3f6246",
-        "type": "delay",
-        "z": "494a592c87260810",
-        "name": "",
-        "pauseType": "delay",
-        "timeout": "1",
-        "timeoutUnits": "seconds",
-        "rate": "1",
-        "nbRateUnits": "1",
-        "rateUnits": "second",
-        "randomFirst": "1",
-        "randomLast": "5",
-        "randomUnits": "seconds",
-        "drop": false,
-        "allowrate": false,
-        "outputs": 1,
-        "x": 440,
-        "y": 460,
-        "wires": [
-            [
-                "1eede441926c0df5"
-            ]
-        ]
-    },
-    {
-        "id": "faa427dade4613c2",
-        "type": "http in",
-        "z": "f85e317b58138888",
-        "name": "POST user-specific building data",
-        "url": "/api/user/:UID/buildings/:BID/data",
-        "method": "post",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 330,
-        "y": 200,
-        "wires": [
-            [
-                "75273458573b2e65"
-            ]
-        ]
-    },
-    {
-        "id": "f5c6922760c1d470",
-        "type": "function",
-        "z": "f85e317b58138888",
-        "name": "create list entry and append to user buildings data",
-        "func": "var buildingId = parseInt(msg.req.params.BID);  // Extract building ID from URL\nvar userId = msg.req.params.UID;  // Extract user ID from URL\nvar userBuildings = msg.userBuildings;  // Loaded JSON file\n\n// Extract name and address from request body\nvar name = msg.payload.name ?? null;\nvar address = msg.payload.address ?? null;\n\n// Build new entry\nvar newEntry = {\n    userId: userId,\n    buildingId: buildingId,\n    name: name,\n    address: address\n};\n\n// Append new entry\nuserBuildings.push(newEntry);\n\n// Prepare messages for outputs\nvar msgFile = { ...msg }; // Copy message for file writing\nmsgFile.payload = JSON.stringify(userBuildings, null, 2); // Save as nicely formatted JSON\n\n//var msgResponse = { payload: newEntry }; // Return only the new entry\n//return [msgFile, msgResponse];\n\nmsg.statusCode = 200;\nmsg.payload = newEntry;\n\nreturn [msgFile, msg];\n\n\n\n",
-        "outputs": 2,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 510,
-        "y": 520,
-        "wires": [
-            [
-                "466d38a4ec1a0352"
-            ],
-            [
-                "78ff2d6ec1e00377",
-                "abfbd1601294ddee"
-            ]
-        ]
-    },
-    {
-        "id": "d75c46e8ee472ada",
-        "type": "http response",
-        "z": "f85e317b58138888",
-        "name": "building in user response",
-        "statusCode": "",
-        "headers": {},
-        "x": 1090,
-        "y": 580,
-        "wires": []
-    },
-    {
-        "id": "75273458573b2e65",
-        "type": "file in",
-        "z": "f85e317b58138888",
-        "name": "user_buildings.json",
-        "filename": "/data/user_buildings.json",
-        "filenameType": "str",
-        "format": "utf8",
-        "chunk": false,
-        "sendError": false,
-        "encoding": "none",
-        "allProps": false,
-        "x": 330,
-        "y": 300,
-        "wires": [
-            [
-                "d334ae99795eeaf4"
-            ]
-        ]
-    },
-    {
-        "id": "d334ae99795eeaf4",
-        "type": "json",
-        "z": "f85e317b58138888",
-        "name": "",
-        "property": "payload",
-        "action": "",
-        "pretty": false,
-        "x": 490,
-        "y": 300,
-        "wires": [
-            [
-                "8c1f7abe123f44ff"
-            ]
-        ]
-    },
-    {
-        "id": "30cb62a495ba5a64",
-        "type": "comment",
-        "z": "f85e317b58138888",
-        "name": "http://localhost:1880/api/user/UID/buildings/BID/data",
-        "info": "",
-        "x": 370,
-        "y": 140,
-        "wires": []
-    },
-    {
-        "id": "49f75b90573c3dff",
-        "type": "comment",
-        "z": "f85e317b58138888",
-        "name": "mock: create user-specific building data",
-        "info": "",
-        "x": 830,
-        "y": 360,
-        "wires": []
-    },
-    {
-        "id": "78ff2d6ec1e00377",
-        "type": "delay",
-        "z": "f85e317b58138888",
-        "name": "",
-        "pauseType": "delay",
-        "timeout": "0.5",
-        "timeoutUnits": "seconds",
-        "rate": "1",
-        "nbRateUnits": "1",
-        "rateUnits": "second",
-        "randomFirst": "1",
-        "randomLast": "5",
-        "randomUnits": "seconds",
-        "drop": false,
-        "allowrate": false,
-        "outputs": 1,
-        "x": 870,
-        "y": 580,
-        "wires": [
-            [
-                "d75c46e8ee472ada"
-            ]
-        ]
-    },
-    {
-        "id": "466d38a4ec1a0352",
-        "type": "file",
-        "z": "f85e317b58138888",
-        "name": "updated user_buildings.json",
-        "filename": "/data/user_buildings.json",
-        "filenameType": "str",
-        "appendNewline": true,
-        "createDir": false,
-        "overwriteFile": "true",
-        "encoding": "none",
-        "x": 900,
-        "y": 460,
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "abfbd1601294ddee",
-        "type": "debug",
-        "z": "f85e317b58138888",
-        "name": "debug 4",
-        "active": false,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 780,
-        "y": 660,
-        "wires": []
-    },
-    {
-        "id": "8c1f7abe123f44ff",
-        "type": "function",
-        "z": "f85e317b58138888",
-        "name": "pre-function",
-        "func": "msg.userBuildings = msg.payload;\nmsg.payload = msg.req.body;\nreturn msg;\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 410,
-        "y": 400,
-        "wires": [
-            [
-                "f5c6922760c1d470"
-            ]
-        ]
-    },
-    {
-        "id": "ce080e9bb9edb12d",
-        "type": "http in",
-        "z": "cd2a82c3ad69ca34",
-        "name": "PUT user-specific building data",
-        "url": "/api/user/:UID/buildings/:BID/data",
-        "method": "put",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 310,
-        "y": 160,
-        "wires": [
-            [
-                "efd4aba11d1fbc58"
-            ]
-        ]
-    },
-    {
-        "id": "2a4e92211ea6c8a6",
-        "type": "function",
-        "z": "cd2a82c3ad69ca34",
-        "name": "update list entry for given IDs",
-        "func": "var buildingId = parseInt(msg.req.params.BID);  // Extract building ID from URL\nvar userId = msg.req.params.UID;  // Extract user ID from URL\nvar userBuildings = msg.userBuildings;  // Loaded JSON file\n\n// Extract name and address from request body\nvar name = msg.payload.name ?? null;\nvar address = msg.payload.address ?? null;\n\n// Find the existing entry\nvar existingEntry = userBuildings.find(entry => entry.userId === userId && entry.buildingId === buildingId);\n\nif (existingEntry) {\n    // Update the existing entry\n    existingEntry.name = name;\n    existingEntry.address = address;\n\n    // Prepare messages for outputs\n    var msgFile = { ...msg }; // Copy message for file writing\n    msgFile.payload = JSON.stringify(userBuildings, null, 2); // Save as nicely formatted JSON\n\n    msg.statusCode = 200;\n    msg.payload = existingEntry;\n\n    return [msgFile, msg];\n} else {\n    // Entry not found\n    msg.statusCode = 404;\n    msg.payload = { error: \"User-specific data for given IDs not found\" };\n    return [null, msg];\n}",
-        "outputs": 2,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 420,
-        "y": 480,
-        "wires": [
-            [
-                "0f642e31bd912756"
-            ],
-            [
-                "047c8ee516c3fedf",
-                "35eea487f0922139"
-            ]
-        ]
-    },
-    {
-        "id": "2ad3445420e18398",
-        "type": "http response",
-        "z": "cd2a82c3ad69ca34",
-        "name": "building in user response",
-        "statusCode": "",
-        "headers": {},
-        "x": 1070,
-        "y": 540,
-        "wires": []
-    },
-    {
-        "id": "efd4aba11d1fbc58",
-        "type": "file in",
-        "z": "cd2a82c3ad69ca34",
-        "name": "user_buildings.json",
-        "filename": "/data/user_buildings.json",
-        "filenameType": "str",
-        "format": "utf8",
-        "chunk": false,
-        "sendError": false,
-        "encoding": "none",
-        "allProps": false,
-        "x": 310,
-        "y": 260,
-        "wires": [
-            [
-                "1ba883759f43ecb2"
-            ]
-        ]
-    },
-    {
-        "id": "1ba883759f43ecb2",
-        "type": "json",
-        "z": "cd2a82c3ad69ca34",
-        "name": "",
-        "property": "payload",
-        "action": "",
-        "pretty": false,
-        "x": 470,
-        "y": 260,
-        "wires": [
-            [
-                "187f56ed08f35985"
-            ]
-        ]
-    },
-    {
-        "id": "698d9a66113794d2",
-        "type": "comment",
-        "z": "cd2a82c3ad69ca34",
-        "name": "http://localhost:1880/api/user/UID/buildings/BID/data",
-        "info": "",
-        "x": 350,
-        "y": 100,
-        "wires": []
-    },
-    {
-        "id": "db287f4f6647a377",
-        "type": "comment",
-        "z": "cd2a82c3ad69ca34",
-        "name": "mock: update user-specific building data for given IDs",
-        "info": "",
-        "x": 860,
-        "y": 320,
-        "wires": []
-    },
-    {
-        "id": "047c8ee516c3fedf",
-        "type": "delay",
-        "z": "cd2a82c3ad69ca34",
-        "name": "",
-        "pauseType": "delay",
-        "timeout": "0.5",
-        "timeoutUnits": "seconds",
-        "rate": "1",
-        "nbRateUnits": "1",
-        "rateUnits": "second",
-        "randomFirst": "1",
-        "randomLast": "5",
-        "randomUnits": "seconds",
-        "drop": false,
-        "allowrate": false,
-        "outputs": 1,
-        "x": 850,
-        "y": 540,
-        "wires": [
-            [
-                "2ad3445420e18398"
-            ]
-        ]
-    },
-    {
-        "id": "0f642e31bd912756",
-        "type": "file",
-        "z": "cd2a82c3ad69ca34",
-        "name": "updated user_buildings.json",
-        "filename": "/data/user_buildings.json",
-        "filenameType": "str",
-        "appendNewline": true,
-        "createDir": false,
-        "overwriteFile": "true",
-        "encoding": "none",
-        "x": 880,
-        "y": 420,
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "35eea487f0922139",
-        "type": "debug",
-        "z": "cd2a82c3ad69ca34",
-        "name": "debug 2",
-        "active": false,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 760,
-        "y": 620,
-        "wires": []
-    },
-    {
-        "id": "187f56ed08f35985",
-        "type": "function",
-        "z": "cd2a82c3ad69ca34",
-        "name": "pre-function",
-        "func": "msg.userBuildings = msg.payload;\nmsg.payload = msg.req.body;\nreturn msg;\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 390,
-        "y": 360,
-        "wires": [
-            [
-                "2a4e92211ea6c8a6"
-            ]
-        ]
     }
 ]

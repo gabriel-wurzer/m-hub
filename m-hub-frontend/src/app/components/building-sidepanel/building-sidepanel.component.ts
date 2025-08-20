@@ -224,7 +224,7 @@ export class BuildingSidepanelComponent implements OnInit {
     };
   }
 
-  fetchBuildingData(buildingId: number): void {
+  fetchBuildingData(buildingId: string): void {
     this.isLoading = true;
     this.errorMessage = '';
     this.skipFetchDocuments = false;
@@ -316,7 +316,7 @@ export class BuildingSidepanelComponent implements OnInit {
   //   });
   // }
 
-  fetchUserSpecificBuildingData(buildingId: number): void {
+  fetchUserSpecificBuildingData(buildingId: string): void {
     this.userService.getUserBuildingData(this.userId, buildingId).subscribe({
       next: (userBuildingData) => {
         console.log('Benutzerspezifische Gebäudedaten: ', userBuildingData);

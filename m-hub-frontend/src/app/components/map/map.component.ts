@@ -35,12 +35,13 @@ export class MapComponent implements OnInit {
   #highlightedFeatureLayer: L.GeoJSON | null = null;
   #markerLayer: L.Marker | null = null;
 
-  #selectedBuildingID: number | null = null;
+  // #selectedBuildingID: number | null = null;
+  #selectedBuildingID: string | null = null;
   selectedBuilding!: Building | null;
 
   #buildingClicked = false;
 
-  #tableName = 'buildings_details';
+  #tableName = 'buildings_details_dev';
   #defaultColumns = ['bw_geb_id', 'ST_AsGeoJSON(geom) as geometry'];
   #additionalColumns = ['dom_nutzung', 'bp', 'm3vol', 'm2bgf', 'm2bgf_use1', 'm2bgf_use2', 'm2bgf_use3', 'm2bgf_use4', 'm2flaeche', 'maxhoehe', 'bmg1', 'bmg2', 'bmg3', 'bmg4', 'bmg5', 'bmg6', 'bmg7', 'bmg8', 'bmg9'];    
 

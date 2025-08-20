@@ -15,15 +15,15 @@ export class BuildingService {
 
   constructor(private http: HttpClient) { }
 
-  getBuildingById(buildingId: number): Observable<Building> {
+  getBuildingById(buildingId: string): Observable<Building> {
     return this.http.get<Building>(`${this.apiUrl}/${buildingId}`);
   } 
 
-  getDocumentsByBuilding(buildingId: number): Observable<Document[]> {
+  getDocumentsByBuilding(buildingId: string): Observable<Document[]> {
     return this.http.get<Document[]>(`${this.apiUrl}/${buildingId}/documents`);
   }
 
-  getBuildingComponentsByBuilding(buildingId: number): Observable<BuildingComponent[]> {
+  getBuildingComponentsByBuilding(buildingId: string): Observable<BuildingComponent[]> {
     return this.http.get<BuildingComponent[]>(`${this.apiUrl}/${buildingId}/components`);
   }
 

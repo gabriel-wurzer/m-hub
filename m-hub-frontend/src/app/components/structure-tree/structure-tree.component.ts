@@ -38,7 +38,7 @@ export class StructureTreeComponent implements OnInit {
 
     const buildingId = this.isBuilding(this.entity)
       ? this.entity.bw_geb_id
-      : parseInt(this.entity.buildingId);
+      : this.entity.buildingId;
   
     this.buildingService.getBuildingComponentsByBuilding(buildingId).subscribe({
       next: (components) => {

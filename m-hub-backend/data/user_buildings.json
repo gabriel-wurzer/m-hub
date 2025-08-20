@@ -1,14 +1,20 @@
 [
   {
     "userId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
-    "buildingId": 5363852,
+    "buildingId": "5363852",
     "name": "Bahnhof Praterstern",
     "address": "Praterstern 6"
   },
   {
     "userId": "79e7432d-f1a0-4f31-9469-1e27b8d8c6cd",
-    "buildingId": 100,
+    "buildingId": "100",
     "name": "Lagerhalle A",
     "address": "Industriestraße 8"
+  },
+  {
+    "userId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
+    "buildingId": "5397325",
+    "name": "Test13",
+    "address": null
   }
 ]

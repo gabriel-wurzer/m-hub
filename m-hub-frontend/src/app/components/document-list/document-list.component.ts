@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Document } from '../../models/document';
 import { Building } from '../../models/building';
 import { BuildingService } from '../../services/building/building.service';
 import { isBuilding } from '../../utils/model-guard';
@@ -19,6 +20,7 @@ import { BuildingComponentService } from '../../services/component/component.ser
 })
 export class DocumentListComponent implements OnInit {
   @Input() entity!: Building | BuildingComponent | null;
+  @Input() documentsArray!: Document[] | null;
   @Input() skipFetch = false;
 
   documents: any[] = [];
@@ -28,6 +30,14 @@ export class DocumentListComponent implements OnInit {
   constructor(private buildingService: BuildingService, private buildingComponentService: BuildingComponentService) {}
 
   ngOnInit() {
+
+    if (this.documentsArray) {
+      this.documents = this.documentsArray.map(doc => ({
+        ...doc,
+        fileType: doc.fileType?.toLowerCase()
+      }));
+    }
+
     if (!this.entity || this.skipFetch) return;
     this.loadDocumentsForEntity(this.entity);
   }
@@ -52,7 +62,7 @@ export class DocumentListComponent implements OnInit {
     }
   }
 
-  private loadDocumentsByBuilding(buildingId: number): void {
+  private loadDocumentsByBuilding(buildingId: string): void {
     this.buildingService.getDocumentsByBuilding(buildingId).subscribe({
       next: (docs) => {
         this.documents = docs.map(doc => ({

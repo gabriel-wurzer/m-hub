@@ -45,7 +45,7 @@ export class StructureViewComponent implements OnInit{
     if (!node) return;
 
     const isSameEntity =
-    (node.type === 'building' && this.selectedEntity && 'bw_geb_id' in this.selectedEntity && parseInt(node.id) == this.selectedEntity.bw_geb_id) ||
+    (node.type === 'building' && this.selectedEntity && 'bw_geb_id' in this.selectedEntity && node.id == this.selectedEntity.bw_geb_id) ||
     (node.type === 'component' && this.selectedEntity && 'id' in this.selectedEntity && node.id === this.selectedEntity.id);
 
   if (isSameEntity) return;
@@ -59,7 +59,7 @@ export class StructureViewComponent implements OnInit{
     if (this.isLoading) return;
     this.isLoading = true;
 
-    const id = parseInt(buildingId);
+    const id = buildingId;
 
     console.log('Requesting building by id:', id);
 

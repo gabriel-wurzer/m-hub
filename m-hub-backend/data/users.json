@@ -4,7 +4,7 @@
     "username": "Alice",
     "email": "alice@example.com",
     "buildings": [
-      5363852
+      "5363852"
     ]
   },
   {
@@ -12,7 +12,7 @@
     "username": "Bob",
     "email": "bob@example.com",
     "buildings": [
-      100
+      "100"
     ]
   },
   {
@@ -20,7 +20,7 @@
     "username": "Dave",
     "email": "dave@example.com",
     "buildings": [
-      5363852
+      "5363852"
     ]
   }
 ]

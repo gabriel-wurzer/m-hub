@@ -132,7 +132,7 @@ export class UserDataComponent implements OnInit {
     this.selectedBuilding = building;
   }
 
-  deleteBuilding(buildingId: number): void {
+  deleteBuilding(buildingId: string): void {
     if (!confirm(`Gebäude mit ID ${buildingId} wirklich entfernen?`)) return;
 
     this.userService.removeBuildingFromUser(this.userId, buildingId).subscribe({

@@ -1,6 +1,6 @@
 [
   {
-    "bw_geb_id": 100,
+    "bw_geb_id": "100",
     "buildingComponents": [
       {
         "id": "1",
@@ -32,7 +32,7 @@
     ]
   },
   {
-    "bw_geb_id": 5397325,
+    "bw_geb_id": "5397325",
     "dom_nutzung": 2,
     "bp": "0",
     "m3vol": 116414.03,
@@ -109,7 +109,7 @@
     "address": null
   },
   {
-    "bw_geb_id": 5363852,
+    "bw_geb_id": "5363852",
     "dom_nutzung": 4,
     "bp": "0",
     "m3vol": 180230.85,
