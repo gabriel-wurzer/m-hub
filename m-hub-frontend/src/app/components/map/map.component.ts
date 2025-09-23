@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { distinctUntilChanged } from 'rxjs/operators';
+import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import * as L from 'leaflet';
 import vectorTileLayer from 'leaflet-vector-tile-layer';
 import 'leaflet-control-geocoder';
@@ -12,6 +12,8 @@ import { FilterButtonComponent } from "../buttons/filter-button/filter-button.co
 import { FilterService } from '../../services/filter/filter.service';
 import { BuildingSidepanelComponent } from '../building-sidepanel/building-sidepanel.component';
 import { StructureViewComponent } from "../structure-view/structure-view.component";
+import { MapService } from '../../services/map/map.service';
+import { Subject } from 'rxjs';
 
 
 L.Icon.Default.mergeOptions({
@@ -27,45 +29,86 @@ L.Icon.Default.mergeOptions({
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })
-export class MapComponent implements OnInit {
+export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
+
+  private readonly destroy$ = new Subject<void>();
+
+  #zoomHandler?: () => void;
+  #mapClickHandler?: () => void;
 
   #map!: L.Map;
-  // #vectorGridLayer: L.VectorGrid.Protobuf | null = null;
-  #vectorTileLayer: L.Layer | null = null;
+
   #highlightedFeatureLayer: L.GeoJSON | null = null;
   #markerLayer: L.Marker | null = null;
 
-  // #selectedBuildingID: number | null = null;
+  #buildingsLayer: L.Layer | null = null;
+  #buildingBlocksLayer: L.Layer | null = null;
+
   #selectedBuildingID: string | null = null;
   selectedBuilding!: Building | null;
 
-  #buildingClicked = false;
-
-  // #tableName = 'buildings_details_dev';
-  #tableName = 'buildings_details';
+  #buildingsTable = 'buildings_details'; // #buildingsTable = 'buildings_details_dev';
   #defaultColumns = ['bw_geb_id', 'ST_AsGeoJSON(geom) as geometry'];
   #additionalColumns = ['dom_nutzung', 'bp', 'm3vol', 'm2bgf', 'm2bgf_use1', 'm2bgf_use2', 'm2bgf_use3', 'm2bgf_use4', 'm2flaeche', 'maxhoehe', 'bmg1', 'bmg2', 'bmg3', 'bmg4', 'bmg5', 'bmg6', 'bmg7', 'bmg8', 'bmg9'];    
+
+  #buildingBlockTable = 'baubloecke_vienna';
+  #defaultColumnsBB = ['blk', 'ST_AsGeoJSON(geom) as geometry'];
 
   isFilterPanelVisible = false;
   isStructureViewVisible = false;
 
-  constructor(private filterService: FilterService) {
-    
-  }
+  constructor(
+    private filterService: FilterService,
+    private mapService: MapService
+  ) {}
 
   ngOnInit(): void {
+
     this.#initMap();
+    this.#initGeocoder();
 
     this.filterService.filters$
       .pipe(
         distinctUntilChanged((a, b) =>
           JSON.stringify(a.usages) === JSON.stringify(b.usages) &&
           JSON.stringify(a.periods) === JSON.stringify(b.periods)
-        )
+        ),
+        takeUntil(this.destroy$)
       )
       .subscribe(({ usages, periods }) => {
         this.applyFilter(usages, periods);
       });
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.#map.invalidateSize(), 50);
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+
+    if (this.#zoomHandler) this.#map.off('zoomend', this.#zoomHandler);
+    if (this.#mapClickHandler) this.#map.off('click', this.#mapClickHandler);
+
+    // remove leaflet controls, map layers and the map instance
+    try {
+      this.deselectBuilding();
+      if (this.#markerLayer) {
+        this.#map.removeLayer(this.#markerLayer);
+        this.#markerLayer = null;
+      }
+      if (this.#buildingsLayer && this.#map.hasLayer(this.#buildingsLayer)) {
+        this.#map.removeLayer(this.#buildingsLayer);
+      }
+      if (this.#buildingBlocksLayer && this.#map.hasLayer(this.#buildingBlocksLayer)) {
+        this.#map.removeLayer(this.#buildingBlocksLayer);
+      }
+      this.#map.off();
+      this.#map.remove();
+    } catch (err) {
+      console.warn('Error during map destroy:', err);
+    }
   }
 
   /**
@@ -74,13 +117,32 @@ export class MapComponent implements OnInit {
    * Use Mapbox baselayer
    */
   #initMap(): void {
+    
+    // tolerant patch for addInteractiveTarget (safety net)
+    (() => {
+      const mapProto: any = (L as any).Map.prototype;
+      if (!mapProto.__patchedAddInteractiveTarget) {
+        const orig = mapProto.addInteractiveTarget;
+        mapProto.addInteractiveTarget = function (obj: any) {
+          try {
+            if (!this || typeof this !== 'object') return this;
+            if (!this._targets) this._targets = {};
+            return orig.call(this, obj);
+          } catch (err) {
+            console.warn('Ignored addInteractiveTarget error (patched):', err);
+            return this;
+          }
+        };
+        mapProto.__patchedAddInteractiveTarget = true;
+      }
+    })();
 
     this.#map = L.map('map', {
       minZoom: 12,
       maxZoom: 22,
-      zoomControl: false
+      zoomControl: false,
     })
-    .setView([48.2082, 16.3738], 13); // Vienna coordinates
+    .setView([48.2082, 16.3738], 12); // Vienna coordinates
 
     L.control.zoom({
       position: 'topright',
@@ -96,26 +158,41 @@ export class MapComponent implements OnInit {
       id: "simlabtuwien/cm3r2nlew003y01s6g5gtfwtd"
     }).addTo(this.#map);
 
-    this.#initGeocoder();
+    // preload both layers but don’t add yet
+    this.#buildingsLayer = this.#createBuildingsLayer();
+    this.#buildingBlocksLayer = this.#createBuildingBlocksLayer();
 
-    this.#map.on('click', () => {
+    // run once at start
+    this.#updateVisibleLayer();
 
+    // handle zoom switching
+    this.#zoomHandler = L.Util.throttle(
+      () => this.#updateVisibleLayer(),
+      100,
+      this
+    );
+    this.#map.on("zoomend", this.#zoomHandler);
+
+    // handle map clicks
+    this.#mapClickHandler = () => {
       if (this.#markerLayer) {
         this.#map.removeLayer(this.#markerLayer);
         this.#markerLayer = null;
       }
-
-      if (!this.#buildingClicked) {
+      if (this.selectedBuilding !== null) {
         this.deselectBuilding();
       }
-      this.#buildingClicked = false;
-    });
+    };
+    this.#map.on("click", this.#mapClickHandler);
+  }
 
-}
-
+  /**
+   * Initialize and configure the Leaflet geocoder control on the map.
+   * - Customizes geocode method to use the mapService.searchAddress() for Nominatim queries.
+   * - Handles geocoding results, zooming, marker placement, and building lookup.
+   */
   #initGeocoder(): void {
-
-    L.Icon.Default.prototype.options.shadowUrl = "";
+    L.Icon.Default.prototype.options.shadowUrl = '';
     L.Icon.Default.prototype.options.shadowSize = [0, 0];
 
     const geocoderControl = L.Control.geocoder({
@@ -124,147 +201,129 @@ export class MapComponent implements OnInit {
       placeholder: 'Suchen..'
     });
 
-
-    // Customize geocode method to fetch suggestions dynamically and filter results
     geocoderControl.options.geocoder.geocode = (query: string, cb: any) => {
-
-      // Construct the API URL with query, limiting results to 5, and filtering to Vienna and Austria
-      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(query)}, Vienna&countrycodes=AT`;
-
-      console.log('Nominatim request URL:', url);
-
-      fetch(url)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+      this.mapService.searchAddress(query).subscribe({
+        next: (results) => cb(results),
+        error: (err) => {
+          console.error('searchAddress error', err);
+          cb([]);
         }
-        return response.json();
-      })
-      .then(data => {
-        // Map the response data to the format expected by the callback
-        const results = data.map((result: { display_name: string; lat: string; lon: string; boundingbox: string[]; }) => {
-        const parts = result.display_name.split(',').map(part => part.trim());
-        
-        // Extract fields based on your desired structure
-        const name = parts[0] || '';
-        const addressDetail = parts.slice(1, 4).join(', ') || ''; // Address details (fields 1-3)
-
-        // Handle different part lengths for city field
-        let city = '';
-        if (parts.length === 8) {
-          city = parts.slice(5, 7).join(', ') || ''; // Fields 5-6
-        } else if (parts.length === 7) {
-          city = parts.slice(4, 6).join(', ') || ''; // Fields 4-5
-        } else if (parts.length === 6) {
-          city = parts.slice(3, 5).join(', ') || ''; // Fields 3-4
-        } else {
-          city = parts.slice(parts.length-3, parts.length-1).join(', ') || '';
-        }
-
-        return {
-          name: name,
-          center: [parseFloat(result.lat), parseFloat(result.lon)],
-          bbox: [
-            [parseFloat(result.boundingbox[0]), parseFloat(result.boundingbox[2])],
-            [parseFloat(result.boundingbox[1]), parseFloat(result.boundingbox[3])]
-          ],
-          html: `
-            <li>
-              <a href="#" onclick="return false;">
-                ${name} <br>
-                <span class="leaflet-control-geocoder-address-detail">
-                  ${addressDetail}
-                </span><br>
-                <span class="leaflet-control-geocoder-address-context">
-                  ${city}
-                </span>
-              </a>
-            </li>
-          `
-          };
-        });
-
-      // Invoke the callback with the processed results
-      cb(results);
-      })
-      .catch(error => {
-        console.error('Geocoding request failed:', error);
-        cb([]); // Return an empty result array on failure
       });
     };
 
     geocoderControl.on('markgeocode', (e: any) => {
-      
       console.log('Geocode response:', e.geocode);
-
       const center = e.geocode.center;
-      console.log("Geocode result center:", center);
+      const lat = center[0], lng = center[1];
 
-      const latLngCenter = L.latLng(center[0], center[1]);
-      console.log('Converted LatLng center:', latLngCenter);
+      const zoomLevel = this.#map.getZoom() > 18 ? this.#map.getZoom() : 18;
+      this.#map.setView(center, zoomLevel);
 
-      const zoomLevel = this.#map.getZoom() > 18 ? this.#map.getZoom() : 18; // Zoom to 18 or keep current zoom if >18
-      this.#map.setView(center, zoomLevel); // Center the map on the marker position
-      
       this.#addSearchMarker(center);
 
-      this.#selectBuildingFromLatLng(latLngCenter);
-    })
+      const queryColumns = [...this.#defaultColumns, ...this.#additionalColumns];
+      
+      this.mapService.getBuildingFromLatLng(lat, lng, queryColumns).subscribe({
+        next: (building) => {
+          if (building) {
+            this.selectedBuilding = building;
+            console.log("Selected Building:", this.selectedBuilding);
+            this.#highlightBuilding();
+          } else {
+            this.deselectBuilding();
+            console.warn('No building found at geocode location.');
+          }
+        },
+        error: (err) => {
+          console.error("Error fetching building:", err);
+        }
+      });
+    });
 
     geocoderControl.addTo(this.#map);
   }
 
   /**
-   * Generates a new vector tile URL string. URL resolved by Dirt Postgis API which connects to a PostgreSql DB 
-   * @param table Database table name.
-   * @param columns [optional] Database columns to be returned.
-   * @param filter [optional] SQL WHERE clause.
-   * @returns Vector tile URL as string.
+   * Add or update a search marker on the map at the given coordinates.
+   * If a marker already exists, it will be replaced with the new one.
+   * @param latlng Coordinates as [lat, lng] array or Leaflet LatLng object.
    */
-  #generateVectorTileUrl(table: string, columns: string[], filter?:string): string {
-    return `http://128.131.21.198:3002/v1/mvt/${table}/{z}/{x}/{y}` + 
-    (columns != undefined ? '?columns=' + columns!.join() : '') +
-    (filter != undefined ? '&filter=' + filter : '');
+  #addSearchMarker(latlng: L.LatLng): void {
+    const point = Array.isArray(latlng) ? L.latLng(latlng[0], latlng[1]) : latlng;
+    if (this.#markerLayer) {
+      this.#map.removeLayer(this.#markerLayer);
+    }
+    this.#markerLayer = L.marker(point as L.LatLng).addTo(this.#map);
   }
 
   /**
-   * Load the Vector Tile Layer with default styles and event listeners.
-   * @param filter [optional] SQL WHERE clause for filtering data (column dom_nutzung AND/OR bp).
+   * Update the visible map layer based on the current zoom level.
+   * - Shows building polygons when zoomed in (>= 16).
+   * - Shows building block polygons when zoomed out (< 16).
+   * - Ensures only one of the two layers is active at a time.
    */
-  #loadVectorTileLayer(filter?: string): void {
-    if (!this.#map) return;
-  
-    if (this.#vectorTileLayer) {
-      this.#map.removeLayer(this.#vectorTileLayer);
-    }
-  
-    const vectorTileUrl = this.#generateVectorTileUrl(this.#tableName, this.#defaultColumns, filter);
-  
-    this.#vectorTileLayer = vectorTileLayer(vectorTileUrl, {
-      style: {
-        fill: true,
-        fillColor: '#3388ff',
-        fillOpacity: 0.3,
-        color: '#3388ff',
-        weight: 1
-      },
-      interactive: true
-    });
+  #updateVisibleLayer(): void {
+      if (!this.#map) return;
+      const zoomThreshold = 16;
+      const zoom = this.#map.getZoom();
 
-    if(!this.#vectorTileLayer) {
-      console.error("Could not load Leaflet.VectorTileLayer");
-      return
+    if (zoom >= zoomThreshold) { // show buildings, remove blocks
+      if (this.#buildingBlocksLayer && this.#map.hasLayer(this.#buildingBlocksLayer)) {
+        this.#map.removeLayer(this.#buildingBlocksLayer);
+      }
+      if (this.#buildingsLayer && !this.#map.hasLayer(this.#buildingsLayer)) {
+        this.#map.addLayer(this.#buildingsLayer);
+      }
+    } else {          // show blocks, remove buildings
+      if (this.#buildingsLayer && this.#map.hasLayer(this.#buildingsLayer)) {
+        this.#map.removeLayer(this.#buildingsLayer);
+      }
+      if (this.#buildingBlocksLayer && !this.#map.hasLayer(this.#buildingBlocksLayer)) {
+        this.#map.addLayer(this.#buildingBlocksLayer);
+      }
     }
-  
-    this.#map.addLayer(this.#vectorTileLayer);
+  }
 
-    this.#vectorTileLayer.on('click', (event: any) => {
-      this.#buildingClicked = true;
-      event.originalEvent.stopPropagation();
-      this.#handleBuildingClick(event);
+  /**
+   * Create and configure a Leaflet vector tile layer for buildings.
+   * - Fetches vector tiles from the PostGIS API.
+   * - Applies style rules for building display.
+   * - Enables interactivity and attaches a click handler for building selection.
+   * @param filter Optional SQL WHERE clause string for filtering buildings.
+   * @returns Leaflet Vector Tile Layer configured with buildings data.
+   */
+  #createBuildingsLayer(filter?: string): L.Layer {
+    const url = this.mapService.getVectorTileUrl(this.#buildingsTable, this.#defaultColumns, filter);
+
+    return vectorTileLayer(url, {
+      minZoom: 16, // safeguard
+      maxZoom: 22,
+      style: { color: '#3388ff', weight: 1, fill: true, fillOpacity: 0.3 },
+      interactive: true,
+    }).on('click', (event: any) => {
+      this.#handleBuildingClick(event.layer.properties['bw_geb_id']);
     });
   }
-  
+
+  /**
+   * Create and configure a Leaflet vector tile layer for building blocks.
+   * - Fetches vector tiles from the PostGIS API.
+   * - Applies style rules for building block display.
+   * - Enables interactivity and attaches a click handler for building block selection.
+   * @returns Leaflet Vector Tile Layer configured with building block data.
+   */
+  #createBuildingBlocksLayer(): L.Layer {
+    const url = this.mapService.getVectorTileUrl(this.#buildingBlockTable, this.#defaultColumnsBB);
+
+    return vectorTileLayer(url, {
+      minZoom: 12,
+      maxZoom: 15, // safeguard
+      style: { color: '#446696ff', weight: 1, fill: true, fillOpacity: 0.2 },
+      interactive: true,
+    }).on('click', (event: any) => {
+      this.#handleBuildingBlockClick(event);
+    });
+  }
 
   /**
    * Applies filter to the dataset and reloads the VectorGrid layer.
@@ -292,48 +351,77 @@ export class MapComponent implements OnInit {
 
     let filterQuery = filter.length > 0 ? filter.join(' AND ') : undefined;
 
-    this.#loadVectorTileLayer(filterQuery);
+    if (this.#buildingsLayer) this.#map.removeLayer(this.#buildingsLayer);
+    this.#buildingsLayer = this.#createBuildingsLayer(filterQuery);
+    this.#updateVisibleLayer();   
   }
 
   /**
-   * Handles a click event on a building feature in the VectorGrid layer.
-   * Fetches detailed building data from the API and highlights the selected building.
-   * @param event Click event containing building feature properties.
+   * Handles a click event on a building block feature in the VectorGrid layer.
+   * Zooms into the selected building block.
+   * @param event Click event containing building block feature properties.
    */
-  #handleBuildingClick(event: any): void {
+  #handleBuildingBlockClick(event: any): void {
     const properties = event.layer.properties;
   
     if (properties) {
-      const buildingId = properties['bw_geb_id'];
-      console.log('Clicked Building ID:', buildingId);
+      const buildingBlockId = properties['blk'];
+      console.log('Clicked Building Block ID:', buildingBlockId);
+
+      const geometry = properties['geometry']; // already requested in #defaultColumnsBB
+      if (!geometry) {
+        console.warn('No geometry found for building block:', buildingBlockId);
+        return;
+      }
       
-      const queryColumns = [...this.#defaultColumns, ...this.#additionalColumns];
+      try {
+        const geometryObj = JSON.parse(geometry);
+        const blockLayer = L.geoJSON(geometryObj);
+        const bounds = blockLayer.getBounds();
 
-      const url = `http://128.131.21.198:3002/v1/query/${this.#tableName}?columns=${encodeURIComponent(queryColumns.join(','))}&filter=${encodeURIComponent(`bw_geb_id = '${buildingId}'`)}`;
+        this.#map.fitBounds(bounds, { maxZoom: 17 });
 
+        // highlight the block temporarily for selecton feedback
+        blockLayer.setStyle({
+          weight: 2,
+          fillOpacity: 0.2,
+        }).addTo(this.#map);
 
-      fetch(url)
-        .then(response => response.text())
-        .then(rawData => {
-          try {
-            const data = JSON.parse(rawData);
-            const building = Array.isArray(data) ? data[0] : data;
-            
-            this.selectedBuilding = building;
-            console.log("Selected Building:", this.selectedBuilding);
-  
-            this.#highlightBuilding();
-          } catch (parseError) {
-            console.error("Error parsing JSON response:", parseError, "Raw data:", rawData);
-          }
-        })
-        .catch(error => console.error("Error fetching building data:", error));
-  
-      this.#buildingClicked = true;
+        // remove highlight after a short delay
+        setTimeout(() => {
+          this.#map.removeLayer(blockLayer);
+        }, 500);
+
+      } catch (err) {
+        console.error('Failed to parse building block geometry:', err);
+      }
     }
   }
-  
 
+
+  /**
+   * Handles a click event on a building feature in the buildings Vector tile layer.
+   * Fetches detailed building data from the API and highlights the selected building.
+   * @param buildingId Id of the selected building feature via click event.
+   */
+  #handleBuildingClick(buildingId: string): void {
+    const queryColumns = [...this.#defaultColumns, ...this.#additionalColumns];
+
+    this.mapService.getBuildingById(this.#buildingsTable, buildingId, queryColumns).subscribe({
+      next: building => {
+        this.selectedBuilding = building;
+        this.#highlightBuilding();
+      },
+      error: err => console.error("Error fetching building:", err)
+    });
+  }
+
+  /**
+   * Highlight the currently selected building on the map.
+   * - Parses the building geometry from WKT/GeoJSON.
+   * - Draws a red polygon layer to visually highlight the building.
+   * - Fits the map view to the building’s bounds with a minimum zoom level.
+   */
   #highlightBuilding(): void {
     if (this.selectedBuilding && this.selectedBuilding.geometry) {
       try {
@@ -344,7 +432,7 @@ export class MapComponent implements OnInit {
           this.#highlightedFeatureLayer = null;
         }
     
-        this.#highlightedFeatureLayer = L.geoJSON(geometryObj, {
+        const layer = L.geoJSON(geometryObj, {
           style: {
             color: '#ff0000',
             weight: 3,
@@ -352,15 +440,14 @@ export class MapComponent implements OnInit {
             fillColor: '#ff0000',
             fillOpacity: 0.5,
           },
-        }).addTo(this.#map);
-    
-        this.#selectedBuildingID = this.selectedBuilding.bw_geb_id;
-    
-        const bounds = L.geoJSON(geometryObj).getBounds();
-        const currentZoom = this.#map.getZoom();
-        const targetZoom = Math.max(currentZoom, 18);
-        this.#map.fitBounds(bounds, { maxZoom: targetZoom });
+        });
 
+        this.#highlightedFeatureLayer = layer.addTo(this.#map);
+        this.#selectedBuildingID = this.selectedBuilding.bw_geb_id;
+        
+        const bounds = layer.getBounds();
+        const targetZoom = Math.max(this.#map.getZoom(), 18);
+        this.#map.fitBounds(bounds, { maxZoom: targetZoom });
       } catch (geometryParseError) {
         console.error("Error parsing geometry data:", geometryParseError);
       }
@@ -369,6 +456,11 @@ export class MapComponent implements OnInit {
     }
   }
 
+  /**
+   * Deselect the currently highlighted building on the map.
+   * - Removes the highlight polygon layer if present.
+   * - Clears the selected building ID and building reference.
+   */
   deselectBuilding(): void {
     if (this.#highlightedFeatureLayer) {
       this.#map.removeLayer(this.#highlightedFeatureLayer); // Remove highlight layer
@@ -381,44 +473,6 @@ export class MapComponent implements OnInit {
     this.selectedBuilding = null;
   }
 
-  #addSearchMarker(latlng: L.LatLng): void {
-    if (this.#markerLayer) {
-      this.#map.removeLayer(this.#markerLayer);
-    }
-  
-    this.#markerLayer = L.marker(latlng, {
-    }).addTo(this.#map);
-  }
-
-  #selectBuildingFromLatLng(latLngCenter: L.LatLng): void {
-    const { lat, lng } = latLngCenter;
-    const srid = 4326;
-
-    const point = `${lng},${lat},${srid}`;
-
-    const queryColumns = [...this.#defaultColumns, ...this.#additionalColumns];
-    
-    const url = `http://128.131.21.198:3002/v1/intersect_point/${this.#tableName}/${point}}?columns=${queryColumns}`;
-
-    fetch(url)
-        .then(response => response.text())
-        .then(rawData => {
-          try {
-            const data = JSON.parse(rawData);
-            const building = Array.isArray(data) ? data[0] : data;
-            
-            this.selectedBuilding = building;
-            console.log("Selected Building:", this.selectedBuilding);
-  
-            this.#highlightBuilding();
-          } catch (parseError) {
-            console.error("Error parsing JSON response:", parseError, "Raw data:", rawData);
-          }
-        })
-        .catch(error => console.error("Error fetching building data:", error));
-  }
-
-  
   toggleFilterPanel(): void {
     const filterButton = document.querySelector('.leaflet-control-filter') as HTMLElement;
     if (filterButton) {
@@ -448,7 +502,6 @@ export class MapComponent implements OnInit {
       this.#map.tapHold?.enable();
     }
   }
-
 
   showStructureView(): void {
     this.isStructureViewVisible = true;
