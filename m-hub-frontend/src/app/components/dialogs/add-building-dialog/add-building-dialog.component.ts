@@ -37,16 +37,24 @@ export class AddBuildingDialogComponent implements OnInit {
   name: string = '';
   address: string = '';
 
+  // floors = [
+  //   { label: 'Kellergeschoss (KG)', name: 'KG' },
+  //   { label: 'Erdgeschoss (EG)', name: 'EG' },
+  //   { label: 'Obergeschoss (OG)', name: 'OG' },
+  //   { label: 'Dachgeschoss (DG)', name: 'DG' }
+  // ];
+
   floors = [
-    { label: 'Kellergeschoss (KG)', name: 'KG' },
-    { label: 'Erdgeschoss (EG)', name: 'EG' },
-    { label: 'Obergeschoss (OG)', name: 'OG' },
-    { label: 'Dachgeschoss (DG)', name: 'DG' }
+    { label: 'unter Erdniveau', name: 'KG' },
+    { label: 'über Erdniveau', name: 'OG' },
+    { label: 'Dach', name: 'DG' }
   ];
 
   valueOptions = Array.from({ length: 100 }, (_, i) => i);
   
   floorValues: (number | null)[];
+  floorHeights: number[] = [300, 300, 300]; // Default heights in cm for KG, OG, DG
+
   highlightedFloor: string = '';
   svgUrl = 'assets/images/house_interactive.svg';
 
@@ -62,10 +70,10 @@ export class AddBuildingDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: { structure?: number[] }
   ) {
     
-    const isValidStructure = !!(data.structure && data.structure.length === 4);
+    const isValidStructure = !!(data.structure && data.structure.length === 3);
     this.structureIsAvailable = isValidStructure;
 
-    this.floorValues = isValidStructure && data.structure ? [...data.structure] : [null, null, null, null]; // null = unselected    
+    this.floorValues = isValidStructure && data.structure ? [...data.structure] : [null, null, null]; // null = unselected    
   }
 
   ngOnInit(): void {
@@ -124,6 +132,7 @@ export class AddBuildingDialogComponent implements OnInit {
 
     this.dialogRef.close({
       structure: this.floorValues,
+
       name: this.name.trim(),
       address: trimmedAddress,
       structureChanged: this.hasStructureChanged()

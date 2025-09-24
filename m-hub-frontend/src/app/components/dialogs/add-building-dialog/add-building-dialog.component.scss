@@ -22,10 +22,15 @@
   margin-bottom: 1rem;
 }
 
-h2 {
+h1 {
   margin: 10px 0;
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   line-height: 1;
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin: 0 0 8px;
 }
 
 h3 {
@@ -41,10 +46,10 @@ mat-form-field {
 .content-wrapper {
   display: flex;
   flex-direction: inherit;
-  gap: 1.5rem;
+  gap: 2.4rem;
 }
 
-.user-specific-wrapper {
+.building-info-wrapper {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
@@ -68,14 +73,27 @@ mat-form-field {
   margin: 2rem 0 1rem;
 }
 
-.selectors {
+.floor-input {
   display: flex;
   flex-direction: column;
   flex: 1;
-  min-width: 220px;
-  gap: 1rem;
-  margin-top: 42px;
+  min-width: 180px;
+  gap: 1.2rem;
+  // margin-top: 42px;
 }
+
+.floor-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.floor-count,
+.floor-height {
+  flex: 1;
+  min-width: 140px;
+}
+
 
 .house-chart {
   flex: 2;
@@ -84,7 +102,7 @@ mat-form-field {
   align-items: center;
 
   .house-interactive{
-    width: 420px;
+    width: 360px;
     height: 100%;
   }
 }
@@ -152,7 +170,7 @@ mat-error {
     margin: 0;
   }
 
-  .selectors {
+  .floor-input {
     margin-top: 0;
   }
 }
