@@ -1,0 +1,80 @@
+[
+  {
+    "id": "1",
+    "buildingId": "100",
+    "ownerId": "79e7432d-f1a0-4f31-9469-1e27b8d8c6cd",
+    "location": "KG",
+    "name": "Fundament",
+    "description": "Gebäudefundament",
+    "type": "Fundament",
+    "isPublic": false
+  },
+  {
+    "id": "3",
+    "buildingId": "5397325",
+    "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
+    "location": "EG, OG1, OG2, DG",
+    "name": "Kaminwand",
+    "description": "Kaminwand des Gebäudes",
+    "type": "Wand",
+    "isPublic": true
+  },
+  {
+    "id": "5",
+    "buildingId": "5397325",
+    "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
+    "location": "KG",
+    "name": "Gebäudefundament",
+    "description": "Fundament des Gebäudes",
+    "type": "Fundament",
+    "isPublic": false
+  },
+  {
+    "id": "7",
+    "buildingId": "5363852",
+    "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
+    "location": "KG, EG, OG, DG",
+    "name": "Aufzugsschacht",
+    "description": "Aufzugsschacht",
+    "type": "Wand",
+    "isPublic": true
+  },
+  {
+    "id": "9",
+    "buildingId": "5363852",
+    "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
+    "name": "Eingangstüre",
+    "description": "Eingangstüre des Gebäudes",
+    "type": "Tür",
+    "isPublic": false
+  },
+  {
+    "id": "11",
+    "buildingId": "5363852",
+    "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
+    "location": "DG",
+    "name": "Dachfenster",
+    "type": "Fenster",
+    "isPublic": false
+  },
+  {
+    "id": "12",
+    "buildingId": "5363852",
+    "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
+    "location": "KG",
+    "name": "Heizkessel",
+    "description": "Hauptheizkessel des Gebäudes",
+    "type": "Sonstige",
+    "isPublic": false
+  },
+  {
+    "id": "13",
+    "buildingId": "5363852",
+    "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
+    "location": "DG",
+    "name": "Dach",
+    "description": "Dach des Gebäudes",
+    "type": "Dach",
+    "isPublic": false
+  }
+]
