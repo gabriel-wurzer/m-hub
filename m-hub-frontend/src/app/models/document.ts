@@ -6,8 +6,9 @@ import { FileType } from "../enums/file-type.enum";
 export interface Document {
     id: string; // UUID of the document
     buildingId: string;
-    componentId?: string; // ID of the parent component if attached to a component
-    ownerId: string;
+    userBuildingId: string;
+    componentId?: string;   // ID of the parent component if attached to a component
+    ownerId: string;        // ID of the user who uploaded the document
     name: string;
     description: string;
     isPublic: boolean;

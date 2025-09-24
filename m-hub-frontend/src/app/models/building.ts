@@ -4,9 +4,9 @@ import { Floor } from "./floor";
 
 
 /**
- * Interface of buildings.
+ * Shared fields from buildings table
  */
-export interface Building {
+export interface BaseBuilding {
     bw_geb_id: string;
     dom_nutzung: number;
     bp: string;
@@ -28,12 +28,29 @@ export interface Building {
     bmg8: number;
     bmg9: number;
     geometry: any; // Geometry as GeoJSON object
-
-    // user-specific fields:  n : 1 relation  build --> user
-    buildingComponents?: BuildingComponent[];  // Optional list of building parts
-    documents?: Document[]; // Optional list of appended documents
-    structure?: Floor[]; // Array of floors, each with type [Unter, Ueber, Dach], count and height in cm 
-    // structure?: number[]; // Array of numbers representing the structure of the building -> [Unter, Ueber, Dach]    // OLD: [KG, EG, OG, DG]
-    name?: string; // user specific name of the building
-    address?: string; // user specific address of the building
 }
+
+/**
+ * User-specific fields from user-buildings table
+ */
+export interface UserBuilding {
+  id: string;              // user_buildings.id
+  userId: string;          // reference to user
+  buildingId: string;      // reference to building
+  structure: Floor[];
+  name?: string;           
+  address?: string;        
+  documents?: Document[];
+  buildingComponents?: BuildingComponent[];
+}
+
+
+export interface Building extends BaseBuilding {
+  userBuilding?: UserBuilding; // optional user-specific data
+}
+
+// // Uniform entity
+// export interface Building {
+//   baseBuilding: BaseBuilding;
+//   userBuilding?: UserBuilding; // optional: may not exist if current user hasn’t added it yet
+// }
