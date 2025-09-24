@@ -76,7 +76,7 @@ export class AddBuildingButtonComponent implements OnInit {
 
     const dialogRef = this.dialog.open(AddBuildingDialogComponent, {
       panelClass: 'custom-dialog',
-      data: { structure: this.building.structure }
+      data: { structure: this.building.userBuilding?.structure }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -86,18 +86,23 @@ export class AddBuildingButtonComponent implements OnInit {
         return;
       }
 
-      const structureChanged = result.structureChanged || !this.building.structure;
+      const structureChanged = result.structureChanged || !this.building.userBuilding?.structure;
+
+      // const updateStructure$ = structureChanged
+      //   ? this.buildingService.updateBuilding({ ...this.building, structure: result.structure })
+      //   : of(null); // Skip if no update needed
 
       const updateStructure$ = structureChanged
-        ? this.buildingService.updateBuilding({ ...this.building, structure: result.structure })
+        ? this.buildingService.updateBuilding(Object.assign({}, this.building, { structure: result.structure } as any))
         : of(null); // Skip if no update needed
+
 
       const addBuildingToUser$ = this.userService.addBuildingToUser(this.userId, this.building.bw_geb_id);
       const addUserBuildingData$ = this.userService.addUserBuildingData(
         this.userId,
         this.building.bw_geb_id,
-        result.name ?? this.building.name ?? null,
-        result.address ?? this.building.address ?? null
+        result.name ?? this.building.userBuilding?.name ?? null,
+        result.address ?? this.building.userBuilding?.address ?? null
       );
 
       forkJoin({
@@ -119,12 +124,18 @@ export class AddBuildingButtonComponent implements OnInit {
         if (response) {
           console.log('Gebäude erfolgreich hinzugefügt.');
           this.isAdded = true;
-
+          
           // Update local building data
-          this.building.structure = result.structure;
-          if (result.name) this.building.name = result.name;
-          if (result.address) this.building.address = result.address;
 
+          // TODO: change RESPONSE of ADD BUILDING to userBuilding entity!
+          // this.building.user = response;
+          
+          // temp fix to ensure user exists to set the fields of local building.
+          if (this.building.userBuilding) { 
+            this.building.userBuilding.structure = result.structure;
+            if (result.name) this.building.userBuilding.name = result.name;
+            if (result.address) this.building.userBuilding.address = result.address;
+          }
         }
       });
     });

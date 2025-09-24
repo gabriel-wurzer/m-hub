@@ -248,8 +248,13 @@ export class BuildingSidepanelComponent implements OnInit {
           this.userService.getUserBuildingData(this.userId, buildingId).subscribe({
             next: (userBuildingData) => {
               if (this.building) {
-                this.building.name = userBuildingData.name;
-                this.building.address = userBuildingData.address;
+
+                if (this.building.userBuilding) {
+                  this.building.userBuilding.name = userBuildingData.name;
+                  this.building.userBuilding.address = userBuildingData.address;
+                } else {
+                  console.warn('Building user data is undefined.');
+                }
               }
               this.isLoading = false; // Finish loading AFTER user-specific data is loaded
             },
@@ -322,9 +327,12 @@ export class BuildingSidepanelComponent implements OnInit {
         console.log('Benutzerspezifische Gebäudedaten: ', userBuildingData);
 
         if (this.building) {
-
-          this.building.name = userBuildingData.name;
-          this.building.address = userBuildingData.address;
+          if (this.building.userBuilding) {
+            this.building.userBuilding.name = userBuildingData.name;
+            this.building.userBuilding.address = userBuildingData.address;
+          } else {
+            console.warn('Building user data is undefined.');
+          }
         }
         // this.userBuildingName = userBuildingData.name;
         // this.userBuildingAddress = userBuildingData.address;

@@ -24,8 +24,8 @@
                 <app-add-building-button *ngIf="isOnMap()" [building]="building" [userId]="userId" [isInitiallyAdded]="isBuildingAdded"></app-add-building-button>
         
                 <h3>Gebäude ID: {{ building.bw_geb_id }}</h3>
-                <p *ngIf="building.name">Name: {{ building.name }}</p>
-                <p *ngIf="building.address">Adresse:  {{ building.address }}</p>
+                <p *ngIf="building.userBuilding && building.userBuilding.name">Name: {{ building.userBuilding.name }}</p>
+                <p *ngIf="building.userBuilding && building.userBuilding.address">Adresse:  {{ building.userBuilding.address }}</p>
                 <p>Nutzung: {{ usageLabel }}</p>
                 <p>Bauperiode: {{ periodLabel }}</p>
                 <p>Maximale Höhe: {{ building.maxhoehe}} m</p>

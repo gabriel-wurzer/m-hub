@@ -93,8 +93,8 @@ export class UserDataComponent implements OnInit {
               const userBuildingData = userBuildingDataList[index];
               return {
                 ...building,
-                name: userBuildingData.name || building.name,
-                address: userBuildingData.address || building.address,
+                name: userBuildingData.name || building.userBuilding?.name,
+                address: userBuildingData.address || building.userBuilding?.address,
               };
             });
 
@@ -156,7 +156,7 @@ export class UserDataComponent implements OnInit {
 
     const dialogRef = this.dialog.open(EditBuildingDialogComponent, {
       panelClass: 'custom-dialog',
-      data: { name:building.name, address: building.address, buildingComponents: building.buildingComponents, documents: building.documents }
+      data: { name:building.userBuilding?.name, address: building.userBuilding?.address, buildingComponents: building.userBuilding?.buildingComponents, documents: building.userBuilding?.documents }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -169,13 +169,20 @@ export class UserDataComponent implements OnInit {
       const updateUserBuildingData$ = this.userService.updateUserBuildingData(
         this.userId,
         this.selectedBuilding.bw_geb_id,
-        result.name ?? this.selectedBuilding.name,
-        result.address ?? this.selectedBuilding.address
+        result.name ?? this.selectedBuilding.userBuilding?.name,
+        result.address ?? this.selectedBuilding.userBuilding?.address
       );
 
+      //TODO: ensure that result contains the full userBuilding entity to seht the user field
+      this.selectedBuilding.userBuilding = result.userBuilding;
+       
       let requestBuilding = this.selectedBuilding;
-      requestBuilding.buildingComponents = result.buildingComponents;
-      requestBuilding.documents = result.documents;
+
+      //TODO: Change the requestbuuilding.user to selectedBuilding.user
+      if(requestBuilding.userBuilding) {
+        requestBuilding.userBuilding.buildingComponents = result.buildingComponents;
+        requestBuilding.userBuilding.documents = result.documents;
+      }
 
 
       const updateBuilding$ = this.buildingService.updateBuilding(requestBuilding);
@@ -200,10 +207,12 @@ export class UserDataComponent implements OnInit {
 
           // Optionally update local building data
           if (this.selectedBuilding) {
-            this.selectedBuilding.name = result.name;
-            this.selectedBuilding.address = result.address;
-            this.selectedBuilding.buildingComponents = result.buildingComponents;
-            this.selectedBuilding.documents = result.documents;
+            if (this.selectedBuilding.userBuilding) { 
+              this.selectedBuilding.userBuilding.name = result.name;
+              this.selectedBuilding.userBuilding.address = result.address;
+              this.selectedBuilding.userBuilding.buildingComponents = result.buildingComponents;
+              this.selectedBuilding.userBuilding.documents = result.documents;            
+            }
           }
         }
       });

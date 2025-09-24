@@ -448,6 +448,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
         const bounds = layer.getBounds();
         const targetZoom = Math.max(this.#map.getZoom(), 18);
         this.#map.fitBounds(bounds, { maxZoom: targetZoom });
+        console.log(`Building with ID ${this.#selectedBuildingID} selected and highlighted.`);
       } catch (geometryParseError) {
         console.error("Error parsing geometry data:", geometryParseError);
       }

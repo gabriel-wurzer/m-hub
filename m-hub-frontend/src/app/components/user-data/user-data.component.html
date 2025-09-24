@@ -30,7 +30,7 @@
                     class="house-icon"
                     loading="eager"
                     />
-                  <h2>{{ building.name?.trim() || 'Gebäude ' + building.bw_geb_id }}</h2>
+                  <h2>{{ building.userBuilding?.name?.trim() || 'Gebäude ' + building.bw_geb_id }}</h2>
                 </div>
                 <button *ngIf="isSelected(building)" mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
                   <mat-icon>more_vert</mat-icon>
@@ -46,8 +46,8 @@
               <div class="card-info">
                 <div class="info-text">
                   <p>Gebäude ID: {{ building.bw_geb_id }}</p>
-                  <p *ngIf="building.name">Name: {{ building.name }}</p>
-                  <p *ngIf="building.address">Adresse: {{ building.address }}</p>
+                  <p *ngIf="building.userBuilding && building.userBuilding.name">Name: {{ building.userBuilding.name }}</p>
+                  <p *ngIf="building.userBuilding && building.userBuilding.address">Adresse: {{ building.userBuilding.address }}</p>
                 </div>
               </div>
 
