@@ -4,9 +4,13 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
+import { MatExpansionModule } from '@angular/material/expansion';
+
 
 import { BuildingComponent } from '../../../models/building-component';
 import { Document } from '../../../models/document';
+import { DocumentListComponent } from "../../document-list/document-list.component";
+
 
 
 @Component({
@@ -16,7 +20,9 @@ import { Document } from '../../../models/document';
     CommonModule,
     FormsModule,
     MatInputModule,
-    MatButtonModule
+    MatButtonModule,
+    MatExpansionModule,
+    DocumentListComponent
   ],
   templateUrl: './edit-building-dialog.component.html',
   styleUrl: './edit-building-dialog.component.scss'

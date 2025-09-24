@@ -22,8 +22,18 @@
             </div>
 
         </div>
-        
     </div>
+
+    <mat-expansion-panel #docPanel [expanded]="true" class="document-container">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <h3 [class.expanded]="docPanel.expanded">Dokumente</h3> 
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            
+            <app-document-list [documentsArray]="documents" />
+
+    </mat-expansion-panel>
 
     <div mat-dialog-actions class="actions">
         <button mat-button (click)="close()">Abbruch</button>
