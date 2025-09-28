@@ -2,6 +2,12 @@
 name: m-hub
 # Define the services for m-hub
 services:
+  m-hub-db:
+    # Use the specified Docker image
+    image: m-hub-db
+    # Expose port 5432 from the container to the host
+    ports:
+      - "5432:5432"
   m-hub-backend:
     # Use the specified Docker image
     image: m-hub-backend
@@ -14,6 +20,8 @@ services:
     # Mount host directories to container directories as volumes
     volumes:
       - ./m-hub-backend/data:/data
+    depends_on:
+      - m-hub-db
   m-hub-frontend:
     # Use the specified Docker image
     image: m-hub-frontend
