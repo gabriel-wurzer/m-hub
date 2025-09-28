@@ -44,3 +44,6 @@ typings
 # System files
 .DS_Store
 Thumbs.db
+
+# Bash .env files
+.env
