@@ -10,6 +10,10 @@ services:
     # Expose port 5432 from the container to the host
     ports:
       - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 0hweh!db
+      POSTGRES_DB: mhubdb      
   m-hub-backend:
     # Use the specified Docker image
     image: m-hub-backend
