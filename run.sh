@@ -40,7 +40,6 @@ chmod 644 dist/m-hub-frontend/browser/*
 chmod 755 httpd.conf
 cd ..
 
-docker compose up
 $DOCKER_COMPOSE up
 
 
