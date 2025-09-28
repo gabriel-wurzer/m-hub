@@ -5,6 +5,8 @@ services:
   m-hub-db:
     # Use the specified Docker image
     image: m-hub-db
+    # Specify the build context (location of Dockerfile)
+    build: ./m-hub-db
     # Expose port 5432 from the container to the host
     ports:
       - "5432:5432"
