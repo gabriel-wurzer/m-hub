@@ -5,8 +5,17 @@ echo [OK] docker gefunden
 docker info > /dev/null 2>&1 || { echo >&2 "[FEHLER] docker ist derzeit nicht gestartet. hint: docker starten."; exit 1; }
 echo [OK] docker ist gestartet
 
-docker compose > /dev/null 2>&1 || { echo >&2 "[FEHLER] docker compose ist derzeit nicht installiert. hint: docker-compose installieren."; exit 1; }
-echo [OK] docker compose funktioniert
+if docker compose version >/dev/null 2>&1; then
+    DOCKER_COMPOSE="docker compose"
+elif docker-compose version >/dev/null 2>&1; then
+    DOCKER_COMPOSE="docker-compose"
+else
+    echo >&2 "[FEHLER] Weder 'docker compose' noch 'docker-compose' ist installiert."
+    echo >&2 "Hint: Installiere docker-compose (klassisch) oder das Plugin."
+    exit 1
+fi
+
+echo "[OK] ${DOCKER_COMPOSE} funktioniert"
 
 command -v npm >/dev/null 2>&1 || { echo >&2 "[FEHLER] npm ist derzeit nicht installiert. hint: nodejs installieren. "; exit 1; }
 echo [OK] npm gefunden
@@ -32,4 +41,6 @@ chmod 755 httpd.conf
 cd ..
 
 docker compose up
+$DOCKER_COMPOSE up
+
 
