@@ -9,6 +9,7 @@ import { BuildingService } from '../../services/building/building.service';
 import { isBuilding } from '../../utils/model-guard';
 import { BuildingComponent } from '../../models/building-component';
 import { BuildingComponentService } from '../../services/component/component.service';
+import { DocumentService } from '../../services/document/document.service';
 
 
 @Component({
@@ -27,7 +28,7 @@ export class DocumentListComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
 
-  constructor(private buildingService: BuildingService, private buildingComponentService: BuildingComponentService) {}
+  constructor(private documentService: DocumentService) {}
 
   ngOnInit() {
 
@@ -54,54 +55,82 @@ export class DocumentListComponent implements OnInit {
     this.errorMessage = '';
     this.documents = [];
 
-    if(isBuilding(entity)) {
-      this.loadDocumentsByBuilding(entity.bw_geb_id);
-    }
-    else {
-      this.loadDocumentsByComponent(entity.id);
-    }
-  }
+    // Build filter dynamically
+    const filters = isBuilding(entity)
+      ? { buildingId: entity.bw_geb_id }
+      : { componentId: entity.id };
 
-  private loadDocumentsByBuilding(buildingId: string): void {
-    this.buildingService.getDocumentsByBuilding(buildingId).subscribe({
+    this.documentService.getDocuments(filters).subscribe({
       next: (docs) => {
         this.documents = docs.map(doc => ({
           ...doc,
           fileType: doc.fileType?.toLowerCase()
         }));
-        this.errorMessage = docs.length === 0 ? 'No documents found for this building.' : '';
+        this.errorMessage = docs.length === 0
+          ? isBuilding(entity)
+            ? 'No documents found for this building.'
+            : 'No documents found for this building component.'
+          : '';
       },
       error: (error) => {
-        console.error('Error loading building documents:', error);
+        console.error('Error loading documents:', error);
         this.errorMessage = error.status === 404
-          ? 'No documents found for this building.'
+          ? 'No documents found.'
           : 'An error occurred while loading documents.';
       },
       complete: () => {
         this.isLoading = false;
       }
-    });
+    });  
+
+    // if(isBuilding(entity)) {
+    //   this.loadDocumentsByBuilding(entity.bw_geb_id);
+    // }
+    // else {
+    //   this.loadDocumentsByComponent(entity.id);
+    // }
   }
 
-  private loadDocumentsByComponent(componentId: string): void {
-    this.buildingComponentService.getDocumentsByBuildingComponent(componentId).subscribe({
-      next: (docs) => {
-        this.documents = docs.map(doc => ({
-          ...doc,
-          fileType: doc.fileType?.toLowerCase()
-        }));
-        this.errorMessage = docs.length === 0 ? 'No documents found for this building component.' : '';
-      },
-      error: (error) => {
-        console.error('Error loading building component documents:', error);
-        this.errorMessage = error.status === 404
-          ? 'No documents found for this building component.'
-          : 'An error occurred while loading documents.';
-      },
-      complete: () => {
-        this.isLoading = false;
-      }
-    });
+  // private loadDocumentsByBuilding(buildingId: string): void {
+  //   this.documentService.getDocumentsByBuilding(buildingId).subscribe({
+  //     next: (docs) => {
+  //       this.documents = docs.map(doc => ({
+  //         ...doc,
+  //         fileType: doc.fileType?.toLowerCase()
+  //       }));
+  //       this.errorMessage = docs.length === 0 ? 'No documents found for this building.' : '';
+  //     },
+  //     error: (error) => {
+  //       console.error('Error loading building documents:', error);
+  //       this.errorMessage = error.status === 404
+  //         ? 'No documents found for this building.'
+  //         : 'An error occurred while loading documents.';
+  //     },
+  //     complete: () => {
+  //       this.isLoading = false;
+  //     }
+  //   });
+  // }
+
+  // private loadDocumentsByComponent(componentId: string): void {
+  //   this.documentService.getDocumentsByComponent(componentId).subscribe({
+  //     next: (docs) => {
+  //       this.documents = docs.map(doc => ({
+  //         ...doc,
+  //         fileType: doc.fileType?.toLowerCase()
+  //       }));
+  //       this.errorMessage = docs.length === 0 ? 'No documents found for this building component.' : '';
+  //     },
+  //     error: (error) => {
+  //       console.error('Error loading building component documents:', error);
+  //       this.errorMessage = error.status === 404
+  //         ? 'No documents found for this building component.'
+  //         : 'An error occurred while loading documents.';
+  //     },
+  //     complete: () => {
+  //       this.isLoading = false;
+  //     }
+  //   });
   
-  }
+  // }
 }

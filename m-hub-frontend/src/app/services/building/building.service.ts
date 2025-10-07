@@ -19,10 +19,6 @@ export class BuildingService {
     return this.http.get<Building>(`${this.apiUrl}/${buildingId}`);
   } 
 
-  getDocumentsByBuilding(buildingId: string): Observable<Document[]> {
-    return this.http.get<Document[]>(`${this.apiUrl}/${buildingId}/documents`);
-  }
-
   getBuildingComponentsByBuilding(buildingId: string): Observable<BuildingComponent[]> {
     return this.http.get<BuildingComponent[]>(`${this.apiUrl}/${buildingId}/components`);
   }
