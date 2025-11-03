@@ -1,0 +1,12 @@
+{
+  "name": "m-hub-postgis-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "dirt-simple-postgis-http-api": "github:tobinbradley/dirt-simple-postgis-http-api"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}

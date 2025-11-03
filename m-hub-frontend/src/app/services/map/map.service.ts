@@ -10,8 +10,8 @@ import { Building } from '../../models/building';
 })
 export class MapService {
 
-  private readonly postGisBaseUrl = 'http://128.131.21.198:3002/v1';
-
+  private readonly postGisBaseUrl = 'http://localhost:3002/v1'; //'http://128.131.21.198:3002/v1';
+  
   constructor(private http: HttpClient) {}
 
   /**
