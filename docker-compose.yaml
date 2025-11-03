@@ -11,7 +11,7 @@ services:
     ports: 
       - "5432:5432"
     environment:
-      POSTGRES_USER: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: mhubdb
     healthcheck:
@@ -31,7 +31,7 @@ services:
         condition: service_healthy
     environment:
       POSTGRES_HOST: m-hub-db
-      POSTGRES_USER: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: mhubdb
       POSTGRES_PORT: 5432
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -43,6 +43,18 @@ services:
         ogr2ogr -f PostgreSQL \"PG:host=$$POSTGRES_HOST user=$$POSTGRES_USER dbname=$$POSTGRES_DB password=$$POSTGRES_PASSWORD\" /data/mhub_wien.gpkg buildingblocks -nln buildingblocks -nlt PROMOTE_TO_MULTI -progress;
         echo 'Data import completed.'
       "
+  m-hub-postgis-api:
+    build: ./m-hub-postgis-api
+    image: m-hub-postgis-api
+    ports:
+      - "3002:3000"
+    environment:
+      POSTGRES_CONNECTION: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@m-hub-db:5432/mhubdb
+      TABLES: '["buildings_details","buildingblocks"]'
+      PORT: 3002
+    depends_on:
+      m-hub-db:
+        condition: service_healthy
   m-hub-backend:
     # Use the specified Docker image
     image: m-hub-backend
@@ -56,7 +68,7 @@ services:
     volumes:
       - ./m-hub-backend/data:/data
     depends_on:
-      - m-hub-db
+      - m-hub-postgis-api
   m-hub-frontend:
     # Use the specified Docker image
     image: m-hub-frontend
@@ -70,7 +82,7 @@ services:
     # Expose port 4200 from the container to the host port 80
     ports:
       #  - "80:4200"
-      - 80:3000
+      - 80:3200
     # Mount host directories to container directories as volumes
     volumes:
       - ./m-hub-frontend/dist/m-hub-frontend/browser:/home/static

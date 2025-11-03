@@ -19,10 +19,11 @@ del ng.ver /f /q
 if "%err%" GTR "0" echo [FEHLER] ng ist derzeit nicht installiert. hint: npm install -g @angular/cli & GOTO ENDSCRIPT
 ECHO [OK] ng gefunden
 echo.
-echo [INSTALL] backend...
-cmd /c "cd m-hub-backend/data & npm install --legacy-peer-deps 2>&1"
-echo [INSTALL] frontend...
-cmd /c "cd m-hub-frontend & npm install 2>&1"
+echo [INSTALL] backend... 
+cmd /c "cd m-hub-backend/data & npm install --legacy-peer-deps 2>&1" 
+
+echo [INSTALL] frontend... 
+cmd /c "cd m-hub-frontend & npm install 2>&1" 
 cmd /c "cd m-hub-frontend & ng build 2>&1"
 
 echo [IMPORT] GeoPackage into PostGIS...
@@ -30,7 +31,7 @@ docker compose --profile import up --remove-orphans gdal
 docker compose rm -f gdal
 if %ERRORLEVEL% NEQ 0 GOTO ENDSCRIPT
 
-echo [START] backend and frontend...
+echo [START] backend, frontend, postgis-api and database...
 docker compose up
 
 :ENDSCRIPT
