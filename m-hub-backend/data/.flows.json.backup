@@ -15,6 +15,14 @@
         "info": ""
     },
     {
+        "id": "15d15759e986426e",
+        "type": "tab",
+        "label": "Nominatim Proxy",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "27011c5e3f9c0442",
         "type": "tab",
         "label": "Building by ID",
@@ -37,7 +45,6 @@
         "type": "tab",
         "label": "Component by ID",
         "disabled": false,
-        "locked": true,
         "info": "",
         "env": []
     },
@@ -46,23 +53,15 @@
         "type": "tab",
         "label": "Components by BuildingID",
         "disabled": false,
-        "locked": true,
         "info": "",
         "env": []
     },
     {
         "id": "bc8f71868ee8d8a0",
         "type": "tab",
-        "label": "Fetch Documents by filter",
+        "label": "Fetch Documents (by filter query parameters)",
         "disabled": false,
-        "info": "",
-        "env": []
-    },
-    {
-        "id": "57d67887e6ddfe9a",
-        "type": "tab",
-        "label": "Documents by Component",
-        "disabled": false,
+        "locked": true,
         "info": "",
         "env": []
     },
@@ -126,6 +125,14 @@
         "label": "Update User-specific Building Data",
         "disabled": false,
         "locked": true,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "57d67887e6ddfe9a",
+        "type": "tab",
+        "label": "Documents by Component",
+        "disabled": true,
         "info": "",
         "env": []
     },
@@ -357,6 +364,89 @@
         "wires": []
     },
     {
+        "id": "d2ec957c59f0d268",
+        "type": "http in",
+        "z": "15d15759e986426e",
+        "name": "GET nominatim request",
+        "url": "/nominatim",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 220,
+        "y": 120,
+        "wires": [
+            [
+                "790c9d0ff207190b"
+            ]
+        ]
+    },
+    {
+        "id": "790c9d0ff207190b",
+        "type": "function",
+        "z": "15d15759e986426e",
+        "name": "build nominatim request",
+        "func": "// Get query string from frontend\nconst query = msg.req.query.q || '';\n\n// Build the Nominatim URL\nconst params = new URLSearchParams({\n    format: 'json',\n    limit: '5',\n    q: `${query}, Vienna`,\n    countrycodes: 'AT',\n    email: 'simlab@tuwien.ac.at'\n});\n\nmsg.url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;\n\n// Set required headers\nmsg.headers = {\n    'User-Agent': 'm-hub-frontend/1.0 (simlab@tuwien.ac.at)',\n    'Accept': 'application/json'\n};\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 240,
+        "wires": [
+            [
+                "ec42aa64145c1c58"
+            ]
+        ]
+    },
+    {
+        "id": "c7757e85b7d43cbd",
+        "type": "comment",
+        "z": "15d15759e986426e",
+        "name": "/nominatim?q={{query}}",
+        "info": "",
+        "x": 200,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "ec42aa64145c1c58",
+        "type": "http request",
+        "z": "15d15759e986426e",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 650,
+        "y": 240,
+        "wires": [
+            [
+                "9327fc9939569592"
+            ]
+        ]
+    },
+    {
+        "id": "9327fc9939569592",
+        "type": "http response",
+        "z": "15d15759e986426e",
+        "name": "nominatim response",
+        "statusCode": "",
+        "headers": {},
+        "x": 740,
+        "y": 360,
+        "wires": []
+    },
+    {
         "id": "2ad372cdad61e38b",
         "type": "http in",
         "z": "27011c5e3f9c0442",
@@ -386,7 +476,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 410,
+        "x": 430,
         "y": 360,
         "wires": [
             [
@@ -409,7 +499,7 @@
         "id": "1ffa461e79c2a7a7",
         "type": "file in",
         "z": "27011c5e3f9c0442",
-        "name": "buildings.json",
+        "name": "read buildings.json",
         "filename": "/data/buildings.json",
         "filenameType": "str",
         "format": "utf8",
@@ -417,7 +507,7 @@
         "sendError": false,
         "encoding": "none",
         "allProps": false,
-        "x": 240,
+        "x": 250,
         "y": 260,
         "wires": [
             [
@@ -433,7 +523,7 @@
         "property": "payload",
         "action": "",
         "pretty": false,
-        "x": 410,
+        "x": 430,
         "y": 260,
         "wires": [
             [
@@ -478,7 +568,7 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 460,
+        "x": 480,
         "y": 460,
         "wires": [
             [
@@ -664,6 +754,7 @@
         "url": "/api/component/:ID",
         "method": "get",
         "upload": false,
+        "skipBodyParsing": false,
         "swaggerDoc": "",
         "x": 230,
         "y": 180,
@@ -688,7 +779,7 @@
         "id": "471960e37c1d3a39",
         "type": "file in",
         "z": "b1df49c7184ded33",
-        "name": "buildings.json",
+        "name": "read buildings-components.json",
         "filename": "/data/buildings.json",
         "filenameType": "str",
         "format": "utf8",
@@ -696,7 +787,7 @@
         "sendError": false,
         "encoding": "none",
         "allProps": false,
-        "x": 240,
+        "x": 290,
         "y": 280,
         "wires": [
             [
@@ -712,7 +803,7 @@
         "property": "payload",
         "action": "",
         "pretty": false,
-        "x": 410,
+        "x": 510,
         "y": 280,
         "wires": [
             [
@@ -736,7 +827,7 @@
         "z": "b1df49c7184ded33",
         "name": "mock: fetch building-component with param ID",
         "info": "",
-        "x": 750,
+        "x": 830,
         "y": 320,
         "wires": []
     },
@@ -992,111 +1083,6 @@
         "info": "",
         "x": 690,
         "y": 340,
-        "wires": []
-    },
-    {
-        "id": "3a3e6d1a077cbf77",
-        "type": "http in",
-        "z": "57d67887e6ddfe9a",
-        "name": "GET building-component documents",
-        "url": "/api/documents",
-        "method": "get",
-        "upload": false,
-        "skipBodyParsing": false,
-        "swaggerDoc": "",
-        "x": 240,
-        "y": 140,
-        "wires": [
-            [
-                "9d1992cfaaf486a1"
-            ]
-        ]
-    },
-    {
-        "id": "04254c8bede6eb55",
-        "type": "function",
-        "z": "57d67887e6ddfe9a",
-        "name": "extract documents",
-        "func": "// Get the component ID from the request parameters\nconst componentId = msg.req.params.ID;\n\n// Access the full buildings array (from buildings.json)\nconst buildings = msg.payload;\n\n// Search through all buildingComponents in all buildings\nlet foundComponent = null;\n\nfor (const building of buildings) {\n    if (Array.isArray(building.buildingComponents)) {\n        for (const component of building.buildingComponents) {\n            if (component.id === componentId) {\n                foundComponent = component;\n                break;\n            }\n        }\n    }\n\n    if (foundComponent) break;\n}\n\n// Return the component's documents or a 404 if not found or no documents\nif (foundComponent) {\n    const documents = foundComponent.documents || [];  // default to empty array if undefined\n    msg.payload = documents;\n    return msg;\n} else {\n    msg.statusCode = 404;\n    msg.payload = { error: `Component with ID '${componentId}' not found` };\n    return msg;\n}\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 370,
-        "y": 340,
-        "wires": [
-            [
-                "364cdf4871d3fc7f"
-            ]
-        ]
-    },
-    {
-        "id": "364cdf4871d3fc7f",
-        "type": "http response",
-        "z": "57d67887e6ddfe9a",
-        "name": "documents response",
-        "statusCode": "",
-        "headers": {},
-        "x": 440,
-        "y": 440,
-        "wires": []
-    },
-    {
-        "id": "9d1992cfaaf486a1",
-        "type": "file in",
-        "z": "57d67887e6ddfe9a",
-        "name": "buildings.json",
-        "filename": "/data/documents.json",
-        "filenameType": "str",
-        "format": "utf8",
-        "chunk": false,
-        "sendError": false,
-        "encoding": "none",
-        "allProps": false,
-        "x": 200,
-        "y": 240,
-        "wires": [
-            [
-                "9e3759ad5a14c662"
-            ]
-        ]
-    },
-    {
-        "id": "9e3759ad5a14c662",
-        "type": "json",
-        "z": "57d67887e6ddfe9a",
-        "name": "",
-        "property": "payload",
-        "action": "",
-        "pretty": false,
-        "x": 370,
-        "y": 240,
-        "wires": [
-            [
-                "04254c8bede6eb55"
-            ]
-        ]
-    },
-    {
-        "id": "a5e9b8b30a94858e",
-        "type": "comment",
-        "z": "57d67887e6ddfe9a",
-        "name": "http://localhost:1880/api/documents?componentId={componentId}",
-        "info": "",
-        "x": 290,
-        "y": 80,
-        "wires": []
-    },
-    {
-        "id": "f2e61bdcfff91ebf",
-        "type": "comment",
-        "z": "57d67887e6ddfe9a",
-        "name": "mock: fetch documents for building-component with param ID",
-        "info": "",
-        "x": 760,
-        "y": 280,
         "wires": []
     },
     {
@@ -2403,6 +2389,111 @@
                 "2a4e92211ea6c8a6"
             ]
         ]
+    },
+    {
+        "id": "3a3e6d1a077cbf77",
+        "type": "http in",
+        "z": "57d67887e6ddfe9a",
+        "name": "GET building-component documents",
+        "url": "/api/documents",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 240,
+        "y": 140,
+        "wires": [
+            [
+                "9d1992cfaaf486a1"
+            ]
+        ]
+    },
+    {
+        "id": "04254c8bede6eb55",
+        "type": "function",
+        "z": "57d67887e6ddfe9a",
+        "name": "extract documents",
+        "func": "// Get the component ID from the request parameters\nconst componentId = msg.req.params.ID;\n\n// Access the full buildings array (from buildings.json)\nconst buildings = msg.payload;\n\n// Search through all buildingComponents in all buildings\nlet foundComponent = null;\n\nfor (const building of buildings) {\n    if (Array.isArray(building.buildingComponents)) {\n        for (const component of building.buildingComponents) {\n            if (component.id === componentId) {\n                foundComponent = component;\n                break;\n            }\n        }\n    }\n\n    if (foundComponent) break;\n}\n\n// Return the component's documents or a 404 if not found or no documents\nif (foundComponent) {\n    const documents = foundComponent.documents || [];  // default to empty array if undefined\n    msg.payload = documents;\n    return msg;\n} else {\n    msg.statusCode = 404;\n    msg.payload = { error: `Component with ID '${componentId}' not found` };\n    return msg;\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 340,
+        "wires": [
+            [
+                "364cdf4871d3fc7f"
+            ]
+        ]
+    },
+    {
+        "id": "364cdf4871d3fc7f",
+        "type": "http response",
+        "z": "57d67887e6ddfe9a",
+        "name": "documents response",
+        "statusCode": "",
+        "headers": {},
+        "x": 440,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "9d1992cfaaf486a1",
+        "type": "file in",
+        "z": "57d67887e6ddfe9a",
+        "name": "buildings.json",
+        "filename": "/data/documents.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 200,
+        "y": 240,
+        "wires": [
+            [
+                "9e3759ad5a14c662"
+            ]
+        ]
+    },
+    {
+        "id": "9e3759ad5a14c662",
+        "type": "json",
+        "z": "57d67887e6ddfe9a",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 370,
+        "y": 240,
+        "wires": [
+            [
+                "04254c8bede6eb55"
+            ]
+        ]
+    },
+    {
+        "id": "a5e9b8b30a94858e",
+        "type": "comment",
+        "z": "57d67887e6ddfe9a",
+        "name": "http://localhost:1880/api/documents?componentId={componentId}",
+        "info": "",
+        "x": 290,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "f2e61bdcfff91ebf",
+        "type": "comment",
+        "z": "57d67887e6ddfe9a",
+        "name": "mock: fetch documents for building-component with param ID",
+        "info": "",
+        "x": 760,
+        "y": 280,
+        "wires": []
     },
     {
         "id": "f24d3eb7fd564ece",

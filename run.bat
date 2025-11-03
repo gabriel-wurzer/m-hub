@@ -32,6 +32,6 @@ docker compose rm -f gdal
 if %ERRORLEVEL% NEQ 0 GOTO ENDSCRIPT
 
 echo [START] backend, frontend, postgis-api and database...
-docker compose up
+docker compose up --build --remove-orphans
 
 :ENDSCRIPT

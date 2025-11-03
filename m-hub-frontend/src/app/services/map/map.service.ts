@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import 'leaflet-control-geocoder';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, map, catchError, of } from 'rxjs';
 import { Building } from '../../models/building';
 
@@ -10,7 +10,9 @@ import { Building } from '../../models/building';
 })
 export class MapService {
 
-  private readonly postGisBaseUrl = 'http://localhost:3002/v1'; //'http://128.131.21.198:3002/v1';
+  // private readonly postGisBaseUrl = 'http://128.131.21.198:3002/v1';
+  // private readonly postGisBaseUrl = 'http://m-hub-postgis-api:3000/v1';
+  private readonly postGisBaseUrl = 'http://localhost:3002/v1'; 
   
   constructor(private http: HttpClient) {}
 
@@ -82,14 +84,17 @@ export class MapService {
    * @returns Observable emitting an array of formatted address search results.
    */
   searchAddress(query: string): Observable<any[]> {
-    const url = `https://nominatim.openstreetmap.org/search`;
-    const params = new HttpParams()
-      .set('format', 'json')
-      .set('limit', '5')
-      .set('q', `${query}, Vienna`)
-      .set('countrycodes', 'AT');
+    // const url = `https://nominatim.openstreetmap.org/search`;
+    // const params = new HttpParams()
+    //   .set('format', 'json')
+    //   .set('limit', '5')
+    //   .set('q', `${query}, Vienna`)
+    //   .set('countrycodes', 'AT')
 
-    return this.http.get<any[]>(url, { params }).pipe(
+    const url = `http://localhost:1880/nominatim?q=${encodeURIComponent(query)}`;
+
+    // return this.http.get<any[]>(url, { params }).pipe(
+    return this.http.get<any[]>(url).pipe(
       map((results) => results.map((result: any) => {
         const parts: string[] = result.display_name.split(',').map((p: string) => p.trim());
         const name = parts[0] || '';
