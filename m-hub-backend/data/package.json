@@ -8,6 +8,7 @@
     "@thatopen/fragments": "~2.3.0",
     "web-ifc": "^0.0.59",
     "three": "^0.160.1",
-    "@types/three": "0.160.0"
+    "@types/three": "0.160.0",
+    "node-red-contrib-postgresql": "^0.15.4"
   }
 }

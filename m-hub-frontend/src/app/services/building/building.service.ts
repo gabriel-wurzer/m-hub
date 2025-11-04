@@ -4,7 +4,6 @@ import { Observable } from 'rxjs';
 
 import { Building } from '../../models/building';
 import { BuildingComponent } from '../../models/building-component';
-import { Document } from '../../models/document';
 
 @Injectable({
   providedIn: 'root'

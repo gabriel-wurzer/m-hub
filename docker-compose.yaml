@@ -3,11 +3,8 @@ name: m-hub
 # Define the services for m-hub
 services:
   m-hub-db:
-    # Use the specified Docker image
     image: m-hub-db
-    # Specify the build context (location of Dockerfile)
     build: ./m-hub-db
-    # Expose port 5432 from the container to the host
     ports: 
       - "5432:5432"
     environment:
@@ -37,15 +34,16 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     command: >
       sh -c "
-        echo 'Importing BUILDING DATA...';
+        echo 'IMPORTING building data...';
         ogr2ogr -f PostgreSQL \"PG:host=$$POSTGRES_HOST user=$$POSTGRES_USER dbname=$$POSTGRES_DB password=$$POSTGRES_PASSWORD\" /data/mhub_wien.gpkg buildings_details -nln buildings_details -nlt PROMOTE_TO_MULTI -progress &&
-        echo 'Importing BUILDINGBLOCK DATA...';
+        echo 'IMPORTING building block data...';
         ogr2ogr -f PostgreSQL \"PG:host=$$POSTGRES_HOST user=$$POSTGRES_USER dbname=$$POSTGRES_DB password=$$POSTGRES_PASSWORD\" /data/mhub_wien.gpkg buildingblocks -nln buildingblocks -nlt PROMOTE_TO_MULTI -progress;
         echo 'Data import completed.'
       "
   m-hub-postgis-api:
-    build: ./m-hub-postgis-api
     image: m-hub-postgis-api
+    build: ./m-hub-postgis-api
+    # Expose port 3000 from the container to the host port 3002
     ports:
       - "3002:3000"
     environment:
@@ -56,27 +54,25 @@ services:
       m-hub-db:
         condition: service_healthy
   m-hub-backend:
-    # Use the specified Docker image
     image: m-hub-backend
-    # Specify the build context (location of Dockerfile)
     build:
-      context: m-hub-backend
-    # Expose port 1880 from the container to the host
+      context: ./m-hub-backend
     ports:
       - "1880:1880"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     # Mount host directories to container directories as volumes
     volumes:
       - ./m-hub-backend/data:/data
     depends_on:
       - m-hub-postgis-api
   m-hub-frontend:
-    # Use the specified Docker image
     image: m-hub-frontend
     # docker run -i
     stdin_open: true
     # docker run -t
     tty: true
-    # Specify the build context (location of Dockerfile)
     build:
       context: m-hub-frontend
     # Expose port 8080 from the container to the host port 80
@@ -86,9 +82,8 @@ services:
     volumes:
       - ./m-hub-frontend/dist/m-hub-frontend/browser:/home/static
       - ./m-hub-frontend/httpd.conf:/home/static/httpd.conf:ro
-    # Don't start before backend
     depends_on:
       - m-hub-backend
 volumes:
-  # declares named value
+  # declare named value
   pgdata: 

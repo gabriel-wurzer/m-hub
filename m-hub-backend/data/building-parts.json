@@ -1,12 +1,12 @@
 [
   {
     "id": "1",
-    "buildingId": "100",
+    "buildingId": "5312213",
     "ownerId": "79e7432d-f1a0-4f31-9469-1e27b8d8c6cd",
     "location": "KG",
-    "name": "Fundament",
-    "description": "Gebäudefundament",
-    "type": "Fundament",
+    "name": "Wand",
+    "description": "Wandaufbau des Kellers",
+    "type": "Wand",
     "isPublic": false
   },
   {
@@ -26,7 +26,7 @@
     "location": "KG",
     "name": "Gebäudefundament",
     "description": "Fundament des Gebäudes",
-    "type": "Fundament",
+    "type": "Boden",
     "isPublic": false
   },
   {
