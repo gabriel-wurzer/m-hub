@@ -271,7 +271,7 @@ export class BuildingSidepanelComponent implements OnInit {
         this.skipFetchDocuments = false;
       },
       error: (err) => {
-        this.errorMessage = 'Fehler beim Laden der Gebäudedaten. Lokale Daten werden angezeigt.';
+        this.errorMessage = 'Fehler beim Laden der Gebäudedaten.';
         console.error(this.errorMessage, err);
         this.updateUsagePieChart();
         this.updateMaterialsPieChart();

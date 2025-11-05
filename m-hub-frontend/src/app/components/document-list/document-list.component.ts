@@ -5,10 +5,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Document } from '../../models/document';
 import { Building } from '../../models/building';
-import { BuildingService } from '../../services/building/building.service';
 import { isBuilding } from '../../utils/model-guard';
 import { BuildingComponent } from '../../models/building-component';
-import { BuildingComponentService } from '../../services/component/component.service';
 import { DocumentService } from '../../services/document/document.service';
 
 
@@ -83,54 +81,5 @@ export class DocumentListComponent implements OnInit {
       }
     });  
 
-    // if(isBuilding(entity)) {
-    //   this.loadDocumentsByBuilding(entity.bw_geb_id);
-    // }
-    // else {
-    //   this.loadDocumentsByComponent(entity.id);
-    // }
   }
-
-  // private loadDocumentsByBuilding(buildingId: string): void {
-  //   this.documentService.getDocumentsByBuilding(buildingId).subscribe({
-  //     next: (docs) => {
-  //       this.documents = docs.map(doc => ({
-  //         ...doc,
-  //         fileType: doc.fileType?.toLowerCase()
-  //       }));
-  //       this.errorMessage = docs.length === 0 ? 'No documents found for this building.' : '';
-  //     },
-  //     error: (error) => {
-  //       console.error('Error loading building documents:', error);
-  //       this.errorMessage = error.status === 404
-  //         ? 'No documents found for this building.'
-  //         : 'An error occurred while loading documents.';
-  //     },
-  //     complete: () => {
-  //       this.isLoading = false;
-  //     }
-  //   });
-  // }
-
-  // private loadDocumentsByComponent(componentId: string): void {
-  //   this.documentService.getDocumentsByComponent(componentId).subscribe({
-  //     next: (docs) => {
-  //       this.documents = docs.map(doc => ({
-  //         ...doc,
-  //         fileType: doc.fileType?.toLowerCase()
-  //       }));
-  //       this.errorMessage = docs.length === 0 ? 'No documents found for this building component.' : '';
-  //     },
-  //     error: (error) => {
-  //       console.error('Error loading building component documents:', error);
-  //       this.errorMessage = error.status === 404
-  //         ? 'No documents found for this building component.'
-  //         : 'An error occurred while loading documents.';
-  //     },
-  //     complete: () => {
-  //       this.isLoading = false;
-  //     }
-  //   });
-  
-  // }
 }

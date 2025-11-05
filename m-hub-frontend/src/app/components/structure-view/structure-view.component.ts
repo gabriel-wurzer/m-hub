@@ -12,7 +12,10 @@ import { StructureTreeComponent } from "../structure-tree/structure-tree.compone
 import { StructureDetailsComponent } from "../structure-details/structure-details.component";
 import { BuildingService } from '../../services/building/building.service';
 import { BuildingComponent } from '../../models/building-component';
-import { BuildingComponentService } from '../../services/component/component.service';
+import { BuildingComponentService } from '../../services/building-component/building-component.service';
+import { BuildingPartService } from '../../services/building-part/building-part.service';
+import { BuildingObjectService } from '../../services/building-object/building-object.service';
+import { BuildingComponentCategory } from '../../enums/component-category';
 
 @Component({
   selector: 'app-structure-view',
@@ -33,8 +36,9 @@ export class StructureViewComponent implements OnInit{
   errorMessage = '';
 
   constructor(
-    private buildingService: BuildingService, 
-    private buildingComponentService: BuildingComponentService,
+    private buildingService: BuildingService,
+    private partService: BuildingPartService,
+    private objectService: BuildingObjectService
   ) {}
 
   ngOnInit(): void {
@@ -52,7 +56,7 @@ export class StructureViewComponent implements OnInit{
     
     node.type === 'building'
       ? this.loadBuilding(node.id)
-      : this.loadBuildingComponent(node.id);
+      : this.loadBuildingComponent(node.id, node.category as BuildingComponentCategory); // node.category: 'Bauteil' | 'Objekt'
   }
 
   private loadBuilding(buildingId: string) {
@@ -84,34 +88,57 @@ export class StructureViewComponent implements OnInit{
     });
   }
 
-  private loadBuildingComponent(componentId: string) { 
+  private loadBuildingComponent(componentId: string, category: BuildingComponentCategory) {
     if (this.isLoading) return;
     this.isLoading = true;
 
-    console.log('Requesting building-component by id:', componentId);
+    console.log(`Requesting building component [${category}] by id:`, componentId);
 
-    this.buildingComponentService.getBuildingComponentById(componentId).subscribe({
-      next: (component) => {
-        if(component && component.id !== undefined) {
-          this.selectedEntity = component;
+    if (category === BuildingComponentCategory.Bauteil) {
+      this.partService.getComponentById(componentId).subscribe({
+        next: (component) => {
+          if (component && component.id !== undefined) {
+            this.selectedEntity = component;
+          }
+        },
+        error: (error) => {
+          console.error(`Error loading building part:`, error);
+          this.errorMessage =
+            error.status === 404
+              ? 'No building part found for this ID.'
+              : 'An error occurred while loading the building part.';
+          this.selectedEntity = null;
+          this.isLoading = false;
+        },
+        complete: () => {
+          this.isLoading = false;
+          console.log('Selected building part: ', this.selectedEntity);
         }
-      },
-      error: (error) => {
-        console.error('Error loading building-componet:', error);
-
-        this.errorMessage = error.status === 404 ? 'No building-component found for this ID.' : 'An error occurred while loading building-component. Please try again later.';
-
-        this.selectedEntity = null;
-        this.isLoading = false;
-      },
-      complete: () => {
-        this.isLoading = false;
-        console.log('Selected entity: ', this.selectedEntity);
-
-      }
-    });
+      });
+    } else {
+      // Explicitly typed as BuildingObjectService
+      this.objectService.getComponentById(componentId).subscribe({
+        next: (component) => {
+          if (component && component.id !== undefined) {
+            this.selectedEntity = component;
+          }
+        },
+        error: (error) => {
+          console.error(`Error loading building object:`, error);
+          this.errorMessage =
+            error.status === 404
+              ? 'No building object found for this ID.'
+              : 'An error occurred while loading the building object.';
+          this.selectedEntity = null;
+          this.isLoading = false;
+        },
+        complete: () => {
+          this.isLoading = false;
+          console.log('Selected building object: ', this.selectedEntity);
+        }
+      });
+    }
   }
-
 
   onClose() {
     this.closeStructureView.emit();

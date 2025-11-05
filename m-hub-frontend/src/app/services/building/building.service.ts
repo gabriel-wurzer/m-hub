@@ -10,17 +10,13 @@ import { BuildingComponent } from '../../models/building-component';
 })
 export class BuildingService {
 
-  private apiUrl = 'http://localhost:1880/api/building'; // Node-RED endpoint (development)
+  private apiUrl = 'http://localhost:1880/api/buildings'; // Node-RED endpoint (development)
 
   constructor(private http: HttpClient) { }
 
   getBuildingById(buildingId: string): Observable<Building> {
     return this.http.get<Building>(`${this.apiUrl}/${buildingId}`);
   } 
-
-  getBuildingComponentsByBuilding(buildingId: string): Observable<BuildingComponent[]> {
-    return this.http.get<BuildingComponent[]>(`${this.apiUrl}/${buildingId}/components`);
-  }
 
   updateBuilding(building: Building): Observable<Building> {
     return this.http.put<Building>(`${this.apiUrl}/${building.bw_geb_id}`, building);
