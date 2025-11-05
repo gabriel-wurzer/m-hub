@@ -98,6 +98,16 @@ $my-theme: mat.define-light-theme((
 // Apply the theme to Angular Material components
 @include mat.all-component-themes($my-theme);
 
+
+.private-element {
+  cursor: default !important;      
+  pointer-events: none;
+
+  &:hover {
+    opacity: 0.85;   
+  }
+}
+
 // .custom-dialog, .mat-dialog-container {
 //   width: 1200px;
 //   max-width: 90vw;

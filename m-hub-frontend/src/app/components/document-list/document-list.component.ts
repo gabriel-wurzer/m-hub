@@ -8,12 +8,13 @@ import { Building } from '../../models/building';
 import { isBuilding } from '../../utils/model-guard';
 import { BuildingComponent } from '../../models/building-component';
 import { DocumentService } from '../../services/document/document.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 
 @Component({
   selector: 'app-document-list',
   standalone: true,
-  imports: [CommonModule, MatListModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [CommonModule, MatListModule, MatIconModule, MatProgressSpinnerModule, MatTooltipModule],
   templateUrl: './document-list.component.html',
   styleUrls: ['./document-list.component.scss']
 })

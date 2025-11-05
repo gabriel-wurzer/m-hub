@@ -2,7 +2,12 @@
     <mat-spinner *ngIf="isLoading" [diameter]="40" [strokeWidth]="3" class="loading-spinner" />
 
     <mat-list  *ngIf="!isLoading && documents.length > 0; else noDocsMessage">
-        <mat-list-item *ngFor="let doc of documents">
+        <mat-list-item 
+            *ngFor="let doc of documents"
+            [class.private-element]="!doc.isPublic"
+            [matTooltip]="!doc.isPublic ? doc.name + ' ist nicht öffentlich.' : ''"
+            matTooltipShowDelay="300"
+        >
             <mat-icon class="list-icon">insert_drive_file</mat-icon>
             <span class="list-text">{{ doc.name }}.{{ doc.fileType }}</span>
             <mat-icon *ngIf="!doc.isPublic" class="lock-icon">lock</mat-icon>
