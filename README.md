@@ -9,3 +9,27 @@ To make effective recycling and re-use possible and thus provide a significant c
 We propose to develop a web-based platform that can inform property developers over likely material compositions for comparable buildings and furthermore offers the possibility to check own probes for plausibility. The idea works like a data hub in which participants enter probes/surveys in their own private area. The platform uses this data to learn to predict similar buildings in order to be able also asses buildings that have not yet been surveyed. Additionally the platform compares buildings with each other in order to conduct a plausibility check as feedback to each participant. The main benefit of this approach is that the hub gets more accurate over time since it continuously learns from its participants - which in turn acts as an incentive for participation. An neutral and open interface for material and re-use stores further contributes to the benefit. In the project, we also emphasize an integration with communal processes (e.g. building permit) and the provision of a repeatable data transformation workflow that can be used even after the project has ended.
 
 The envisioned openly available solution is not only targeted at property developers, but also public administration i.e. the municipality, standardisation bodies, professional associations, research institutions and businesses that deal with circular economy (re-use and recycling). In the long term, operation of our platform is envisioned to shift to public bodies (City of Vienna IT; Chamber of Architects and Engineers) in order to ensure open participation.
+
+---
+
+## Setup Guide
+
+Follow these steps to set up the project environment and import the building data:
+
+1. **Create a data folder**
+
+   In the project root directory, create a new folder named `data`:
+
+   ```bash
+   mkdir data
+
+2. **Download the data file**
+    
+    Download the file mhub_wien.gpkg from [TU Cloud](https://tucloud.tuwien.ac.at/index.php/f/1131545286) and place it inside the data folder you just created.   
+
+3. **Build the project**
+
+    From the project root directory, run the following command to build the project and import the building data into the database:
+
+    ```bash
+   .\run.bat
