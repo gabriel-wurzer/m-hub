@@ -8,7 +8,7 @@
     "name": "Außenwand",
     "description": "Wandaufbau des Kellers",
     "type": "Wand",
-    "isPublic": true
+    "isPublic": false
   },
   {
     "id": "p2",

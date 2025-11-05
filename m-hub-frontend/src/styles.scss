@@ -101,7 +101,6 @@ $my-theme: mat.define-light-theme((
 
 .private-element {
   cursor: default !important;      
-  pointer-events: none;
 
   &:hover {
     opacity: 0.85;   

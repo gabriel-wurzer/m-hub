@@ -20,7 +20,20 @@ mat-tree-node span {
         text-decoration: underline;
         color: rgb(60, 60, 60);
     }
+}
 
+mat-tree-node.private-element span,
+mat-tree-node.private-element .structure-tree-node span {
+  cursor: default !important;
+  text-decoration: none !important;
+  color: inherit !important;
+}
+
+mat-tree-node.private-element span:hover,
+mat-tree-node.private-element .structure-tree-node span:hover {
+  cursor: default !important;
+  text-decoration: none !important;
+  color: inherit !important;
 }
 
 .building-text {
@@ -33,6 +46,11 @@ img {
     height: 18px;
     margin-right: 10px;
     margin-bottom: 4px;
+}
+
+.lock-icon {
+  font-size: 20px;
+  margin-left: 4px;
 }
 
 .structure-tree ul,

@@ -29,5 +29,16 @@
     "description": "Hauptheizkessel des Gebäudes",
     "type": "Sonstige",
     "isPublic": false
+  },
+  {
+    "id": "o4",
+    "buildingId": "5312213",
+    "ownerId": "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71",
+    "category": "Objekt",
+    "location": "RG",
+    "name": "Antenne",
+    "description": "Antennenanlage auf dem Dach",
+    "type": "Sonstige",
+    "isPublic": true
   }
 ]

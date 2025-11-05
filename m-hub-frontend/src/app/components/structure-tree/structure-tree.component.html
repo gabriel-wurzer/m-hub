@@ -1,11 +1,14 @@
 <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="structure-tree">
 
   <!-- Root node: Building -->
-  <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding class="structure-tree-node">
+  <mat-nested-tree-node 
+    *matTreeNodeDef="let node; when: isBuildingNode" 
+    matTreeNodePadding 
+    class="structure-tree-node"
+  >
     <div class="mat-tree-node clickable">
-      <!-- <img src="assets/images/house_icon_black.svg" alt="House Icon" class="house-icon" loading="eager"/> -->
       <img src="assets/images/house_icon.svg" alt="House Icon" class="house-icon" loading="eager"/>
-      <span class="building-text" (click)="onNodeClick(node)">
+      <span class="building-text" (click)="onNodeClickAllowed(node)">
         {{ node.name }}
       </span>
     </div>
@@ -15,8 +18,17 @@
   </mat-nested-tree-node>
 
   <!-- Leaf nodes: Components -->
-  <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
-    <span (click)="onNodeClick(node)">{{ node.name }}</span>
+  <mat-tree-node 
+    *matTreeNodeDef="let node" 
+    matTreeNodePadding
+    [class.private-element]="!node.isPublic && node.ownerId !== userId"
+    [matTooltip]="(!node.isPublic && node.ownerId !== userId) ? node.name + ' ist nicht öffentlich.' : ''"
+    matTooltipShowDelay="300"
+    (click)="onNodeClickAllowed(node)"
+  >
+    <span>{{ node.name }}</span>
+
+    <mat-icon *ngIf="!node.isPublic && node.ownerId !== userId" class="lock-icon">lock</mat-icon>
   </mat-tree-node>
 
 </mat-tree>

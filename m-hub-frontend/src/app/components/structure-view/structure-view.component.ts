@@ -12,7 +12,6 @@ import { StructureTreeComponent } from "../structure-tree/structure-tree.compone
 import { StructureDetailsComponent } from "../structure-details/structure-details.component";
 import { BuildingService } from '../../services/building/building.service';
 import { BuildingComponent } from '../../models/building-component';
-import { BuildingComponentService } from '../../services/building-component/building-component.service';
 import { BuildingPartService } from '../../services/building-part/building-part.service';
 import { BuildingObjectService } from '../../services/building-object/building-object.service';
 import { BuildingComponentCategory } from '../../enums/component-category';
@@ -49,12 +48,12 @@ export class StructureViewComponent implements OnInit{
     if (!node) return;
 
     const isSameEntity =
-    (node.type === 'building' && this.selectedEntity && 'bw_geb_id' in this.selectedEntity && node.id == this.selectedEntity.bw_geb_id) ||
-    (node.type === 'component' && this.selectedEntity && 'id' in this.selectedEntity && node.id === this.selectedEntity.id);
+    (node.nodeType === 'building' && this.selectedEntity && 'bw_geb_id' in this.selectedEntity && node.id == this.selectedEntity.bw_geb_id) ||
+    (node.nodeType === 'component' && this.selectedEntity && 'id' in this.selectedEntity && node.id === this.selectedEntity.id);
 
   if (isSameEntity) return;
     
-    node.type === 'building'
+    node.nodeType === 'building'
       ? this.loadBuilding(node.id)
       : this.loadBuildingComponent(node.id, node.category as BuildingComponentCategory); // node.category: 'Bauteil' | 'Objekt'
   }

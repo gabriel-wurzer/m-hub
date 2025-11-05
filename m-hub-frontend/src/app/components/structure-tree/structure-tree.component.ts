@@ -5,27 +5,29 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
 import { NestedTreeControl } from '@angular/cdk/tree';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { forkJoin } from 'rxjs';
 
 import { Building } from '../../models/building';
-import { BuildingService } from '../../services/building/building.service';
 import { BuildingComponent } from '../../models/building-component';
 import { BuildingComponentCategory } from '../../enums/component-category';
 import { BuildingObjectService } from '../../services/building-object/building-object.service';
 import { BuildingPartService } from '../../services/building-part/building-part.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 interface TreeNode {
   id: string;
   name: string;
-  type: 'building' | 'component';
+  nodeType: 'building' | 'component';
+  category?: BuildingComponentCategory;
+  ownerId?: string;
+  isPublic?: boolean;
   children?: TreeNode[];
 }
 
 @Component({
   selector: 'app-structure-tree',
   standalone: true,
-  imports: [CommonModule, MatTreeModule, MatIconModule, MatButtonModule],
+  imports: [CommonModule, MatTreeModule, MatIconModule, MatButtonModule, MatTooltipModule],
   templateUrl: './structure-tree.component.html',
   styleUrls: ['./structure-tree.component.scss']
 })
@@ -39,6 +41,8 @@ export class StructureTreeComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
 
+  userId = "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71";
+
   constructor(
     private partService: BuildingPartService,
     private objectService: BuildingObjectService
@@ -50,6 +54,8 @@ export class StructureTreeComponent implements OnInit {
     const buildingId = this.isBuilding(this.entity)
       ? this.entity.bw_geb_id
       : this.entity.buildingId;
+
+    this.isLoading = true;
   
     forkJoin({
       parts: this.partService.getComponents(buildingId),
@@ -61,12 +67,14 @@ export class StructureTreeComponent implements OnInit {
         const root: TreeNode = {
           id: buildingId.toString(),
           name: `Gebäude ${buildingId}`,
-          type: 'building',
+          nodeType: 'building',
           children: components.map(c => ({
             id: c.id,
             name: c.name,
-            type: 'component',
-            category: c.category as BuildingComponentCategory
+            nodeType: 'component',
+            category: c.category as BuildingComponentCategory,
+            ownerId: c.ownerId,
+            isPublic: c.isPublic
           }))
         };
 
@@ -86,6 +94,8 @@ export class StructureTreeComponent implements OnInit {
     return (entity as Building).bw_geb_id !== undefined;
   }
 
+  isBuildingNode = (_: number, node: TreeNode) => node.nodeType === 'building';
+
   hasChild = (_: number, node: TreeNode) => !!node.children && node.children.length > 0;
 
   toggleNode(node: TreeNode) {
@@ -94,7 +104,16 @@ export class StructureTreeComponent implements OnInit {
       : this.treeControl.expand(node);
   }
 
-  onNodeClick(node: TreeNode): void {
+  onNodeClickAllowed(node: TreeNode): void {
+    // Only enforce access restrictions for components
+    if (node.nodeType === 'component') {
+      const hasAccess = node.isPublic || node.ownerId === this.userId;
+      if (!hasAccess) {
+        console.warn(`Access denied to node: ${node.name}`);
+        return;
+      }
+    }
+
     console.log("clicked on node", node.name);
     this.nodeClicked.emit(node);
   }
