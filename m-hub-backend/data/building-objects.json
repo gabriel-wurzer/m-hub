@@ -1,0 +1,33 @@
+[
+  {
+    "id": "o1",
+    "buildingId": "5363852",
+    "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
+    "category": "Objekt",
+    "name": "Eingangstüre",
+    "description": "Eingangstüre des Gebäudes",
+    "type": "Tür",
+    "isPublic": true
+  },
+  {
+    "id": "o2",
+    "buildingId": "5363852",
+    "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
+    "category": "Objekt",
+    "location": "DG",
+    "name": "Dachfenster",
+    "type": "Fenster",
+    "isPublic": false
+  },
+  {
+    "id": "o3",
+    "buildingId": "5363852",
+    "ownerId": "e2f64296-77ce-4cf9-9436-29f6d3a7d9ea",
+    "category": "Objekt",
+    "location": "KG",
+    "name": "Heizkessel",
+    "description": "Hauptheizkessel des Gebäudes",
+    "type": "Sonstige",
+    "isPublic": false
+  }
+]
