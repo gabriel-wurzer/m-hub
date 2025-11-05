@@ -46,45 +46,87 @@
   </ng-container>
 
   <ng-template #buildingComponentDetails>
-      <header class="structure-info-header">
-          <h2 class="structure-info-title"> Bauelement: {{ buildingComponent?.id }} </h2>
-      </header>
+     <ng-container *ngIf="buildingComponent">
+         
+        <ng-container *ngIf="isBauteil; else objektDetails">
+          <header class="structure-info-header">
+            <h2 class="structure-info-title"> Bauteil: {{ buildingComponent.id }} </h2>
+          </header>
 
-      <mat-divider class="horizontal-divider"/>
+          <mat-divider class="horizontal-divider"/>
 
-      <mat-accordion [multi]="true">
-          <mat-expansion-panel #infopanel [expanded]="true" class="info-container">
-              <mat-expansion-panel-header>
+          <mat-accordion [multi]="true">
+            <mat-expansion-panel #infopanel [expanded]="true" class="info-container">
+                <mat-expansion-panel-header>
+                    <mat-panel-title>
+                      <h3 [class.expanded]="infopanel.expanded">Informationen</h3> 
+                    </mat-panel-title>
+                  </mat-expansion-panel-header>
+
+                
+                  <div class="info-container">
+                    <div class="info-content">
+                        <div class="information-container">
+                            <p>Name: {{ buildingComponent.name }}</p>
+                            <p>Beschreibung: {{ buildingComponent.description }}</p>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="chart-container">
+                    <!-- TODO: add e-chart component for buildingPart -->
+                </div>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel #docPanel [expanded]="true" class="document-container">
+                <mat-expansion-panel-header>
                   <mat-panel-title>
-                    <h3 [class.expanded]="infopanel.expanded">Informationen</h3> 
+                    <h3 [class.expanded]="docPanel.expanded">Dokumente</h3> 
                   </mat-panel-title>
                 </mat-expansion-panel-header>
+                
+                <app-document-list [entity]="entity" />
 
-              
-                <div class="info-container">
-                  <div class="info-content">
-                      <div class="information-container">
-                          <p>Name: {{ buildingComponent?.name }}</p>
-                          <p>Beschreibung: {{ buildingComponent?.description }}</p>
-                      </div>
-                  </div>
-              </div>
-          
-              <div class="chart-container">
-                  <!-- TODO: add e-chart component for buildingPart -->
-              </div>
-          </mat-expansion-panel>
+            </mat-expansion-panel>
+          </mat-accordion>
+        </ng-container>
 
-          <mat-expansion-panel #docPanel [expanded]="true" class="document-container">
+        <ng-template #objektDetails>
+          <header class="structure-info-header">
+            <h2 class="structure-info-title">Objekt: {{ buildingComponent.id }}</h2>
+          </header>
+
+          <mat-divider class="horizontal-divider"/>
+
+          <mat-accordion [multi]="true">
+            <mat-expansion-panel #infoPanel [expanded]="true" class="info-container">
               <mat-expansion-panel-header>
                 <mat-panel-title>
-                  <h3 [class.expanded]="docPanel.expanded">Dokumente</h3> 
+                  <h3 [class.expanded]="infoPanel.expanded">Informationen</h3>
                 </mat-panel-title>
               </mat-expansion-panel-header>
-              
-              <app-document-list [entity]="entity" />
 
-          </mat-expansion-panel>
-      </mat-accordion>
+              <div class="information-container">
+                <p>Name: {{ buildingComponent.name }}</p>
+                <p>Beschreibung: {{ buildingComponent.description }}</p>
+                <!-- TODO: Add Objekt-specific content here -->
+              </div>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel #docPanel [expanded]="true" class="document-container">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <h3 [class.expanded]="docPanel.expanded">Dokumente</h3>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+
+              <app-document-list [entity]="entity"></app-document-list>
+            </mat-expansion-panel>
+          </mat-accordion>
+        </ng-template>
+
+
+     </ng-container>
+    
   </ng-template>
 </ng-container>

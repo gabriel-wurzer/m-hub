@@ -17,6 +17,7 @@ import { DocumentListComponent } from "../document-list/document-list.component"
 import { MaterialGroup } from '../../enums/material-group.enum';
 import { isBuilding } from '../../utils/model-guard';
 import { BuildingComponent } from '../../models/building-component';
+import { BuildingComponentCategory } from '../../enums/component-category';
 
 
 @Component({
@@ -227,6 +228,14 @@ export class StructureDetailsComponent implements OnInit {
         }
       ]
     };
+  }
+
+  get isBauteil(): boolean {
+    return this.buildingComponent?.category === BuildingComponentCategory.Bauteil;
+  }
+
+  get isObjekt(): boolean {
+    return this.buildingComponent?.category === BuildingComponentCategory.Objekt;
   }
 
   private setLoading(value: boolean) {
