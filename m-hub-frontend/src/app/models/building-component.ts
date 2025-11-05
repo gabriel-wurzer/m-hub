@@ -1,17 +1,31 @@
-import { BuildingComponentType } from '../enums/building-component-type.enum';
+import { BuildingComponentCategory } from '../enums/component-category';
+import { ObjectType } from '../enums/object-type';
+import { PartType } from '../enums/part-type.enum';
+
 import { Document } from "./document";
 
 /**
- * Interface for building components. Represents a 'Bauelement'
+ * Interface for building components. Represents either a 'Bauteil' or 'Objekt'
  */
-export interface BuildingComponent {
-    id: string; // UUID of the building part
-    buildingId: string;
-    ownerId: string;
-    location: string; // Dach, Über, Unter
-    name: string;
+export abstract class BuildingComponent {
+    id!: string;    // UUID of the building component
+    buildingId!: string;        
+    ownerId!: string;
+    category!: BuildingComponentCategory;   // discriminator for filtering & serialization --> 'Bauteil' | 'Objekt'
+    name!: string;
     description?: string;
-    type: BuildingComponentType, // Defines the type of the component (see type enum); furthermore the type defines an upper type via category map --> BuildingComponentTypeCategoryMap[component.type];
-    isPublic: boolean;
-    documents?: Document[]; // Optional array of appended documents
+    isPublic!: boolean;
+    documents?: Document[];
+}
+
+export class Bauteil extends BuildingComponent {
+    partStructure!: string;     // TODO: part strucutre model --> contains info for different layers (including layer_index, material, thickness)
+    partType!: PartType;        
+    location!: string;          // TODO: concrete location --> buildingStructure element reference
+}
+
+export class Objekt extends BuildingComponent {
+    objectType!: ObjectType;
+    count!: number;   
+    location?: string;
 }
