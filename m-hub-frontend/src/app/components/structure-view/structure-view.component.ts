@@ -31,6 +31,10 @@ export class StructureViewComponent implements OnInit{
   selectedEntity: Building | BuildingComponent | null = null;
 
   isLoading = false;
+  
+  initialLoadComplete = false;
+  treeLoading = false;
+  detailsLoading = false;
 
   errorMessage = '';
 
@@ -142,5 +146,28 @@ export class StructureViewComponent implements OnInit{
   onClose() {
     this.closeStructureView.emit();
   }
+
+  onTreeLoading(loading: boolean) {
+    this.treeLoading = loading;
+    this.deferGlobalLoadingUpdate();
+  }
+
+  onDetailsLoading(loading: boolean) {
+    this.detailsLoading = loading;
+    this.deferGlobalLoadingUpdate();
+  }
+
+  private deferGlobalLoadingUpdate() {
+    Promise.resolve().then(() => this.updateGlobalLoadingState());
+  }
+
+  updateGlobalLoadingState() {
+  this.isLoading = this.treeLoading || this.detailsLoading;
+
+  if (!this.isLoading && !this.initialLoadComplete && !this.treeLoading) {
+    // First full load finished
+    this.initialLoadComplete = true;
+  }
+}
 
 }

@@ -1,4 +1,5 @@
-<ng-container *ngIf="isBuilding; else buildingComponentDetails">
+<ng-container *ngIf="!isLoading">
+  <ng-container *ngIf="isBuilding; else buildingComponentDetails">
     <header class="structure-info-header">
         <h2 class="structure-info-title"> Gebäude: {{ building?.bw_geb_id }} </h2>
     </header>
@@ -6,86 +7,84 @@
     <mat-divider class="horizontal-divider"/>
 
     <mat-accordion [multi]="true">
-        <mat-expansion-panel #infopanel [expanded]="true" class="info-container">
-            <mat-expansion-panel-header>
-                <mat-panel-title>
-                  <h3 [class.expanded]="infopanel.expanded">Informationen</h3> 
-                </mat-panel-title>
-              </mat-expansion-panel-header>
-
-            
-            <div class="information-container">
-                <p *ngIf="building?.userBuilding?.name">Name: {{ building?.userBuilding?.name }}</p>
-                <p *ngIf="building?.userBuilding?.address">Adresse:  {{ building?.userBuilding?.address }}</p>
-                <p>Nutzung: {{ usageLabel }}</p>
-                <p>Bauperiode: {{ periodLabel }}</p>
-                <p>Maximale Höhe: {{ building?.maxhoehe}} m</p>
-                <p [innerHTML]="'Volumen: ' + (building?.m3vol ?? 'Keine Information') + ' m&sup3;'"></p>    
-                <p [innerHTML]="'Fläche: ' + (building?.m2flaeche ?? 'Keine Information') + ' m&sup2;'"></p>
-                <p [innerHTML]="'Bruttogeschoßfläche: ' + (building?.m2bgf ?? 'Keine Information') + ' m&sup2;'"></p>        
-            </div>
-
-            <div class="chart-container">
-                <echarts [options]="usagePieChartOptions" class="e-chart-container"></echarts>
-                <echarts [options]="materialsPieChartOptions" class="e-chart-container materials-chart-container"></echarts>
-           </div>
-        </mat-expansion-panel>
-
-        <mat-expansion-panel #docPanel [expanded]="true" class="document-container">
-            <mat-expansion-panel-header>
+      <mat-expansion-panel #infopanel [expanded]="true" class="info-container">
+          <mat-expansion-panel-header>
               <mat-panel-title>
-                <h3 [class.expanded]="docPanel.expanded">Dokumente</h3> 
+                <h3 [class.expanded]="infopanel.expanded">Informationen</h3> 
               </mat-panel-title>
             </mat-expansion-panel-header>
-            
-            <app-document-list [entity]="entity" />
 
-        </mat-expansion-panel>
+          
+          <div class="information-container">
+              <p *ngIf="building?.userBuilding?.name">Name: {{ building?.userBuilding?.name }}</p>
+              <p *ngIf="building?.userBuilding?.address">Adresse:  {{ building?.userBuilding?.address }}</p>
+              <p>Nutzung: {{ usageLabel }}</p>
+              <p>Bauperiode: {{ periodLabel }}</p>
+              <p>Maximale Höhe: {{ building?.maxhoehe}} m</p>
+              <p [innerHTML]="'Volumen: ' + (building?.m3vol ?? 'Keine Information') + ' m&sup3;'"></p>    
+              <p [innerHTML]="'Fläche: ' + (building?.m2flaeche ?? 'Keine Information') + ' m&sup2;'"></p>
+              <p [innerHTML]="'Bruttogeschoßfläche: ' + (building?.m2bgf ?? 'Keine Information') + ' m&sup2;'"></p>        
+          </div>
+
+          <div class="chart-container">
+              <echarts [options]="usagePieChartOptions" class="e-chart-container"></echarts>
+              <echarts [options]="materialsPieChartOptions" class="e-chart-container materials-chart-container"></echarts>
+        </div>
+      </mat-expansion-panel>
+
+      <mat-expansion-panel #docPanel [expanded]="true" class="document-container">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <h3 [class.expanded]="docPanel.expanded">Dokumente</h3> 
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          
+          <app-document-list [entity]="entity" />
+
+      </mat-expansion-panel>
     </mat-accordion>
-    
-    
+  </ng-container>
+
+  <ng-template #buildingComponentDetails>
+      <header class="structure-info-header">
+          <h2 class="structure-info-title"> Bauelement: {{ buildingComponent?.id }} </h2>
+      </header>
+
+      <mat-divider class="horizontal-divider"/>
+
+      <mat-accordion [multi]="true">
+          <mat-expansion-panel #infopanel [expanded]="true" class="info-container">
+              <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    <h3 [class.expanded]="infopanel.expanded">Informationen</h3> 
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+
+              
+                <div class="info-container">
+                  <div class="info-content">
+                      <div class="information-container">
+                          <p>Name: {{ buildingComponent?.name }}</p>
+                          <p>Beschreibung: {{ buildingComponent?.description }}</p>
+                      </div>
+                  </div>
+              </div>
+          
+              <div class="chart-container">
+                  <!-- TODO: add e-chart component for buildingPart -->
+              </div>
+          </mat-expansion-panel>
+
+          <mat-expansion-panel #docPanel [expanded]="true" class="document-container">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <h3 [class.expanded]="docPanel.expanded">Dokumente</h3> 
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              
+              <app-document-list [entity]="entity" />
+
+          </mat-expansion-panel>
+      </mat-accordion>
+  </ng-template>
 </ng-container>
-
-<ng-template #buildingComponentDetails>
-    <header class="structure-info-header">
-        <h2 class="structure-info-title"> Bauelement: {{ buildingComponent?.id }} </h2>
-    </header>
-
-    <mat-divider class="horizontal-divider"/>
-
-    <mat-accordion [multi]="true">
-        <mat-expansion-panel #infopanel [expanded]="true" class="info-container">
-            <mat-expansion-panel-header>
-                <mat-panel-title>
-                  <h3 [class.expanded]="infopanel.expanded">Informationen</h3> 
-                </mat-panel-title>
-              </mat-expansion-panel-header>
-
-            
-              <div class="info-container">
-                <div class="info-content">
-                    <div class="information-container">
-                        <p>Name: {{ buildingComponent?.name }}</p>
-                        <p>Beschreibung: {{ buildingComponent?.description }}</p>
-                    </div>
-                </div>
-            </div>
-        
-            <div class="chart-container">
-                <!-- TODO: add e-chart component for buildingPart -->
-            </div>
-        </mat-expansion-panel>
-
-        <mat-expansion-panel #docPanel [expanded]="true" class="document-container">
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <h3 [class.expanded]="docPanel.expanded">Dokumente</h3> 
-              </mat-panel-title>
-            </mat-expansion-panel-header>
-            
-            <app-document-list [entity]="entity" />
-
-        </mat-expansion-panel>
-    </mat-accordion>
-
-</ng-template>

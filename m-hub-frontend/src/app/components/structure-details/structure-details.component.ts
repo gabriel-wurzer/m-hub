@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -29,6 +29,7 @@ import { BuildingComponent } from '../../models/building-component';
 export class StructureDetailsComponent implements OnInit {
 
   @Input() entity!: Building | BuildingComponent | null;
+  @Output() loadingChange = new EventEmitter<boolean>();
 
   errorMessage = '';
 
@@ -55,6 +56,7 @@ export class StructureDetailsComponent implements OnInit {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['entity']) {
+      this.setLoading(true)
       this.setupEntity();
     }
   }
@@ -82,6 +84,8 @@ export class StructureDetailsComponent implements OnInit {
 
       // TODO: add Chart options call here
     }
+
+    this.setLoading(false)
   }
 
   get periodLabel(): string {
@@ -223,6 +227,11 @@ export class StructureDetailsComponent implements OnInit {
         }
       ]
     };
+  }
+
+  private setLoading(value: boolean) {
+    this.isLoading = value;
+    this.loadingChange.emit(value);
   }
 
 }
