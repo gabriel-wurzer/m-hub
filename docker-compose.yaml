@@ -12,7 +12,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: mhubdb
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d mhubdb"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -20,7 +20,6 @@ services:
       - pgdata:/var/lib/postgresql/data
   gdal:
     image: osgeo/gdal:alpine-small-3.6.3
-    profiles: ["import"]
     volumes:
       - ./data:/data                          
     depends_on:
@@ -34,9 +33,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     command: >
       sh -c "
-        echo 'IMPORTING building data...';
+        echo 'Importing buildings data...';
         ogr2ogr -f PostgreSQL \"PG:host=$$POSTGRES_HOST user=$$POSTGRES_USER dbname=$$POSTGRES_DB password=$$POSTGRES_PASSWORD\" /data/mhub_wien.gpkg buildings_details -nln buildings_details -nlt PROMOTE_TO_MULTI -progress &&
-        echo 'IMPORTING building block data...';
+        echo 'Importing building blocks data...';
         ogr2ogr -f PostgreSQL \"PG:host=$$POSTGRES_HOST user=$$POSTGRES_USER dbname=$$POSTGRES_DB password=$$POSTGRES_PASSWORD\" /data/mhub_wien.gpkg buildingblocks -nln buildingblocks -nlt PROMOTE_TO_MULTI -progress;
         echo 'Data import completed.'
       "
@@ -69,12 +68,12 @@ services:
       - m-hub-postgis-api
   m-hub-frontend:
     image: m-hub-frontend
+    build:
+      context: ./m-hub-frontend
     # docker run -i
     stdin_open: true
     # docker run -t
     tty: true
-    build:
-      context: m-hub-frontend
     # Expose port 8080 from the container to the host port 80
     ports:
       - "80:8080"
