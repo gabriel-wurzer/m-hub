@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS user_buildings (
     address TEXT
 );
 
+ALTER TABLE user_buildings
+ADD CONSTRAINT unique_user_building UNIQUE (user_id, building_id);
+
 -- ===============================================
 --  INITIAL DATA INSERTS
 -- ===============================================
@@ -59,3 +62,11 @@ VALUES
  'Praterstern 6'
 );
 
+-- ===============================================
+--  FOREIGN KEYS
+-- ===============================================
+ALTER TABLE user_buildings
+  ADD CONSTRAINT fk_userbuildings_user
+  FOREIGN KEY (user_id)
+  REFERENCES users(id)
+  ON DELETE CASCADE;
