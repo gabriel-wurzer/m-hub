@@ -27,6 +27,8 @@ export class DocumentListComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
 
+  userId = "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71";
+
   constructor(private documentService: DocumentService) {}
 
   ngOnInit() {
@@ -34,7 +36,7 @@ export class DocumentListComponent implements OnInit {
     if (this.documentsArray) {
       this.documents = this.documentsArray.map(doc => ({
         ...doc,
-        fileType: doc.fileType?.toLowerCase()
+        fileType: doc.file_type?.toLowerCase()
       }));
     }
 
@@ -63,7 +65,7 @@ export class DocumentListComponent implements OnInit {
       next: (docs) => {
         this.documents = docs.map(doc => ({
           ...doc,
-          fileType: doc.fileType?.toLowerCase()
+          fileType: doc.file_type?.toLowerCase()
         }));
         this.errorMessage = docs.length === 0
           ? isBuilding(entity)

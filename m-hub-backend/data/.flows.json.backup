@@ -1,20 +1,5 @@
 [
     {
-        "id": "e8d2c400a518975b",
-        "type": "tab",
-        "label": "API",
-        "disabled": false,
-        "info": "",
-        "env": []
-    },
-    {
-        "id": "f6f2187d.f17ca8",
-        "type": "tab",
-        "label": "Flow 1",
-        "disabled": false,
-        "info": ""
-    },
-    {
         "id": "15d15759e986426e",
         "type": "tab",
         "label": "Nominatim Proxy",
@@ -59,6 +44,14 @@
         "id": "232321eb69b742f0",
         "type": "tab",
         "label": "GET Objects",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "21f39893d63240a6",
+        "type": "tab",
+        "label": "GET Document by ID",
         "disabled": false,
         "info": "",
         "env": []
@@ -214,6 +207,21 @@
         "env": []
     },
     {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "e8d2c400a518975b",
+        "type": "tab",
+        "label": "API",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "e637e22c3aa8ed51",
         "type": "postgreSQLConfig",
         "name": "",
@@ -237,201 +245,6 @@
         "userFieldType": "str",
         "password": "${POSTGRES_PASSWORD}",
         "passwordFieldType": "str"
-    },
-    {
-        "id": "1248ce57789522dd",
-        "type": "http in",
-        "z": "e8d2c400a518975b",
-        "name": "GET /test",
-        "url": "/test",
-        "method": "get",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 100,
-        "y": 40,
-        "wires": [
-            [
-                "9c7509f21076669f"
-            ]
-        ]
-    },
-    {
-        "id": "9c7509f21076669f",
-        "type": "template",
-        "z": "e8d2c400a518975b",
-        "name": "hello world (html)",
-        "field": "payload",
-        "fieldType": "msg",
-        "format": "html",
-        "syntax": "plain",
-        "template": "<html>\n    <head></head>\n    <body>\n        <h1>Hello World!</h1>\n    </body>\n</html>",
-        "output": "str",
-        "x": 290,
-        "y": 40,
-        "wires": [
-            [
-                "625e6556c0ae06ae"
-            ]
-        ]
-    },
-    {
-        "id": "625e6556c0ae06ae",
-        "type": "http response",
-        "z": "e8d2c400a518975b",
-        "name": "response",
-        "statusCode": "",
-        "headers": {},
-        "x": 480,
-        "y": 40,
-        "wires": []
-    },
-    {
-        "id": "3cc11d24.ff01a2",
-        "type": "comment",
-        "z": "f6f2187d.f17ca8",
-        "name": "WARNING: please check you have started this container with a volume that is mounted to /data\\n otherwise any flow changes are lost when you redeploy or upgrade the container\\n (e.g. upgrade to a more recent node-red docker image).\\n  If you are using named volumes you can ignore this warning.\\n Double click or see info side panel to learn how to start Node-RED in Docker to save your work",
-        "info": "\nTo start docker with a bind mount volume (-v option), for example:\n\n```\ndocker run -it -p 1880:1880 -v /home/user/node_red_data:/data --name mynodered nodered/node-red\n```\n\nwhere `/home/user/node_red_data` is a directory on your host machine where you want to store your flows.\n\nIf you do not do this then you can experiment and redploy flows, but if you restart or upgrade the container the flows will be disconnected and lost. \n\nThey will still exist in a hidden data volume, which can be recovered using standard docker techniques, but that is much more complex than just starting with a named volume as described above.",
-        "x": 350,
-        "y": 80,
-        "wires": []
-    },
-    {
-        "id": "67e242a6fdfa39b6",
-        "type": "function",
-        "z": "f6f2187d.f17ca8",
-        "name": "open ifc file and convert to JSON",
-        "func": "const ifcData = msg.payload\nconst ifcBuffer = new Uint8Array(ifcData)\nconst modelID = context.get(\"webIfc\").OpenModel(ifcBuffer)\nconst fragments = context.get(\"components\").get(OBC.FragmentsManager);\nconst fragmentIfcLoader = context.get(\"components\").get(OBC.IfcLoader);\nconst exported = await context.get(\"exporter\").export(context.get(\"webIfc\"), modelID)\ncontext.get(\"webIfc\").CloseModel(modelID)\nmsg.payload = exported\nreturn msg\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "// Der Code hier wird ausgeführt,\n// wenn der Node gestartet wird\nconst components = new OBC.Components()\n//components.init()\ncontext.set(\"components\", components)\nconst exporter = components.get(OBC.IfcJsonExporter)\ncontext.set(\"exporter\", exporter)\n//node.log(JSON.stringify(exporter))\nconst webIfc = new WEBIFC.IfcAPI()\n//webIfc.SetWasmPath(\"https://unpkg.com/web-ifc@0.0.57/\", true)\n//webIfc.SetWasmPath(\"\",false)\n//node.log(util.inspect(webIfc))\nawait webIfc.Init()\ncontext.set(\"webIfc\", webIfc)\n//node.log(JSON.stringify(webIfc))\n//node.log('setup completed')\n",
-        "finalize": "",
-        "libs": [
-            {
-                "var": "OBC",
-                "module": "@thatopen/components"
-            },
-            {
-                "var": "WEBIFC",
-                "module": "web-ifc"
-            }
-        ],
-        "x": 220,
-        "y": 280,
-        "wires": [
-            [
-                "dd4e97322180a29f"
-            ]
-        ]
-    },
-    {
-        "id": "29efd0853df6ee13",
-        "type": "inject",
-        "z": "f6f2187d.f17ca8",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 140,
-        "y": 220,
-        "wires": [
-            [
-                "b8effc12f971c9b9"
-            ]
-        ]
-    },
-    {
-        "id": "b8effc12f971c9b9",
-        "type": "http request",
-        "z": "f6f2187d.f17ca8",
-        "name": "",
-        "method": "GET",
-        "ret": "bin",
-        "paytoqs": "ignore",
-        "url": "https://thatopen.github.io/engine_components/resources/small.ifc",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "senderr": false,
-        "headers": [],
-        "x": 310,
-        "y": 220,
-        "wires": [
-            [
-                "67e242a6fdfa39b6"
-            ]
-        ]
-    },
-    {
-        "id": "284c6fc27e3ce9c2",
-        "type": "debug",
-        "z": "f6f2187d.f17ca8",
-        "name": "debug 1",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 580,
-        "y": 340,
-        "wires": []
-    },
-    {
-        "id": "dd4e97322180a29f",
-        "type": "file",
-        "z": "f6f2187d.f17ca8",
-        "name": "",
-        "filename": "/data/test.json",
-        "filenameType": "str",
-        "appendNewline": true,
-        "createDir": false,
-        "overwriteFile": "true",
-        "encoding": "none",
-        "x": 400,
-        "y": 340,
-        "wires": [
-            [
-                "284c6fc27e3ce9c2"
-            ]
-        ]
-    },
-    {
-        "id": "e8ad80e4d0f32511",
-        "type": "comment",
-        "z": "f6f2187d.f17ca8",
-        "name": "download https://thatopen.github.io/engine_components/resources/small.ifc",
-        "info": "",
-        "x": 500,
-        "y": 180,
-        "wires": []
-    },
-    {
-        "id": "e49eac9b2532b6c4",
-        "type": "comment",
-        "z": "f6f2187d.f17ca8",
-        "name": "save as test.json",
-        "info": "",
-        "x": 400,
-        "y": 380,
-        "wires": []
     },
     {
         "id": "d2ec957c59f0d268",
@@ -848,7 +661,7 @@
         "type": "function",
         "z": "22c7f522d447c91f",
         "name": "find building parts (with filter buildingId)",
-        "func": "// Access query parameter\nconst buildingId = msg.req.query.buildingId;\n\n// Access the full building parts array (from building-parts.json)\nconst buildingParts = msg.payload;\n\n\nif (buildingId) {\n    // Filter by building ID\n    const filteredParts = buildingParts.filter(\n        part => String(part.buildingId) === String(buildingId)\n    );\n\n    if (filteredParts.length === 0) {\n        msg.payload = {\n            message: `No building parts found for buildingId '${buildingId}'.`,\n            data: []\n        };\n    } else {\n        msg.payload = filteredParts;\n    }\n\n    msg.statusCode = 200;\n    return msg;\n\n} else {\n    // Return all parts if no filter is provided\n    msg.payload = buildingParts;\n    msg.statusCode = 200;\n    return msg;\n}\n",
+        "func": "// Access query parameter\nconst buildingId = msg.req.query.buildingId;\n\n// Access the full building parts array (from building-parts.json)\nconst buildingParts = msg.payload;\n\n\nif (buildingId) {\n    // Filter by building ID\n    const filteredParts = buildingParts.filter(\n        part => String(part.buildingId) === String(buildingId)\n    );\n\n    msg.payload = filteredParts;\n    msg.statusCode = 200;\n    return msg;\n\n} else {\n    // Return all parts if no filter is provided\n    msg.payload = buildingParts;\n    msg.statusCode = 200;\n    return msg;\n}\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -1098,7 +911,7 @@
         "type": "function",
         "z": "232321eb69b742f0",
         "name": "find building objects (with filter buildingId)",
-        "func": "// Access query parameter\nconst buildingId = msg.req.query.buildingId;\n\n// Access the full building objects array (from building-objects.json)\nconst buildingObjects = msg.payload;\n\n\nif (buildingId) {\n    // Filter by building ID\n    const filteredObjects = buildingObjects.filter(\n        part => String(part.buildingId) === String(buildingId)\n    );\n\n    if (filteredObjects.length === 0) {\n        msg.payload = {\n            message: `No building objects found for buildingId '${buildingId}'.`,\n            data: []\n        };\n    } else {\n        msg.payload = filteredObjects;\n    }\n\n    msg.statusCode = 200;\n    return msg;\n\n} else {\n    // Return all objects if no filter is provided\n    msg.payload = buildingObjects;\n    msg.statusCode = 200;\n    return msg;\n}\n",
+        "func": "// Access query parameter\nconst buildingId = msg.req.query.buildingId;\n\n// Access the full building objects array (from building-objects.json)\nconst buildingObjects = msg.payload;\n\n\nif (buildingId) {\n    // Filter by building ID\n    const filteredObjects = buildingObjects.filter(\n        part => String(part.buildingId) === String(buildingId)\n    );\n\n    msg.payload = filteredObjects;\n    msg.statusCode = 200;\n    return msg;\n\n} else {\n    // Return all objects if no filter is provided\n    msg.payload = buildingObjects;\n    msg.statusCode = 200;\n    return msg;\n}\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -1110,6 +923,103 @@
         "wires": [
             [
                 "aeb9f37f9406eb81"
+            ]
+        ]
+    },
+    {
+        "id": "125fc0cb9525e015",
+        "type": "http in",
+        "z": "21f39893d63240a6",
+        "name": "GET document",
+        "url": "/api/documents/:ID",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 200,
+        "y": 200,
+        "wires": [
+            [
+                "21b424d7f9790875"
+            ]
+        ]
+    },
+    {
+        "id": "fc38eb3027340c5d",
+        "type": "comment",
+        "z": "21f39893d63240a6",
+        "name": "http://localhost:1880/api/documents/ID",
+        "info": "",
+        "x": 290,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "21b424d7f9790875",
+        "type": "function",
+        "z": "21f39893d63240a6",
+        "name": "validate SQL query parameter",
+        "func": "// Extract the path parameter directly from the HTTP request\nlet id = msg.req.params.ID;\n\n// Validation\nif (id === undefined || id === null) {\n  msg.statusCode = 400;\n  msg.payload = { error: \"missing ID\" };\n  return msg;\n}\nid = String(id).trim();\n\n// Enforce uuid semantics (length + allowed chars)\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (!uuidRegex.test(id)) {\n  msg.statusCode = 400;\n  msg.payload = { error: \"invalid UUID format\" };\n  return msg;\n}\n\nmsg.params = [ id ];\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 320,
+        "wires": [
+            [
+                "4483aa95bd222288"
+            ]
+        ]
+    },
+    {
+        "id": "af258860612939c4",
+        "type": "function",
+        "z": "21f39893d63240a6",
+        "name": "format result",
+        "func": "if (!msg.payload || msg.payload.length === 0) {\n    msg.statusCode = 404;\n    msg.payload = { error: \"Document not found\" };\n}\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 580,
+        "wires": [
+            [
+                "7876acc0df9f5a4e"
+            ]
+        ]
+    },
+    {
+        "id": "7876acc0df9f5a4e",
+        "type": "http response",
+        "z": "21f39893d63240a6",
+        "name": "document response",
+        "statusCode": "",
+        "headers": {},
+        "x": 670,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "4483aa95bd222288",
+        "type": "postgresql",
+        "z": "21f39893d63240a6",
+        "name": "mhub db",
+        "query": "SELECT * \nFROM documents\nWHERE id = $1::uuid\nLIMIT 1;\n",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 440,
+        "y": 440,
+        "wires": [
+            [
+                "af258860612939c4"
             ]
         ]
     },
@@ -1127,74 +1037,7 @@
         "y": 200,
         "wires": [
             [
-                "cb482042e1d86a02"
-            ]
-        ]
-    },
-    {
-        "id": "49d964f8fce72ce6",
-        "type": "function",
-        "z": "bc8f71868ee8d8a0",
-        "name": "extract documents",
-        "func": "// Extract possible filters from query string\nconst q = msg.req.query || {};\nconst buildingId = q.buildingId;\nconst componentId = q.componentId;\nconst ownerId = q.ownerId;\n\n// Loaded JSON file (array of documents)\nvar documents = msg.payload;  \n\n// OValidate at least one filter (optional)\nif (!buildingId && !componentId && !ownerId) {\n  msg.payload = { error: \"Missing filter: buildingId, componentId, or ownerId.\" };\n  msg.statusCode = 400;\n  return [msg];\n}\n\n// Ensure it's an array\nif (!Array.isArray(documents)) {\n    msg.payload = { error: \"Documents data is not an array.\" };\n    msg.statusCode = 500;\n    return [msg];\n}\n\n// Apply filters dynamically\nlet filtered = documents.filter(doc => {\n  if (buildingId && String(doc.buildingId) !== String(buildingId)) return false;\n  if (componentId && String(doc.componentId) !== String(componentId)) return false;\n  if (ownerId && String(doc.ownerId) !== String(ownerId)) return false;\n  return true;\n});\n\n// Return documents\nmsg.payload = filtered;\nmsg.statusCode = 200;\nreturn [msg];\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 370,
-        "y": 400,
-        "wires": [
-            [
-                "913d48767b346272"
-            ]
-        ]
-    },
-    {
-        "id": "913d48767b346272",
-        "type": "http response",
-        "z": "bc8f71868ee8d8a0",
-        "name": "documents response",
-        "statusCode": "",
-        "headers": {},
-        "x": 440,
-        "y": 500,
-        "wires": []
-    },
-    {
-        "id": "cb482042e1d86a02",
-        "type": "file in",
-        "z": "bc8f71868ee8d8a0",
-        "name": "read documents.json",
-        "filename": "/data/documents.json",
-        "filenameType": "str",
-        "format": "utf8",
-        "chunk": false,
-        "sendError": false,
-        "encoding": "none",
-        "allProps": false,
-        "x": 180,
-        "y": 300,
-        "wires": [
-            [
-                "4254b6e7778df55b"
-            ]
-        ]
-    },
-    {
-        "id": "4254b6e7778df55b",
-        "type": "json",
-        "z": "bc8f71868ee8d8a0",
-        "name": "",
-        "property": "payload",
-        "action": "",
-        "pretty": false,
-        "x": 370,
-        "y": 300,
-        "wires": [
-            [
-                "49d964f8fce72ce6"
+                "61c2e06722aa0399"
             ]
         ]
     },
@@ -1209,14 +1052,53 @@
         "wires": []
     },
     {
-        "id": "521eb13470c47853",
-        "type": "comment",
+        "id": "317420a4aa6c1d63",
+        "type": "http response",
         "z": "bc8f71868ee8d8a0",
-        "name": "mock: fetch documents with filter query parameters",
-        "info": "",
-        "x": 690,
-        "y": 340,
+        "name": "documents response",
+        "statusCode": "",
+        "headers": {},
+        "x": 700,
+        "y": 380,
         "wires": []
+    },
+    {
+        "id": "ee29714a82a0df86",
+        "type": "postgresql",
+        "z": "bc8f71868ee8d8a0",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 460,
+        "y": 380,
+        "wires": [
+            [
+                "317420a4aa6c1d63"
+            ]
+        ]
+    },
+    {
+        "id": "61c2e06722aa0399",
+        "type": "function",
+        "z": "bc8f71868ee8d8a0",
+        "name": "build SQL query",
+        "func": "// Extract query params\nconst q = msg.req.query || {};\nconst buildingId = q.buildingId ? String(q.buildingId).trim() : null;\nconst componentId = q.componentId ? String(q.componentId).trim() : null;\nconst ownerId = q.ownerId ? String(q.ownerId).trim() : null;\n\n\n// Build dynamic SQL\nlet sql = `SELECT * FROM documents WHERE 1=1`;\nconst params = [];\n\n// Append filters dynamically\nif (buildingId) {\n  params.push(buildingId);\n  sql += ` AND building_id = $${params.length}`;\n}\n\nif (componentId) {\n  params.push(componentId);\n  sql += ` AND component_id = $${params.length}`;\n}\n\nif (ownerId) {\n  params.push(ownerId);\n  sql += ` AND owner_id = $${params.length}::uuid`;\n}\n\n// Order by name (optional)\nsql += ` ORDER BY name ASC;`;\n\n// Assign query and params for PostgreSQL node\nmsg.query = sql;\nmsg.params = params;\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 280,
+        "wires": [
+            [
+                "ee29714a82a0df86"
+            ]
+        ]
     },
     {
         "id": "a2e77efc11f9785e",
@@ -3601,6 +3483,201 @@
         "info": "",
         "x": 760,
         "y": 280,
+        "wires": []
+    },
+    {
+        "id": "3cc11d24.ff01a2",
+        "type": "comment",
+        "z": "f6f2187d.f17ca8",
+        "name": "WARNING: please check you have started this container with a volume that is mounted to /data\\n otherwise any flow changes are lost when you redeploy or upgrade the container\\n (e.g. upgrade to a more recent node-red docker image).\\n  If you are using named volumes you can ignore this warning.\\n Double click or see info side panel to learn how to start Node-RED in Docker to save your work",
+        "info": "\nTo start docker with a bind mount volume (-v option), for example:\n\n```\ndocker run -it -p 1880:1880 -v /home/user/node_red_data:/data --name mynodered nodered/node-red\n```\n\nwhere `/home/user/node_red_data` is a directory on your host machine where you want to store your flows.\n\nIf you do not do this then you can experiment and redploy flows, but if you restart or upgrade the container the flows will be disconnected and lost. \n\nThey will still exist in a hidden data volume, which can be recovered using standard docker techniques, but that is much more complex than just starting with a named volume as described above.",
+        "x": 350,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "67e242a6fdfa39b6",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "open ifc file and convert to JSON",
+        "func": "const ifcData = msg.payload\nconst ifcBuffer = new Uint8Array(ifcData)\nconst modelID = context.get(\"webIfc\").OpenModel(ifcBuffer)\nconst fragments = context.get(\"components\").get(OBC.FragmentsManager);\nconst fragmentIfcLoader = context.get(\"components\").get(OBC.IfcLoader);\nconst exported = await context.get(\"exporter\").export(context.get(\"webIfc\"), modelID)\ncontext.get(\"webIfc\").CloseModel(modelID)\nmsg.payload = exported\nreturn msg\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "// Der Code hier wird ausgeführt,\n// wenn der Node gestartet wird\nconst components = new OBC.Components()\n//components.init()\ncontext.set(\"components\", components)\nconst exporter = components.get(OBC.IfcJsonExporter)\ncontext.set(\"exporter\", exporter)\n//node.log(JSON.stringify(exporter))\nconst webIfc = new WEBIFC.IfcAPI()\n//webIfc.SetWasmPath(\"https://unpkg.com/web-ifc@0.0.57/\", true)\n//webIfc.SetWasmPath(\"\",false)\n//node.log(util.inspect(webIfc))\nawait webIfc.Init()\ncontext.set(\"webIfc\", webIfc)\n//node.log(JSON.stringify(webIfc))\n//node.log('setup completed')\n",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "OBC",
+                "module": "@thatopen/components"
+            },
+            {
+                "var": "WEBIFC",
+                "module": "web-ifc"
+            }
+        ],
+        "x": 220,
+        "y": 280,
+        "wires": [
+            [
+                "dd4e97322180a29f"
+            ]
+        ]
+    },
+    {
+        "id": "29efd0853df6ee13",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 220,
+        "wires": [
+            [
+                "b8effc12f971c9b9"
+            ]
+        ]
+    },
+    {
+        "id": "b8effc12f971c9b9",
+        "type": "http request",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "method": "GET",
+        "ret": "bin",
+        "paytoqs": "ignore",
+        "url": "https://thatopen.github.io/engine_components/resources/small.ifc",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 310,
+        "y": 220,
+        "wires": [
+            [
+                "67e242a6fdfa39b6"
+            ]
+        ]
+    },
+    {
+        "id": "284c6fc27e3ce9c2",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 580,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "dd4e97322180a29f",
+        "type": "file",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "filename": "/data/test.json",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 400,
+        "y": 340,
+        "wires": [
+            [
+                "284c6fc27e3ce9c2"
+            ]
+        ]
+    },
+    {
+        "id": "e8ad80e4d0f32511",
+        "type": "comment",
+        "z": "f6f2187d.f17ca8",
+        "name": "download https://thatopen.github.io/engine_components/resources/small.ifc",
+        "info": "",
+        "x": 500,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "e49eac9b2532b6c4",
+        "type": "comment",
+        "z": "f6f2187d.f17ca8",
+        "name": "save as test.json",
+        "info": "",
+        "x": 400,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "1248ce57789522dd",
+        "type": "http in",
+        "z": "e8d2c400a518975b",
+        "name": "GET /test",
+        "url": "/test",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 100,
+        "y": 40,
+        "wires": [
+            [
+                "9c7509f21076669f"
+            ]
+        ]
+    },
+    {
+        "id": "9c7509f21076669f",
+        "type": "template",
+        "z": "e8d2c400a518975b",
+        "name": "hello world (html)",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "plain",
+        "template": "<html>\n    <head></head>\n    <body>\n        <h1>Hello World!</h1>\n    </body>\n</html>",
+        "output": "str",
+        "x": 290,
+        "y": 40,
+        "wires": [
+            [
+                "625e6556c0ae06ae"
+            ]
+        ]
+    },
+    {
+        "id": "625e6556c0ae06ae",
+        "type": "http response",
+        "z": "e8d2c400a518975b",
+        "name": "response",
+        "statusCode": "",
+        "headers": {},
+        "x": 480,
+        "y": 40,
         "wires": []
     }
 ]
