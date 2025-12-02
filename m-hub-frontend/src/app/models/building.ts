@@ -34,23 +34,17 @@ export interface BaseBuilding {
  * User-specific fields from user-buildings table
  */
 export interface UserBuilding {
-  id: string;              // user_buildings.id
-  userId: string;          // reference to user
-  buildingId: string;      // reference to building
+  id: string;               // user_buildings.id
+  user_id: string;          // reference to user
+  building_id: string;      // reference to building
   structure: Floor[];
-  name?: string;           
+  name: string;
   address?: string;        
-  documents?: Document[];
-  buildingComponents?: BuildingComponent[];
+  documents?: Document[];                       // fetched via relation
+  building_components?: BuildingComponent[];    // fetched via relation
 }
 
 
 export interface Building extends BaseBuilding {
   userBuilding?: UserBuilding; // optional user-specific data
 }
-
-// // Uniform entity
-// export interface Building {
-//   baseBuilding: BaseBuilding;
-//   userBuilding?: UserBuilding; // optional: may not exist if current user hasn’t added it yet
-// }
