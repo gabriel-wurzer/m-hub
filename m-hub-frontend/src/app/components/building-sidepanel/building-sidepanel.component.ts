@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -18,7 +18,6 @@ import { BreakpointObserver } from '@angular/cdk/layout';
 import { AddBuildingButtonComponent } from "../buttons/add-building-button/add-building-button.component";
 import { BuildingService } from '../../services/building/building.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { UserService } from '../../services/user/user.service';
 
 @Component({
   selector: 'app-building-sidepanel',
@@ -66,7 +65,6 @@ export class BuildingSidepanelComponent implements OnInit {
   constructor(
     private buildingService: BuildingService,
     public router: Router,
-    private userService: UserService,
     private breakpointObserver: BreakpointObserver
   ) {}
 
@@ -78,8 +76,8 @@ export class BuildingSidepanelComponent implements OnInit {
     });
   }
 
-  ngOnChanges() {
-    if (this.building) {
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['building'] && this.building) {
       this.fetchBuildingData(this.building.bw_geb_id);
     }
   }
@@ -229,124 +227,53 @@ export class BuildingSidepanelComponent implements OnInit {
     this.errorMessage = '';
     this.skipFetchDocuments = false;
 
-    // Prepare both observables
-    const buildingRequest$ = this.buildingService.getBuildingById(buildingId);
-    const userBuildingCheck$ = this.userService.isBuildingInUser(this.userId, buildingId);
+    forkJoin({
+      baseBuilding: this.buildingService.getBuildingById(buildingId),
+      userBuilding: this.buildingService.getUserBuilding(this.userId, buildingId)
+    }).subscribe({
+      next: (results) => {
+        // this.building = results.baseBuilding;
 
-    forkJoin([buildingRequest$, userBuildingCheck$]).subscribe({
-      next: ([freshBuilding, isUserBuilding]) => {
-        this.building = freshBuilding;
+        // const ub = results.userBuilding;
+        // this.isBuildingAdded = !!ub; // converts object to true, null to false
 
-        // Update charts immediately
+        // if (ub && this.building) {
+        //     this.building.userBuilding = ub;
+        // }
+
+        const mergedBuilding: Building = {
+          ...results.baseBuilding,        // clone base building (all FID, geom, etc.)
+          userBuilding: results.userBuilding ?? undefined
+        };
+
+         // Assign merged building
+        this.building = mergedBuilding;
+
+        // Store flag for UI state
+        this.isBuildingAdded = !!results.userBuilding;
+
+
         this.updateUsagePieChart();
         this.updateMaterialsPieChart();
-
-        this.isBuildingAdded = isUserBuilding;
-
-        if (isUserBuilding) {
-          // Fetch user-specific building data
-          this.userService.getUserBuildingData(this.userId, buildingId).subscribe({
-            next: (userBuildingData) => {
-              if (this.building) {
-
-                if (this.building.userBuilding) {
-                  this.building.userBuilding.name = userBuildingData.name;
-                  this.building.userBuilding.address = userBuildingData.address;
-                } else {
-                  console.warn('Building user data is undefined.');
-                }
-              }
-              this.isLoading = false; // Finish loading AFTER user-specific data is loaded
-            },
-            error: (err) => {
-              console.error('Fehler beim Laden der benutzer-spezifischen Gebäudedaten:', err);
-              this.isLoading = false; // Finish loading even if user-specific data fails
-            }
-          });
-        } else {
-          // If the building is not in user's list, finish loading here
-          this.isLoading = false;
-        }
-
-        this.skipFetchDocuments = false;
+        
+        this.isLoading = false;
+        this.skipFetchDocuments = false; // Now ready to load docs
       },
       error: (err) => {
         this.errorMessage = 'Fehler beim Laden der Gebäudedaten.';
         console.error(this.errorMessage, err);
-        this.updateUsagePieChart();
-        this.updateMaterialsPieChart();
-        this.skipFetchDocuments = true;
+        
+        this.isBuildingAdded = false;
         this.isLoading = false;
-
-        this.isBuildingAdded = false; // set to false if building is not in buildings.json
+        this.skipFetchDocuments = true; // Prevent doc loading on error
       }
     });
   }
-
-  // fetchBuildingData(buildingId: number): void {
-  //   this.isLoading = true;
-  //   this.errorMessage = '';
-  //   this.skipFetchDocuments = false;
-    
-  //   this.buildingService.getBuildingById(buildingId).subscribe({
-  //     next: (freshBuilding) => {
-  //       this.building = freshBuilding;
-  //       this.updateUsagePieChart();
-  //       this.updateMaterialsPieChart();
-
-  //       this.userService.isBuildingInUser(this.userId, buildingId).subscribe({
-  //         next: (isUserBuilding: boolean) => {
-  //           this.isBuildingAdded = isUserBuilding;
-  //           if (isUserBuilding) {
-  //             // Fetch user-specific data (name, address) if the building is in the user's list
-  //             this.fetchUserSpecificBuildingData(buildingId);
-  //           }
-  //         },
-  //         error: (err) => {
-  //           console.error('Fehler beim Prüfen der Benutzerzugehörigkeit.', err);
-  //         }
-  //       });
-
-  //       this.skipFetchDocuments = false;
-  //       this.isLoading = false;
-  //     },
-  //     error: (err) => {
-  //       this.errorMessage = 'Fehler beim Laden der Gebäudedaten. Lokale Daten werden angezeigt.';
-  //       console.error(this.errorMessage, err);
-  //       this.updateUsagePieChart();
-  //       this.updateMaterialsPieChart();
-  //       this.skipFetchDocuments = true;
-  //       this.isLoading = false;
-  //     }
-  //   });
-  // }
-
-  fetchUserSpecificBuildingData(buildingId: string): void {
-    this.userService.getUserBuildingData(this.userId, buildingId).subscribe({
-      next: (userBuildingData) => {
-        console.log('Benutzerspezifische Gebäudedaten: ', userBuildingData);
-
-        if (this.building) {
-          if (this.building.userBuilding) {
-            this.building.userBuilding.name = userBuildingData.name;
-            this.building.userBuilding.address = userBuildingData.address;
-          } else {
-            console.warn('Building user data is undefined.');
-          }
-        }
-        // this.userBuildingName = userBuildingData.name;
-        // this.userBuildingAddress = userBuildingData.address;
-      },
-      error: (err) => {
-        console.error('Fehler beim Laden der benutzerspezifischen Gebäudedaten.', err);
-      }
-    });
-  }
-
 
   openStructureViewPanel() {
     console.log('Open structure details view for building: ', this.building?.bw_geb_id);
     if (this.building) {
+      // console.log('Emitting openStructureView event for building: ', this.building);
       this.openStructureView.emit(this.building);
     }
   }

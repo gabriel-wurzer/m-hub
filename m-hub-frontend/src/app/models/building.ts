@@ -2,11 +2,15 @@ import { BuildingComponent } from "./building-component";
 import { Document } from "./document";
 import { Floor } from "./floor";
 
+export interface Building extends BaseBuilding {
+  userBuilding?: UserBuilding; // optional user-specific data
+}
 
 /**
  * Shared fields from buildings table
  */
 export interface BaseBuilding {
+    fid: number;
     bw_geb_id: string;
     dom_nutzung: number;
     bp: string;
@@ -45,6 +49,3 @@ export interface UserBuilding {
 }
 
 
-export interface Building extends BaseBuilding {
-  userBuilding?: UserBuilding; // optional user-specific data
-}

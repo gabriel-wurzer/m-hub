@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,7 +27,7 @@ import { BuildingComponentCategory } from '../../enums/component-category';
   templateUrl: './structure-details.component.html',
   styleUrl: './structure-details.component.scss'
 })
-export class StructureDetailsComponent implements OnInit {
+export class StructureDetailsComponent implements OnChanges {
 
   @Input() entity!: Building | BuildingComponent | null;
   @Output() loadingChange = new EventEmitter<boolean>();
@@ -49,12 +49,6 @@ export class StructureDetailsComponent implements OnInit {
 
   isLoading = false;
 
-  ngOnInit() {
-    if (this.entity) {
-      this.setupEntity();
-    }
-  }
-
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['entity']) {
       this.setLoading(true)
@@ -70,8 +64,7 @@ export class StructureDetailsComponent implements OnInit {
       this.isBuilding = true;
       this.building = this.entity;
       this.buildingComponent = null;
-
-      console.log("Current building: ", this.building);
+      // console.log("Current building: ", this.building);
 
       this.#updateUsagePieChart();
       this.#updateMaterialsPieChart();
@@ -81,7 +74,7 @@ export class StructureDetailsComponent implements OnInit {
       this.isBuilding = false;
       this.building = null;
       this.buildingComponent = this.entity;
-      console.log("Current building component: ", this.buildingComponent);
+      // console.log("Current building component: ", this.buildingComponent);
 
       // TODO: add Chart options call here
     }

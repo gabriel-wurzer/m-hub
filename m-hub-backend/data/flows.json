@@ -101,8 +101,7 @@
         "id": "494a592c87260810",
         "type": "tab",
         "label": "User-specific Building Data by IDs",
-        "disabled": false,
-        "locked": true,
+        "disabled": true,
         "info": "",
         "env": []
     },
@@ -110,7 +109,7 @@
         "id": "407023a188d5f43b",
         "type": "tab",
         "label": "Update Building",
-        "disabled": false,
+        "disabled": true,
         "info": "",
         "env": []
     },
@@ -118,8 +117,7 @@
         "id": "7928a23a3a61c00d",
         "type": "tab",
         "label": "Buildings by User",
-        "disabled": false,
-        "locked": true,
+        "disabled": true,
         "info": "",
         "env": []
     },
@@ -127,7 +125,7 @@
         "id": "0cd2d786f9f2ee5b",
         "type": "tab",
         "label": "Add Building to User",
-        "disabled": false,
+        "disabled": true,
         "info": "",
         "env": []
     },
@@ -135,8 +133,7 @@
         "id": "ca28e1e423cf6c08",
         "type": "tab",
         "label": "Remove Building from User",
-        "disabled": false,
-        "locked": true,
+        "disabled": true,
         "info": "",
         "env": []
     },
@@ -144,8 +141,7 @@
         "id": "f85e317b58138888",
         "type": "tab",
         "label": "Add User-specific Building Data",
-        "disabled": false,
-        "locked": true,
+        "disabled": true,
         "info": "",
         "env": []
     },
@@ -153,8 +149,7 @@
         "id": "cd2a82c3ad69ca34",
         "type": "tab",
         "label": "Update User-specific Building Data",
-        "disabled": false,
-        "locked": true,
+        "disabled": true,
         "info": "",
         "env": []
     },
@@ -1364,11 +1359,11 @@
         "split": false,
         "rowsPerMsg": 1,
         "outputs": 1,
-        "x": 400,
-        "y": 460,
+        "x": 420,
+        "y": 500,
         "wires": [
             [
-                "6365c74e169a8656"
+                "c9442d5fc2ce7625"
             ]
         ]
     },
@@ -1384,7 +1379,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 340,
+        "x": 380,
         "y": 320,
         "wires": [
             [
@@ -1403,28 +1398,8 @@
         "statusCode": "",
         "headers": {},
         "x": 940,
-        "y": 600,
+        "y": 500,
         "wires": []
-    },
-    {
-        "id": "6365c74e169a8656",
-        "type": "function",
-        "z": "49b0e269f24a6368",
-        "name": "format result",
-        "func": "if (!msg.payload || msg.payload.length === 0) {\n    msg.statusCode = 404;\n    msg.payload = { error: \"User-Building not found\" };\n}\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 510,
-        "y": 600,
-        "wires": [
-            [
-                "c9442d5fc2ce7625"
-            ]
-        ]
     },
     {
         "id": "6b6095c9762ab462",
@@ -1435,8 +1410,8 @@
             "87fcf60f0dd03320"
         ],
         "uncaught": false,
-        "x": 750,
-        "y": 460,
+        "x": 690,
+        "y": 340,
         "wires": [
             [
                 "d58a2b2cfe81e28a"
@@ -1455,8 +1430,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 960,
-        "y": 460,
+        "x": 900,
+        "y": 340,
         "wires": [
             [
                 "c9442d5fc2ce7625"

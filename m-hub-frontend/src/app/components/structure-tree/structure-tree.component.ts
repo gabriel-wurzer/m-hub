@@ -8,7 +8,6 @@ import { NestedTreeControl } from '@angular/cdk/tree';
 import { forkJoin } from 'rxjs';
 
 import { Building } from '../../models/building';
-import { BuildingComponent } from '../../models/building-component';
 import { BuildingComponentCategory } from '../../enums/component-category';
 import { BuildingObjectService } from '../../services/building-object/building-object.service';
 import { BuildingPartService } from '../../services/building-part/building-part.service';
@@ -32,7 +31,7 @@ interface TreeNode {
   styleUrls: ['./structure-tree.component.scss']
 })
 export class StructureTreeComponent implements OnInit {
-  @Input() entity!: Building | BuildingComponent | null;
+  @Input() entity!: Building;
   @Output() nodeClicked = new EventEmitter<TreeNode>();
   @Output() loadingChange = new EventEmitter<boolean>();
 
@@ -53,10 +52,7 @@ export class StructureTreeComponent implements OnInit {
     if (!this.entity) return;
 
     this.setLoading(true);
-
-    const buildingId = this.isBuilding(this.entity)
-      ? this.entity.bw_geb_id
-      : this.entity.buildingId;
+    const buildingId = this.entity.bw_geb_id; 
 
     forkJoin({
       parts: this.partService.getComponents(buildingId),
@@ -89,10 +85,6 @@ export class StructureTreeComponent implements OnInit {
       },
       complete: () => this.setLoading(false)
     });
-  }
-
-  private isBuilding(entity: Building | BuildingComponent): entity is Building {
-    return (entity as Building).bw_geb_id !== undefined;
   }
 
   isBuildingNode = (_: number, node: TreeNode) => node.nodeType === 'building';

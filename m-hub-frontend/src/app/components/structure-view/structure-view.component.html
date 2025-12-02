@@ -7,7 +7,7 @@
     <ng-container *ngIf="!isLoading || selectedEntity">
         <div class="structure-tree-container">
             <app-structure-tree 
-                [entity]="entity"
+                [entity]="rootBuilding"
                 (nodeClicked)="onNodeSelected($event)"
                 (loadingChange)="onTreeLoading($event)">
             </app-structure-tree>

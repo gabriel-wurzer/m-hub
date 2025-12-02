@@ -15,6 +15,7 @@ import { BuildingComponent } from '../../models/building-component';
 import { BuildingPartService } from '../../services/building-part/building-part.service';
 import { BuildingObjectService } from '../../services/building-object/building-object.service';
 import { BuildingComponentCategory } from '../../enums/component-category';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-structure-view',
@@ -28,6 +29,7 @@ export class StructureViewComponent implements OnInit{
   @Input() entity!: Building | BuildingComponent | null;
   @Output() closeStructureView = new EventEmitter<void>();
 
+  rootBuilding!: Building;
   selectedEntity: Building | BuildingComponent | null = null;
 
   isLoading = false;
@@ -38,6 +40,9 @@ export class StructureViewComponent implements OnInit{
 
   errorMessage = '';
 
+  private _loadingUpdateScheduled = false;
+  userId = "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71";
+
   constructor(
     private buildingService: BuildingService,
     private partService: BuildingPartService,
@@ -45,7 +50,21 @@ export class StructureViewComponent implements OnInit{
   ) {}
 
   ngOnInit(): void {
-    this.selectedEntity = this.entity;
+
+    if (!this.entity) return;
+
+    // Building case
+    if ('bw_geb_id' in this.entity) {
+      this.loadBuilding(this.entity.bw_geb_id);
+      return;
+    }
+
+    // Component case
+    if ('id' in this.entity) {
+      const component = this.entity as BuildingComponent;
+      const category = component.category as BuildingComponentCategory;
+      this.loadBuildingComponent(component.id, category);
+    }
   }
   
   onNodeSelected(node: any) {
@@ -55,33 +74,40 @@ export class StructureViewComponent implements OnInit{
     (node.nodeType === 'building' && this.selectedEntity && 'bw_geb_id' in this.selectedEntity && node.id == this.selectedEntity.bw_geb_id) ||
     (node.nodeType === 'component' && this.selectedEntity && 'id' in this.selectedEntity && node.id === this.selectedEntity.id);
 
-  if (isSameEntity) return;
+    if (isSameEntity) return;
     
     node.nodeType === 'building'
       ? this.loadBuilding(node.id)
       : this.loadBuildingComponent(node.id, node.category as BuildingComponentCategory); // node.category: 'Bauteil' | 'Objekt'
   }
 
-  private loadBuilding(buildingId: string) {
-    if (this.isLoading) return;
+  loadBuilding(buildingId: string): void {
     this.isLoading = true;
+    this.errorMessage = '';
 
-    const id = buildingId;
+    console.log('Requesting building by id:', buildingId);
 
-    console.log('Requesting building by id:', id);
+    forkJoin({
+      baseBuilding: this.buildingService.getBuildingById(buildingId),
+      userBuilding: this.buildingService.getUserBuilding(this.userId, buildingId)
+    }).subscribe({
+      next: (results) => {
+        const building: Building = results.baseBuilding;
 
-    this.buildingService.getBuildingById(id).subscribe({
-      next: (building) => {
-        if(building && building.bw_geb_id !== undefined) {
-          this.selectedEntity = building;
+        const ub = results.userBuilding;
+
+        if (ub && building) {
+            building.userBuilding = ub;
         }
+
+        this.rootBuilding = { ...building };
+        this.selectedEntity = { ...building };
+        this.isLoading = false;
       },
-      error: (error) => {
-        console.error('Error loading building:', error);
+      error: (err) => {
+        this.errorMessage = 'Fehler beim Laden der Gebäudedaten.';
+        console.error(this.errorMessage, err);
 
-        this.errorMessage = error.status === 404 ? 'No building found for this ID.' : 'An error occurred while loading building. Please try again later.';
-
-        this.selectedEntity = null;
         this.isLoading = false;
       },
       complete: () => {
@@ -101,7 +127,7 @@ export class StructureViewComponent implements OnInit{
       this.partService.getComponentById(componentId).subscribe({
         next: (component) => {
           if (component && component.id !== undefined) {
-            this.selectedEntity = component;
+            this.selectedEntity = { ...component };
           }
         },
         error: (error) => {
@@ -137,7 +163,7 @@ export class StructureViewComponent implements OnInit{
         },
         complete: () => {
           this.isLoading = false;
-          console.log('Selected building object: ', this.selectedEntity);
+          // console.log('Selected building object: ', this.selectedEntity);
         }
       });
     }
@@ -162,12 +188,12 @@ export class StructureViewComponent implements OnInit{
   }
 
   updateGlobalLoadingState() {
-  this.isLoading = this.treeLoading || this.detailsLoading;
+    this.isLoading = this.treeLoading || this.detailsLoading;
 
-  if (!this.isLoading && !this.initialLoadComplete && !this.treeLoading) {
-    // First full load finished
-    this.initialLoadComplete = true;
+    if (!this.isLoading && !this.initialLoadComplete && !this.treeLoading) {
+      // First full load finished
+      this.initialLoadComplete = true;
+    }
   }
-}
 
 }
