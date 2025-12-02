@@ -11,7 +11,7 @@ export class DocumentService {
 
   constructor(private http: HttpClient) {}
 
-  getBuildingById(documentId: string): Observable<Document> {
+  getDocumentById(documentId: string): Observable<Document> {
     return this.http.get<Document>(`${this.apiUrl}/${documentId}`);
   } 
 
@@ -19,7 +19,15 @@ export class DocumentService {
    * Generic document fetcher that supports multiple filters.
    */
   getDocuments(filters: { buildingId?: string; componentId?: string; ownerId?: string }): Observable<Document[]> {
-    const params = new HttpParams({ fromObject: filters as any });
+    const cleanFilters: any = {};
+    Object.keys(filters).forEach(key => {
+      const value = (filters as any)[key];
+      if (value !== null && value !== undefined && value !== '') {
+        cleanFilters[key] = value;
+      }
+    });
+
+    const params = new HttpParams({ fromObject: cleanFilters });
     return this.http.get<Document[]>(this.apiUrl, { params });
   }
   

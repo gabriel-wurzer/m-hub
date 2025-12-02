@@ -75,9 +75,7 @@ export class DocumentListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading documents:', error);
-        this.errorMessage = error.status === 404
-          ? 'No documents found.'
-          : 'An error occurred while loading documents.';
+        this.errorMessage = 'An error occurred while loading documents. Please try again.';
       },
       complete: () => {
         this.isLoading = false;
