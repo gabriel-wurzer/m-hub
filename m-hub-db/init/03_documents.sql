@@ -65,7 +65,7 @@ FROM (
     VALUES
     -- building_id, owner_id, name, component_id, description, is_public, file_url, file_type
     ('5312213', '79e7432d-f1a0-4f31-9469-1e27b8d8c6cd'::uuid, 'Energieverbauchsbericht', NULL, NULL, FALSE, 'https://example.com/energy.pdf', 'pdf'),
-    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Wandaufbau', '3', 'Aufbau der Kaminwand des Gebäudes', TRUE, 'https://example.com/blueprint.pdf', 'pdf'),
+    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Wandaufbau', 'p3', 'Aufbau der Kaminwand des Gebäudes', TRUE, 'https://example.com/blueprint.pdf', 'pdf'),
     ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauplan', NULL, 'Architektonischer Bauplan des Gebäudes', TRUE, 'https://example.com/blueprint.pdf', 'pdf'),
     ('5363852', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Fluchtplan', NULL, 'Plan für Evakuierung des Gebäudes in einem Notfall', TRUE, 'https://example.com/evacuation.png', 'png'),
     ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Protokoll: Schlossaustausch', NULL, NULL, FALSE, 'https://example.com/load_bearing.pdf', 'pdf'),
