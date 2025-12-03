@@ -1,0 +1,11 @@
+<h2 mat-dialog-title>Benutzerprofil</h2>
+    <mat-dialog-content>
+      <div class="profile-info">
+        <p>Benutzername: {{ data.username }}</p>
+        <p>E-Mail: {{ data.email }}</p>
+        <p>ID: <span style="font-size:0.9em; color:grey">{{ data.id }}</span></p>
+      </div>
+    </mat-dialog-content>
+        <mat-dialog-actions class="actions">
+      <button mat-button mat-dialog-close>Schließen</button>
+    </mat-dialog-actions>
