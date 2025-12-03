@@ -1,0 +1,47 @@
+<h2 mat-dialog-title>Anmelden</h2>
+    
+<mat-dialog-content>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="form-container">
+            
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>E-Mail</mat-label>
+                <input matInput type="email" formControlName="email" placeholder="alice@example.com">
+                <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
+                    Bitte E-Mail-Adresse angeben
+                </mat-error>
+
+                <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
+                    Ungültiges E-Mail Format
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Passwort</mat-label>
+                <input matInput type="password" formControlName="password">
+                <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+                    Bitte Passwort angeben
+                </mat-error>
+            </mat-form-field>
+
+            <div class="error-msg" *ngIf="errorMessage">
+            {{ errorMessage }}
+            </div>
+        </div>
+    </form>
+</mat-dialog-content>
+
+
+
+<mat-dialog-actions class="actions">
+    <button mat-button mat-dialog-close>Abbrechen</button>
+    
+    <button mat-button color="primary" (click)="onSubmit()" *ngIf="!isLoading" [disabled]="loginForm.invalid" class="login-button">
+        <!-- <ng-template #loginText>Login</ng-template> -->
+         Login
+    </button>
+    <div class="spinner-container" *ngIf="isLoading">
+        <mat-spinner diameter="20" color="accent"></mat-spinner>
+    </div>
+    
+</mat-dialog-actions>

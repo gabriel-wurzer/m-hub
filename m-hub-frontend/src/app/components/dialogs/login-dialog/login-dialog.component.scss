@@ -1,0 +1,39 @@
+.form-container {
+      display: flex;
+      flex-direction: column;
+      min-width: 300px;
+      padding-top: 10px;
+}
+
+h2 {
+  font-size: 1.4rem !important;
+}
+
+mat-error {
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 64px;
+    margin-left: 8px;
+  }
+
+.full-width {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.error-msg {
+  color: var(--mat-form-field-error-text-color);
+  font-size: 1rem;
+  text-align: center;
+}
