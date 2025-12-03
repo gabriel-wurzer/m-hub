@@ -29,10 +29,37 @@
 
     <div class="bottom-section">
       <mat-divider />
-      
-      <button mat-icon-button matTooltip="Profil" matTooltipPosition="after" disableRipple class="profile-button" (click)="onProfileClick()">
-        <mat-icon>account_circle</mat-icon>
-      </button>
+
+      <ng-container *ngIf="user$ | async as user; else loginButton">
+    
+        <button 
+          mat-icon-button 
+          matTooltip="Abmelden" 
+          matTooltipPosition="after" 
+          disableRipple 
+          class="logout-button" 
+          (click)="onLogoutClick()">
+          <mat-icon color="warn">logout</mat-icon>
+        </button>
+
+        <button mat-icon-button matTooltip="Profil anzeigen" matTooltipPosition="after" disableRipple class="profile-button" (click)="onProfileClick(user)">
+          <mat-icon>account_circle</mat-icon>
+        </button>
+
+      </ng-container>
+
+      <ng-template #loginButton>
+        <button 
+          mat-icon-button 
+          matTooltip="Anmelden"  
+          matTooltipPosition="after" 
+          disableRipple 
+          class="login-button" 
+          (click)="onLoginClick()">
+          <mat-icon>login</mat-icon>
+        </button>
+      </ng-template>
+    
     </div>
 
   </mat-sidenav>
@@ -41,24 +68,31 @@
 
     <mat-menu #menu="matMenu">
       <div class="menu-item" (click)="onMenuClick('map')">
-        <button mat-menu-item>
+        <button mat-menu-item disableRipple >
           <mat-icon>map</mat-icon> 
         </button>
         <span>Karte</span>
       </div>
 
       <div class="menu-item" (click)="onMenuClick('hub')">
-        <button mat-menu-item>
+        <button mat-menu-item disableRipple >
           <mat-icon>hub</mat-icon> 
         </button>
         <span>Hub</span>
       </div>
 
       <div  class="menu-item" (click)="onMenuClick('data')">
-        <button mat-menu-item>
+        <button mat-menu-item disableRipple >
           <mat-icon>grid_view</mat-icon> 
         </button>
         <span>Daten</span>
+      </div>
+
+      <div class="menu-item" *ngIf="user$ | async as user" (click)="onProfileClick(user)">
+        <button mat-menu-item disableRipple >
+          <mat-icon>account_circle</mat-icon>
+        </button>
+        <span>Profil</span>
       </div>
     </mat-menu>
 
@@ -71,6 +105,33 @@
         <span>M</span>
         <span>HUB</span>
       </div>
+
+      <ng-container *ngIf="user$ | async as user; else loginButton">
+    
+        <button 
+          mat-icon-button 
+          matTooltip="Abmelden" 
+          matTooltipPosition="after" 
+          disableRipple 
+          class="logout-button" 
+          (click)="onLogoutClick()">
+          <mat-icon color="warn">logout</mat-icon>
+        </button>
+
+      </ng-container>
+
+      <ng-template #loginButton>
+        <button 
+          mat-icon-button 
+          matTooltip="Anmelden"  
+          matTooltipPosition="after" 
+          disableRipple 
+          class="login-button" 
+          (click)="onLoginClick()">
+          <mat-icon>login</mat-icon>
+        </button>
+      </ng-template>
+
     </mat-toolbar>
 
     <div class="router-outlet-container">

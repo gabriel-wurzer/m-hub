@@ -10,6 +10,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { AuthenticationService } from '../../services/authentication/authentication.service';
+import { LoginDialogComponent } from '../dialogs/login-dialog/login-dialog.component';
+import { Observable } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { LogoutDialogComponent } from '../dialogs/logout-dialog/logout-dialog.component';
+import { ProfileDialogComponent } from '../dialogs/profile-dialog/profile-dialog.component';
 
 @Component({
   selector: 'app-menu-bar',
@@ -35,7 +41,16 @@ export class MenuBarComponent implements OnInit {
 
   isMobile = false;
 
-  constructor(private router: Router, private breakpointObserver: BreakpointObserver) {
+  user$: Observable<any>;
+
+  constructor(
+    private auth: AuthenticationService,
+    private router: Router,
+    private dialog: MatDialog, 
+    private breakpointObserver: BreakpointObserver,
+  ) {
+    this.user$ = this.auth.getUser$();
+
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.currentRoute = event.urlAfterRedirects;
@@ -54,7 +69,37 @@ export class MenuBarComponent implements OnInit {
     this.router.navigate([`/${route}`]);
   }
 
-  onProfileClick() {
-    console.log('Profile clicked');
+  onLoginClick() {
+    this.dialog.open(LoginDialogComponent, {
+      width: '90%',
+      maxWidth: '400px',
+      disableClose: true // User must click cancel or login
+    });
+  }
+
+  onLogoutClick() {
+    const dialogRef = this.dialog.open(LogoutDialogComponent, 
+      { 
+        width: '90%',
+        maxWidth: '360px',
+        autoFocus: false 
+
+      });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.auth.logout();
+        this.router.navigate(['/map']);
+      }
+    });
+  }
+
+  onProfileClick(user: any) {
+    this.dialog.open(ProfileDialogComponent, {
+      width: '90%',
+      maxWidth: '400px',
+      data: user, // Pass the user object to the dialog
+      autoFocus: false
+    });
   }
 }

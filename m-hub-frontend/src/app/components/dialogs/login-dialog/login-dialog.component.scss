@@ -16,7 +16,6 @@ mat-error {
 .actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 1rem;
 }
 
 .spinner-container {
@@ -28,7 +27,7 @@ mat-error {
   }
 
 .full-width {
-    width: 100%;
+    max-width: 100%;
     margin-bottom: 10px;
 }
 
