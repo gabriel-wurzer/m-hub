@@ -1,1 +1,1 @@
-FROM nodered/node-red
+FROM nodered/node-red:latest

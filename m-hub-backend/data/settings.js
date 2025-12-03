@@ -513,6 +513,8 @@ module.exports = {
      */
     functionGlobalContext: {
         // os:require('os'),
+        bcrypt:require('bcrypt'),
+        jwt:require('jsonwebtoken')
     },
 
     /** The maximum number of messages nodes will buffer internally as part of their
