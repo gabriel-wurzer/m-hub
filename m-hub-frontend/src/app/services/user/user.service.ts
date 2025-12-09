@@ -1,47 +1,54 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Building } from '../../models/building';
+import { UserBuilding } from '../../models/building';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
 
-  private apiUrl = 'http://localhost:1880/api/user'; // Node-RED endpoint (development)
+  private apiUrl = 'http://localhost:1880/api/users'; // Node-RED endpoint (development)
 
   constructor(private http: HttpClient) { }
 
-  getBuildingsByUser(userId: string): Observable<Building[]> {
-    return this.http.get<Building[]>(`${this.apiUrl}/${userId}/buildings`);
+    /**
+   * GET /api/users/me//buildings
+   */
+  getUserBuildingsList(): Observable<UserBuilding[]> {
+    return this.http.get<UserBuilding[]>(`${this.apiUrl}/me/buildings`);
   }
 
-  isBuildingInUser(userId: string, buildingId: string): Observable<boolean> {
-    return this.http.get<boolean>(`${this.apiUrl}/${userId}/buildings/${buildingId}/exists`);
-  }
-  
-  addBuildingToUser(userId: string, buildingId: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/${userId}/buildings`, { buildingId });
-  }
-
-  removeBuildingFromUser(userId: string, buildingId: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${userId}/buildings/${buildingId}`);
+    /**
+   * GET /api/users/me/buildings/:buildingId
+   */
+  getUserBuilding(buildingId: string): Observable<UserBuilding | null> {
+      return this.http.get<UserBuilding | null>(`${this.apiUrl}/me/buildings/${buildingId}`);
   }
 
-  getUserBuildingData(userId: string, buildingId: string): Observable<{ name: string, address: string }> {
-    return this.http.get<{ name: string, address: string }>(`${this.apiUrl}/${userId}/buildings/${buildingId}/data`);
+    /**
+   * POST /api/users/me/buildings/
+   */
+  createUserBuilding(buildingId: string, data: Partial<UserBuilding>): Observable<UserBuilding> {
+    const payload = { ...data, building_id: buildingId };
+    return this.http.post<UserBuilding>(`${this.apiUrl}/me/buildings`, payload);
   }
 
-  addUserBuildingData(userId: string, buildingId: string, name: string | null, address: string | null): Observable<{ userId: string, buildingId: string, name: string | null, address: string | null }> {
-    const body = { name, address };
-    return this.http.post<{ userId: string, buildingId: string, name: string | null, address: string | null }>(`${this.apiUrl}/${userId}/buildings/${buildingId}/data`, body);
+    /**
+   * PUT /api/users/me/buildings/:userBuildingId
+   */
+  updateUserBuilding(userBuildingId: string, data: Partial<UserBuilding>): Observable<UserBuilding> {
+    const payload = { ...data};
+    return this.http.put<UserBuilding>(`${this.apiUrl}/me/buildings/${userBuildingId}`, payload);
   }
 
-  updateUserBuildingData(userId: string, buildingId: string, name: string | null, address: string | null): Observable<{ userId: string, buildingId: string, name: string | null, address: string | null }> {
-    const body = { name, address };
-    return this.http.put<{ userId: string, buildingId: string, name: string | null, address: string | null }>(`${this.apiUrl}/${userId}/buildings/${buildingId}/data`, body);
+    /**
+   * DELETE /api/users/me/buildings/:userBuildingId
+   */
+  deleteUserBuilding(userBuildingId: string): Observable<UserBuilding> {
+    return this.http.delete<UserBuilding>(`${this.apiUrl}/me/buildings/${userBuildingId}`);
   }
-  
+
 }
 
 
