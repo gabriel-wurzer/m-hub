@@ -1,7 +1,7 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, map, Observable, of, skip, Subscription } from 'rxjs';
 import { Building } from '../../models/building';
 import { Period, PeriodLabels } from '../../enums/period.enum';
 import { Usage, UsageLabels } from '../../enums/usage.enum';
@@ -18,6 +18,9 @@ import { BreakpointObserver } from '@angular/cdk/layout';
 import { AddBuildingButtonComponent } from "../buttons/add-building-button/add-building-button.component";
 import { BuildingService } from '../../services/building/building.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { UserService } from '../../services/user/user.service';
+import { AuthenticationService } from '../../services/authentication/authentication.service';
+import { EntityContext } from '../../models/entity-context';
 
 @Component({
   selector: 'app-building-sidepanel',
@@ -37,11 +40,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   templateUrl: './building-sidepanel.component.html',
   styleUrl: './building-sidepanel.component.scss'
 })
-export class BuildingSidepanelComponent implements OnInit {
+export class BuildingSidepanelComponent implements OnInit, OnChanges, OnDestroy {
   @Input() building: Building | null = null;
   @Output() closePanel = new EventEmitter<void>();
 
-  @Output() openStructureView = new EventEmitter<Building>();
+  // @Output() openStructureView = new EventEmitter<Building>();
+  @Output() openStructureView = new EventEmitter<EntityContext>();
 
   errorMessage = '';
   skipFetchDocuments = false;
@@ -59,14 +63,21 @@ export class BuildingSidepanelComponent implements OnInit {
   isLoading = false; 
   isMobile = false;
 
-  userId = "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71";
+  isLoggedIn$: Observable<boolean>;
 
+  private authSubscription: Subscription | undefined;
 
   constructor(
+    private authService: AuthenticationService,
     private buildingService: BuildingService,
+    private userService: UserService,
     public router: Router,
     private breakpointObserver: BreakpointObserver
-  ) {}
+  ) {
+    this.isLoggedIn$ = this.authService.getUser$().pipe(
+      map(user => !!user)
+    );
+  }
 
   ngOnInit(): void {
     if (!this.building) return;
@@ -74,11 +85,27 @@ export class BuildingSidepanelComponent implements OnInit {
     this.breakpointObserver.observe(['(max-width: 800px)']).subscribe(result => {
       this.isMobile = result.matches;
     });
+
+    this.authSubscription = this.authService.getUser$()
+    .pipe(skip(1))
+    .subscribe(user => {
+      if (this.building && this.building.bw_geb_id) {
+        console.log('[Building Info] Auth state changed. Relaoding building data...');
+        this.fetchBuildingData(this.building.bw_geb_id);
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['building'] && this.building) {
       this.fetchBuildingData(this.building.bw_geb_id);
+    }
+  }
+
+  ngOnDestroy(): void {
+    // Clean up subscription to prevent memory leaks
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
     }
   }
   
@@ -227,35 +254,29 @@ export class BuildingSidepanelComponent implements OnInit {
     this.errorMessage = '';
     this.skipFetchDocuments = false;
 
+    const userBuildingRequest$ = this.authService.isLoggedIn() 
+        ? this.userService.getUserBuilding(buildingId) 
+        : of(null);
+
     forkJoin({
       baseBuilding: this.buildingService.getBuildingById(buildingId),
-      userBuilding: this.buildingService.getUserBuilding(this.userId, buildingId)
+      userBuilding: userBuildingRequest$
     }).subscribe({
       next: (results) => {
-        // this.building = results.baseBuilding;
-
-        // const ub = results.userBuilding;
-        // this.isBuildingAdded = !!ub; // converts object to true, null to false
-
-        // if (ub && this.building) {
-        //     this.building.userBuilding = ub;
-        // }
-
-        const mergedBuilding: Building = {
-          ...results.baseBuilding,        // clone base building (all FID, geom, etc.)
-          userBuilding: results.userBuilding ?? undefined
-        };
-
-         // Assign merged building
-        this.building = mergedBuilding;
 
         // Store flag for UI state
         this.isBuildingAdded = !!results.userBuilding;
 
+        const mergedBuilding: Building = {
+          ...results.baseBuilding,
+          userBuilding: results.userBuilding ?? undefined
+        };
 
+        this.building = mergedBuilding;
+        
         this.updateUsagePieChart();
         this.updateMaterialsPieChart();
-        
+
         this.isLoading = false;
         this.skipFetchDocuments = false; // Now ready to load docs
       },
@@ -270,13 +291,28 @@ export class BuildingSidepanelComponent implements OnInit {
     });
   }
 
+  // openStructureViewPanel() {
+  //   console.log('Open structure details view for building: ', this.building?.bw_geb_id);
+  //   if (this.building) {
+  //     // console.log('Emitting openStructureView event for building: ', this.building);
+  //     this.openStructureView.emit(this.building);
+  //   }
+  // }
+
   openStructureViewPanel() {
-    console.log('Open structure details view for building: ', this.building?.bw_geb_id);
-    if (this.building) {
-      // console.log('Emitting openStructureView event for building: ', this.building);
-      this.openStructureView.emit(this.building);
+    if (this.building && this.building.bw_geb_id) {
+      
+      // Create the Context Object
+      const context: EntityContext = {
+        id: this.building.bw_geb_id,
+        type: 'building'
+      };
+
+      console.log('Opening Structure View for:', context);
+      this.openStructureView.emit(context);
     }
   }
+
 
   onClose() {
     this.closePanel.emit();

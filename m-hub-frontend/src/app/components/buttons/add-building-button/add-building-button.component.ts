@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AddBuildingDialogComponent } from '../../dialogs/add-building-dialog/add-building-dialog.component';
-
+import { EditBuildingDialogComponent } from '../../dialogs/edit-building-dialog/edit-building-dialog.component';
 
 @Component({
   selector: 'app-add-building-button',
@@ -18,9 +18,10 @@ import { AddBuildingDialogComponent } from '../../dialogs/add-building-dialog/ad
     templateUrl: './add-building-button.component.html',
     styleUrl: './add-building-button.component.scss'
 })
-export class AddBuildingButtonComponent implements OnInit {
+// export class AddBuildingButtonComponent implements OnInit {
+export class AddBuildingButtonComponent {
+
   @Input() building!: Building;
-  @Input() userId!: string;
   @Input() isInitiallyAdded: boolean | null = null;
 
   isAdded = false;
@@ -36,109 +37,221 @@ export class AddBuildingButtonComponent implements OnInit {
   ngOnInit(): void {
     if (this.isInitiallyAdded !== null) {
       this.isAdded = this.isInitiallyAdded;
-    } else if (this.userId && this.building) {
-      this.checkIfBuildingAdded();
-    }
+    } 
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['building'] && this.building && this.userId) {
-      if (this.isInitiallyAdded !== null) {
-        this.isAdded = this.isInitiallyAdded;
-      } else if (this.userId && this.building) {
-        this.checkIfBuildingAdded();
-      }
+  onButtonClick() {
+    if (this.isAdded) {
+      this.editBuilding();
+    } else {
+      this.addBuilding();
     }
-  }
-
-  checkIfBuildingAdded(): void {
-
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    this.userService.isBuildingInUser(this.userId, this.building.bw_geb_id).subscribe({
-      next: (exists) => {
-        this.isAdded = exists;
-        this.isLoading = false;
-      },
-      error: () => {
-        this.isAdded = false;
-        this.isLoading = false;
-      }
-    });
   }
 
   addBuilding(): void {
-    if (!this.building || this.isAdded || this.isLoading) return;
-
-    this.isLoading = true;
-    this.errorMessage = '';
+    if (!this.building || this.isLoading) return;
 
     const dialogRef = this.dialog.open(AddBuildingDialogComponent, {
       panelClass: 'custom-dialog',
-      data: { structure: this.building.userBuilding?.structure }
+      data: { structure: null }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (!result) {
-        console.log('Hinzufügen des Gebäudes von Benutzer abgebrochen.');
         this.isLoading = false;
         return;
       }
 
-      const structureChanged = result.structureChanged || !this.building.userBuilding?.structure;
+      this.isLoading = true;
 
-      // const updateStructure$ = structureChanged
-      //   ? this.buildingService.updateBuilding({ ...this.building, structure: result.structure })
-      //   : of(null); // Skip if no update needed
+      const payload = {
+        // user_id: this.userId,
+        // building_id: this.building.bw_geb_id,
+        name: result.name,
+        address: result.address,
+        structure: result.structure
+      };
 
-      const updateStructure$ = structureChanged
-        ? this.buildingService.updateBuilding(Object.assign({}, this.building, { structure: result.structure } as any))
-        : of(null); // Skip if no update needed
-
-
-      const addBuildingToUser$ = this.userService.addBuildingToUser(this.userId, this.building.bw_geb_id);
-      const addUserBuildingData$ = this.userService.addUserBuildingData(
-        this.userId,
+      this.userService.createUserBuilding(
         this.building.bw_geb_id,
-        result.name ?? this.building.userBuilding?.name ?? null,
-        result.address ?? this.building.userBuilding?.address ?? null
-      );
-
-      forkJoin({
-        structureUpdate: updateStructure$,
-        addBuilding: addBuildingToUser$,
-        addUserData: addUserBuildingData$
-      })
-      .pipe(
-        finalize(() => {
-          this.isLoading = false;
-        }),
-        catchError(error => {
-          this.errorMessage = 'Fehler beim Hinzufügen des Gebäudes:';
-          console.error(this.errorMessage, error);
-          return of(null);
-        })
+        payload
       )
-      .subscribe(response => {
-        if (response) {
-          console.log('Gebäude erfolgreich hinzugefügt.');
+      .pipe(finalize(() => (this.isLoading = false)))
+      .subscribe({
+        next: created => {
+          console.log('UserBuilding created:', created);
           this.isAdded = true;
-          
-          // Update local building data
-
-          // TODO: change RESPONSE of ADD BUILDING to userBuilding entity!
-          // this.building.user = response;
-          
-          // temp fix to ensure user exists to set the fields of local building.
-          if (this.building.userBuilding) { 
-            this.building.userBuilding.structure = result.structure;
-            if (result.name) this.building.userBuilding.name = result.name;
-            if (result.address) this.building.userBuilding.address = result.address;
-          }
+          this.building.userBuilding = created;
+        },
+        error: err => {
+          console.error('Error creating user building:', err);
+          this.errorMessage = 'Fehler beim Hinzufügen des Gebäudes.';
         }
       });
     });
   }
+
+  editBuilding(): void {
+    if (!this.building || this.isLoading) return;
+
+    const dialogRef = this.dialog.open(EditBuildingDialogComponent, {
+      panelClass: 'custom-dialog',
+      data: { structure: null }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) {
+        this.isLoading = false;
+        return;
+      }
+
+      this.isLoading = true;
+
+      const payload = {
+        name: result.name,
+        address: result.address,
+        structure: result.structure
+      };
+
+      this.userService.updateUserBuilding(
+        this.building.bw_geb_id,
+        payload
+      )
+      .pipe(finalize(() => (this.isLoading = false)))
+      .subscribe({
+        next: created => {
+          console.log('UserBuilding created:', created);
+          this.isAdded = true;
+          this.building.userBuilding = created;
+        },
+        error: err => {
+          console.error('Error creating user building:', err);
+          this.errorMessage = 'Fehler beim Hinzufügen des Gebäudes.';
+        }
+      });
+    });
+
+  }
+
+
+  // ngOnInit(): void {
+    // if (this.isInitiallyAdded !== null) {
+    //   this.isAdded = this.isInitiallyAdded;
+    // } else if (this.userId && this.building) {
+    //   this.checkIfBuildingAdded();
+    // }
+  // }
+
+  // ngOnChanges(changes: SimpleChanges): void {
+  //   if (changes['building'] && this.building && this.userId) {
+  //     if (this.isInitiallyAdded !== null) {
+  //       this.isAdded = this.isInitiallyAdded;
+  //     } else if (this.userId && this.building) {
+  //       this.checkIfBuildingAdded();
+  //     }
+  //   }
+  // }
+
+  // checkIfBuildingAdded(): void {
+
+  //   this.isLoading = true;
+  //   this.errorMessage = '';
+
+  //   this.userService.isBuildingInUser(this.userId, this.building.bw_geb_id).subscribe({
+  //     next: (exists) => {
+  //       this.isAdded = exists;
+  //       this.isLoading = false;
+  //     },
+  //     error: () => {
+  //       this.isAdded = false;
+  //       this.isLoading = false;
+  //     }
+  //   });
+  // }
+
+  // addBuilding(): void {
+  //   if (!this.building || this.isAdded || this.isLoading) return;
+
+  //   this.isLoading = true;
+  //   this.errorMessage = '';
+
+  //   const dialogRef = this.dialog.open(AddBuildingDialogComponent, {
+  //     panelClass: 'custom-dialog',
+  //     data: { structure: this.building.userBuilding?.structure }
+  //   });
+
+  //   dialogRef.afterClosed().subscribe(result => {
+  //     if (!result) {
+  //       console.log('Hinzufügen des Gebäudes von Benutzer abgebrochen.');
+  //       this.isLoading = false;
+  //       return;
+  //     }
+
+  //     const structureChanged = result.structureChanged || !this.building.userBuilding?.structure;
+
+  //     // const updateStructure$ = structureChanged
+  //     //   ? this.buildingService.updateBuilding({ ...this.building, structure: result.structure })
+  //     //   : of(null); // Skip if no update needed
+
+  //     const updateStructure$ = structureChanged
+  //       ? this.buildingService.updateBuilding(Object.assign({}, this.building, { structure: result.structure } as any))
+  //       : of(null); // Skip if no update needed
+
+
+  //     const addBuildingToUser$ = this.userService.addBuildingToUser(this.userId, this.building.bw_geb_id);
+
+      
+
+  //     const createUserBuildingData$ = this.buildingService.createUserBuilding(
+  //       this.userId,
+  //       this.building.bw_geb_id,
+  //       result.name ?? this.building.userBuilding?.name ?? null,
+  //       result.address ?? this.building.userBuilding?.address ?? null
+  //     );
+
+
+
+  //     // const addUserBuildingData$ = this.userService.addUserBuildingData(
+  //     //   this.userId,
+  //     //   this.building.bw_geb_id,
+  //     //   result.name ?? this.building.userBuilding?.name ?? null,
+  //     //   result.address ?? this.building.userBuilding?.address ?? null
+  //     // );
+
+  //     forkJoin({
+  //       structureUpdate: updateStructure$,
+  //       addBuilding: addBuildingToUser$,
+  //       addUserData: createUserBuildingData$
+  //     })
+  //     .pipe(
+  //       finalize(() => {
+  //         this.isLoading = false;
+  //       }),
+  //       catchError(error => {
+  //         this.errorMessage = 'Fehler beim Hinzufügen des Gebäudes:';
+  //         console.error(this.errorMessage, error);
+  //         return of(null);
+  //       })
+  //     )
+  //     .subscribe(response => {
+  //       if (response) {
+  //         console.log('Gebäude erfolgreich hinzugefügt.');
+  //         this.isAdded = true;
+          
+  //         // Update local building data
+
+  //         // TODO: change RESPONSE of ADD BUILDING to userBuilding entity!
+  //         // this.building.user = response;
+          
+  //         // temp fix to ensure user exists to set the fields of local building.
+  //         if (this.building.userBuilding) { 
+  //           this.building.userBuilding.structure = result.structure;
+  //           if (result.name) this.building.userBuilding.name = result.name;
+  //           if (result.address) this.building.userBuilding.address = result.address;
+  //         }
+  //       }
+  //     });
+  //   });
+  // }
 
 }

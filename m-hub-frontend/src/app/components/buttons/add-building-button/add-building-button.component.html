@@ -7,8 +7,7 @@
         mat-raised-button
         class="add-button"
         color="primary"
-        [disabled]="isAdded"
-        (click)="addBuilding()">
-        {{ isAdded ? 'Gebäude bereits hinzugefügt' : 'Gebäude hinzufügen' }}
+        (click)="onButtonClick()">
+        {{ isAdded ? 'Gebäude bearbeiten' : 'Gebäude hinzufügen' }}
     </button>
 </div>
