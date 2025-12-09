@@ -170,6 +170,20 @@ button[mat-icon-button].active {
   }
 }
 
+button[mat-icon-button].disabled-state {
+  opacity: 0.55;       
+  cursor: not-allowed; 
+
+  // This ensures the hover background effect still works
+  // &:hover {
+  //   background-color: rgba(0, 0, 0, 0.04); 
+  //   // Optional: Force icon color to stay grey on hover if desired
+  //   mat-icon {
+  //       color: #455a64; 
+  //   }
+  // }
+}
+
 .mat-mdc-focus-indicator {
   height: 48px;
   width: 48px;

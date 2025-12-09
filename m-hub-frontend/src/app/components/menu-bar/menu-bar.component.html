@@ -21,11 +21,21 @@
       <button mat-icon-button matTooltip="Hub" matTooltipPosition="after" matTooltipShowDelay="500" (click)="onMenuClick('hub')" [ngClass]="{'active': currentRoute.includes('/hub')}">
         <mat-icon>hub</mat-icon>
       </button>
-      <button mat-icon-button matTooltip="Gebäudeliste" matTooltipPosition="after" matTooltipShowDelay="500" (click)="onMenuClick('data')" [ngClass]="{'active': currentRoute.includes('/data')}">
+      <button 
+        mat-icon-button 
+        [disableRipple]="!(user$ | async)"
+        [matTooltip]="(user$ | async) ? 'Gebäudeliste' : 'Gebäudeliste: \nAnmeldung erforderlich'"
+        matTooltipClass="multiline-tooltip"
+        matTooltipPosition="after" 
+        matTooltipShowDelay="500" 
+        (click)="onMenuClick('data')" 
+        [ngClass]="{
+          'active': currentRoute.includes('/data'), 
+          'disabled-state': !(user$ | async)
+        }">
         <mat-icon>grid_view</mat-icon>
       </button>
     </div>
-
 
     <div class="bottom-section">
       <mat-divider />

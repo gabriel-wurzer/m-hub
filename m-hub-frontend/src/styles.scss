@@ -107,12 +107,9 @@ $my-theme: mat.define-light-theme((
   }
 }
 
-// .custom-dialog, .mat-dialog-container {
-//   width: 1200px;
-//   max-width: 90vw;
-//   height: fit-content;
-//   max-height: 90vh;
-// }
+.multiline-tooltip {
+  white-space: pre-line;
+}
 
 .custom-dialog, .mat-dialog-container {
   width: 1200px;

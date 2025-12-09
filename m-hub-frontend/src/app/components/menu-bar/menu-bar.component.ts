@@ -44,12 +44,12 @@ export class MenuBarComponent implements OnInit {
   user$: Observable<any>;
 
   constructor(
-    private auth: AuthenticationService,
+    private authService: AuthenticationService,
     private router: Router,
     private dialog: MatDialog, 
     private breakpointObserver: BreakpointObserver,
   ) {
-    this.user$ = this.auth.getUser$();
+    this.user$ = this.authService.getUser$();
 
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
@@ -88,7 +88,7 @@ export class MenuBarComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result === true) {
-        this.auth.logout();
+        this.authService.logout();
         this.router.navigate(['/map']);
       }
     });
