@@ -14,6 +14,7 @@ import { BuildingSidepanelComponent } from '../building-sidepanel/building-sidep
 import { StructureViewComponent } from "../structure-view/structure-view.component";
 import { MapService } from '../../services/map/map.service';
 import { Subject } from 'rxjs';
+import { EntityContext } from '../../models/entity-context';
 
 
 L.Icon.Default.mergeOptions({
@@ -56,6 +57,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
 
   isFilterPanelVisible = false;
   isStructureViewVisible = false;
+  structureContext: EntityContext | null = null;
 
   constructor(
     private filterService: FilterService,
@@ -506,11 +508,13 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  showStructureView(): void {
+  showStructureView(context: EntityContext) {
+    this.structureContext = context;
     this.isStructureViewVisible = true;
   }
   
   hideStructureView(): void {
     this.isStructureViewVisible = false;
+    this.structureContext = null;
   }
 }

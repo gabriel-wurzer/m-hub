@@ -12,13 +12,13 @@
         *ngIf="selectedBuilding" 
         [building]="selectedBuilding"
         (closePanel)="deselectBuilding()"
-        (openStructureView)="showStructureView()"
+        (openStructureView)="showStructureView($event)"
         class="building-info" />
   </div>
 
   <app-structure-view
-    *ngIf="isStructureViewVisible" 
-    [entity]="selectedBuilding"
+    *ngIf="isStructureViewVisible && selectedBuilding" 
+    [entityContext]="structureContext"
     (closeStructureView)="hideStructureView()" />
 
 </main>

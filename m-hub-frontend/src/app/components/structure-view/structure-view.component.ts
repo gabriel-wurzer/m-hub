@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,7 +15,10 @@ import { BuildingComponent } from '../../models/building-component';
 import { BuildingPartService } from '../../services/building-part/building-part.service';
 import { BuildingObjectService } from '../../services/building-object/building-object.service';
 import { BuildingComponentCategory } from '../../enums/component-category';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of, skip, Subscription } from 'rxjs';
+import { UserService } from '../../services/user/user.service';
+import { AuthenticationService } from '../../services/authentication/authentication.service';
+import { EntityContext } from '../../models/entity-context';
 
 @Component({
   selector: 'app-structure-view',
@@ -24,9 +27,9 @@ import { forkJoin } from 'rxjs';
   templateUrl: './structure-view.component.html',
   styleUrl: './structure-view.component.scss'
 })
-export class StructureViewComponent implements OnInit{
+export class StructureViewComponent implements OnInit, OnDestroy{
 
-  @Input() entity!: Building | BuildingComponent | null;
+  @Input() entityContext!: EntityContext | null;
   @Output() closeStructureView = new EventEmitter<void>();
 
   rootBuilding!: Building;
@@ -40,30 +43,55 @@ export class StructureViewComponent implements OnInit{
 
   errorMessage = '';
 
-  private _loadingUpdateScheduled = false;
-  userId = "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71";
+  private authSubscription: Subscription | undefined;
 
   constructor(
+    private authService: AuthenticationService,
     private buildingService: BuildingService,
+    private userService: UserService,
     private partService: BuildingPartService,
     private objectService: BuildingObjectService
   ) {}
 
   ngOnInit(): void {
 
-    if (!this.entity) return;
+    if (!this.entityContext) return;
 
-    // Building case
-    if ('bw_geb_id' in this.entity) {
-      this.loadBuilding(this.entity.bw_geb_id);
-      return;
+    this.handleInitialLoad();
+
+    this.authSubscription = this.authService.getUser$()
+    .pipe(skip(1))
+    .subscribe(() => {
+      if (this.entityContext?.type === 'building') {
+        console.log('[Structure View] Auth changed. Reloading building...');
+        this.loadBuilding(this.entityContext.id);
+      }
+      else if (this.rootBuilding && this.rootBuilding.bw_geb_id) {
+         console.log('[Structure View] Auth state changed. Reloading building...');
+         this.loadBuilding(this.rootBuilding.bw_geb_id);
+      }
+    });
+
+  }
+  
+  private handleInitialLoad() {
+    if (!this.entityContext) return;
+
+    if (this.entityContext.type === 'building') {
+      this.loadBuilding(this.entityContext.id);
+    } 
+    else if (this.entityContext.type === 'component') {
+      if (this.entityContext.category) {
+        this.loadBuildingComponent(this.entityContext.id, this.entityContext.category);
+      } else {
+        console.error("Context type is component but category is missing");
+      }
     }
+  }
 
-    // Component case
-    if ('id' in this.entity) {
-      const component = this.entity as BuildingComponent;
-      const category = component.category as BuildingComponentCategory;
-      this.loadBuildingComponent(component.id, category);
+  ngOnDestroy(): void {
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
     }
   }
   
@@ -87,21 +115,23 @@ export class StructureViewComponent implements OnInit{
 
     console.log('Requesting building by id:', buildingId);
 
+    const userBuildingRequest$ = this.authService.isLoggedIn() 
+        ? this.userService.getUserBuilding(buildingId) 
+        : of(null);
+
     forkJoin({
       baseBuilding: this.buildingService.getBuildingById(buildingId),
-      userBuilding: this.buildingService.getUserBuilding(this.userId, buildingId)
+      userBuilding: userBuildingRequest$
     }).subscribe({
       next: (results) => {
-        const building: Building = results.baseBuilding;
 
-        const ub = results.userBuilding;
+        const mergedBuilding: Building = {
+          ...results.baseBuilding,        // clone base building (all FID, geom, etc.)
+          userBuilding: results.userBuilding ?? undefined
+        };
 
-        if (ub && building) {
-            building.userBuilding = ub;
-        }
-
-        this.rootBuilding = { ...building };
-        this.selectedEntity = { ...building };
+        this.rootBuilding = mergedBuilding
+        this.selectedEntity = mergedBuilding;
         this.isLoading = false;
       },
       error: (err) => {
@@ -112,7 +142,7 @@ export class StructureViewComponent implements OnInit{
       },
       complete: () => {
         this.isLoading = false;
-        console.log('Selected entity: ', this.selectedEntity);
+        // console.log('Selected entity: ', this.selectedEntity);
       }
     });
   }
@@ -145,7 +175,6 @@ export class StructureViewComponent implements OnInit{
         }
       });
     } else {
-      // Explicitly typed as BuildingObjectService
       this.objectService.getComponentById(componentId).subscribe({
         next: (component) => {
           if (component && component.id !== undefined) {
