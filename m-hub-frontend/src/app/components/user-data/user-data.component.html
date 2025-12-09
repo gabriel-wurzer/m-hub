@@ -3,11 +3,6 @@
       <div id="user-data">
 
         <header class="user-data-header">
-            <!-- <img 
-            src="assets/images/house_icon_primary.svg" 
-            alt="House Icon" 
-            class="house-icon" 
-            /> -->
             <h1>Gebäudeliste</h1>
         </header>
         
@@ -18,9 +13,9 @@
         </div>
         
         <div class="user-data-content">
-          <div class="card-container" *ngIf="!isLoading && buildings.length > 0; else noBuildings">
+          <div class="card-container" *ngIf="!isLoading && userBuildings.length > 0; else noBuildings">
             
-            <mat-card class="building-card" *ngFor="let building of buildings" (click)="selectBuilding(building)" [class.selected]="isSelected(building)">
+            <mat-card class="building-card" *ngFor="let building of userBuildings" (click)="selectBuilding(building)" [class.selected]="isSelected(building)">
               
               <div class="card-header">
                 <div class="card-header-text">
@@ -30,14 +25,15 @@
                     class="house-icon"
                     loading="eager"
                     />
-                  <h2>{{ building.userBuilding?.name?.trim() || 'Gebäude ' + building.bw_geb_id }}</h2>
+                  <h2>{{ building.name.trim() || 'Gebäude ' + building.building_id }}</h2>
                 </div>
                 <button *ngIf="isSelected(building)" mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
                   <mat-icon>more_vert</mat-icon>
                 </button>
                 <mat-menu #menu="matMenu">
-                  <button mat-menu-item (click)="updateBuilding(building); $event.stopPropagation()"> <mat-icon>edit</mat-icon> Gebäude bearbeiten</button>
-                  <button mat-menu-item (click)="deleteBuilding(building.bw_geb_id); $event.stopPropagation()"> <mat-icon>delete</mat-icon> Gebäude entfernen</button>
+                  <button mat-menu-item (click)="showBuildingInfo(building)"> <mat-icon>info</mat-icon> Gebäudeinformationen</button>
+                  <button mat-menu-item (click)="updateBuilding(building)"> <mat-icon>edit</mat-icon> Gebäude bearbeiten</button>
+                  <button mat-menu-item (click)="deleteBuilding(building); $event.stopPropagation()"> <mat-icon>delete</mat-icon> Gebäude entfernen</button>
                 </mat-menu>
               </div>
 
@@ -45,9 +41,9 @@
 
               <div class="card-info">
                 <div class="info-text">
-                  <p>Gebäude ID: {{ building.bw_geb_id }}</p>
-                  <p *ngIf="building.userBuilding && building.userBuilding.name">Name: {{ building.userBuilding.name }}</p>
-                  <p *ngIf="building.userBuilding && building.userBuilding.address">Adresse: {{ building.userBuilding.address }}</p>
+                  <p>Gebäude ID: {{ building.building_id }}</p>
+                  <p *ngIf="building && building.name">Name: {{ building.name }}</p>
+                  <p *ngIf="building && building.address">Adresse: {{ building.address }}</p>
                 </div>
               </div>
 
@@ -91,18 +87,11 @@
         </div> -->
 
       </div>
-
-      <app-building-sidepanel 
-        *ngIf="selectedBuilding" 
-        [building]="selectedBuilding"
-        (closePanel)="deselectBuilding()"
-        (openStructureView)="showStructureView()"
-        class="building-info" />
     </div>
-    
+
     <app-structure-view
       *ngIf="isStructureViewVisible" 
-      [entity]="selectedBuilding"
+      [entityContext]="structureContext"
       (closeStructureView)="hideStructureView()" />
   
   </main>
