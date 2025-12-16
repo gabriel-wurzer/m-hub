@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthenticationService } from '../../../services/authentication/authentication.service';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-login-dialog',
@@ -18,7 +19,8 @@ import { AuthenticationService } from '../../../services/authentication/authenti
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatIconModule
   ],
   templateUrl: './login-dialog.component.html',
   styleUrl: './login-dialog.component.scss'
@@ -27,6 +29,8 @@ export class LoginDialogComponent {
 loginForm: FormGroup;
   isLoading = false;
   errorMessage = '';
+
+  hide = true;
 
   constructor(
     private fb: FormBuilder,
