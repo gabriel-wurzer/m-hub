@@ -6,7 +6,7 @@ import { RoofType } from "../enums/roof-type.enum";
  */
 interface BaseFloor {
   type: FloorType;
-  name?: string;
+  description?: string;
 }
 
 /**

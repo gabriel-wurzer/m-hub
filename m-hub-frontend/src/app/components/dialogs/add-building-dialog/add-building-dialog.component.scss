@@ -1,3 +1,6 @@
+@use '@angular/material' as mat;
+@use '../../../../theme-setup' as vars;
+
 :host {
   display: flex;
   flex-direction: column;
@@ -9,7 +12,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 16px;
+  padding: 16px 20px 10px;
   gap: 1.4rem;
   box-sizing: border-box;
 }
@@ -56,14 +59,13 @@ mat-form-field {
 .building-info-wrapper {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.5rem 2rem;
   width: 100%;
   margin-bottom: 1.6rem;
 }
 
-.name-wrapper,
-.address-wrapper {
-  flex: 1 1 328px;
+.name-wrapper, .address-wrapper {
+  flex: 1 1 324px;
   min-width: 260px;
 }
 
@@ -74,37 +76,119 @@ mat-form-field {
   gap: 1rem;
 }
 
-.floor-row {
+.regular-floors-container, .basement-floors-container {
+  display: flex;
+  width: 100%;
+  gap: 1rem;
+}
+
+.basement-floors-container {
+  flex-direction: column;
+}
+
+.regular-floors-container {
+  flex-direction: column-reverse;
+}
+
+.floor-item {
+  position: relative;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  justify-content: space-between;
-  padding: 12px 16px;
+  padding: 12px 16px 2px;
   border: 2px solid #888888;
   border-radius: 8px;
+  gap: 0 1.6rem;
+}
 
+.roof-item {
+  img {
+    padding-bottom: 10px;
+  }
+}
 
-  // mat-form-field {
-  //   max-width: 320px;
-  // }
+.base-item {
+
+  .form-fields-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1rem;
+
+  }
+
+  mat-form-field {
+    flex: 1 1 210px; 
+    min-width: 240px; 
+    width: auto; 
+    margin-bottom: 0;
+  }
+
+  img {
+    padding-top: 14px;
+  }
 
 }
 
 .form-box {
+  flex: 0 1 auto;
+  width: 100%;
+  max-width: 520px;
+  
   h3 {
     margin-bottom: 16px;
+  }
+
+  mat-form-field {
+    width: 100%; 
+    margin-bottom: 6px;
   }
 }
 
 .image-box {
-  align-content: center;
+  flex: 1; 
+  min-width: 275px; 
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-self: center;
+
+
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+    max-width: 360px;
+  }
 }
 
-.image-box img {
-  width: 360px;
-  max-width: 100%;
-  height: auto;
-  display: block;
+
+.ground-separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.4rem 0; // Space above and below the line
+  color: #555;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+
+  // The lines before and after the text
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 3px double #555; // Double line looks like architectural ground
+    // OR use this for a dashed line:
+    // border-bottom: 2px dashed #888; 
+  }
+
+  // Padding around the text "Erdgleiche"
+  span {
+    padding: 0 15px;
+    background-color: #fff; // Optional: covers the line behind text
+  }
 }
 
 .dashed-block {
@@ -116,80 +200,29 @@ mat-form-field {
 .add-button {
   display: flex;
   justify-content: center;
+  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+  
+  &:hover {
+    color: mat.get-color-from-palette(vars.$my-secondary, 800);
+  }
+}
+
+.delete-button {
+  position: absolute;
+  top: 0px;
+  right: 4px;
+  z-index: 1000;
+  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+
+  &:hover {
+    color: mat.get-color-from-palette(vars.$my-warn, 500);
+  }
+
 }
 
 .separator-dashed {
   border-top: 2px dashed #999;
   margin: 20px 0;
-}
-
-
-
-// .structure-wrapper {
-//   display: flex;
-//   flex-wrap: wrap;
-//   flex-direction: row;
-//   gap: 2rem;
-// }
-
-// .structure-header {
-//   margin: 2rem 0 1rem;
-// }
-
-// .floor-input {
-//   display: flex;
-//   flex-direction: column;
-//   flex: 1;
-//   min-width: 180px;
-//   gap: 1.2rem;
-// }
-
-// .floor-row {
-//   display: flex;
-//   gap: 1rem;
-//   align-items: flex-start;
-// }
-
-// .floor-count,
-// .floor-height {
-//   flex: 1;
-//   min-width: 140px;
-// }
-
-
-// .house-chart {
-//   flex: 2;
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-
-//   .house-interactive{
-//     width: 360px;
-//     height: 100%;
-//   }
-// }
-
-.warning-box {
-  margin-top: 1.5rem;
-  padding: 16px;
-  background-color: #ececec;
-}
-
-.toggle-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-::ng-deep .confirm-toggle .mdc-switch {
-  transform: scale(1.2);
-  margin-right: 8px;
-}
-
-.confirm-toggle {
-  font-size: 18px;
 }
 
 .actions {
@@ -202,6 +235,55 @@ mat-error {
   font-size: 14px;
 }
 
+@media (max-width: 1120px) {
+  
+  .floor-item {
+    padding: 12px 16px;
+  }
+
+
+  .roof-item, .base-item {
+    .form-fields-wrapper {
+      display: flex;
+      flex-direction: row;
+      gap: 0 1rem;
+    }
+
+    .form-box {
+      max-width: 100%;
+      justify-content: space-between;
+
+      mat-form-field {
+        width: 100%; 
+        margin-bottom: 6px;
+      }
+    }
+  }
+
+  img {
+      padding-bottom: 0px;
+      padding-top: 0px;
+  }
+}
+
+@media (max-width: 874px) {
+  .structure-header {
+    margin: 0;
+  }
+
+  .floor-input {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .roof-item {
+    .form-fields-wrapper {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+}
 
 @media (max-width: 520px) {
   .dialog-container {
@@ -216,30 +298,13 @@ mat-error {
   .content-wrapper {
     gap: 0.5rem;
   }
-
-  .description-wrapper {
-    gap: 2px;
-  }
-
-  .house-chart {
-      width: 100%;
-      height: auto;
-  }
-}
-
-@media (max-width: 874px) {
-  .structure-header {
-    margin: 0;
-  }
-
-  .floor-input {
-    margin-top: 0;
-  }
 }
 
 @media (max-width: 400px) {
-  .house-chart {
-    display: none !important;
+  
+  .floor-item {
+    padding: 8px 12px;
+
   }
 
   .actions {

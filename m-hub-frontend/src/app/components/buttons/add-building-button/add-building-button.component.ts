@@ -18,8 +18,7 @@ import { EditBuildingDialogComponent } from '../../dialogs/edit-building-dialog/
     templateUrl: './add-building-button.component.html',
     styleUrl: './add-building-button.component.scss'
 })
-// export class AddBuildingButtonComponent implements OnInit {
-export class AddBuildingButtonComponent {
+export class AddBuildingButtonComponent implements OnInit {
 
   @Input() building!: Building;
   @Input() isInitiallyAdded: boolean | null = null;
