@@ -1,4 +1,5 @@
 @use '@angular/material' as mat;
+@use 'theme-setup' as vars;
 
 @import url("https://use.typekit.net/pox7hcz.css");
 
@@ -6,92 +7,12 @@
 // Define a custom theme
 @include mat.core(); // This is required for Material components to work
 
-$my-primary: mat.define-palette((
-  50: #e0f3fb,
-  100: #b1e0f5,
-  200: #7fccef,
-  300: #50b8e7,
-  400: #30a9e3,
-  500: #179bde, // primary color base
-  600: #148dcf,
-  700: #107bbc,
-  800: #0e6aa8, 
-  900: #084b86,
-  contrast: (
-    50: #000,
-    100: #000,
-    200: #000,
-    300: #000,
-    400: #000,
-    500: #fff,
-    600: #fff,
-    700: #fff,
-    800: #fff,
-    900: #fff
-  )
-));
-
-// Define the secondary palette (Grey-Blue)
-$my-secondary: mat.define-palette((
-  50: #eceff1,
-  100: #cfd8dc,
-  200: #b0bec5,
-  300: #90a4ae,
-  400: #78909c,
-  500: #607d8b, // secondary color base
-  600: #546e7a,
-  700: #455a64,
-  800: #37474f,
-  900: #263238,
-  contrast: (
-    50: #000,
-    100: #000,
-    200: #000,
-    300: #000,
-    400: #fff,
-    500: #fff,
-    600: #fff,
-    700: #fff,
-    800: #fff,
-    900: #fff
-  )
-));
-
-// Define the complementary (Orange) palette
-$my-complementary: mat.define-palette((
-  50: #f8eae6,
-  100: #f7cfbb,
-  200: #f2b08f,
-  300: #ed9462,
-  400: #e97e3f,
-  500: #e66c1a,
-  600: #dc6617,
-  700: #cf5f13,
-  800: #c15811,
-  900: #a84c0e, // complementary color base
-  contrast: (
-    50: #000,
-    100: #000,
-    200: #000,
-    300: #000,
-    400: #fff,
-    500: #fff,
-    600: #fff,
-    700: #fff,
-    800: #fff,
-    900: #fff
-  )
-));
-
-$my-warn: mat.define-palette(mat.$deep-orange-palette);
-
-
 $my-theme: mat.define-light-theme((
   color: (
-    primary: $my-primary,
-    accent: $my-secondary,
-    complementary: $my-complementary,
-    warn: $my-warn
+    primary: vars.$my-primary,
+    accent: vars.$my-secondary,
+    complementary: vars.$my-complementary,
+    warn: vars.$my-warn
   )
 ));
 
