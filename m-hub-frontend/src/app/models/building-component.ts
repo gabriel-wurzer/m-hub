@@ -9,7 +9,8 @@ import { Document } from "./document";
  */
 export abstract class BuildingComponent {
     id!: string;    // UUID of the building component
-    buildingId!: string;        
+    buildingId!: string;
+    user_building_id!: string;        
     ownerId!: string;
     category!: BuildingComponentCategory;   // discriminator for filtering & serialization --> 'Bauteil' | 'Objekt'
     name!: string;
