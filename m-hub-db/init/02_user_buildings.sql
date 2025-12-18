@@ -24,9 +24,9 @@ INSERT INTO user_buildings (user_id, building_id, structure, name, address)
 VALUES
 ('79e7432d-f1a0-4f31-9469-1e27b8d8c6cd'::uuid, '5312213',
  '[
-    {"type": "Kellergeschoss", "count": 2, "height": 300, "area": 230},
+    {"type": "Dach", "roofType": "Flachdach"},
     {"type": "Regelgeschoss", "count": 3, "height": 270, "area": 260},
-    {"type": "Dach", "roofType": "Flachdach"}
+    {"type": "Kellergeschoss", "count": 2, "height": 300, "area": 230}
  ]',
  'Flackturm Augarten',
  'Augarten 1'
@@ -34,9 +34,9 @@ VALUES
 
 ('c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, '5397325',
  '[
-    {"type": "Kellergeschoss", "count": 0, "height": 0, "area": 0},
+    {"type": "Dach", "roofType": "Flachdach"},
     {"type": "Regelgeschoss", "count": 2, "height": 300, "area": 520},
-    {"type": "Dach", "roofType": "Flachdach"}
+    {"type": "Kellergeschoss", "count": 0, "height": 0, "area": 0}
  ]',
  'ÖBB Zentrale',
  NULL
@@ -44,9 +44,9 @@ VALUES
 
 ('c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, '5363852',
  '[
-    {"type": "Kellergeschoss", "count": 1, "height": 240, "area": 1020},
+    {"type": "Dach", "roofType": "Flachdach"},
     {"type": "Regelgeschoss", "count": 2, "height": 420, "area": 1020},
-    {"type": "Dach", "roofType": "Flachdach"}
+    {"type": "Kellergeschoss", "count": 1, "height": 240, "area": 1020}
  ]',
  'Bahnhof Praterstern',
  'Praterstern 6'
@@ -54,9 +54,9 @@ VALUES
 
 ('e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, '5363852',
  '[
-    {"type": "Kellergeschoss", "count": 1, "height": 240, "area": 1020},
+    {"type": "Dach", "roofType": "Flachdach"},
     {"type": "Regelgeschoss", "count": 2, "height": 420, "area": 1020},
-    {"type": "Dach", "roofType": "Flachdach"}
+    {"type": "Kellergeschoss", "count": 1, "height": 240, "area": 1020}
  ]',
  'BHF Praterstern',
  'Praterstern 6'
