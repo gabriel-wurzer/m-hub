@@ -32,7 +32,7 @@
                 </button>
                 <mat-menu #menu="matMenu">
                   <button class="menu-button" mat-menu-item (click)="showBuildingInfo(building)"> <mat-icon>info</mat-icon> Gebäudeinformationen</button>
-                  <button class="menu-button" mat-menu-item (click)="updateBuilding(building)"> <mat-icon>edit</mat-icon> Gebäude bearbeiten</button>
+                  <button class="menu-button" mat-menu-item (click)="editBuilding(building)"> <mat-icon>edit</mat-icon> Gebäude bearbeiten</button>
                   <button class="menu-button" mat-menu-item (click)="deleteBuilding(building); $event.stopPropagation()"> <mat-icon>delete</mat-icon> Gebäude entfernen</button>
                 </mat-menu>
               </div>

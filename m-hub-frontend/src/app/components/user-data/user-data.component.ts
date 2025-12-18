@@ -77,7 +77,6 @@ export class UserDataComponent implements OnInit {
 
     this.userService.getUserBuildingsList().subscribe({
       next: (data) => {
-        // 2. Assign data directly
         this.userBuildings = data || []; 
         this.isLoading = false;
       },
@@ -113,15 +112,11 @@ export class UserDataComponent implements OnInit {
     this.isLoading = true;
 
     this.userService.deleteUserBuilding(building.id)
-    .pipe(finalize(() => this.isLoading = false)) // Ensure spinner stops even on error
+    .pipe(finalize(() => this.isLoading = false))
     .subscribe({
       next: () => {
-        // 3. Update the List (Remove the item)
-        // We filter the array to keep everything EXCEPT the building with the deleted ID
         this.userBuildings = this.userBuildings.filter(b => b.id !== building.id);
 
-        // 4. Update Selection
-        // If the user had the deleted building selected, deselect it
         if (this.selectedBuilding?.id === building.id) {
           this.selectedBuilding = null;
         }
@@ -133,9 +128,46 @@ export class UserDataComponent implements OnInit {
     });
   }
 
-  updateBuilding(building: UserBuilding): void {
+  editBuilding(building: UserBuilding): void {
     if (!building || !this.selectedBuilding) return;
 
+    const dialogRef = this.dialog.open(EditBuildingDialogComponent, {
+      panelClass: 'custom-dialog',
+      data: { userBuilding: building }
+    });
+
+    console.log('Opening edit dialog for building:', building);
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) {
+        this.isLoading = false;
+        return;
+      }
+
+      this.isLoading = true;
+
+      const payload = {
+        name: result.name,
+        address: result.address,
+        structure: result.structure
+      };
+
+      this.userService.updateUserBuilding(
+        building.id, 
+        payload
+      )
+      .pipe(finalize(() => (this.isLoading = false)))
+      .subscribe({
+        next: updated => {
+          console.log('User building updated:', updated);
+          this.selectedBuilding = updated;
+        },
+        error: err => {
+          console.error('Error updating user building:', err);
+          this.errorMessage = 'Fehler beim Aktualisieren des Gebäudes.';
+        }
+      });
+    });
   }
 
   showBuildingInfo(building: UserBuilding): void {

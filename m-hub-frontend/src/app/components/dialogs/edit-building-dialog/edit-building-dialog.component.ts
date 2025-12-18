@@ -5,11 +5,14 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatTabsModule } from '@angular/material/tabs';
 
-
-import { BuildingComponent } from '../../../models/building-component';
+import { Bauteil, BuildingComponent, Objekt } from '../../../models/building-component';
 import { Document } from '../../../models/document';
 import { DocumentListComponent } from "../../document-list/document-list.component";
+import { Floor } from '../../../models/floor';
+import { MatDividerModule } from '@angular/material/divider';
+import { UserBuilding } from '../../../models/building';
 
 
 
@@ -22,6 +25,8 @@ import { DocumentListComponent } from "../../document-list/document-list.compone
     MatInputModule,
     MatButtonModule,
     MatExpansionModule,
+    MatTabsModule,
+    MatDividerModule,
     DocumentListComponent
   ],
   templateUrl: './edit-building-dialog.component.html',
@@ -29,20 +34,44 @@ import { DocumentListComponent } from "../../document-list/document-list.compone
 })
 export class EditBuildingDialogComponent {
 
+  selectedTabIndex: number = 0;
+
   name: string = '';
   address: string = '';
-  components: BuildingComponent[] = [];
+  structure: Floor[] = [];
+  buildingParts: Bauteil[] = [];
+  buildingObjects: Objekt[] = [];
   documents: Document[] = [];
 
   constructor(
       public dialogRef: MatDialogRef<EditBuildingDialogComponent>,
-      @Inject(MAT_DIALOG_DATA) public data: { name: string, address: string, buildingComponents: BuildingComponent[], documents: Document[] }
+      @Inject(MAT_DIALOG_DATA) public data: { userBuilding: UserBuilding }
   ) {
-    this.name = data.name || '';
-    this.address = data.address || '';
-    this.components = data.buildingComponents || [];
-    this.documents = data.documents || [];
+    if (this.data && this.data.userBuilding) {
+      
+      // create copy of user building to prevent change of original befor completing dialog--> Immutability principle
+      const b = this.data.userBuilding;
+      
+      this.name = b.name || '';
+      this.address = b.address || '';
+      
+      // WICHTIG: Erstelle eine tiefe Kopie der Struktur, 
+      // damit Änderungen im Dialog nicht sofort das Original-Objekt 
+      // außerhalb des Dialogs verändern (Stichwort: )
+      this.structure = b.structure ? JSON.parse(JSON.stringify(b.structure)) : [];
+
+      // TODO: Fetch usrbuilding related documents, parts and objects
+      // this.components = b.buildingComponents || [];
+      // this.documents = b.documents || [];
+    }
   }
+  
+  // {
+  //   this.name = data.name || '';
+  //   this.address = data.address || '';
+  //   // this.components = data.buildingComponents || [];
+  //   this.documents = data.documents || [];
+  // }
 
   getNameError(): string | null {
     if (this.name.trim().length === 0) {
@@ -73,7 +102,8 @@ export class EditBuildingDialogComponent {
     this.dialogRef.close({
       name: this.name.trim(),
       address: trimmedAddress, 
-      buildingComponents: this.components,
+      structure: this.structure,
+      // buildingComponents: this.components,
       documents: this.documents
     });
   }

@@ -1,6 +1,11 @@
 <div class="dialog-container">
     <h2 mat-dialog-title class="header">Gebäude bearbeiten</h2>
 
+    <mat-tab-group [(selectedIndex)]="selectedTabIndex" centered>
+            <mat-tab label="Gebäude Komponenten"></mat-tab>
+            <mat-tab label="Gebäude Struktur"></mat-tab>
+    </mat-tab-group>
+
     <div mat-dialog-content class="content-wrapper">
         
         <div class="user-specific-wrapper">
