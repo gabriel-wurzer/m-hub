@@ -1,3 +1,6 @@
+@use '@angular/material' as mat;
+@use '../../../theme-setup' as vars;
+
 :host {
     height: 100%;
     width: 100%;
@@ -64,22 +67,17 @@ p {
     align-items: center;
 }
 
-// .expand-button mat-icon {
-//     transform: translateX(4px);
-// }
-
-// .rotated-button {
-//     transform: rotate(90deg);
-//     transition: transform 0.2s ease;
-//     display: inline-block;
-
-//     mat-icon {
-//         transform: translateX(8px);
-//     }
-// }
 
 .no-docs {
     color: gray;
+}
+
+.expand-button {
+    color: mat.get-color-from-palette(vars.$my-secondary, 700);
+
+    &:hover {
+        color: mat.get-color-from-palette(vars.$my-secondary, 800);
+    }
 }
 
 mat-divider {

@@ -27,13 +27,13 @@
                     />
                   <h2>{{ building.name.trim() || 'Gebäude ' + building.building_id }}</h2>
                 </div>
-                <button *ngIf="isSelected(building)" mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+                <button class="menu-icon" *ngIf="isSelected(building)" mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
                   <mat-icon>more_vert</mat-icon>
                 </button>
                 <mat-menu #menu="matMenu">
-                  <button mat-menu-item (click)="showBuildingInfo(building)"> <mat-icon>info</mat-icon> Gebäudeinformationen</button>
-                  <button mat-menu-item (click)="updateBuilding(building)"> <mat-icon>edit</mat-icon> Gebäude bearbeiten</button>
-                  <button mat-menu-item (click)="deleteBuilding(building); $event.stopPropagation()"> <mat-icon>delete</mat-icon> Gebäude entfernen</button>
+                  <button class="menu-button" mat-menu-item (click)="showBuildingInfo(building)"> <mat-icon>info</mat-icon> Gebäudeinformationen</button>
+                  <button class="menu-button" mat-menu-item (click)="updateBuilding(building)"> <mat-icon>edit</mat-icon> Gebäude bearbeiten</button>
+                  <button class="menu-button" mat-menu-item (click)="deleteBuilding(building); $event.stopPropagation()"> <mat-icon>delete</mat-icon> Gebäude entfernen</button>
                 </mat-menu>
               </div>
 
