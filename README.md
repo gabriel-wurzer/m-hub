@@ -24,6 +24,7 @@ Follow these steps to set up the project environment and import the building dat
 
     ```bash
     cp .env.example .env
+    ```
 
     Then set the appropriate value for POSTGRES_PASSWORD in the .env file.
     Note: If you are on an ARM64 platform, the run script should detect it and set DOCKER_PLATFORM=linux/amd64 in the .env file.
@@ -35,9 +36,11 @@ Follow these steps to set up the project environment and import the building dat
 
     ### Windows
     ```bash
-   .\run.bat
+    .\run.bat
+    ```
 
     ### Mac / Linux
     ```bash
     chmod +x run.sh
    ./run.sh
+    ```
