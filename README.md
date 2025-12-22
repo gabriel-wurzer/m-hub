@@ -16,20 +16,28 @@ The envisioned openly available solution is not only targeted at property develo
 
 Follow these steps to set up the project environment and import the building data:
 
-1. **Create a data folder**
-
-   In the project root directory, create a new folder named `data`:
-
-   ```bash
-   mkdir data
-
-2. **Download the data file**
+1. **Download the data file**
     
-    Download the file mhub_wien.gpkg from [TU Cloud](https://tucloud.tuwien.ac.at/index.php/f/1131545286) and place it inside the data folder you just created.   
+    Download the file mhub_wien.gpkg from [TU Cloud](https://tucloud.tuwien.ac.at/index.php/f/1131545286) and place it inside the data folder.   
 
-3. **Build the project**
-
-    From the project root directory, run the following command to build the project and import the building data into the database:
+2. **Environment setup**
 
     ```bash
+    cp .env.example .env
+
+    Then set the appropriate value for POSTGRES_PASSWORD in the .env file.
+    Note: If you are on an ARM64 platform, the run script should detect it and set DOCKER_PLATFORM=linux/amd64 in the .env file.
+
+3. **Build and run the project**
+
+    From the project root directory, run the appropriate script depending on your platform.
+    These scripts will build the frontend and backend, start the database, and import the building data.
+
+    ### Windows
+    ```bash
    .\run.bat
+
+    ### Mac / Linux
+    ```bash
+    chmod +x run.sh
+   ./run.sh

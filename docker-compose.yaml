@@ -5,6 +5,7 @@ services:
   m-hub-db:
     image: m-hub-db
     build: ./m-hub-db
+    platform: ${DOCKER_PLATFORM:-}
     ports: 
       - "5432:5432"
     environment:

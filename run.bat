@@ -1,4 +1,21 @@
 @echo off
+
+REM -------- Environment check --------
+IF NOT EXIST .env (
+  echo [FEHLER] .env fehlt. hint: Kopiere .env.example und benenne es zu .env um.
+  GOTO ENDSCRIPT
+)
+
+REM -------- Platform detection (arm64) --------
+FOR /F "tokens=2 delims==" %%i IN ('wmic os get osarchitecture /value ^| find "="') DO SET ARCH=%%i
+
+IF "%ARCH%"=="64-bit" (
+    REM Most likely amd64, leave DOCKER_PLATFORM unset
+) ELSE (
+    echo [INFO] ARM64 Windows detected – forcing DOCKER_PLATFORM=linux/amd64 for PostGIS image
+    SET DOCKER_PLATFORM=linux/amd64
+)
+
 docker 1>NUL 2>NUL
 IF NOT %ERRORLEVEL% == 0 echo [FEHLER] docker ist derzeit nicht installiert. hint: https://www.docker.com/products/docker-desktop & GOTO ENDSCRIPT
 echo [OK] docker gefunden
