@@ -47,3 +47,7 @@ Thumbs.db
 
 # Bash .env files
 .env
+
+# Folder for geopackage data
+/data/*
+!/data/.gitkeep
