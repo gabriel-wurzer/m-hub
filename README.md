@@ -22,14 +22,22 @@ Follow these steps to set up the project environment and import the building dat
 
 2. **Environment setup**
 
+    Execute following command (depending on your platform) to copy `.env.example` to `.env`:
+
+    ### Windows
+    ```bash
+    copy .env.example .env
+    ```
+    
+    ### Mac / Linux
     ```bash
     cp .env.example .env
-    ```
+    ```   
+    
+    Then set the appropriate value for POSTGRES_PASSWORD in the `.env` file.<br>
+    Note: If you are on an ARM64 platform, the run script should detect it and set DOCKER_PLATFORM=linux/amd64 in `.env`.
 
-    Then set the appropriate value for POSTGRES_PASSWORD in the .env file.
-    Note: If you are on an ARM64 platform, the run script should detect it and set DOCKER_PLATFORM=linux/amd64 in the .env file.
-
-3. **Build and run the project**
+2. **Build and run the project**
 
     From the project root directory, run the appropriate script depending on your platform.
     These scripts will build the frontend and backend, start the database, and import the building data.
