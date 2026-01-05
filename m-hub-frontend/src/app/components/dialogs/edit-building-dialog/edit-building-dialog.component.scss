@@ -1,3 +1,6 @@
+@use '@angular/material' as mat;
+@use '../../../../theme-setup' as vars;
+
 :host {
   display: flex;
   flex-direction: column;
@@ -9,8 +12,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 14px;
-  gap: 2rem;
+  padding: 16px 20px 10px;
+  gap: 1.4rem;
   box-sizing: border-box;
 }
 
@@ -18,19 +21,28 @@
   padding: 8px 12px 12px;
 }
 
+mat-divider {
+    margin: 0 auto;
+}
+
 .header {
-  margin-bottom: 1rem;
+  margin-bottom: 0;
+}
+
+h1 {
+  margin: 10px 0;
+  font-size: 1.8rem;
+  line-height: 1;
 }
 
 h2 {
-  margin: 10px 0;
-  font-size: 1.6rem;
-  line-height: 1;
+  font-size: 1.5rem;
+  margin: 0 0 6px;
 }
 
 h3 {
   font-size: 1.2rem;
-  margin: 0 0 8px;
+  margin: 0 0 6px;
 }
 
 mat-form-field {
@@ -38,16 +50,22 @@ mat-form-field {
   font-size: 16px;
 }
 
-.user-specific-wrapper {
+.content-wrapper {
   display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  width: 100%;
+  flex-direction: inherit;
+  gap: 8px;
 }
 
-.name-wrapper,
-.address-wrapper {
-  flex: 1 1 260px;
+.building-info-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  width: 100%;
+  margin-bottom: 1.6rem;
+}
+
+.name-wrapper, .address-wrapper {
+  flex: 1 1 324px;
   min-width: 260px;
 }
 
@@ -61,3 +79,29 @@ mat-error {
   font-size: 14px;
 }
 
+@media (max-width: 874px) {
+  .structure-header {
+    margin: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .dialog-container {
+    padding: 6px 8px;
+    gap: 1rem;
+  }
+
+  .header {
+    margin-bottom: 0;
+  }
+
+  .content-wrapper {
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .actions {
+    margin-top: 4px;
+  }
+}

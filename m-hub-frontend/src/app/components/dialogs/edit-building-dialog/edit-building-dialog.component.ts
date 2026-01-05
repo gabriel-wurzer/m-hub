@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { AfterViewInit, Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
@@ -10,9 +10,12 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { Bauteil, BuildingComponent, Objekt } from '../../../models/building-component';
 import { Document } from '../../../models/document';
 import { DocumentListComponent } from "../../document-list/document-list.component";
-import { Floor } from '../../../models/floor';
+import { Floor, RoofFloor, StandardFloor } from '../../../models/floor';
 import { MatDividerModule } from '@angular/material/divider';
 import { UserBuilding } from '../../../models/building';
+import { FloorType } from '../../../enums/floor-type.enum';
+import { RoofType } from '../../../enums/roof-type.enum';
+import { BuildingStructureListComponent } from "../../building-structure-list/building-structure-list.component";
 
 
 
@@ -27,8 +30,9 @@ import { UserBuilding } from '../../../models/building';
     MatExpansionModule,
     MatTabsModule,
     MatDividerModule,
-    DocumentListComponent
-  ],
+    DocumentListComponent,
+    BuildingStructureListComponent
+],
   templateUrl: './edit-building-dialog.component.html',
   styleUrl: './edit-building-dialog.component.scss'
 })
@@ -36,12 +40,26 @@ export class EditBuildingDialogComponent {
 
   selectedTabIndex: number = 0;
 
+  FloorType = FloorType;
+  RoofType = RoofType;
+
+  roofTypes = Object.values(RoofType);
+  floorTypes = Object.values(FloorType).filter(ft => ft !== FloorType.D);
+
   name: string = '';
   address: string = '';
+
   structure: Floor[] = [];
+  isStructureValid: boolean = false;
+
   buildingParts: Bauteil[] = [];
   buildingObjects: Objekt[] = [];
   documents: Document[] = [];
+
+  floorSvgUrl = 'assets/images/geschoss.svg';
+  roofSvgUrl = 'assets/images/dach.svg';
+
+  animationsDisabled = true;
 
   constructor(
       public dialogRef: MatDialogRef<EditBuildingDialogComponent>,
@@ -55,9 +73,6 @@ export class EditBuildingDialogComponent {
       this.name = b.name || '';
       this.address = b.address || '';
       
-      // WICHTIG: Erstelle eine tiefe Kopie der Struktur, 
-      // damit Änderungen im Dialog nicht sofort das Original-Objekt 
-      // außerhalb des Dialogs verändern (Stichwort: )
       this.structure = b.structure ? JSON.parse(JSON.stringify(b.structure)) : [];
 
       // TODO: Fetch usrbuilding related documents, parts and objects
@@ -65,13 +80,6 @@ export class EditBuildingDialogComponent {
       // this.documents = b.documents || [];
     }
   }
-  
-  // {
-  //   this.name = data.name || '';
-  //   this.address = data.address || '';
-  //   // this.components = data.buildingComponents || [];
-  //   this.documents = data.documents || [];
-  // }
 
   getNameError(): string | null {
     if (this.name.trim().length === 0) {
@@ -87,12 +95,62 @@ export class EditBuildingDialogComponent {
 
   isFormValid(): boolean {
     const isNameValid = !!this.name && this.name.trim().length > 0;
-    return isNameValid;
+    
+    return isNameValid && this.isStructureValid;
   }
+  
+  // ngAfterViewInit(): void {
+  //   // Prevent animation glitch on load
+  //   setTimeout(() => {
+  //     this.animationsDisabled = false;
+  //   });
+  // }
 
-  close(): void {
-    this.dialogRef.close();
-  }
+  // get roofFloor(): RoofFloor {
+  //   return this.structure.find(f => f.type === FloorType.D) as RoofFloor;
+  // }
+
+  // get regularFloors(): StandardFloor[] {
+  //   return this.structure.filter(
+  //     f => f.type === FloorType.RG
+  //   ) as StandardFloor[];
+  // }
+
+  // private createRegularFloor(): StandardFloor {
+  //   return {
+  //     type: FloorType.RG,
+  //     count: null,
+  //     height: null,
+  //     area: null,
+  //     name: '',
+  //   } as unknown as StandardFloor; // Cast to satisfy strict typing if model requires number
+  // }
+
+  // get basementFloors(): StandardFloor[] {
+  //   return this.structure.filter(
+  //     f => f.type === FloorType.KG
+  //   ) as StandardFloor[];
+  // }
+
+
+  // getNameError(): string | null {
+  //   if (this.name.trim().length === 0) {
+  //     return 'Bitte Namen für das Gebäude angeben';
+  //   }
+  //   return null;
+  // }
+
+  // private normalizeOptionalInput(input: string): string | null {
+  //   const trimmed = input.trim();
+  //   return trimmed.length === 0 ? null : trimmed;
+  // }
+
+  // isFormValid(): boolean {
+  //   const isNameValid = !!this.name && this.name.trim().length > 0;
+  //   return isNameValid;
+  // }
+
+
 
   confirmEditBuilding(): void {
     if (!this.isFormValid()) return;
@@ -104,8 +162,12 @@ export class EditBuildingDialogComponent {
       address: trimmedAddress, 
       structure: this.structure,
       // buildingComponents: this.components,
-      documents: this.documents
+      // documents: this.documents
     });
+  }
+
+    close(): void {
+    this.dialogRef.close();
   }
 
 }

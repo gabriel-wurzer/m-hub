@@ -2,11 +2,58 @@
     <h2 mat-dialog-title class="header">Gebäude bearbeiten</h2>
 
     <mat-tab-group [(selectedIndex)]="selectedTabIndex" centered>
-            <mat-tab label="Gebäude Komponenten"></mat-tab>
-            <mat-tab label="Gebäude Struktur"></mat-tab>
+            <mat-tab label="Gebäude Komponenten">
+                <div class="tab-content">
+                    <mat-expansion-panel #docPanel [expanded]="true" class="document-container">
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>
+                                <h3 [class.expanded]="docPanel.expanded" style="margin: 0;">Dokumente</h3> 
+                            </mat-panel-title>
+                        </mat-expansion-panel-header>
+                        
+                        <app-document-list [documentsArray]="documents" />
+                    </mat-expansion-panel>
+                </div>
+            </mat-tab>
+
+            <mat-tab label="Gebäude Struktur">
+                <div class="tab-content">
+
+                    <div class="information-wrapper">
+                        <div class="name-wrapper">
+                            <h3>Name</h3>
+                            <mat-form-field appearance="outline" class="full-width">
+                                <mat-label>Name</mat-label>
+                                <input matInput [(ngModel)]="name" [required]="true" />
+                                <mat-error *ngIf="getNameError()">{{ getNameError() }}</mat-error>
+                            </mat-form-field>
+                        </div>
+                        
+                        <div class="address-wrapper">
+                            <h3>Adresse</h3>
+                            <mat-form-field appearance="outline" class="full-width">
+                                <mat-label>Adresse</mat-label>
+                                <input matInput [(ngModel)]="address" />
+                            </mat-form-field>
+                        </div>
+                    </div>
+
+                    <app-building-structure-list 
+                        [structure]="structure"
+                        (structureChange)="structure = $event"
+                        (validityChange)="isStructureValid = $event">
+                    </app-building-structure-list>
+
+                </div>
+
+            </mat-tab>
     </mat-tab-group>
 
-    <div mat-dialog-content class="content-wrapper">
+    <mat-tab>
+
+    </mat-tab>
+
+    <!-- <div mat-dialog-content class="content-wrapper">
         
         <div class="user-specific-wrapper">
             <div class="name-wrapper">
@@ -38,7 +85,7 @@
             
             <app-document-list [documentsArray]="documents" />
 
-    </mat-expansion-panel>
+    </mat-expansion-panel> -->
 
     <div mat-dialog-actions class="actions">
         <button mat-button (click)="close()">Abbruch</button>
