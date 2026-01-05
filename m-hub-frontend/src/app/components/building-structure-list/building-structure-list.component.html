@@ -1,0 +1,172 @@
+<div class="structure-wrapper">
+            
+    <div class="floor-item roof-item">
+        <div class="form-box">
+            <h3 class="floor-header">Dach</h3>
+
+            <div class="form-fields-wrapper">
+
+                <mat-form-field appearance="outline" class="roof-type-select">
+                    <mat-label>Dachtyp</mat-label>
+                    <mat-select
+                            [(ngModel)]="roofFloor.roofType"
+                            (ngModelChange)="emitChanges()"
+                            [required]="true"
+                            [errorStateMatcher]="matcher"
+                            #roofCtrl="ngModel"
+                        >
+                            <mat-option [value]="null" disabled>-- Dachtyp auswählen --</mat-option>
+                            <mat-option *ngFor="let val of roofTypes" [value]="val">{{ val }}</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="roofCtrl.invalid">Dachtyp erforderlich</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="wide">
+                    <mat-label>Bezeichnung</mat-label>
+                    <input matInput [(ngModel)]="roofFloor.description" />
+                </mat-form-field>
+            </div>
+        </div>
+
+        <div class="image-box">
+            <img [src]="roofSvgUrl"/>
+        </div>
+    </div>
+
+    <div class="dashed-block">
+        <div class="add-button">
+            <button mat-icon-button (click)="addRegularFloor()" matTooltip="Regelgeschoss hinzufügen" matTooltipPosition="right" matTooltipShowDelay="300">
+                <mat-icon>add_circle_outline</mat-icon>
+            </button>
+        </div>
+    </div>
+
+
+    <div class="regular-floors-container" [@.disabled]="animationsDisabled">
+        
+        <div *ngFor="let floor of this.regularFloors; let i = index" class="regular-floors-list" @rowAnimation>
+
+            <div class="floor-item base-item">
+
+                <button mat-icon-button 
+                        class="delete-button" 
+                        *ngIf="regularFloors.length > 1" 
+                        (click)="removeRegularFloor(i)"
+                        matTooltip="Regelgeschoss entfernen"
+                        matTooltipPosition="left"
+                        matTooltipShowDelay="300">
+                    <mat-icon>remove_circle_outline</mat-icon>
+                </button>
+
+                <div class="form-box">
+                    <h3 class="floor-header">Regelgeschoss {{i + 1}}</h3>
+
+                    <div class="form-fields-wrapper">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Anzahl der Geschosse</mat-label>
+                            <input matInput type="number" [(ngModel)]="floor.count" (ngModelChange)="emitChanges()" [required]="true" min="1" step="1" pattern="^-?[0-9]*$" #countCtrl="ngModel"/>
+                            <mat-error *ngIf="countCtrl.hasError('required')">Anzahl erforderlich</mat-error>
+                            <mat-error *ngIf="!countCtrl.hasError('required') && countCtrl.hasError('min')">Anzahl muss größer 0 sein</mat-error>
+                            <mat-error *ngIf="!countCtrl.hasError('min') && countCtrl.hasError('pattern')">Nur ganze Zahlen erlaubt</mat-error>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Geschosshöhe (cm)</mat-label>
+                            <input matInput type="number" [(ngModel)]="floor.height" (ngModelChange)="emitChanges()"[required]="true" min="1" #heightCtrl="ngModel"/>
+                            <mat-error *ngIf="heightCtrl.hasError('required')">Geschosshöhe erforderlich</mat-error>
+                            <mat-error *ngIf="heightCtrl.hasError('min')">Höhe muss größer 0 sein</mat-error>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Geschossfläche (m²)</mat-label>
+                            <input matInput type="number" [(ngModel)]="floor.area" (ngModelChange)="emitChanges()" [required]="true" min="1" #areaCtrl="ngModel"/>
+                            <mat-error *ngIf="areaCtrl.hasError('required')">Geschossfläche erforderlich</mat-error>
+                            <mat-error *ngIf="areaCtrl.hasError('min')">Fläche muss größer 0 sein</mat-error>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Bezeichnung</mat-label>
+                            <input matInput [(ngModel)]="floor.description" />
+                        </mat-form-field>
+                    </div>
+                </div>
+
+                <div class="image-box">
+                    <img [src]="floorSvgUrl"/>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ground-separator">
+        <span>Erdgleiche</span>
+    </div>
+
+    <!-- <div class="separator-dashed"></div> -->
+
+
+    <div class="basement-floors-container">
+        
+        <div *ngFor="let floor of this.basementFloors; let i = index" class="basement-floors-list" @rowAnimation>
+
+            <div class="floor-item base-item">
+
+                <button mat-icon-button 
+                        class="delete-button" 
+                        (click)="removeBasementFloor(i)"
+                        matTooltip="Kellergeschoss entfernen"
+                        matTooltipPosition="left"
+                        matTooltipShowDelay="300">
+                    <mat-icon>remove_circle_outline</mat-icon>
+                </button>
+
+                <div class="form-box">
+                    <h3 class="floor-header">Kellergeschoss {{i + 1}}</h3>
+
+                    <div class="form-fields-wrapper">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Anzahl der Geschosse</mat-label>
+                            <input matInput type="number" [(ngModel)]="floor.count" (ngModelChange)="emitChanges()" [required]="true" min="1" step="1" pattern="^-?[0-9]*$" #countCtrl="ngModel"/>
+                            <mat-error *ngIf="countCtrl.hasError('required')">Anzahl erforderlich</mat-error>
+                            <mat-error *ngIf="!countCtrl.hasError('required') && countCtrl.hasError('min')">Anzahl muss größer 0 sein</mat-error>
+                            <mat-error *ngIf="!countCtrl.hasError('min') && countCtrl.hasError('pattern')">Nur ganze Zahlen erlaubt</mat-error>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Geschosshöhe (cm)</mat-label>
+                            <input matInput type="number" [(ngModel)]="floor.height" (ngModelChange)="emitChanges()" [required]="true" min="1" #heightCtrl="ngModel"/>
+                            <mat-error *ngIf="heightCtrl.hasError('required')">Geschosshöhe erforderlich</mat-error>
+                            <mat-error *ngIf="heightCtrl.hasError('min')">Geschosshöhe muss größer 0 sein</mat-error>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Geschossfläche (m²)</mat-label>
+                            <input matInput type="number" [(ngModel)]="floor.area" (ngModelChange)="emitChanges()" [required]="true" min="1" #areaCtrl="ngModel"/>
+                            <mat-error *ngIf="areaCtrl.hasError('required')">Geschossfläche erforderlich</mat-error>
+                            <mat-error *ngIf="areaCtrl.hasError('min')">Geschossfläche muss größer 0 sein</mat-error>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Bezeichnung</mat-label>
+                            <input matInput [(ngModel)]="floor.description" />
+                        </mat-form-field>
+                    </div>
+                </div>
+
+                <div class="image-box">
+                    <img [src]="floorSvgUrl"/>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="dashed-block">
+        <div class="add-button">
+            <button mat-icon-button (click)="addBasementFloor()" matTooltip="Kellergeschoss hinzufügen" matTooltipPosition="right" matTooltipShowDelay="400">
+                <mat-icon>add_circle_outline</mat-icon>
+            </button>
+        </div>
+    </div>
+
+</div>    
