@@ -15,12 +15,12 @@ import { MaterialGroup } from '../../enums/material-group.enum';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DocumentListComponent } from "../document-list/document-list.component";
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { AddBuildingButtonComponent } from "../buttons/add-building-button/add-building-button.component";
 import { BuildingService } from '../../services/building/building.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserService } from '../../services/user/user.service';
 import { AuthenticationService } from '../../services/authentication/authentication.service';
 import { EntityContext } from '../../models/entity-context';
+import { UserBuildingButtonComponent } from '../buttons/user-building-button/user-building-button.component';
 
 @Component({
   selector: 'app-building-sidepanel',
@@ -34,8 +34,8 @@ import { EntityContext } from '../../models/entity-context';
     MatProgressSpinnerModule, 
     MatTooltipModule,
     NgxEchartsModule, 
-    DocumentListComponent, 
-    AddBuildingButtonComponent
+    DocumentListComponent,
+    UserBuildingButtonComponent
   ],
   templateUrl: './building-sidepanel.component.html',
   styleUrl: './building-sidepanel.component.scss'
