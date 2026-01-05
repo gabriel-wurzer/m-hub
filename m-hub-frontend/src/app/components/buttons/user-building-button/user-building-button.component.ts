@@ -2,7 +2,6 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs/operators';
 import { Building } from '../../../models/building';
-import { BuildingService } from '../../../services/building/building.service';
 import { UserService } from '../../../services/user/user.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -14,10 +13,10 @@ import { EditBuildingDialogComponent } from '../../dialogs/edit-building-dialog/
   selector: 'app-add-building-button',
   standalone: true,
   imports: [CommonModule, MatButtonModule, MatProgressSpinnerModule, MatDialogModule],
-    templateUrl: './add-building-button.component.html',
-    styleUrl: './add-building-button.component.scss'
+    templateUrl: './user-building-button.component.html',
+    styleUrl: './user-building-button.component.scss'
 })
-export class AddBuildingButtonComponent implements OnInit {
+export class UserBuildingButtonComponent implements OnInit {
 
   @Input() building!: Building;
   @Input() isInitiallyAdded: boolean | null = null;
@@ -27,7 +26,6 @@ export class AddBuildingButtonComponent implements OnInit {
   errorMessage = '';
 
   constructor(
-    private buildingService: BuildingService,
     private userService: UserService,
     private dialog: MatDialog
   ) {}
@@ -75,7 +73,7 @@ export class AddBuildingButtonComponent implements OnInit {
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
         next: created => {
-          console.log('UserBuilding created:', created);
+          console.log('User building created:', created);
           this.isAdded = true;
           this.building.userBuilding = created;
         },
@@ -88,11 +86,11 @@ export class AddBuildingButtonComponent implements OnInit {
   }
 
   editBuilding(): void {
-    if (!this.building || this.isLoading) return;
+    if (!this.building || !this.building.userBuilding || this.isLoading) return;
 
     const dialogRef = this.dialog.open(EditBuildingDialogComponent, {
       panelClass: 'custom-dialog',
-      data: { structure: null }
+      data: { userBuilding: this.building.userBuilding }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -110,15 +108,14 @@ export class AddBuildingButtonComponent implements OnInit {
       };
 
       this.userService.updateUserBuilding(
-        this.building.bw_geb_id,
+        this.building.userBuilding!.id,
         payload
       )
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
-        next: created => {
-          console.log('UserBuilding created:', created);
-          this.isAdded = true;
-          this.building.userBuilding = created;
+        next: updated => {
+          console.log('User building updated:', updated);
+          this.building.userBuilding = updated;
         },
         error: err => {
           console.error('Error creating user building:', err);
