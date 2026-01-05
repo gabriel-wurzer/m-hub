@@ -42,9 +42,6 @@ export class UserDataComponent implements OnInit {
   userBuildings: UserBuilding[] = [];
   selectedBuilding: UserBuilding | null = null;
 
-  // buildings: Building[] = [];
-  // selectedBuilding: Building | null = null;
-
   isStructureViewVisible = false;
   structureContext: EntityContext | null = null;
 
@@ -129,7 +126,7 @@ export class UserDataComponent implements OnInit {
   }
 
   editBuilding(building: UserBuilding): void {
-    if (!building || !this.selectedBuilding) return;
+    if (!building) return;
 
     const dialogRef = this.dialog.open(EditBuildingDialogComponent, {
       panelClass: 'custom-dialog',
@@ -160,7 +157,19 @@ export class UserDataComponent implements OnInit {
       .subscribe({
         next: updated => {
           console.log('User building updated:', updated);
+
           this.selectedBuilding = updated;
+          
+          // Update local list to reflect changes immediately
+          const index = this.userBuildings.findIndex(b => b.id === updated.id);
+          if (index !== -1) {
+            this.userBuildings[index] = updated;
+          }
+
+          // // If the currently selected building was edited, update that reference too
+          // if (this.selectedBuilding?.id === updated.id) {
+          //   this.selectedBuilding = updated;
+          // }
         },
         error: err => {
           console.error('Error updating user building:', err);
