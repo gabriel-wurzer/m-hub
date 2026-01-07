@@ -91,12 +91,17 @@
         <span>Hub</span>
       </div>
 
-      <div  class="menu-item" (click)="onMenuClick('data')">
-        <button mat-menu-item disableRipple >
-          <mat-icon>grid_view</mat-icon> 
-        </button>
-        <span>Daten</span>
-      </div>
+      <ng-container *ngIf="{ user: user$ | async } as auth">
+        <div class="menu-item"
+            [class.disabled-state]="!auth.user"
+            (click)="auth.user ? onMenuClick('data') : onDisabledDataClick()">
+            
+          <button mat-menu-item disableRipple>
+            <mat-icon>grid_view</mat-icon> 
+          </button>
+          <span>Daten</span>
+        </div>
+      </ng-container>
 
       <div class="menu-item" *ngIf="user$ | async as user" (click)="onProfileClick(user)">
         <button mat-menu-item disableRipple >

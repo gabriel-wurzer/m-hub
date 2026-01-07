@@ -219,10 +219,16 @@ mat-divider {
     padding-left: 4px;
   }
 
+  &.disabled-state {
+    opacity: 0.5;
+    
+    &:hover {
+      background-color: transparent;
+    }
+    cursor: pointer; 
+  }
 }
 
-
-/* Mobile adjustments */
 @media (max-width: 1199px) {
   .router-outlet-container {
     margin-left: 0;

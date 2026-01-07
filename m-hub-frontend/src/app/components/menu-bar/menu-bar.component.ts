@@ -14,6 +14,7 @@ import { AuthenticationService } from '../../services/authentication/authenticat
 import { LoginDialogComponent } from '../dialogs/login-dialog/login-dialog.component';
 import { Observable } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { LogoutDialogComponent } from '../dialogs/logout-dialog/logout-dialog.component';
 import { ProfileDialogComponent } from '../dialogs/profile-dialog/profile-dialog.component';
 
@@ -46,8 +47,9 @@ export class MenuBarComponent implements OnInit {
   constructor(
     private authService: AuthenticationService,
     private router: Router,
-    private dialog: MatDialog, 
-    private breakpointObserver: BreakpointObserver,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
+    private breakpointObserver: BreakpointObserver
   ) {
     this.user$ = this.authService.getUser$();
 
@@ -102,4 +104,12 @@ export class MenuBarComponent implements OnInit {
       autoFocus: false
     });
   }
+
+  onDisabledDataClick() {
+  this.snackBar.open('Gebäudeliste: \nAnmeldung erforderlich', 'OK', {
+    duration: 30000,
+    verticalPosition: 'bottom',
+    panelClass: 'multiline-snackbar'
+  });
+}
 }

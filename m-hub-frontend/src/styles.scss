@@ -32,6 +32,11 @@ $my-theme: mat.define-light-theme((
   white-space: pre-line;
 }
 
+.multiline-snackbar {
+  white-space: pre-line;
+  text-align: center;
+}
+
 .custom-dialog, .mat-dialog-container {
   width: 1200px;
   max-width: 90vw;
