@@ -9,7 +9,9 @@ CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username TEXT NOT NULL,
     email TEXT NOT NULL,
-    password_hash TEXT
+    password_hash TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ensure unique emails
@@ -40,3 +42,22 @@ VALUES
  'david@example.com',
  '$2b$10$1GPdyeu5PX0gKflrj.JH.OzilF3o.QM3I/A4h78J5nFdr3vPrRvBG'
 );
+
+-- ===============================================
+--  UPDATE TRIGGER LOGIC
+-- ===============================================
+CREATE OR REPLACE FUNCTION update_users_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_users_set_updated_at
+BEFORE UPDATE ON users
+FOR EACH ROW
+WHEN (
+    NEW IS DISTINCT FROM OLD
+)
+EXECUTE FUNCTION update_users_updated_at();

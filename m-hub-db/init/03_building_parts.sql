@@ -16,7 +16,9 @@ CREATE TABLE IF NOT EXISTS building_parts (
     location TEXT,
     part_type TEXT,
     part_structure TEXT, -- Platzhalter für das zukünftige Modell
-    is_public BOOLEAN NOT NULL DEFAULT FALSE
+    is_public BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ===============================================
@@ -63,4 +65,21 @@ FROM (
 ) AS src(building_id, owner_id, category, location, name, description, part_type, is_public)
 JOIN user_buildings ub 
   ON ub.building_id = src.building_id 
-  AND ub.user_id = src.owner_id;  
+  AND ub.user_id = src.owner_id;
+
+-- ===============================================
+--  UPDATE TRIGGER LOGIC
+-- ===============================================
+CREATE OR REPLACE FUNCTION update_building_parts_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_building_parts_set_updated_at
+BEFORE UPDATE ON building_parts
+FOR EACH ROW
+WHEN (NEW IS DISTINCT FROM OLD)
+EXECUTE FUNCTION update_building_parts_updated_at();

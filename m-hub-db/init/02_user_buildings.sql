@@ -11,7 +11,9 @@ CREATE TABLE IF NOT EXISTS user_buildings (
     building_id TEXT NOT NULL,
     structure JSONB NOT NULL,
     name TEXT,
-    address TEXT
+    address TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    structure_updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 ALTER TABLE user_buildings
@@ -70,3 +72,21 @@ ALTER TABLE user_buildings
   FOREIGN KEY (user_id)
   REFERENCES users(id)
   ON DELETE CASCADE;
+
+-- ===============================================
+--  STRUCTURE UPDATE TRIGGER LOGIC
+-- ===============================================
+CREATE OR REPLACE FUNCTION update_structure_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.structure_updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER trg_update_structure_only
+BEFORE UPDATE ON user_buildings
+FOR EACH ROW
+WHEN (NEW.structure IS DISTINCT FROM OLD.structure)
+EXECUTE FUNCTION update_structure_timestamp();

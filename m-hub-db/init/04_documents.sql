@@ -16,7 +16,9 @@ CREATE TABLE IF NOT EXISTS documents (
     description TEXT,
     is_public BOOLEAN NOT NULL DEFAULT FALSE,
     file_url TEXT,
-    file_type TEXT CHECK (file_type IN ('pdf', 'jpg', 'png', 'e57'))
+    file_type TEXT CHECK (file_type IN ('pdf', 'jpg', 'png', 'e57')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ===============================================
@@ -75,3 +77,20 @@ JOIN user_buildings ub
 LEFT JOIN building_parts bp 
   ON bp.name = doc.target_component_name 
   AND bp.user_building_id = ub.id;
+
+-- ===============================================
+--  UPDATE TRIGGER LOGIC
+-- ===============================================
+CREATE OR REPLACE FUNCTION update_documents_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_documents_set_updated_at
+BEFORE UPDATE ON documents
+FOR EACH ROW
+WHEN (NEW IS DISTINCT FROM OLD)
+EXECUTE FUNCTION update_documents_updated_at();
