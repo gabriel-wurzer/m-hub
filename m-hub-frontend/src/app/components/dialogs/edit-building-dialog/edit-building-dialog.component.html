@@ -4,15 +4,121 @@
     <mat-tab-group [(selectedIndex)]="selectedTabIndex" centered>
             <mat-tab label="Gebäude Komponenten">
                 <div class="tab-content">
-                    <mat-expansion-panel #docPanel [expanded]="true" class="document-container">
-                        <mat-expansion-panel-header>
-                            <mat-panel-title>
-                                <h3 [class.expanded]="docPanel.expanded" style="margin: 0;">Dokumente</h3> 
-                            </mat-panel-title>
-                        </mat-expansion-panel-header>
-                        
-                        <app-document-list [documentsArray]="documents" />
-                    </mat-expansion-panel>
+
+                    <div class="component-wrapper">
+                        <div class="section-container">
+                            <div class="section-header-row">
+                                <h3 class="component-header">Bauteile</h3>
+                                <button mat-icon-button color="primary" (click)="openAddBuildingPartDialog()" matTooltip="Bauteil hinzufügen" matTooltipPosition="right">
+                                    <mat-icon>add</mat-icon>
+                                </button>
+                            </div>
+
+                            <div class="custom-list">
+                                <div class="list-row grid-part" *ngFor="let part of buildingPartsMock">
+                                    <div class="col-id">
+                                        <span class="label">ID=</span>{{ part.id }}
+                                    </div>
+                                    <div class="col-main">{{ part.name }}</div>
+                                    <div class="col-type">{{ part.category }}</div>
+                                    
+                                    <div class="col-actions">
+                                        <button mat-icon-button color="primary" matTooltip="Bearbeiten">
+                                            <mat-icon>edit</mat-icon>
+                                        </button>
+                                        <button mat-icon-button color="warn" matTooltip="Löschen">
+                                            <mat-icon>delete_outline</mat-icon> </button>
+                                    </div>
+                                </div>
+
+                                <div class="empty-state" *ngIf="buildingPartsMock.length === 0 && !isLoadingParts">
+                                    Keine Bauteile vorhanden.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-container">
+                            <div class="section-header-row">
+                                <h3 class="component-header">Objekte</h3>
+                                <button mat-icon-button color="primary" (click)="openAddBuildingObjectDialog()" matTooltip="Objekt hinzufügen" matTooltipPosition="right">
+                                    <mat-icon>add</mat-icon>
+                                </button>
+                            </div>
+
+                            <div class="custom-list">
+                                <div class="list-row grid-object" *ngFor="let object of buildingObjects">
+                                    <div class="col-id">
+                                        <span class="label">ID=</span>{{ object.id }}
+                                    </div>
+                                    <div class="col-main">{{ object.name }}</div>
+                                    <div class="col-type">{{ object.category }}</div>
+                                    
+                                    <div class="col-actions">
+                                        <button mat-icon-button color="primary" matTooltip="Bearbeiten">
+                                            <mat-icon>edit</mat-icon>
+                                        </button>
+                                        <button mat-icon-button color="warn" matTooltip="Löschen">
+                                            <mat-icon>delete_outline</mat-icon> </button>
+                                    </div>
+                                </div>
+
+                                <div class="empty-state" *ngIf="buildingObjects.length === 0 && !isLoadingObjects">
+                                    Keine Objekte vorhanden.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="section-container">
+                            <div class="section-header-row">
+                                <h3 class="component-header">Dokumente</h3>
+                                <button mat-icon-button color="primary" (click)="openAddDocumentDialog()" matTooltip="Dokument hinzufügen" matTooltipPosition="right">
+                                    <mat-icon>add</mat-icon>
+                                </button>
+                            </div>
+
+                            <div class="custom-list">
+
+                                <div class="list-row grid-document header-row">
+                                    <!-- <div class="col-id">ID</div> -->
+                                    <div>Name</div>
+                                    <div>Typ</div>
+                                    <div>URL</div>
+                                    <div>Beschreibung</div>
+                                    <div>Public</div>
+                                    <div></div> 
+                                </div>
+
+                                <div class="list-row grid-document" *ngFor="let doc of documents">
+                                    <!-- <div class="col-id"> 
+                                        {{ doc.id }}
+                                    </div> -->
+                                    <div class="col-main">{{ doc.name }}</div>
+                                    <div class="col-type">{{ doc.file_type }}</div>
+                                    <div class="col-url">{{ doc.file_url }}</div>
+                                    <div *ngIf="doc.description" class="col-description">{{ doc.description }}</div>
+                                    <div class="col-public">{{ doc.is_public }}</div>
+                                    <!-- <div class="col-component">{{ doc.component_id }}</div> -->
+
+                                    <div class="col-actions">
+                                        <button mat-icon-button color="primary" matTooltip="Bearbeiten">
+                                            <mat-icon>edit</mat-icon>
+                                        </button>
+                                        <button mat-icon-button color="warn" matTooltip="Löschen">
+                                            <mat-icon>delete_outline</mat-icon> </button>
+                                    </div>
+                                </div>
+
+                                <div class="empty-state" *ngIf="documents.length === 0 && !isLoadingDocuments">
+                                    Keine Dokumente vorhanden.
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                    </div>
+
                 </div>
             </mat-tab>
 
@@ -52,40 +158,6 @@
     <mat-tab>
 
     </mat-tab>
-
-    <!-- <div mat-dialog-content class="content-wrapper">
-        
-        <div class="user-specific-wrapper">
-            <div class="name-wrapper">
-                <h3>Name</h3>
-                <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Name</mat-label>
-                    <input matInput [(ngModel)]="name" [required]="true" />
-                    <mat-error *ngIf="getNameError()">{{ getNameError() }}</mat-error>
-                </mat-form-field>
-            </div>
-            
-            <div class="address-wrapper">
-                <h3>Adresse</h3>
-                <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Adresse</mat-label>
-                    <input matInput [(ngModel)]="address" />
-                </mat-form-field>
-            </div>
-
-        </div>
-    </div>
-
-    <mat-expansion-panel #docPanel [expanded]="true" class="document-container">
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <h3 [class.expanded]="docPanel.expanded">Dokumente</h3> 
-              </mat-panel-title>
-            </mat-expansion-panel-header>
-            
-            <app-document-list [documentsArray]="documents" />
-
-    </mat-expansion-panel> -->
 
     <div mat-dialog-actions class="actions">
         <button mat-button (click)="close()">Abbruch</button>

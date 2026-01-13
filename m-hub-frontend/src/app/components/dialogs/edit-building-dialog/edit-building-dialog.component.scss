@@ -45,24 +45,190 @@ h3 {
   margin: 0 0 6px;
 }
 
-mat-form-field {
-  width: 100%;
-  font-size: 16px;
+.component-header {
+  font-size: 1.3rem;
+  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+  margin: 0 0 6px;
+}
+
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1rem;
 }
 
 .content-wrapper {
   display: flex;
   flex-direction: inherit;
-  gap: 8px;
 }
 
-.building-info-wrapper {
+.component-wrapper {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 2rem;
-  width: 100%;
-  margin-bottom: 1.6rem;
+  flex-direction: column;
+  gap: 2rem;
 }
+
+
+.section-header-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  h3 {
+    margin: 0;
+  }
+
+}
+
+.section-container {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.custom-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.list-row {
+  display: grid;
+  align-items: center;
+  padding: 0 16px; /* Padding left/right global */
+  gap: 12px;       /* Abstand zwischen den Spalten */
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s;
+  min-height: 54px;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: #fafafa;
+  }
+
+  &.header-row {
+    background-color: #f5f5f5;
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: rgba(0, 0, 0, 0.6);
+    letter-spacing: 0.5px;
+    
+    .col-actions {
+        visibility: hidden;
+    }
+  }
+}
+
+/* Bauteile Grid */
+/* Name | Typ | Actions */
+.list-row.grid-part {
+    grid-template-columns: 80px 1fr 1fr auto;
+}
+
+/* Objekt Grid */
+/* Name | Typ | Actions */
+.list-row.grid-object {
+    grid-template-columns: 80px 1fr 1fr auto;
+}
+
+/* Dokumente Grid */
+/* Name | Type | URL | Desc | Public | CompID | Actions */
+.list-row.grid-document {
+    grid-template-columns: 200px minmax(120px, 2fr) 60px 1fr 1.5fr 80px 50px auto;
+}
+
+
+
+/* --- COLUMNS --- */
+.col-id {
+  font-weight: 500;
+  color: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  
+  /* The dashed line separator from your sketch */
+  border-right: 2px dashed #e0e0e0; 
+  margin-right: 12px;
+  height: 100%; /* Full height for the border */
+  
+  .label {
+    font-size: 0.8rem;
+    color: rgba(0,0,0,0.4);
+    font-weight: 400;
+  }
+}
+
+.col-main {
+  font-weight: 500;
+  color: #333;
+}
+
+.col-type {
+  color: rgba(0,0,0,0.6);
+  font-style: italic;
+}
+
+.col-actions {
+    display: flex; 
+    justify-content: flex-end; 
+    align-items: center;
+    
+    /* LINIE LINKS (wie gewünscht vor den Buttons) */
+    border-left: 2px dashed #e0e0e0;
+    padding-left: 8px;
+    margin-left: -6px; /* Grid-Gap Ausgleich */
+
+  .mat-icon-button {
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+    
+    mat-icon {
+      font-size: 20px;
+    }
+  }
+}
+
+@media (max-width: 900px) {
+    /* Grid neu definieren: Nur 4 Spalten */
+   
+
+    /* ID etwas kompakter machen */
+    .col-id {
+        .label { display: none; } /* "ID=" ausblenden um Platz zu sparen */
+    }
+}
+
+
+.empty-state { padding: 16px; text-align: center; color: #999; font-style: italic; }
+
+
+mat-form-field {
+  width: 100%;
+  font-size: 16px;
+}
+
+mat-panel-title {
+    margin: 1.4rem auto 1rem;
+}
+
+mat-expansion-panel {
+    background: inherit !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+mat-expansion-panel-header {
+    padding-left: 12px;
+    padding-right: 20px;
+}
+
 
 .name-wrapper, .address-wrapper {
   flex: 1 1 324px;
@@ -83,6 +249,18 @@ mat-error {
   .structure-header {
     margin: 0;
   }
+
+   .grid-document {
+        grid-template-columns: 60px 1fr 60px auto;
+    }
+
+    /* Nicht benötigte Spalten ausblenden */
+    .col-url, 
+    .col-description, 
+    .col-public, 
+    .col-component {
+        display: none !important;
+    }
 }
 
 @media (max-width: 520px) {
