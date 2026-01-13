@@ -57,11 +57,18 @@
         "env": []
     },
     {
+        "id": "fb757f2c84f9e1fb",
+        "type": "tab",
+        "label": "GET Documents by User-Building",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "21f39893d63240a6",
         "type": "tab",
         "label": "GET Document by ID",
-        "disabled": false,
-        "locked": true,
+        "disabled": true,
         "info": "",
         "env": []
     },
@@ -70,7 +77,6 @@
         "type": "tab",
         "label": "GET Documents (by filter query parameters)",
         "disabled": false,
-        "locked": true,
         "info": "",
         "env": []
     },
@@ -142,14 +148,6 @@
         "id": "0cd2d786f9f2ee5b",
         "type": "tab",
         "label": "Add Building to User",
-        "disabled": true,
-        "info": "",
-        "env": []
-    },
-    {
-        "id": "ca28e1e423cf6c08",
-        "type": "tab",
-        "label": "Remove Building from User",
         "disabled": true,
         "info": "",
         "env": []
@@ -706,7 +704,7 @@
         "type": "function",
         "z": "0f9991baea5a014f",
         "name": "format result",
-        "func": "if (msg.payload && msg.payload.length > 0) {\n    msg.statusCode = 200;\n} else {\n    msg.statusCode = 404;\n    msg.payload = { error: \"User-Building not found\" };\n}\nreturn msg;\n",
+        "func": "if (Array.isArray(msg.payload)) {\n    msg.statusCode = 200;\n} else {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Database query failed\" };\n}\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -1223,6 +1221,183 @@
                 "7091223863935d64"
             ]
         ]
+    },
+    {
+        "id": "2d24412d7c85380b",
+        "type": "http in",
+        "z": "fb757f2c84f9e1fb",
+        "name": "GET documents by user-building",
+        "url": "/api/documents/building/:ID",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 290,
+        "y": 180,
+        "wires": [
+            [
+                "aee9c81bcf1f1656"
+            ]
+        ]
+    },
+    {
+        "id": "da2db83dcb51c18a",
+        "type": "comment",
+        "z": "fb757f2c84f9e1fb",
+        "name": "http://localhost:1880/api/documents/building/ID",
+        "info": "",
+        "x": 350,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "b2175cadcd541955",
+        "type": "function",
+        "z": "fb757f2c84f9e1fb",
+        "name": "format result",
+        "func": "if (Array.isArray(msg.payload)) {\n    msg.statusCode = 200;\n} else {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Database query failed\" };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 750,
+        "y": 720,
+        "wires": [
+            [
+                "d19c17a431f61114",
+                "1688a6e63f750ca9"
+            ]
+        ]
+    },
+    {
+        "id": "d19c17a431f61114",
+        "type": "http response",
+        "z": "fb757f2c84f9e1fb",
+        "name": "document response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1090,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "a7201c2e2ffe88b3",
+        "type": "postgresql",
+        "z": "fb757f2c84f9e1fb",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 580,
+        "y": 580,
+        "wires": [
+            [
+                "b2175cadcd541955"
+            ]
+        ]
+    },
+    {
+        "id": "fef8d04f4473f534",
+        "type": "catch",
+        "z": "fb757f2c84f9e1fb",
+        "name": "",
+        "scope": [
+            "a7201c2e2ffe88b3"
+        ],
+        "uncaught": false,
+        "x": 850,
+        "y": 480,
+        "wires": [
+            [
+                "d7f6c2e2d423b72d"
+            ]
+        ]
+    },
+    {
+        "id": "d7f6c2e2d423b72d",
+        "type": "function",
+        "z": "fb757f2c84f9e1fb",
+        "name": "handle db errors",
+        "func": "const errMsg = msg.error && msg.error.message ? msg.error.message : '';\n\nmsg.statusCode = 500; // Internal Server Error\nmsg.payload = { error: 'Database error', details: errMsg };\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1040,
+        "y": 480,
+        "wires": [
+            [
+                "d19c17a431f61114"
+            ]
+        ]
+    },
+    {
+        "id": "aee9c81bcf1f1656",
+        "type": "function",
+        "z": "fb757f2c84f9e1fb",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg]; // Go to Output 2 (Error)\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    \n    msg.user = decoded; \n    \n    return [msg, null]; // Go to Output 1 (Success)\n\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 280,
+        "wires": [
+            [
+                "4366a46d47eb25c1"
+            ],
+            [
+                "d19c17a431f61114"
+            ]
+        ]
+    },
+    {
+        "id": "4366a46d47eb25c1",
+        "type": "function",
+        "z": "fb757f2c84f9e1fb",
+        "name": "build SQL query",
+        "func": "const user_id = msg.user.sub;\nconst building_id = msg.req.params.ID;\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (!user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"user_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid user ID format\" };\n    return [null, msg];\n}\n\nif (!building_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"user_building_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!uuidRegex.test(building_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid building ID format\" };\n    return [null, msg];\n}\n\nmsg.query = \"SELECT * FROM documents WHERE user_building_id = $1::uuid AND owner_id = $2::uuid\";\nmsg.params = [building_id, user_id];\n\n return [msg, null]",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 440,
+        "wires": [
+            [
+                "a7201c2e2ffe88b3"
+            ],
+            [
+                "d19c17a431f61114"
+            ]
+        ]
+    },
+    {
+        "id": "1688a6e63f750ca9",
+        "type": "debug",
+        "z": "fb757f2c84f9e1fb",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1020,
+        "y": 800,
+        "wires": []
     },
     {
         "id": "125fc0cb9525e015",
@@ -1979,7 +2154,7 @@
         "id": "1e8203c92a41b74b",
         "type": "http in",
         "z": "b4d66047ba3aad6c",
-        "name": "UPDATE user-building",
+        "name": "DELETE user-building",
         "url": "/api/users/me/buildings/:id",
         "method": "delete",
         "upload": false,
@@ -2956,155 +3131,6 @@
         "encoding": "none",
         "x": 610,
         "y": 420,
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "7bdeb83320e15b3a",
-        "type": "http in",
-        "z": "ca28e1e423cf6c08",
-        "name": "DELETE building",
-        "url": "/api/user/:UID/buildings/:BID",
-        "method": "delete",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 300,
-        "y": 160,
-        "wires": [
-            [
-                "9b9a4935cb6f1f61"
-            ]
-        ]
-    },
-    {
-        "id": "cc19f1e2185367fa",
-        "type": "function",
-        "z": "ca28e1e423cf6c08",
-        "name": "append building to user",
-        "func": "// Extract user and building ID parameters from msg.req.params\nconst userId = msg.req.params.UID;\nconst buildingId = msg.req.params.BID;\n\nconst users = msg.payload;\n\n// Find user by ID\nconst user = users.find(u => u.id === userId);\n\nif (!user) {\n    msg.statusCode = 404;\n    msg.payload = { error: `User with ID '${userId}' not found` };\n    return [null, msg];\n}\n\n// Ensure buildings is an array\nif (!Array.isArray(user.buildings)) {\n    user.buildings = [];\n}\n\n// Remove the building ID if it exists\nconst index = user.buildings.indexOf(buildingId);\nif (index !== -1) {\n    user.buildings.splice(index, 1); // Remove one item at that index\n}\n\n// Prepare output 1: Updated full users array (write to file)\nconst writeMsg = {\n    payload: JSON.stringify(users, null, 2)\n};\n\n// Prepare output 2: Success response with updated user\nmsg.statusCode = 200;\nmsg.payload = user;\n\nreturn [writeMsg, msg];\n",
-        "outputs": 2,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 430,
-        "y": 380,
-        "wires": [
-            [
-                "0d03d9784e5768c6"
-            ],
-            [
-                "996ce82d3115534d"
-            ]
-        ]
-    },
-    {
-        "id": "6e4af95c1e140b91",
-        "type": "http response",
-        "z": "ca28e1e423cf6c08",
-        "name": "buildings array response",
-        "statusCode": "",
-        "headers": {},
-        "x": 1050,
-        "y": 420,
-        "wires": []
-    },
-    {
-        "id": "9b9a4935cb6f1f61",
-        "type": "file in",
-        "z": "ca28e1e423cf6c08",
-        "name": "users.json",
-        "filename": "/data/users.json",
-        "filenameType": "str",
-        "format": "utf8",
-        "chunk": false,
-        "sendError": false,
-        "encoding": "none",
-        "allProps": false,
-        "x": 330,
-        "y": 260,
-        "wires": [
-            [
-                "c4955c234c812ad1"
-            ]
-        ]
-    },
-    {
-        "id": "c4955c234c812ad1",
-        "type": "json",
-        "z": "ca28e1e423cf6c08",
-        "name": "",
-        "property": "payload",
-        "action": "",
-        "pretty": false,
-        "x": 510,
-        "y": 260,
-        "wires": [
-            [
-                "cc19f1e2185367fa"
-            ]
-        ]
-    },
-    {
-        "id": "8d92558f6b2ec9ec",
-        "type": "comment",
-        "z": "ca28e1e423cf6c08",
-        "name": "http://localhost:1880/api/user/UID/buildings/BID",
-        "info": "",
-        "x": 380,
-        "y": 100,
-        "wires": []
-    },
-    {
-        "id": "b85ab86c9d240e19",
-        "type": "comment",
-        "z": "ca28e1e423cf6c08",
-        "name": "mock: remove buildingId from user with userId",
-        "info": "",
-        "x": 850,
-        "y": 260,
-        "wires": []
-    },
-    {
-        "id": "996ce82d3115534d",
-        "type": "delay",
-        "z": "ca28e1e423cf6c08",
-        "name": "",
-        "pauseType": "delay",
-        "timeout": "1",
-        "timeoutUnits": "seconds",
-        "rate": "1",
-        "nbRateUnits": "1",
-        "rateUnits": "second",
-        "randomFirst": "1",
-        "randomLast": "5",
-        "randomUnits": "seconds",
-        "drop": false,
-        "allowrate": false,
-        "outputs": 1,
-        "x": 780,
-        "y": 420,
-        "wires": [
-            [
-                "6e4af95c1e140b91"
-            ]
-        ]
-    },
-    {
-        "id": "0d03d9784e5768c6",
-        "type": "file",
-        "z": "ca28e1e423cf6c08",
-        "name": "updated user.json",
-        "filename": "/data/users.json",
-        "filenameType": "str",
-        "appendNewline": true,
-        "createDir": false,
-        "overwriteFile": "true",
-        "encoding": "none",
-        "x": 790,
-        "y": 320,
         "wires": [
             []
         ]

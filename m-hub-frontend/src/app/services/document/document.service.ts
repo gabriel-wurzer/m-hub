@@ -30,5 +30,10 @@ export class DocumentService {
     const params = new HttpParams({ fromObject: cleanFilters });
     return this.http.get<Document[]>(this.apiUrl, { params });
   }
+
+  getDocumentsByUserBuilding(userBuildingId: string): Observable<Document[]> {
+    return this.http.get<Document[]>(`${this.apiUrl}/building/${userBuildingId}`);
+  }
+
   
 }
