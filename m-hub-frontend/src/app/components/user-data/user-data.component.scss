@@ -48,7 +48,7 @@ main {
   
 #user-data {
     flex: 1;
-    box-shadow: 2px 4px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
     border: 2px solid mat.get-color-from-palette(vars.$my-secondary, 700);
     border-radius: 12px;
     width: 100%;
