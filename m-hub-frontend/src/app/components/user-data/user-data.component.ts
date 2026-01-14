@@ -17,6 +17,7 @@ import { EditBuildingDialogComponent } from '../dialogs/edit-building-dialog/edi
 import { AuthenticationService } from '../../services/authentication/authentication.service';
 import { EntityContext } from '../../models/entity-context';
 import { StructureViewComponent } from '../structure-view/structure-view.component';
+import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog.component';
 
 
 @Component({
@@ -104,26 +105,71 @@ export class UserDataComponent implements OnInit {
   }
 
   deleteBuilding(building: UserBuilding): void {
-    if (!confirm(`Gebäude ${building.name} (ID: ${building.building_id}) wirklich entfernen?`)) return;
+  // 1. Dialog öffnen statt window.confirm
+  const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+    width: '450px', // Etwas breiter für den Slider
+    data: {
+      title: 'Gebäude löschen',
+      message: `Möchtest du das Gebäude "${building.name}" (ID: ${building.building_id}) wirklich unwiderruflich löschen? Alle zugehörigen Daten gehen verloren.`,
+      confirmText: 'Löschen',
+      cancelText: 'Behalten',
+      // HIER AKTIVIEREN WIR DEN SLIDER
+      requireSlider: true, 
+      sliderText: 'Löschen bestätigen' 
+    }
+  });
 
-    this.isLoading = true;
+  // 2. Auf Ergebnis warten
+  dialogRef.afterClosed().subscribe(result => {
+    // result ist true, nur wenn Slider aktiv war UND Button geklickt wurde
+    if (result === true) {
+      this.executeDelete(building);
+    }
+  });
+}
 
-    this.userService.deleteUserBuilding(building.id)
+// Den eigentlichen Lösch-Vorgang habe ich zur Übersichtlichkeit ausgelagert
+private executeDelete(building: UserBuilding): void {
+  this.isLoading = true;
+
+  this.userService.deleteUserBuilding(building.id)
     .pipe(finalize(() => this.isLoading = false))
     .subscribe({
       next: () => {
         this.userBuildings = this.userBuildings.filter(b => b.id !== building.id);
-
         if (this.selectedBuilding?.id === building.id) {
           this.selectedBuilding = null;
         }
       },
       error: (error) => {
         console.error('Failed to delete building:', error);
+        // Optional: Hier könnte man einen einfachen Info-Dialog öffnen statt nur errorMessage zu setzen
         this.errorMessage = 'Gebäude konnte nicht entfernt werden.';
       }
     });
-  }
+}
+
+  // deleteBuilding(building: UserBuilding): void {
+  //   if (!confirm(`Gebäude ${building.name} (ID: ${building.building_id}) wirklich entfernen?`)) return;
+
+  //   this.isLoading = true;
+
+  //   this.userService.deleteUserBuilding(building.id)
+  //   .pipe(finalize(() => this.isLoading = false))
+  //   .subscribe({
+  //     next: () => {
+  //       this.userBuildings = this.userBuildings.filter(b => b.id !== building.id);
+
+  //       if (this.selectedBuilding?.id === building.id) {
+  //         this.selectedBuilding = null;
+  //       }
+  //     },
+  //     error: (error) => {
+  //       console.error('Failed to delete building:', error);
+  //       this.errorMessage = 'Gebäude konnte nicht entfernt werden.';
+  //     }
+  //   });
+  // }
 
   editBuilding(building: UserBuilding): void {
     if (!building) return;

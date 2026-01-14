@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
@@ -18,6 +18,7 @@ import { BuildingStructureListComponent } from "../../building-structure-list/bu
 import { DocumentService } from '../../../services/document/document.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 
 
@@ -51,8 +52,12 @@ export class EditBuildingDialogComponent implements OnInit {
 
   name: string = '';
   address: string = '';
-
   structure: Floor[] = [];
+
+  private originalStructureJson: string = '';
+  private originalName: string = '';
+  private originalAddress: string = '';
+
   isStructureValid: boolean = false;
 
   buildingParts: Bauteil[] = [];
@@ -72,23 +77,40 @@ export class EditBuildingDialogComponent implements OnInit {
 
   buildingPartsMock: any[] = [
     { id: "3", name: 'RG1', category: 'WAND' },
+    { id: "64", name: 'UG2', category: 'BODEN' },
+    { id: "64", name: 'UG2', category: 'BODEN' },
+    { id: "64", name: 'UG2', category: 'BODEN' },
+    { id: "64", name: 'UG2', category: 'BODEN' },
+    { id: "64", name: 'UG2', category: 'BODEN' },
+    { id: "64", name: 'UG2', category: 'BODEN' },
+    { id: "64", name: 'UG2', category: 'BODEN' },
+    { id: "64", name: 'UG2', category: 'BODEN' },
+    { id: "64", name: 'UG2', category: 'BODEN' },
+    { id: "64", name: 'UG2', category: 'BODEN' },
+    { id: "64", name: 'UG2', category: 'BODEN' },
+    { id: "64", name: 'UG2', category: 'BODEN' },
     { id: "64", name: 'UG2', category: 'BODEN' }
   ];
 
   constructor(
       public dialogRef: MatDialogRef<EditBuildingDialogComponent>,
       @Inject(MAT_DIALOG_DATA) public data: { userBuilding: UserBuilding },
-      private documentService: DocumentService
+      private documentService: DocumentService,
+      private dialog: MatDialog
   ) {
     if (this.data && this.data.userBuilding) {
       
       // create copy of user building to prevent change of original befor completing dialog--> Immutability principle
       const b = this.data.userBuilding;
-      
       this.name = b.name || '';
       this.address = b.address || '';
-      
       this.structure = b.structure ? JSON.parse(JSON.stringify(b.structure)) : [];
+
+      // SNAPSHOT DER ORIGINALDATEN MACHEN
+      this.originalName = this.name;
+      this.originalAddress = this.address;
+      // JSON Stringify ist ein einfacher Weg, um Objekte/Arrays auf Gleichheit zu prüfen
+      this.originalStructureJson = JSON.stringify(this.structure);
     }
   }
 
@@ -161,8 +183,41 @@ export class EditBuildingDialogComponent implements OnInit {
     });
   }
 
-    close(): void {
-    this.dialogRef.close();
+  hasUnsavedChanges(): boolean {
+    if (this.name !== this.originalName) return true;
+    
+    const currentAddress = this.address ? this.address.trim() : '';
+    const oldAddress = this.originalAddress ? this.originalAddress.trim() : '';
+    if (currentAddress !== oldAddress) return true;
+    
+    const currentStructureJson = JSON.stringify(this.structure);
+    if (currentStructureJson !== this.originalStructureJson) return true;
+
+    return false;
+  }
+
+  close(): void {
+    if (this.hasUnsavedChanges()) {
+        const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+            width: '90%',
+            maxWidth: '420px',
+            autoFocus: false,
+            data: {
+                title: 'Änderungen verwerfen?',
+                message: 'Du hast ungespeicherte Änderungen an der Gebäudestruktur. Möchtest du den Dialog wirklich schließen? Deine Änderungen gehen verloren.',
+                confirmText: 'Verwerfen',
+                cancelText: 'Abbrechen'
+            }
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+            if (result === true) {
+              this.dialogRef.close(); // Wirklich schließen
+            }
+        });
+    } else {
+        this.dialogRef.close();
+    }
   }
 
 }

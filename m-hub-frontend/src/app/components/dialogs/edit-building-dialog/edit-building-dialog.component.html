@@ -155,20 +155,22 @@
             </mat-tab>
     </mat-tab-group>
 
-    <mat-tab>
-
-    </mat-tab>
-
     <div mat-dialog-actions class="actions">
-        <button mat-button (click)="close()">Abbruch</button>
-        <button 
-            mat-button 
-            color="primary" 
-            (click)="confirmEditBuilding()"  
-            [disabled]="!isFormValid()"
-        >
-            Bearbeiten
+        <button *ngIf="selectedTabIndex === 0" mat-button (click)="close()">
+            Schließen
         </button>
+
+        <ng-container *ngIf="selectedTabIndex === 1">
+            <button mat-button (click)="close()">Abbrechen</button>
+            <button 
+                mat-button 
+                color="primary" 
+                (click)="confirmEditBuilding()"  
+                [disabled]="!isFormValid()"
+            >
+                Speichern
+            </button>
+        </ng-container>
     </div>
 </div>
 

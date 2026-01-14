@@ -15,8 +15,8 @@ import { LoginDialogComponent } from '../dialogs/login-dialog/login-dialog.compo
 import { Observable } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { LogoutDialogComponent } from '../dialogs/logout-dialog/logout-dialog.component';
 import { ProfileDialogComponent } from '../dialogs/profile-dialog/profile-dialog.component';
+import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-menu-bar',
@@ -80,12 +80,17 @@ export class MenuBarComponent implements OnInit {
   }
 
   onLogoutClick() {
-    const dialogRef = this.dialog.open(LogoutDialogComponent, 
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, 
       { 
         width: '90%',
         maxWidth: '360px',
-        autoFocus: false 
-
+        autoFocus: false,
+        data: {
+            title: 'Abmelden',
+            message: 'Möchtest du dich wirklich abmelden?',
+            confirmText: 'Abmelden',
+            cancelText: 'Abbrechen'
+        }
       });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -100,7 +105,7 @@ export class MenuBarComponent implements OnInit {
     this.dialog.open(ProfileDialogComponent, {
       width: '90%',
       maxWidth: '400px',
-      data: user, // Pass the user object to the dialog
+      data: user,
       autoFocus: false
     });
   }
