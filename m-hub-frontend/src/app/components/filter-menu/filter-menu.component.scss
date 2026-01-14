@@ -1,18 +1,19 @@
 :host {
     display: flex;
     height: 100%;
-    max-width: 360px;
-    min-width: 300px;
-    width: 100%;
-}
 
-.filter-menu {
-    width: inherit;
-    height: inherit;
     position: absolute;
     top: 0;
     left: 0;
-    transition: all 0.4s ease-in-out;
+    z-index: 1500;
+}
+
+.filter-menu {
+    width: 360px;
+    max-width: 100%;
+    min-width: 300px;
+
+    height: inherit;
     background: white;
     color: #000;
     z-index: 1500;

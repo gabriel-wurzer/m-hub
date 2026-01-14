@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, HostListener, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatOptionModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,7 +11,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { Period, PeriodLabels } from '../../enums/period.enum';
 import { Usage, UsageLabels } from '../../enums/usage.enum';
 import { FilterService } from '../../services/filter/filter.service';
-
+import { animate, style, transition, trigger } from '@angular/animations';
 
 
 @Component({
@@ -29,10 +29,30 @@ import { FilterService } from '../../services/filter/filter.service';
     MatOptionModule
   ],
   templateUrl: './filter-menu.component.html',
-  styleUrl: './filter-menu.component.scss'
+  styleUrl: './filter-menu.component.scss',
+  animations: [
+    trigger('slideInOut', [
+      transition(':enter', [
+        style({ transform: 'translateX(-100%)' }),
+        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)', style({ transform: 'translateX(0)' }))
+      ]),
+      transition(':leave', [
+        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)', style({ transform: 'translateX(-100%)' }))
+      ])
+    ])
+  ]
 })
 export class FilterMenuComponent implements OnInit {
-
+  
+  @HostBinding('@slideInOut') animate = true;
+  
+  @HostListener('dblclick', ['$event'])
+  @HostListener('click', ['$event'])
+  @HostListener('mousedown', ['$event'])
+  stopEventPropagation(event: MouseEvent) {
+    event.stopPropagation();
+  }
+  
   @Output() closePanel = new EventEmitter<void>();
 
   periodOptions = Object.values(Period).filter(value => typeof value === 'number') as number[];

@@ -5,7 +5,7 @@
         (closePanel)="toggleFilterPanel()" 
         (mouseenter)="disableMapInteractions()" 
         (mouseleave)="enableMapInteractions()" />
-      <app-filter-button *ngIf="!isFilterPanelVisible" (click)="toggleFilterPanel()" />
+      <app-filter-button (click)="toggleFilterPanel()" />
     </div>
   
     <app-building-sidepanel 
