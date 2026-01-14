@@ -1,0 +1,30 @@
+h2 {
+  font-size: 1.4rem !important;
+}
+
+mat-dialog-content {
+    padding: 16px 24px !important;
+    font-size: 1rem;
+    
+    display: flex;
+    flex-direction: column; 
+    gap: 16px; 
+}
+
+.slider-container {
+    padding: 12px;
+    background-color: #fff0f0;
+    border-radius: 4px;
+    border: 1px solid #ffcdd2;
+}
+
+.toggle-label {
+    margin-left: 12px;
+    font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
