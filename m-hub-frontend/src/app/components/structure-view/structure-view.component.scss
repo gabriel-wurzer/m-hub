@@ -1,3 +1,6 @@
+@use '@angular/material' as mat;
+@use '../../../theme-setup' as vars;
+
 :host {
     height: 100%;
     width: 100%;
@@ -14,8 +17,8 @@
     padding: 8px 12px 12px;
     overflow-y: auto;
     gap: 2rem;
-    box-shadow: 2px 4px 4px rgba(0, 0, 0, 0.2);
-    border: 2px solid #455a64;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+    border: 2px solid mat.get-color-from-palette(vars.$my-secondary, 700);
     border-radius: 12px;
     transition: all 0.4s ease-in-out;
 }
