@@ -37,6 +37,16 @@ $my-theme: mat.define-light-theme((
   text-align: center;
 }
 
+.snackbar-warn {
+  .mdc-snackbar__label {
+    color: mat.get-color-from-palette(vars.$my-warn, 700) !important;
+  }
+
+  .mdc-snackbar__action {
+    color: mat.get-color-from-palette(vars.$my-warn, 800) !important;
+  }
+}
+
 .custom-dialog, .mat-dialog-container {
   width: 1200px;
   max-width: 90vw;
