@@ -52,3 +52,8 @@ Follow these steps to set up the project environment and import the building dat
     chmod +x run.sh
    ./run.sh
     ```
+
+3. **Rerun the project**
+    ```bash
+    docker compose up -d --build m-hub-db m-hub-postgis-api m-hub-backend m-hub-frontend
+    ```
