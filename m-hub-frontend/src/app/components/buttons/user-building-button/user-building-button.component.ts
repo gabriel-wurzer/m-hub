@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AddBuildingDialogComponent } from '../../dialogs/add-building-dialog/add-building-dialog.component';
 import { EditBuildingDialogComponent } from '../../dialogs/edit-building-dialog/edit-building-dialog.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'user-add-building-button',
@@ -27,7 +28,8 @@ export class UserBuildingButtonComponent implements OnInit {
 
   constructor(
     private userService: UserService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -77,9 +79,20 @@ export class UserBuildingButtonComponent implements OnInit {
           this.isAdded = true;
           this.building.userBuilding = created;
         },
+        complete: () => {
+          this.snackBar.open('Gebäude hinzugefügt.', 'OK', {
+            duration: 3000,
+            verticalPosition: 'top'
+          });
+        },
         error: err => {
           console.error('Error creating user building:', err);
           this.errorMessage = 'Fehler beim Hinzufügen des Gebäudes.';
+          this.snackBar.open('Fehler beim Hinzufügen des Gebäudes!', 'OK', {
+            duration: 10000,
+            verticalPosition: 'top',
+            panelClass: 'snackbar-warn'
+          });
         }
       });
     });
