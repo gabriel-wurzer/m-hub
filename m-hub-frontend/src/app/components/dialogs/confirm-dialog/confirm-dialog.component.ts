@@ -4,11 +4,16 @@ import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 
 // Interface für die Daten, die wir erwarten
 export interface ConfirmDialogData {
   title: string;
   message: string;
+  messagePrefix?: string;
+  messageIcon?: string;
+  messageSuffix?: string;
+  messageIconAriaLabel?: string;
   confirmText?: string; // default: "Bestätigen"
   cancelText?: string;  // default: "Abbrechen"
   requireSlider?: boolean; 
@@ -18,7 +23,7 @@ export interface ConfirmDialogData {
 @Component({
   selector: 'app-confirm-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatSlideToggleModule, FormsModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatSlideToggleModule, FormsModule, MatIconModule],
   templateUrl: './confirm-dialog.component.html',
   styleUrl: './confirm-dialog.component.scss'
 })

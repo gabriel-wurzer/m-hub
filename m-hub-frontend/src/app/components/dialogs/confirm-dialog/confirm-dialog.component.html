@@ -1,7 +1,14 @@
 <h2 mat-dialog-title>{{ data.title }}</h2>
 
 <mat-dialog-content>
-  {{ data.message }}
+  <ng-container *ngIf="data.messagePrefix || data.messageIcon || data.messageSuffix; else plainMessage">
+    <span class="message-inline">
+      <ng-container *ngIf="data.messagePrefix">{{ data.messagePrefix }}</ng-container>
+      <mat-icon *ngIf="data.messageIcon" inline>{{ data.messageIcon }}</mat-icon>
+      <ng-container *ngIf="data.messageSuffix">{{ data.messageSuffix }}</ng-container>
+    </span>
+  </ng-container>
+  <ng-template #plainMessage>{{ data.message }}</ng-template>
 
   <div *ngIf="data.requireSlider" class="slider-container">
     <mat-slide-toggle 

@@ -5,10 +5,24 @@ h2 {
 mat-dialog-content {
     padding: 16px 24px !important;
     font-size: 1rem;
+    line-height: 1.5;
     
     display: flex;
     flex-direction: column; 
     gap: 16px; 
+}
+
+.message-inline {
+    display: inline;
+}
+
+.message-inline mat-icon {
+    font-size: 1em;
+    height: 1em;
+    width: 1em;
+    line-height: 1;
+    vertical-align: text-bottom;
+    margin: 0 2px 2px;
 }
 
 .slider-container {
