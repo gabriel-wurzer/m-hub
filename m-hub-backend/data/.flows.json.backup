@@ -97,14 +97,6 @@
         "env": []
     },
     {
-        "id": "232321eb69b742f0",
-        "type": "tab",
-        "label": "GET Objects",
-        "disabled": false,
-        "info": "",
-        "env": []
-    },
-    {
         "id": "60f2bdd9e7a72a65",
         "type": "tab",
         "label": "GET Objects by User-Building",
@@ -1887,7 +1879,7 @@
         "type": "function",
         "z": "de6a97be0b856cb1",
         "name": "verify JWT",
-        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg]; // Go to Output 2 (Error)\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    \n    msg.user = decoded; \n    \n    return [msg, null]; // Go to Output 1 (Success)\n\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.user = null;\n    return [msg, null];\n}\n\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.user = null;\n    return [msg, null];\n}\n\nconst token = parts[1];\n\ntry {\n    const decoded = jwt.verify(token, secret);\n    msg.user = decoded;\n} catch (err) {\n    msg.user = null;\n}\n\nreturn [msg, null];\n",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -1898,7 +1890,8 @@
         "y": 260,
         "wires": [
             [
-                "390eaacf141c18b1"
+                "390eaacf141c18b1",
+                "6ea340f07a5d3193"
             ],
             [
                 "1b3633faa0c9a9b7"
@@ -1910,7 +1903,7 @@
         "type": "function",
         "z": "de6a97be0b856cb1",
         "name": "build SQL query",
-        "func": "const user_id = msg.user.sub;\nconst object_id = msg.req.params.ID;\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (!user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"user_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid user ID format\" };\n    return [null, msg];\n}\n\nif (!object_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"object_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!uuidRegex.test(object_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid object ID format\" };\n    return [null, msg];\n}\n\nmsg.query = `\n  SELECT *\n  FROM building_objects\n  WHERE id = $1::uuid\n    AND (owner_id = $2::uuid OR is_public = true)\n`;\nmsg.params = [object_id, user_id];\n\nreturn [msg, null]\n",
+        "func": "const user_id = msg.user.sub;\nconst object_id = msg.req.params.ID;\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (user_id && !uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid user ID format\" };\n    return [null, msg];\n}\n\nif (!object_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"object_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!uuidRegex.test(object_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid object ID format\" };\n    return [null, msg];\n}\n\nmsg.query = `\n  SELECT *\n  FROM building_objects\n  WHERE id = $1::uuid\n    AND (\n      is_public = true\n      OR ($2::uuid IS NOT NULL AND owner_id = $2::uuid)\n    )\n`;\nmsg.params = [object_id, user_id];\n\nreturn [msg, null]\n",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -1978,124 +1971,20 @@
         ]
     },
     {
-        "id": "05eadee52844c04e",
-        "type": "http in",
-        "z": "232321eb69b742f0",
-        "name": "GET building objects (by buildingID)",
-        "url": "/api/objects",
-        "method": "get",
-        "upload": false,
-        "skipBodyParsing": false,
-        "swaggerDoc": "",
-        "x": 240,
-        "y": 160,
-        "wires": [
-            [
-                "7898dcfbb56b014f"
-            ]
-        ]
-    },
-    {
-        "id": "98411656df376ccb",
-        "type": "http response",
-        "z": "232321eb69b742f0",
-        "name": "building objects response",
-        "statusCode": "",
-        "headers": {},
-        "x": 750,
-        "y": 460,
+        "id": "6ea340f07a5d3193",
+        "type": "debug",
+        "z": "de6a97be0b856cb1",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 520,
+        "y": 220,
         "wires": []
-    },
-    {
-        "id": "7898dcfbb56b014f",
-        "type": "file in",
-        "z": "232321eb69b742f0",
-        "name": "read building-objects.json",
-        "filename": "/data/building-objects.json",
-        "filenameType": "str",
-        "format": "utf8",
-        "chunk": false,
-        "sendError": false,
-        "encoding": "none",
-        "allProps": false,
-        "x": 250,
-        "y": 260,
-        "wires": [
-            [
-                "c6c6e8b6dc53895d"
-            ]
-        ]
-    },
-    {
-        "id": "c6c6e8b6dc53895d",
-        "type": "json",
-        "z": "232321eb69b742f0",
-        "name": "",
-        "property": "payload",
-        "action": "",
-        "pretty": false,
-        "x": 490,
-        "y": 260,
-        "wires": [
-            [
-                "3fc6fbdd9d352722"
-            ]
-        ]
-    },
-    {
-        "id": "dff5aa655ccd56cd",
-        "type": "comment",
-        "z": "232321eb69b742f0",
-        "name": "http://localhost:1880/api/objects or http://localhost:1880/api/objects?buildingId=*",
-        "info": "",
-        "x": 360,
-        "y": 100,
-        "wires": []
-    },
-    {
-        "id": "aeb9f37f9406eb81",
-        "type": "delay",
-        "z": "232321eb69b742f0",
-        "name": "",
-        "pauseType": "delay",
-        "timeout": "1",
-        "timeoutUnits": "seconds",
-        "rate": "1",
-        "nbRateUnits": "1",
-        "rateUnits": "second",
-        "randomFirst": "1",
-        "randomLast": "5",
-        "randomUnits": "seconds",
-        "drop": false,
-        "allowrate": false,
-        "outputs": 1,
-        "x": 460,
-        "y": 460,
-        "wires": [
-            [
-                "98411656df376ccb"
-            ]
-        ]
-    },
-    {
-        "id": "3fc6fbdd9d352722",
-        "type": "function",
-        "z": "232321eb69b742f0",
-        "name": "find building objects (with filter buildingId)",
-        "func": "// Access query parameter\nconst buildingId = msg.req.query.buildingId;\n\n// Access the full building objects array (from building-objects.json)\nconst buildingObjects = msg.payload;\n\n\nif (buildingId) {\n    // Filter by building ID\n    const filteredObjects = buildingObjects.filter(\n        part => String(part.buildingId) === String(buildingId)\n    );\n\n    msg.payload = filteredObjects;\n    msg.statusCode = 200;\n    return msg;\n\n} else {\n    // Return all objects if no filter is provided\n    msg.payload = buildingObjects;\n    msg.statusCode = 200;\n    return msg;\n}\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 460,
-        "y": 360,
-        "wires": [
-            [
-                "aeb9f37f9406eb81"
-            ]
-        ]
     },
     {
         "id": "c2d422076e99859b",
@@ -2298,7 +2187,7 @@
         "finalize": "",
         "libs": [],
         "x": 610,
-        "y": 680,
+        "y": 700,
         "wires": [
             [
                 "a93e2cbc89e443e3"
@@ -2313,7 +2202,7 @@
         "statusCode": "",
         "headers": {},
         "x": 1040,
-        "y": 680,
+        "y": 700,
         "wires": []
     },
     {
@@ -2376,7 +2265,7 @@
         "type": "function",
         "z": "22c7f522d447c91f",
         "name": "verify JWT",
-        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg]; // Go to Output 2 (Error)\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    \n    msg.user = decoded; \n    \n    return [msg, null]; // Go to Output 1 (Success)\n\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    // No token -> anonymous access allowed\n    msg.user = null;\n    return [msg, null];\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    // Invalid format -> treat as anonymous\n    msg.user = null;\n    return [msg, null];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    msg.user = decoded;\n} catch (err) {\n    // Invalid/expired -> treat as anonymous\n    msg.user = null;\n}\n\nreturn [msg, null];",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -2399,7 +2288,7 @@
         "type": "function",
         "z": "22c7f522d447c91f",
         "name": "build SQL query",
-        "func": "const user_id = msg.user.sub;\nconst building_id = msg.req.params.ID;\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (!user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"user_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid user ID format\" };\n    return [null, msg];\n}\n\nif (!building_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"building_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (building_id.length > 10 || !/^[A-Za-z0-9_\\-]+$/.test(building_id)) {\n  msg.statusCode = 400;\n  msg.payload = { error: \"Invalid ID format\" };\n  return [null, msg];\n}\n\nmsg.query = `\n  SELECT\n    id,\n    building_id,\n    user_building_id,\n    owner_id,\n    name,\n    description,\n    is_public,\n    category\n  FROM building_parts\n  WHERE building_id = $1\n\n  UNION ALL\n\n  SELECT\n    id,\n    building_id,\n    user_building_id,\n    owner_id,\n    name,\n    description,\n    is_public,\n    category\n  FROM building_objects\n  WHERE building_id = $1\n`;\n\nmsg.params = [building_id];\n\n return [msg, null]\n",
+        "func": "const user_id = msg.user?.sub || null;\nconst building_id = msg.req.params.ID;\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (user_id && !uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid user ID format\" };\n    return [null, msg];\n}\n\nif (!building_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"building_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (building_id.length > 10 || !/^[A-Za-z0-9_\\-]+$/.test(building_id)) {\n  msg.statusCode = 400;\n  msg.payload = { error: \"Invalid ID format\" };\n  return [null, msg];\n}\n\nmsg.query = `\n  SELECT\n    id,\n    name,\n    category,\n    (\n      COALESCE(is_public, false)\n      OR ($2::uuid IS NOT NULL AND owner_id = $2::uuid)\n    ) AS can_read\n  FROM building_parts\n  WHERE building_id = $1\n\n  UNION ALL\n\n  SELECT\n    id,\n    name,\n    category,\n    (\n      COALESCE(is_public, false)\n      OR ($2::uuid IS NOT NULL AND owner_id = $2::uuid)\n    ) AS can_read\n  FROM building_objects\n  WHERE building_id = $1\n`;\n\nmsg.params = [building_id, user_id];\n\n return [msg, null]\n",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -2487,7 +2376,7 @@
         "type": "function",
         "z": "0d2dcd58786ef3b7",
         "name": "verify JWT",
-        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg]; // Go to Output 2 (Error)\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    \n    msg.user = decoded; \n    \n    return [msg, null]; // Go to Output 1 (Success)\n\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.user = null;\n    return [msg, null];\n}\n\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.user = null;\n    return [msg, null];\n}\n\nconst token = parts[1];\n\ntry {\n    const decoded = jwt.verify(token, secret);\n    msg.user = decoded;\n} catch (err) {\n    msg.user = null;\n}\n\nreturn [msg, null];\n",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -2510,7 +2399,7 @@
         "type": "function",
         "z": "0d2dcd58786ef3b7",
         "name": "build SQL query",
-        "func": "const user_id = msg.user.sub;\nconst part_id = msg.req.params.ID;\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (!user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"user_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid user ID format\" };\n    return [null, msg];\n}\n\nif (!part_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"part_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!uuidRegex.test(part_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid part ID format\" };\n    return [null, msg];\n}\n\nmsg.query = `\n  SELECT *\n  FROM building_parts\n  WHERE id = $1::uuid\n    AND (owner_id = $2::uuid OR is_public = true)\n`;\nmsg.params = [part_id, user_id];\n\nreturn [msg, null]\n",
+        "func": "const user_id = msg.user?.sub || null;\nconst part_id = msg.req.params.ID;\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (user_id && !uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid user ID format\" };\n    return [null, msg];\n}\n\nif (!part_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"part_id is missing\" };\n    return [null, msg];\n}\n\nif (!uuidRegex.test(part_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid part ID format\" };\n    return [null, msg];\n}\n\nmsg.query = `\n  SELECT *\n  FROM building_parts\n  WHERE id = $1::uuid\n    AND (\n      is_public = true\n      OR ($2::uuid IS NOT NULL AND owner_id = $2::uuid)\n    )\n`;\n\nmsg.params = [part_id, user_id];\n\nreturn [msg, null];\n",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,

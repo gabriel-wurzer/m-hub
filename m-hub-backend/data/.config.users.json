@@ -21,6 +21,15 @@
                     "pretty": true,
                     "json-view": false
                 }
+            },
+            "sidebar": {
+                "order": [
+                    "debug",
+                    "info",
+                    "help",
+                    "config",
+                    "context"
+                ]
             }
         }
     }

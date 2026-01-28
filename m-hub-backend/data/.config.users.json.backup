@@ -14,7 +14,7 @@
                 "view-node-info-icon": true
             },
             "tours": {
-                "welcome": "4.0.5"
+                "welcome": "4.1.0"
             },
             "dialog": {
                 "export": {
