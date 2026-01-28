@@ -1,0 +1,210 @@
+<div class="edit-building-view-panel">
+    <div class="header-row">
+        <h2 class="header"><span class="header-label-full">Gebäude: </span>{{ userBuilding?.name?.trim() }}</h2>
+
+        <div class="header-actions">
+            <span
+              *ngIf="selectedTabIndex === 1"
+              [matTooltip]="!isFormValid() ? 'Gültige Struktur eingeben' : (!hasUnsavedChanges() ? 'Keine Änderungen vorgenommen' : 'Struktur speichern')"
+              matTooltipPosition="left"
+              matTooltipShowDelay="100"
+              matTooltipHideDelay="100"
+            >
+                <button mat-icon-button class="save-button" 
+                 color="primary" 
+                 (click)="saveUpdatedBuilding()" 
+                 [disabled]="!isFormValid() || !hasUnsavedChanges()">
+                    <mat-icon>save</mat-icon>
+                </button>
+            </span>
+            <button mat-icon-button class="close-button" (click)="close()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
+    </div>
+
+    <mat-tab-group #tabGroup [selectedIndex]="selectedTabIndex" (selectedIndexChange)="onTabIndexChange($event)" centered>
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <button type="button" class="tab-label-button" (click)="onTabLabelClick(0, $event)">
+                    <span class="tab-label-full">Gebäude Komponenten</span>
+                    <span class="tab-label-short">Komponenten</span>
+                </button>
+            </ng-template>
+            <div class="tab-content">
+
+                <div class="component-wrapper">
+                    <div class="section-container">
+                        <div class="section-header-row">
+                            <h3 class="component-header">Bauteile</h3>
+                            <button mat-icon-button color="primary" (click)="openAddBuildingPartDialog()" matTooltip="Bauteil hinzufügen" matTooltipPosition="right">
+                                <mat-icon>add</mat-icon>
+                            </button>
+                        </div>
+
+                        <div class="custom-list">
+                            <div class="list-row grid-part" *ngFor="let part of buildingPartsMock">
+                                <div class="col-id">
+                                    <span class="label">ID=</span>{{ part.id }}
+                                </div>
+                                <div class="col-main">{{ part.name }}</div>
+                                <div class="col-type">{{ part.category }}</div>
+                                
+                                <div class="col-actions">
+                                    <button mat-icon-button color="primary" matTooltip="Infromationen">
+                                        <mat-icon>info_outline</mat-icon> 
+                                    </button>
+                                    <button mat-icon-button color="primary" matTooltip="Bearbeiten">
+                                        <mat-icon>edit</mat-icon>
+                                    </button>
+                                    <button mat-icon-button color="warn" matTooltip="Löschen">
+                                        <mat-icon>delete_outline</mat-icon> 
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="empty-state" *ngIf="buildingPartsMock.length === 0 && !isLoadingParts">
+                                Keine Bauteile vorhanden.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-container">
+                        <div class="section-header-row">
+                            <h3 class="component-header">Objekte</h3>
+                            <button mat-icon-button color="primary" (click)="openAddBuildingObjectDialog()" matTooltip="Objekt hinzufügen" matTooltipPosition="right">
+                                <mat-icon>add</mat-icon>
+                            </button>
+                        </div>
+
+                        <div class="custom-list">
+                            <div class="list-row grid-object" *ngFor="let object of buildingObjects">
+                                <div class="col-id">
+                                    <span class="label">ID=</span>{{ object.id }}
+                                </div>
+                                <div class="col-main">{{ object.name }}</div>
+                                <div class="col-type">{{ object.category }}</div>
+                                
+                                <div class="col-actions">
+                                    <button mat-icon-button color="primary" matTooltip="Infromationen">
+                                        <mat-icon>info_outline</mat-icon> 
+                                    </button>
+                                    <button mat-icon-button color="primary" matTooltip="Bearbeiten">
+                                        <mat-icon>edit</mat-icon>
+                                    </button>
+                                    <button mat-icon-button color="warn" matTooltip="Löschen">
+                                        <mat-icon>delete_outline</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="empty-state" *ngIf="buildingObjects.length === 0 && !isLoadingObjects">
+                                Keine Objekte vorhanden.
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="section-container">
+                        <div class="section-header-row">
+                            <h3 class="component-header">Dokumente</h3>
+                            <button mat-icon-button color="primary" (click)="openAddDocumentDialog()" matTooltip="Dokument hinzufügen" matTooltipPosition="right">
+                                <mat-icon>add</mat-icon>
+                            </button>
+                        </div>
+
+                        <div class="custom-list">
+
+                            <div class="list-row grid-document header-row">
+                                <div class="col-id">ID</div>
+                                <div class="col-name">Name</div>
+                                <div class="col-type">Typ</div>
+                                <div class="col-description">Beschreibung</div>
+                                <div class="col-url">URL</div>
+                                <div class="col-public">Public</div>
+                                <div class="col-actions"></div> 
+                            </div>
+
+                            <div class="list-row grid-document" *ngFor="let doc of documents">
+                                <div class="col-id">{{ doc.id }}</div>
+                                <div class="col-name">{{ doc.name }}</div>
+                                <div class="col-type">{{ doc.file_type }}</div>
+                                <div class="col-description">
+                                    {{ doc.description ? (doc.description.length > 30 ? (doc.description | slice:0:30) + '...' : doc.description) : '-' }}
+                                </div>
+                                <div class="col-url">{{ doc.file_url }}</div>
+                                <div class="col-public">{{ doc.is_public }}</div>
+
+                                <div class="col-actions">
+                                    <button mat-icon-button color="primary" matTooltip="Infromationen">
+                                        <mat-icon>info_outline</mat-icon> 
+                                    </button>
+                                    <button mat-icon-button color="primary" matTooltip="Bearbeiten">
+                                        <mat-icon>edit</mat-icon>
+                                    </button>
+                                    <button mat-icon-button color="warn" matTooltip="Löschen">
+                                        <mat-icon>delete_outline</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="empty-state" *ngIf="documents.length === 0 && !isLoadingDocuments">
+                                Keine Dokumente vorhanden.
+                            </div>
+
+                        </div>
+                    </div>
+                
+                </div>
+
+            </div>
+        </mat-tab>
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <button type="button" class="tab-label-button" (click)="onTabLabelClick(1, $event)">
+                    <span class="tab-label-full">Gebäude Struktur</span>
+                    <span class="tab-label-short">Struktur</span>
+                </button>
+            </ng-template>
+            <div class="tab-content">
+
+                <div class="information-wrapper">
+                    <div class="name-wrapper">
+                        <h3>Name</h3>
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Name</mat-label>
+                            <input matInput [(ngModel)]="name" [required]="true" />
+                            <mat-error *ngIf="getNameError()">{{ getNameError() }}</mat-error>
+                        </mat-form-field>
+                    </div>
+                    
+                    <div class="address-wrapper">
+                        <h3>Adresse</h3>
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Adresse</mat-label>
+                            <input matInput [(ngModel)]="address" />
+                        </mat-form-field>
+                    </div>
+                </div>
+
+                <app-building-structure-list 
+                    [structure]="structure"
+                    [disableAnimations]="suppressStructureAnimations"
+                    (structureChange)="structure = $event"
+                    (validityChange)="isStructureValid = $event">
+                </app-building-structure-list>
+
+            </div>
+
+        </mat-tab>
+    </mat-tab-group>
+</div>
+
+
+
+
+
+
+
+
