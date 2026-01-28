@@ -55,8 +55,8 @@ export class StructureTreeComponent implements OnInit {
     const buildingId = this.entity.bw_geb_id; 
 
     forkJoin({
-      parts: this.partService.getComponentsByBulding(buildingId),
-      objects: this.objectService.getComponentsByBulding(buildingId)
+      parts: this.partService.getComponentsByBuilding(buildingId),
+      objects: this.objectService.getComponentsByBuilding(buildingId)
     }).subscribe({
       next: ({ parts, objects }) => {
         const components = [...parts, ...objects];
