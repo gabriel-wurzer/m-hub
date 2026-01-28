@@ -97,6 +97,14 @@
         "env": []
     },
     {
+        "id": "60f2bdd9e7a72a65",
+        "type": "tab",
+        "label": "GET Objects by User-Building",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "0d2dcd58786ef3b7",
         "type": "tab",
         "label": "GET Part by ID",
@@ -108,6 +116,14 @@
         "id": "22c7f522d447c91f",
         "type": "tab",
         "label": "GET Parts",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "dbf7e38b784a0ea8",
+        "type": "tab",
+        "label": "GET Parts by User-Building",
         "disabled": false,
         "info": "",
         "env": []
@@ -1246,8 +1262,8 @@
         "z": "fb757f2c84f9e1fb",
         "name": "http://localhost:1880/api/documents/building/ID",
         "info": "",
-        "x": 350,
-        "y": 80,
+        "x": 330,
+        "y": 100,
         "wires": []
     },
     {
@@ -1884,6 +1900,166 @@
         ]
     },
     {
+        "id": "c2d422076e99859b",
+        "type": "http in",
+        "z": "60f2bdd9e7a72a65",
+        "name": "GET objects by user-building",
+        "url": "/api/objects/building/:ID",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 280,
+        "y": 180,
+        "wires": [
+            [
+                "1a9c2cfb9b523d1b"
+            ]
+        ]
+    },
+    {
+        "id": "79bd05266a7a4103",
+        "type": "comment",
+        "z": "60f2bdd9e7a72a65",
+        "name": "http://localhost:1880/api/objects/building/ID",
+        "info": "",
+        "x": 320,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "136ad803aef81c89",
+        "type": "function",
+        "z": "60f2bdd9e7a72a65",
+        "name": "format result",
+        "func": "if (Array.isArray(msg.payload)) {\n    msg.statusCode = 200;\n} else {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Database query failed\" };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 670,
+        "y": 700,
+        "wires": [
+            [
+                "e74406a809762fdc"
+            ]
+        ]
+    },
+    {
+        "id": "e74406a809762fdc",
+        "type": "http response",
+        "z": "60f2bdd9e7a72a65",
+        "name": "parts response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1080,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "c3c51c29314a7ba4",
+        "type": "postgresql",
+        "z": "60f2bdd9e7a72a65",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 600,
+        "y": 600,
+        "wires": [
+            [
+                "136ad803aef81c89"
+            ]
+        ]
+    },
+    {
+        "id": "86e9b6c3a2b93ab0",
+        "type": "catch",
+        "z": "60f2bdd9e7a72a65",
+        "name": "",
+        "scope": [
+            "c3c51c29314a7ba4"
+        ],
+        "uncaught": false,
+        "x": 850,
+        "y": 480,
+        "wires": [
+            [
+                "546a79d86e44c50f"
+            ]
+        ]
+    },
+    {
+        "id": "546a79d86e44c50f",
+        "type": "function",
+        "z": "60f2bdd9e7a72a65",
+        "name": "handle db errors",
+        "func": "const errMsg = msg.error && msg.error.message ? msg.error.message : '';\n\nmsg.statusCode = 500; // Internal Server Error\nmsg.payload = { error: 'Database error', details: errMsg };\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1040,
+        "y": 480,
+        "wires": [
+            [
+                "e74406a809762fdc"
+            ]
+        ]
+    },
+    {
+        "id": "1a9c2cfb9b523d1b",
+        "type": "function",
+        "z": "60f2bdd9e7a72a65",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg]; // Go to Output 2 (Error)\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    \n    msg.user = decoded; \n    \n    return [msg, null]; // Go to Output 1 (Success)\n\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 280,
+        "wires": [
+            [
+                "a0c0dac7c6e33dbf"
+            ],
+            [
+                "e74406a809762fdc"
+            ]
+        ]
+    },
+    {
+        "id": "a0c0dac7c6e33dbf",
+        "type": "function",
+        "z": "60f2bdd9e7a72a65",
+        "name": "build SQL query",
+        "func": "const user_id = msg.user.sub;\nconst building_id = msg.req.params.ID;\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (!user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"user_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid user ID format\" };\n    return [null, msg];\n}\n\nif (!building_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"user_building_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!uuidRegex.test(building_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid building ID format\" };\n    return [null, msg];\n}\n\nmsg.query = \"SELECT * FROM building_objects WHERE user_building_id = $1::uuid AND owner_id = $2::uuid\";\nmsg.params = [building_id, user_id];\n\n return [msg, null]",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 440,
+        "wires": [
+            [
+                "c3c51c29314a7ba4"
+            ],
+            [
+                "e74406a809762fdc"
+            ]
+        ]
+    },
+    {
         "id": "38c5bdf5fd020510",
         "type": "http in",
         "z": "0d2dcd58786ef3b7",
@@ -2130,6 +2306,166 @@
         "wires": [
             [
                 "916af586829a967e"
+            ]
+        ]
+    },
+    {
+        "id": "40a8e48697ae3a0d",
+        "type": "http in",
+        "z": "dbf7e38b784a0ea8",
+        "name": "GET parts by user-building",
+        "url": "/api/parts/building/:ID",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 270,
+        "y": 200,
+        "wires": [
+            [
+                "a88bb289d0a4c36f"
+            ]
+        ]
+    },
+    {
+        "id": "8d62ec7351c4d595",
+        "type": "comment",
+        "z": "dbf7e38b784a0ea8",
+        "name": "http://localhost:1880/api/parts/building/ID",
+        "info": "",
+        "x": 320,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "35663281e89ef953",
+        "type": "function",
+        "z": "dbf7e38b784a0ea8",
+        "name": "format result",
+        "func": "if (Array.isArray(msg.payload)) {\n    msg.statusCode = 200;\n} else {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Database query failed\" };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 670,
+        "y": 720,
+        "wires": [
+            [
+                "0baa0f987a629f2f"
+            ]
+        ]
+    },
+    {
+        "id": "0baa0f987a629f2f",
+        "type": "http response",
+        "z": "dbf7e38b784a0ea8",
+        "name": "parts response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1080,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "37270d1389bb3948",
+        "type": "postgresql",
+        "z": "dbf7e38b784a0ea8",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 600,
+        "y": 620,
+        "wires": [
+            [
+                "35663281e89ef953"
+            ]
+        ]
+    },
+    {
+        "id": "f5780580df26104a",
+        "type": "catch",
+        "z": "dbf7e38b784a0ea8",
+        "name": "",
+        "scope": [
+            "37270d1389bb3948"
+        ],
+        "uncaught": false,
+        "x": 850,
+        "y": 500,
+        "wires": [
+            [
+                "e23f0221d1cea1d9"
+            ]
+        ]
+    },
+    {
+        "id": "e23f0221d1cea1d9",
+        "type": "function",
+        "z": "dbf7e38b784a0ea8",
+        "name": "handle db errors",
+        "func": "const errMsg = msg.error && msg.error.message ? msg.error.message : '';\n\nmsg.statusCode = 500; // Internal Server Error\nmsg.payload = { error: 'Database error', details: errMsg };\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1040,
+        "y": 500,
+        "wires": [
+            [
+                "0baa0f987a629f2f"
+            ]
+        ]
+    },
+    {
+        "id": "a88bb289d0a4c36f",
+        "type": "function",
+        "z": "dbf7e38b784a0ea8",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg]; // Go to Output 2 (Error)\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    \n    msg.user = decoded; \n    \n    return [msg, null]; // Go to Output 1 (Success)\n\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 300,
+        "wires": [
+            [
+                "0b7b45cd4bf091c4"
+            ],
+            [
+                "0baa0f987a629f2f"
+            ]
+        ]
+    },
+    {
+        "id": "0b7b45cd4bf091c4",
+        "type": "function",
+        "z": "dbf7e38b784a0ea8",
+        "name": "build SQL query",
+        "func": "const user_id = msg.user.sub;\nconst building_id = msg.req.params.ID;\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (!user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"user_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid user ID format\" };\n    return [null, msg];\n}\n\nif (!building_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"user_building_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!uuidRegex.test(building_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid building ID format\" };\n    return [null, msg];\n}\n\nmsg.query = \"SELECT * FROM building_parts WHERE user_building_id = $1::uuid AND owner_id = $2::uuid\";\nmsg.params = [building_id, user_id];\n\n return [msg, null]",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 460,
+        "wires": [
+            [
+                "37270d1389bb3948"
+            ],
+            [
+                "0baa0f987a629f2f"
             ]
         ]
     },
