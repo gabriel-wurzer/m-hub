@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { Building } from '../../models/building';
+import { BuildingComponent } from '../../models/building-component';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +19,11 @@ export class BuildingService {
     return this.http.get<Building>(`${this.buildingsUrl}/${buildingId}`);
   } 
 
-  updateBuilding(building: Building): Observable<Building> {
-    return this.http.put<Building>(`${this.buildingsUrl}/${building.bw_geb_id}`, building);
+  getAllComponentsByBuilding(buildingId: string): Observable<BuildingComponent[]> {
+    return this.http.get<BuildingComponent[]>(`${this.buildingsUrl}/${buildingId}/components`);
   }
+
+  // updateBuilding(building: Building): Observable<Building> {
+  //   return this.http.put<Building>(`${this.buildingsUrl}/${building.bw_geb_id}`, building);
+  // }
 }

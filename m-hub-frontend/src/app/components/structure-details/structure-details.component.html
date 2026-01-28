@@ -50,7 +50,7 @@
          
         <ng-container *ngIf="isBauteil; else objektDetails">
           <header class="structure-info-header">
-            <h2 class="structure-info-title"> Bauteil: {{ buildingComponent.id }} </h2>
+            <h2 class="structure-info-title"> Bauteil: {{ buildingComponent.name }} </h2>
           </header>
 
           <mat-divider class="horizontal-divider"/>
@@ -67,6 +67,7 @@
                   <div class="info-container">
                     <div class="info-content">
                         <div class="information-container">
+                            <p>ID: {{ buildingComponent.id }}</p>
                             <p>Name: {{ buildingComponent.name }}</p>
                             <p>Beschreibung: {{ buildingComponent.description }}</p>
                         </div>
@@ -93,7 +94,7 @@
 
         <ng-template #objektDetails>
           <header class="structure-info-header">
-            <h2 class="structure-info-title">Objekt: {{ buildingComponent.id }}</h2>
+            <h2 class="structure-info-title">Objekt: {{ buildingComponent.name }}</h2>
           </header>
 
           <mat-divider class="horizontal-divider"/>
@@ -107,6 +108,7 @@
               </mat-expansion-panel-header>
 
               <div class="information-container">
+                <p>ID: {{ buildingComponent.id }}</p>
                 <p>Name: {{ buildingComponent.name }}</p>
                 <p>Beschreibung: {{ buildingComponent.description }}</p>
                 <!-- TODO: Add Objekt-specific content here -->

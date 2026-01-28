@@ -5,13 +5,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
 import { NestedTreeControl } from '@angular/cdk/tree';
-import { forkJoin } from 'rxjs';
 
 import { Building } from '../../models/building';
 import { BuildingComponentCategory } from '../../enums/component-category';
-import { BuildingObjectService } from '../../services/building-object/building-object.service';
-import { BuildingPartService } from '../../services/building-part/building-part.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { BuildingService } from '../../services/building/building.service';
 
 interface TreeNode {
   id: string;
@@ -44,8 +42,7 @@ export class StructureTreeComponent implements OnInit {
   userId = "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71";
 
   constructor(
-    private partService: BuildingPartService,
-    private objectService: BuildingObjectService
+    private buildingService: BuildingService
   ) {}
 
   ngOnInit() {
@@ -54,18 +51,31 @@ export class StructureTreeComponent implements OnInit {
     this.setLoading(true);
     const buildingId = this.entity.bw_geb_id; 
 
-    forkJoin({
-      parts: this.partService.getComponentsByBuilding(buildingId),
-      objects: this.objectService.getComponentsByBuilding(buildingId)
-    }).subscribe({
-      next: ({ parts, objects }) => {
-        const components = [...parts, ...objects];
+    this.buildingService.getAllComponentsByBuilding(buildingId).subscribe({
+      next: (components) => {
+        const normalizedComponents = components.map(component => {
+          const ownerId = (component as { ownerId?: string; owner_id?: string }).ownerId
+            ?? (component as { owner_id?: string }).owner_id;
+          const isPublic = (component as { isPublic?: boolean; is_public?: boolean }).isPublic
+            ?? (component as { is_public?: boolean }).is_public
+            ?? false;
+
+          return {
+            ...component,
+            ownerId,
+            isPublic
+          };
+        });
+
+        const sortedComponents = [...normalizedComponents].sort((a, b) =>
+          (a.name || '').localeCompare(b.name || '')
+        );
 
         const root: TreeNode = {
           id: buildingId.toString(),
           name: `Gebäude ${buildingId}`,
           nodeType: 'building',
-          children: components.map(c => ({
+          children: sortedComponents.map(c => ({
             id: c.id,
             name: c.name,
             nodeType: 'component',

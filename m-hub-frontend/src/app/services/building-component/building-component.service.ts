@@ -16,11 +16,6 @@ export abstract class BuildingComponentService<T extends BuildingComponent> {
     return this.http.get<T>(`${this.apiUrl}/${componentId}`);
   }
 
-  getComponentsByBuilding(buildingId: string): Observable<T[]> {
-    const params = new HttpParams().set('buildingId', buildingId);
-    return this.http.get<T[]>(this.apiUrl, { params });
-  }
-
   getComponentsByUserBuilding(userBuildingId: string): Observable<T[]> {
     return this.http.get<T[]>(`${this.apiUrl}/building/${userBuildingId}`);
   }
