@@ -1,23 +1,23 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { catchError, finalize, forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { finalize, map, Observable } from 'rxjs';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
-import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { UserService } from '../../services/user/user.service';
 import { UserBuilding } from '../../models/building';
-import { BuildingService } from '../../services/building/building.service';
-import { EditBuildingDialogComponent } from '../dialogs/edit-building-dialog/edit-building-dialog.component';
+import { EditBuildingViewComponent } from '../edit-building-view/edit-building-view.component';
 import { AuthenticationService } from '../../services/authentication/authentication.service';
 import { EntityContext } from '../../models/entity-context';
 import { StructureViewComponent } from '../structure-view/structure-view.component';
 import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 
 @Component({
@@ -33,7 +33,8 @@ import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog
     MatMenuModule,
     MatDialogModule,
     MatProgressSpinnerModule,
-    StructureViewComponent
+    StructureViewComponent,
+    EditBuildingViewComponent
   ],
   templateUrl: './user-data.component.html',
   styleUrl: './user-data.component.scss'
@@ -45,6 +46,8 @@ export class UserDataComponent implements OnInit {
 
   isStructureViewVisible = false;
   structureContext: EntityContext | null = null;
+  isEditViewVisible = false;
+  editingBuilding: UserBuilding | null = null;
 
   isLoading = false;
   isLoadingBuilding = false;
@@ -54,9 +57,9 @@ export class UserDataComponent implements OnInit {
 
   constructor(
     private authService: AuthenticationService,
-    private buildingService: BuildingService, 
     private userService: UserService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
   ) {    
     this.isLoggedIn$ = this.authService.getUser$().pipe(
       map(user => !!user)
@@ -105,124 +108,60 @@ export class UserDataComponent implements OnInit {
   }
 
   deleteBuilding(building: UserBuilding): void {
-  // 1. Dialog öffnen statt window.confirm
-  const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-    width: '450px', // Etwas breiter für den Slider
-    data: {
-      title: 'Gebäude löschen',
-      message: `Möchtest du das Gebäude "${building.name}" (ID: ${building.building_id}) wirklich unwiderruflich löschen? Alle zugehörigen Daten gehen verloren.`,
-      confirmText: 'Löschen',
-      cancelText: 'Behalten',
-      // HIER AKTIVIEREN WIR DEN SLIDER
-      requireSlider: true, 
-      sliderText: 'Löschen bestätigen' 
-    }
-  });
-
-  // 2. Auf Ergebnis warten
-  dialogRef.afterClosed().subscribe(result => {
-    // result ist true, nur wenn Slider aktiv war UND Button geklickt wurde
-    if (result === true) {
-      this.executeDelete(building);
-    }
-  });
-}
-
-// Den eigentlichen Lösch-Vorgang habe ich zur Übersichtlichkeit ausgelagert
-private executeDelete(building: UserBuilding): void {
-  this.isLoading = true;
-
-  this.userService.deleteUserBuilding(building.id)
-    .pipe(finalize(() => this.isLoading = false))
-    .subscribe({
-      next: () => {
-        this.userBuildings = this.userBuildings.filter(b => b.id !== building.id);
-        if (this.selectedBuilding?.id === building.id) {
-          this.selectedBuilding = null;
-        }
-      },
-      error: (error) => {
-        console.error('Failed to delete building:', error);
-        // Optional: Hier könnte man einen einfachen Info-Dialog öffnen statt nur errorMessage zu setzen
-        this.errorMessage = 'Gebäude konnte nicht entfernt werden.';
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      data: {
+        title: 'Gebäude löschen',
+        message: `Möchtest du das Gebäude "${building.name}" (ID: ${building.building_id}) wirklich unwiderruflich löschen? Alle zugehörigen Daten gehen verloren.`,
+        confirmText: 'Löschen',
+        cancelText: 'Behalten',
+        requireSlider: true, 
+        sliderText: 'Löschen bestätigen' 
       }
     });
-}
 
-  // deleteBuilding(building: UserBuilding): void {
-  //   if (!confirm(`Gebäude ${building.name} (ID: ${building.building_id}) wirklich entfernen?`)) return;
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.executeDelete(building);
+      }
+    });
+  }
 
-  //   this.isLoading = true;
+  private executeDelete(building: UserBuilding): void {
+    this.isLoading = true;
 
-  //   this.userService.deleteUserBuilding(building.id)
-  //   .pipe(finalize(() => this.isLoading = false))
-  //   .subscribe({
-  //     next: () => {
-  //       this.userBuildings = this.userBuildings.filter(b => b.id !== building.id);
-
-  //       if (this.selectedBuilding?.id === building.id) {
-  //         this.selectedBuilding = null;
-  //       }
-  //     },
-  //     error: (error) => {
-  //       console.error('Failed to delete building:', error);
-  //       this.errorMessage = 'Gebäude konnte nicht entfernt werden.';
-  //     }
-  //   });
-  // }
+    this.userService.deleteUserBuilding(building.id)
+      .pipe(finalize(() => this.isLoading = false))
+      .subscribe({
+        next: () => {
+          this.userBuildings = this.userBuildings.filter(b => b.id !== building.id);
+          if (this.selectedBuilding?.id === building.id) {
+            this.selectedBuilding = null;
+          }
+        },
+        complete: () => {
+          this.snackBar.open('Gebäude erfolgreich entfernt.', 'OK', {
+            duration: 3000,
+            verticalPosition: 'top'
+          });
+        },
+        error: (error) => {
+          console.error('Failed to delete building:', error);
+          this.errorMessage = 'Gebäude konnte nicht entfernt werden.';
+                  this.snackBar.open(this.errorMessage, 'OK', {
+            duration: 5000,
+            verticalPosition: 'top'
+          });
+        }
+      });
+  }
 
   editBuilding(building: UserBuilding): void {
     if (!building) return;
-
-    const dialogRef = this.dialog.open(EditBuildingDialogComponent, {
-      panelClass: 'custom-dialog',
-      data: { userBuilding: building }
-    });
-
-    console.log('Opening edit dialog for building:', building);
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (!result) {
-        this.isLoading = false;
-        return;
-      }
-
-      this.isLoading = true;
-
-      const payload = {
-        name: result.name,
-        address: result.address,
-        structure: result.structure
-      };
-
-      this.userService.updateUserBuilding(
-        building.id, 
-        payload
-      )
-      .pipe(finalize(() => (this.isLoading = false)))
-      .subscribe({
-        next: updated => {
-          console.log('User building updated:', updated);
-
-          this.selectedBuilding = updated;
-          
-          // Update local list to reflect changes immediately
-          const index = this.userBuildings.findIndex(b => b.id === updated.id);
-          if (index !== -1) {
-            this.userBuildings[index] = updated;
-          }
-
-          // // If the currently selected building was edited, update that reference too
-          // if (this.selectedBuilding?.id === updated.id) {
-          //   this.selectedBuilding = updated;
-          // }
-        },
-        error: err => {
-          console.error('Error updating user building:', err);
-          this.errorMessage = 'Fehler beim Aktualisieren des Gebäudes.';
-        }
-      });
-    });
+    this.editingBuilding = building;
+    this.isEditViewVisible = true;
+    this.isStructureViewVisible = false;
+    this.structureContext = null;
   }
 
   showBuildingInfo(building: UserBuilding): void {
@@ -238,12 +177,43 @@ private executeDelete(building: UserBuilding): void {
   showStructureView(context: EntityContext): void {
     this.structureContext = context;
     this.isStructureViewVisible = true;
+    this.isEditViewVisible = false;
+    this.editingBuilding = null;
   }
   
   hideStructureView(): void {
     this.isStructureViewVisible = false;
     this.structureContext = null;
   }
+
+  hideEditBuildingView(): void {
+    this.isEditViewVisible = false;
+    this.editingBuilding = null;
+  }
+
+  onBuildingUpdated(updated: UserBuilding): void {
+    if (!updated) return;
+
+    const merged = this.mergeUpdatedBuilding(updated);
+
+    if (this.selectedBuilding?.id === updated.id) {
+      this.selectedBuilding = merged ?? { ...this.selectedBuilding, ...updated };
+    }
+
+    if (this.editingBuilding?.id === updated.id) {
+      this.editingBuilding = merged ?? { ...this.editingBuilding, ...updated };
+    }
+  }
+
+  private mergeUpdatedBuilding(updated: UserBuilding): UserBuilding | null {
+    const index = this.userBuildings.findIndex(building => building.id === updated.id);
+    if (index === -1) return null;
+
+    const merged = { ...this.userBuildings[index], ...updated };
+    this.userBuildings[index] = merged;
+    return merged;
+  }
+
 
 
   // updateBuilding(building: UserBuilding): void {

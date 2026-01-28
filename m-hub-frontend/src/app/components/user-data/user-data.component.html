@@ -1,5 +1,5 @@
 <main>
-    <div class="user-data-container" [hidden]="isStructureViewVisible">
+    <div class="user-data-container" [hidden]="isStructureViewVisible || isEditViewVisible">
       <div id="user-data">
 
         <header class="user-data-header">
@@ -31,9 +31,9 @@
                   <mat-icon>more_vert</mat-icon>
                 </button>
                 <mat-menu #menu="matMenu">
-                  <button class="menu-button" mat-menu-item (click)="showBuildingInfo(building)"> <mat-icon>info</mat-icon> Gebäudeinformationen</button>
+                  <button class="menu-button" mat-menu-item (click)="showBuildingInfo(building)"> <mat-icon>info_outline</mat-icon> Gebäudeinformationen</button>
                   <button class="menu-button" mat-menu-item (click)="editBuilding(building)"> <mat-icon>edit</mat-icon> Gebäude bearbeiten</button>
-                  <button class="menu-button" mat-menu-item (click)="deleteBuilding(building); $event.stopPropagation()"> <mat-icon>delete</mat-icon> Gebäude entfernen</button>
+                  <button class="menu-button" mat-menu-item (click)="deleteBuilding(building); $event.stopPropagation()"> <mat-icon>delete_outline</mat-icon> Gebäude entfernen</button>
                 </mat-menu>
               </div>
 
@@ -47,8 +47,7 @@
                 </div>
               </div>
 
-            </mat-card>
-            
+            </mat-card> 
           </div>
 
           <ng-template #noBuildings>
@@ -56,7 +55,6 @@
           </ng-template>
         </div>
 
-        
         <!-- <div class="user-data-content"> 
           <div class="list-container">
 
@@ -93,5 +91,11 @@
       *ngIf="isStructureViewVisible" 
       [entityContext]="structureContext"
       (closeStructureView)="hideStructureView()" />
+
+    <app-edit-building-view
+      *ngIf="isEditViewVisible"
+      [userBuilding]="editingBuilding"
+      (buildingUpdated)="onBuildingUpdated($event)"
+      (closeEditView)="hideEditBuildingView()" />
   
   </main>
