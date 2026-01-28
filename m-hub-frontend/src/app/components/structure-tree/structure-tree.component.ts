@@ -1,23 +1,24 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTreeModule } from '@angular/material/tree';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
 import { NestedTreeControl } from '@angular/cdk/tree';
+import { map, Observable, skip, Subscription } from 'rxjs';
 
 import { Building } from '../../models/building';
 import { BuildingComponentCategory } from '../../enums/component-category';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { BuildingService } from '../../services/building/building.service';
+import { AuthenticationService } from '../../services/authentication/authentication.service';
 
 interface TreeNode {
   id: string;
   name: string;
   nodeType: 'building' | 'component';
   category?: BuildingComponentCategory;
-  ownerId?: string;
-  isPublic?: boolean;
+  canRead?: boolean;
   children?: TreeNode[];
 }
 
@@ -28,7 +29,7 @@ interface TreeNode {
   templateUrl: './structure-tree.component.html',
   styleUrls: ['./structure-tree.component.scss']
 })
-export class StructureTreeComponent implements OnInit {
+export class StructureTreeComponent implements OnInit, OnDestroy {
   @Input() entity!: Building;
   @Output() nodeClicked = new EventEmitter<TreeNode>();
   @Output() loadingChange = new EventEmitter<boolean>();
@@ -39,31 +40,52 @@ export class StructureTreeComponent implements OnInit {
   errorMessage = '';
   isLoading = false;
 
-  userId = "c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71";
+  isLoggedIn$: Observable<boolean>;
+  private authSubscription: Subscription | undefined;
 
   constructor(
+    private authService: AuthenticationService,
     private buildingService: BuildingService
-  ) {}
+  ) {
+    this.isLoggedIn$ = this.authService.getUser$().pipe(
+      map(user => !!user)
+    );
+  }
 
   ngOnInit() {
     if (!this.entity) return;
 
-    this.setLoading(true);
-    const buildingId = this.entity.bw_geb_id; 
+    this.loadComponents(this.entity.bw_geb_id);
 
+    this.authSubscription = this.authService.getUser$()
+    .pipe(skip(1))
+    .subscribe(() => {
+      if (this.entity?.bw_geb_id) {
+        this.loadComponents(this.entity.bw_geb_id);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
+    }
+  }
+
+  private loadComponents(buildingId: string): void {
+    this.setLoading(true);
     this.buildingService.getAllComponentsByBuilding(buildingId).subscribe({
       next: (components) => {
         const normalizedComponents = components.map(component => {
-          const ownerId = (component as { ownerId?: string; owner_id?: string }).ownerId
-            ?? (component as { owner_id?: string }).owner_id;
-          const isPublic = (component as { isPublic?: boolean; is_public?: boolean }).isPublic
-            ?? (component as { is_public?: boolean }).is_public
+          const canRead = (component as { canRead?: boolean; can_read?: boolean }).canRead
+            ?? (component as { can_read?: boolean }).can_read
             ?? false;
 
           return {
-            ...component,
-            ownerId,
-            isPublic
+            id: component.id,
+            name: component.name,
+            category: component.category as BuildingComponentCategory,
+            canRead
           };
         });
 
@@ -79,9 +101,8 @@ export class StructureTreeComponent implements OnInit {
             id: c.id,
             name: c.name,
             nodeType: 'component',
-            category: c.category as BuildingComponentCategory,
-            ownerId: c.ownerId,
-            isPublic: c.isPublic
+            category: c.category,
+            canRead: c.canRead
           }))
         };
 
@@ -110,8 +131,7 @@ export class StructureTreeComponent implements OnInit {
   onNodeClickAllowed(node: TreeNode): void {
     // Only enforce access restrictions for components
     if (node.nodeType === 'component') {
-      const hasAccess = node.isPublic || node.ownerId === this.userId;
-      if (!hasAccess) {
+      if (!node.canRead) {
         console.warn(`Access denied to node: ${node.name}`);
         return;
       }

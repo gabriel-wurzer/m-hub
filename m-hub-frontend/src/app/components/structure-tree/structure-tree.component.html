@@ -21,14 +21,14 @@
   <mat-tree-node 
     *matTreeNodeDef="let node" 
     matTreeNodePadding
-    [class.private-element]="!node.isPublic && node.ownerId !== userId"
-    [matTooltip]="(!node.isPublic && node.ownerId !== userId) ? node.name + ' ist nicht öffentlich.' : ''"
+    [class.private-element]="!node.canRead"
+    [matTooltip]="(!node.canRead) ? node.name + ' ist nicht öffentlich.' : ''"
     matTooltipShowDelay="300"
     (click)="onNodeClickAllowed(node)"
   >
     <span>{{ node.name }}</span>
 
-    <mat-icon *ngIf="!node.isPublic && node.ownerId !== userId" class="lock-icon">lock</mat-icon>
+    <mat-icon *ngIf="!node.canRead" class="lock-icon">lock</mat-icon>
   </mat-tree-node>
 
 </mat-tree>
