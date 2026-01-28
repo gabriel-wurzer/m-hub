@@ -73,6 +73,7 @@ selector: 'app-building-structure-list',
 export class BuildingStructureListComponent implements OnInit {
 
   @Input() structure: Floor[] = [];
+  @Input() disableAnimations = false;
   
   @Output() structureChange = new EventEmitter<Floor[]>();
   @Output() validityChange = new EventEmitter<boolean>();

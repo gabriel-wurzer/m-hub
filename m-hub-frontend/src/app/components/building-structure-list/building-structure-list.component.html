@@ -42,7 +42,7 @@
     </div>
 
 
-    <div class="regular-floors-container" [@.disabled]="animationsDisabled">
+    <div class="regular-floors-container" [@.disabled]="animationsDisabled || disableAnimations">
         
         <div *ngFor="let floor of this.regularFloors; let i = index" class="regular-floors-list" @rowAnimation>
 
@@ -105,7 +105,7 @@
     <!-- <div class="separator-dashed"></div> -->
 
 
-    <div class="basement-floors-container">
+    <div class="basement-floors-container" [@.disabled]="animationsDisabled || disableAnimations">
         <div *ngFor="let floor of this.basementFloors; let i = index" class="basement-floors-list" @rowAnimation>
 
             <div class="floor-item base-item">
