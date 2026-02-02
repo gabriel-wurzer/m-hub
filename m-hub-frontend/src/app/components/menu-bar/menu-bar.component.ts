@@ -104,7 +104,7 @@ export class MenuBarComponent implements OnInit {
   onProfileClick(user: any) {
     this.dialog.open(ProfileDialogComponent, {
       width: '90%',
-      maxWidth: '400px',
+      maxWidth: '420px',
       data: user,
       autoFocus: false
     });
