@@ -5,13 +5,14 @@ import * as L from 'leaflet';
 import vectorTileLayer from 'leaflet-vector-tile-layer';
 import 'leaflet-control-geocoder';
 
-import { Building } from '../../models/building';
+import { Building, UserBuilding } from '../../models/building';
 import { environment } from '../../../environments/environment';
 import { FilterMenuComponent } from "../filter-menu/filter-menu.component";
 import { FilterButtonComponent } from "../buttons/filter-button/filter-button.component";
 import { FilterService } from '../../services/filter/filter.service';
 import { BuildingSidepanelComponent } from '../building-sidepanel/building-sidepanel.component';
 import { StructureViewComponent } from "../structure-view/structure-view.component";
+import { EditBuildingViewComponent } from '../edit-building-view/edit-building-view.component';
 import { MapService } from '../../services/map/map.service';
 import { Subject } from 'rxjs';
 import { EntityContext } from '../../models/entity-context';
@@ -26,7 +27,7 @@ L.Icon.Default.mergeOptions({
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [CommonModule, FilterMenuComponent, FilterButtonComponent, BuildingSidepanelComponent, StructureViewComponent],
+  imports: [CommonModule, FilterMenuComponent, FilterButtonComponent, BuildingSidepanelComponent, StructureViewComponent, EditBuildingViewComponent],
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })
@@ -58,6 +59,8 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
   isFilterPanelVisible = false;
   isStructureViewVisible = false;
   structureContext: EntityContext | null = null;
+  isEditViewVisible = false;
+  editingBuilding: UserBuilding | null = null;
 
   constructor(
     private filterService: FilterService,
@@ -110,6 +113,36 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
       this.#map.remove();
     } catch (err) {
       console.warn('Error during map destroy:', err);
+    }
+  }
+
+  showEditBuildingView(userBuilding: UserBuilding): void {
+    this.editingBuilding = userBuilding;
+    this.isEditViewVisible = true;
+    this.isStructureViewVisible = false;
+    this.structureContext = null;
+  }
+
+  hideEditBuildingView(): void {
+    this.isEditViewVisible = false;
+    this.editingBuilding = null;
+  }
+
+  onBuildingUpdated(updated: UserBuilding): void {
+    if (!updated || !this.selectedBuilding) return;
+    const existing = this.selectedBuilding.userBuilding;
+    if (existing && existing.id === updated.id) {
+      this.selectedBuilding = {
+        ...this.selectedBuilding,
+        userBuilding: { ...existing, ...updated }
+      };
+      return;
+    }
+    if (this.selectedBuilding.bw_geb_id === updated.building_id) {
+      this.selectedBuilding = {
+        ...this.selectedBuilding,
+        userBuilding: { ...(existing ?? ({} as UserBuilding)), ...updated }
+      };
     }
   }
 

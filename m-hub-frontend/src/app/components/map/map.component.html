@@ -1,5 +1,5 @@
 <main>
-  <div class="map-container" [hidden]="isStructureViewVisible">
+  <div class="map-container" [hidden]="isStructureViewVisible || isEditViewVisible">
     <div id="map">
       <app-filter-menu *ngIf="isFilterPanelVisible" 
         (closePanel)="toggleFilterPanel()" 
@@ -13,6 +13,7 @@
         [building]="selectedBuilding"
         (closePanel)="deselectBuilding()"
         (openStructureView)="showStructureView($event)"
+        (openEditView)="showEditBuildingView($event)"
         class="building-info" />
   </div>
 
@@ -20,5 +21,11 @@
     *ngIf="isStructureViewVisible && selectedBuilding" 
     [entityContext]="structureContext"
     (closeStructureView)="hideStructureView()" />
+
+  <app-edit-building-view
+    *ngIf="isEditViewVisible"
+    [userBuilding]="editingBuilding"
+    (buildingUpdated)="onBuildingUpdated($event)"
+    (closeEditView)="hideEditBuildingView()" />
 
 </main>

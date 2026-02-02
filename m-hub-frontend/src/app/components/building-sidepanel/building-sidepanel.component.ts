@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, S
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { forkJoin, map, Observable, of, skip, Subscription } from 'rxjs';
-import { Building } from '../../models/building';
+import { Building, UserBuilding } from '../../models/building';
 import { Period, PeriodLabels } from '../../enums/period.enum';
 import { Usage, UsageLabels } from '../../enums/usage.enum';
 import { MatIconModule } from '@angular/material/icon';
@@ -46,6 +46,7 @@ export class BuildingSidepanelComponent implements OnInit, OnChanges, OnDestroy 
 
   // @Output() openStructureView = new EventEmitter<Building>();
   @Output() openStructureView = new EventEmitter<EntityContext>();
+  @Output() openEditView = new EventEmitter<UserBuilding>();
 
   errorMessage = '';
   skipFetchDocuments = false;
@@ -316,6 +317,10 @@ export class BuildingSidepanelComponent implements OnInit, OnChanges, OnDestroy 
 
   onClose() {
     this.closePanel.emit();
+  }
+
+  onEditBuildingRequested(userBuilding: UserBuilding): void {
+    this.openEditView.emit(userBuilding);
   }
 
   isOnMap(): boolean {
