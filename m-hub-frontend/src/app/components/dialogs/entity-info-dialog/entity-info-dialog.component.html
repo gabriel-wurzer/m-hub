@@ -1,0 +1,148 @@
+<h2 mat-dialog-title>{{ title }}</h2>
+
+<mat-dialog-content>
+  <div class="info-grid" *ngIf="isDocument(); else componentTemplate">
+    <div class="info-row">
+      <div class="label">ID</div>
+      <div class="value mono">{{ getValue(['id']) }}</div>
+    </div>
+    <div class="info-row">
+      <div class="label">Name</div>
+      <div class="value">{{ getValue(['name']) }}</div>
+    </div>
+    <div class="info-row">
+      <div class="label">Beschreibung</div>
+      <div class="value">{{ getValue(['description']) }}</div>
+    </div>
+    <div class="info-row">
+      <div class="label">Dateityp</div>
+      <div class="value">{{ getValue(['file_type']) }}</div>
+    </div>
+    <div class="info-row">
+      <div class="label">Datei URL</div>
+      <div class="value mono">{{ getValue(['file_url']) }}</div>
+    </div>
+    <div class="info-row">
+      <div class="label">Öffentlich</div>
+      <div class="value">{{ getValue(['is_public']) }}</div>
+    </div>
+    <div class="info-row">
+      <div class="label">Gebäude ID</div>
+      <div class="value mono">{{ getValue(['building_id']) }}</div>
+    </div>
+    <div class="info-row">
+      <div class="label">Benutzergebäude ID</div>
+      <div class="value mono">{{ getValue(['user_building_id']) }}</div>
+    </div>
+    <div class="info-row">
+      <div class="label">Bauteil ID</div>
+      <div class="value mono">{{ getValue(['component_id']) }}</div>
+    </div>
+    <div class="info-row">
+      <div class="label">Besitzer ID</div>
+      <div class="value mono">{{ getValue(['owner_id']) }}</div>
+    </div>
+  </div>
+
+  <ng-template #componentTemplate>
+    <div class="info-grid" *ngIf="isBauteil(); else objektTemplate">
+      <div class="info-row">
+        <div class="label">ID</div>
+        <div class="value mono">{{ getValue(['id']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Name</div>
+        <div class="value">{{ getValue(['name']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Bauteil-Kategorie</div>
+        <div class="value">{{ getValue(['part_type']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Beschreibung</div>
+        <div class="value">{{ getValue(['description']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Ort</div>
+        <div class="value">{{ getValue(['location']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Struktur</div>
+        <div class="value">{{ getValue(['part_structure']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Dokumente</div>
+        <div class="value">{{ getValue(['documents']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Öffentlich</div>
+        <div class="value">{{ getValue(['is_public']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Gebäude ID</div>
+        <div class="value mono">{{ getValue(['building_id']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Benutzergebäude ID</div>
+        <div class="value mono">{{ getValue(['user_building_id']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Besitzer ID</div>
+        <div class="value mono">{{ getValue(['owner_id']) }}</div>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #objektTemplate>
+    <div class="info-grid">
+      <div class="info-row">
+        <div class="label">ID</div>
+        <div class="value mono">{{ getValue(['id']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Name</div>
+        <div class="value">{{ getValue(['name']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Objekt-Kategorie</div>
+        <div class="value">{{ getValue(['object_type']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Beschreibung</div>
+        <div class="value">{{ getValue(['description']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Ort</div>
+        <div class="value">{{ getValue(['location']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Anzahl</div>
+        <div class="value">{{ getValue(['count']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Öffentlich</div>
+        <div class="value">{{ getValue(['is_public']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Dokumente</div>
+        <div class="value">{{ getValue(['documents']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Gebäude ID</div>
+        <div class="value mono">{{ getValue(['building_id']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Benutzergebäude ID</div>
+        <div class="value mono">{{ getValue(['user_building_id']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Besitzer ID</div>
+        <div class="value mono">{{ getValue(['owner_id']) }}</div>
+      </div>
+    </div>
+  </ng-template>
+</mat-dialog-content>
+
+<mat-dialog-actions class="actions">
+  <button mat-button mat-dialog-close>Schließen</button>
+</mat-dialog-actions>
