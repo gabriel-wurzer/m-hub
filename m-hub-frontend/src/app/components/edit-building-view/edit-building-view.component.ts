@@ -260,6 +260,18 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
     return isNameValid && this.isStructureValid;
   }
 
+  formatBoolean(value: unknown): string {
+    if (value === null || value === undefined) return '—';
+    if (typeof value === 'boolean') return value ? 'Ja' : 'Nein';
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (['true', '1', 'yes', 'ja'].includes(normalized)) return 'Ja';
+      if (['false', '0', 'no', 'nein'].includes(normalized)) return 'Nein';
+    }
+    if (typeof value === 'number') return value === 1 ? 'Ja' : value === 0 ? 'Nein' : String(value);
+    return String(value);
+  }
+
   saveUpdatedBuilding(): void {
     if (!this.isFormValid()) return;
 
@@ -479,7 +491,6 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
   //   contentEl.classList.toggle('has-scrollbar', hasScrollbar);
   // }
 }
-
 
 
 
