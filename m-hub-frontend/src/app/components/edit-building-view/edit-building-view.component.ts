@@ -32,6 +32,9 @@ import { BuildingStructureListComponent } from '../building-structure-list/build
 import { DocumentService } from '../../services/document/document.service';
 import { UserService } from '../../services/user/user.service';
 import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog.component';
+import { BuildingPartService } from '../../services/building-part/building-part.service';
+import { BuildingObjectService } from '../../services/building-object/building-object.service';
+import { EntityInfoDialogComponent } from '../dialogs/entity-info-dialog/entity-info-dialog.component';
 
 export type EditBuildingPayload = {
   name: string;
@@ -101,13 +104,10 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
   isLoadingObjects = false;
   isLoadingParts = false;
 
-  buildingPartsMock: any[] = [
-    { id: "3", name: 'RG1', category: 'WAND' },
-    { id: "64", name: 'UG2', category: 'BODEN' }
-  ];
-
   constructor(
     private documentService: DocumentService,
+    private buildingPartService: BuildingPartService,
+    private buildingObjectService: BuildingObjectService,
     private userService: UserService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
@@ -159,6 +159,8 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
 
     this.initializedBuildingId = building.id;
     this.fetchDocuments(building);
+    this.fetchBuildingParts(building);
+    this.fetchBuildingObjects(building);
   }
 
   private fetchDocuments(building: UserBuilding): void {
@@ -181,6 +183,42 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
     });
   }
 
+  private fetchBuildingParts(building: UserBuilding): void {
+    if (!building?.id) return;
+
+    this.isLoadingParts = true;
+
+    this.buildingPartService.getComponentsByUserBuilding(building.id).subscribe({
+      next: (parts) => {
+        this.buildingParts = parts;
+        this.isLoadingParts = false;
+        console.log('Building parts loaded for User Building:', this.buildingParts);
+      },
+      error: (err) => {
+        console.error('Error loading building parts', err);
+        this.isLoadingParts = false;
+      }
+    });
+  }
+
+  private fetchBuildingObjects(building: UserBuilding): void {
+    if (!building?.id) return;
+
+    this.isLoadingObjects = true;
+
+    this.buildingObjectService.getComponentsByUserBuilding(building.id).subscribe({
+      next: (objects) => {
+        this.buildingObjects = objects;
+        this.isLoadingObjects = false;
+        console.log('Building objects loaded for User Building:', this.buildingObjects);
+      },
+      error: (err) => {
+        console.error('Error loading building objects', err);
+        this.isLoadingObjects = false;
+      }
+    });
+  }
+
   openAddBuildingPartDialog(): void {
     console.log('Open Add Building Part Dialog - Not yet implemented');
   }
@@ -191,6 +229,17 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
 
   openAddDocumentDialog(): void {
     console.log('Open Add Document Dialog - Not yet implemented');
+  }
+
+  openEntityInfoDialog(entity: Bauteil | Objekt | Document): void {
+    this.dialog.open(EntityInfoDialogComponent, {
+      width: '90%',
+      maxWidth: '620px',
+      autoFocus: false,
+      data: {
+        entity
+      }
+    });
   }
 
   getNameError(): string | null {
@@ -430,9 +479,6 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
   //   contentEl.classList.toggle('has-scrollbar', hasScrollbar);
   // }
 }
-
-
-
 
 
 

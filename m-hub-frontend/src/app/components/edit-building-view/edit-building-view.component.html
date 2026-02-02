@@ -1,5 +1,5 @@
 <div class="edit-building-view-panel">
-    <div class="header-row">
+    <div class="header-element">
         <h2 class="header"><span class="header-label-full">Gebäude: </span>{{ userBuilding?.name?.trim() }}</h2>
 
         <div class="header-actions">
@@ -42,34 +42,98 @@
                             </button>
                         </div>
 
-                        <div class="custom-list">
-                            <div class="list-row grid-part" *ngFor="let part of buildingPartsMock">
-                                <div class="col-id">
-                                    <span class="label">ID=</span>{{ part.id }}
+                        <div class="custom-list scroll-list">
+                            <div class="custom-list-content">
+                                <div class="list-row grid-part header-row" *ngIf="buildingParts.length > 0">
+                                    <div class="col-id">ID</div>
+                                    <div class="col-name">Name</div>
+                                    <div class="col-type">Typ</div>
+                                    <div class="col-location">Ort</div>
+                                    <div class="col-description">Beschreibung</div>
+                                    <div class="col-public">Public</div>
+                                    <div class="col-actions"></div>
                                 </div>
-                                <div class="col-main">{{ part.name }}</div>
-                                <div class="col-type">{{ part.category }}</div>
-                                
-                                <div class="col-actions">
-                                    <button mat-icon-button color="primary" matTooltip="Infromationen">
-                                        <mat-icon>info_outline</mat-icon> 
-                                    </button>
-                                    <button mat-icon-button color="primary" matTooltip="Bearbeiten">
-                                        <mat-icon>edit</mat-icon>
-                                    </button>
-                                    <button mat-icon-button color="warn" matTooltip="Löschen">
-                                        <mat-icon>delete_outline</mat-icon> 
-                                    </button>
-                                </div>
-                            </div>
 
-                            <div class="empty-state" *ngIf="buildingPartsMock.length === 0 && !isLoadingParts">
-                                Keine Bauteile vorhanden.
+                                <div class="list-row grid-part" *ngFor="let part of buildingParts">
+                                    <div class="col-id">{{ part.id }}</div>
+                                    <div class="col-name name-value">{{ part.name }}</div>
+                                    <div class="col-type type-value">{{ part.part_type }}</div>
+                                    <div class="col-location">{{ part.location }}</div>
+                                    <div class="col-description">{{ part.description }}</div>
+                                    <div class="col-public">{{ part.is_public }}</div>
+                                    
+                                    <div class="col-actions">
+                                        <button mat-icon-button color="primary" matTooltip="Informationen" (click)="openEntityInfoDialog(part)">
+                                            <mat-icon>info_outline</mat-icon> 
+                                        </button>
+                                        <button mat-icon-button color="primary" matTooltip="Bearbeiten">
+                                            <mat-icon>edit</mat-icon>
+                                        </button>
+                                        <button mat-icon-button color="warn" matTooltip="Löschen">
+                                            <mat-icon>delete_outline</mat-icon> 
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="empty-state" *ngIf="buildingParts.length === 0 && !isLoadingParts">
+                                    Keine Bauteile vorhanden.
+                                </div>
                             </div>
                         </div>
                     </div>
 
+
                     <div class="section-container">
+                        <div class="section-header-row">
+                            <h3 class="component-header">Objekte</h3>
+                            <button mat-icon-button color="primary" (click)="openAddBuildingObjectDialog()" matTooltip="Objekt hinzufügen" matTooltipPosition="right">
+                                <mat-icon>add</mat-icon>
+                            </button>
+                        </div>
+
+                        <div class="custom-list scroll-list">
+                            <div class="custom-list-content">
+                                <div class="list-row grid-object header-row" *ngIf="buildingObjects.length > 0">
+                                    <div class="col-id">ID</div>
+                                    <div class="col-name">Name</div>
+                                    <div class="col-type">Typ</div>
+                                    <div class="col-location">Ort</div>
+                                    <div class="col-count">Anzahl</div>
+                                    <div class="col-description">Beschreibung</div>
+                                    <div class="col-public">Public</div>
+                                    <div class="col-actions"></div>
+                                </div>
+
+                                <div class="list-row grid-object" *ngFor="let obj of buildingObjects">
+                                    <div class="col-id">{{ obj.id }}</div>
+                                    <div class="col-name name-value">{{ obj.name }}</div>
+                                    <div class="col-type type-value">{{ obj.object_type }}</div>
+                                    <div class="col-location">{{ obj.location }}</div>
+                                    <div class="col-count">{{ obj.count }}</div>
+                                    <div class="col-description">{{ obj.description }}</div>
+                                    <div class="col-public">{{ obj.is_public }}</div>
+                                    
+                                    <div class="col-actions">
+                                        <button mat-icon-button color="primary" matTooltip="Informationen" (click)="openEntityInfoDialog(obj)">
+                                            <mat-icon>info_outline</mat-icon> 
+                                        </button>
+                                        <button mat-icon-button color="primary" matTooltip="Bearbeiten">
+                                            <mat-icon>edit</mat-icon>
+                                        </button>
+                                        <button mat-icon-button color="warn" matTooltip="Löschen">
+                                            <mat-icon>delete_outline</mat-icon> 
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="empty-state" *ngIf="buildingObjects.length === 0 && !isLoadingObjects">
+                                    Keine Objekte vorhanden.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- <div class="section-container">
                         <div class="section-header-row">
                             <h3 class="component-header">Objekte</h3>
                             <button mat-icon-button color="primary" (click)="openAddBuildingObjectDialog()" matTooltip="Objekt hinzufügen" matTooltipPosition="right">
@@ -82,11 +146,11 @@
                                 <div class="col-id">
                                     <span class="label">ID=</span>{{ object.id }}
                                 </div>
-                                <div class="col-main">{{ object.name }}</div>
+                                <div class="col-name name-value">{{ object.name }}</div>
                                 <div class="col-type">{{ object.category }}</div>
                                 
                                 <div class="col-actions">
-                                    <button mat-icon-button color="primary" matTooltip="Infromationen">
+                                    <button mat-icon-button color="primary" matTooltip="Informationen" (click)="openEntityInfoDialog(object)">
                                         <mat-icon>info_outline</mat-icon> 
                                     </button>
                                     <button mat-icon-button color="primary" matTooltip="Bearbeiten">
@@ -104,7 +168,7 @@
 
                         </div>
 
-                    </div>
+                    </div> -->
 
                     <div class="section-container">
                         <div class="section-header-row">
@@ -114,45 +178,43 @@
                             </button>
                         </div>
 
-                        <div class="custom-list">
-
-                            <div class="list-row grid-document header-row">
-                                <div class="col-id">ID</div>
-                                <div class="col-name">Name</div>
-                                <div class="col-type">Typ</div>
-                                <div class="col-description">Beschreibung</div>
-                                <div class="col-url">URL</div>
-                                <div class="col-public">Public</div>
-                                <div class="col-actions"></div> 
-                            </div>
-
-                            <div class="list-row grid-document" *ngFor="let doc of documents">
-                                <div class="col-id">{{ doc.id }}</div>
-                                <div class="col-name">{{ doc.name }}</div>
-                                <div class="col-type">{{ doc.file_type }}</div>
-                                <div class="col-description">
-                                    {{ doc.description ? (doc.description.length > 30 ? (doc.description | slice:0:30) + '...' : doc.description) : '-' }}
+                        <div class="custom-list scroll-list">
+                            <div class="custom-list-content">
+                                <div class="list-row grid-document header-row" *ngIf="documents.length > 0">
+                                    <div class="col-id">ID</div>
+                                    <div class="col-name">Name</div>
+                                    <div class="col-type">Typ</div>
+                                    <div class="col-description">Beschreibung</div>
+                                    <div class="col-url">URL</div>
+                                    <div class="col-public">Public</div>
+                                    <div class="col-actions"></div> 
                                 </div>
-                                <div class="col-url">{{ doc.file_url }}</div>
-                                <div class="col-public">{{ doc.is_public }}</div>
 
-                                <div class="col-actions">
-                                    <button mat-icon-button color="primary" matTooltip="Infromationen">
-                                        <mat-icon>info_outline</mat-icon> 
-                                    </button>
-                                    <button mat-icon-button color="primary" matTooltip="Bearbeiten">
-                                        <mat-icon>edit</mat-icon>
-                                    </button>
-                                    <button mat-icon-button color="warn" matTooltip="Löschen">
-                                        <mat-icon>delete_outline</mat-icon>
-                                    </button>
+                                <div class="list-row grid-document" *ngFor="let doc of documents">
+                                    <div class="col-id">{{ doc.id }}</div>
+                                    <div class="col-name name-value">{{ doc.name }}</div>
+                                    <div class="col-type type-value">{{ doc.file_type }}</div>
+                                    <div class="col-description">{{ doc.description }}</div>
+                                    <div class="col-url">{{ doc.file_url }}</div>
+                                    <div class="col-public">{{ doc.is_public }}</div>
+
+                                    <div class="col-actions">
+                                        <button mat-icon-button color="primary" matTooltip="Informationen" (click)="openEntityInfoDialog(doc)">
+                                            <mat-icon>info_outline</mat-icon> 
+                                        </button>
+                                        <button mat-icon-button color="primary" matTooltip="Bearbeiten">
+                                            <mat-icon>edit</mat-icon>
+                                        </button>
+                                        <button mat-icon-button color="warn" matTooltip="Löschen">
+                                            <mat-icon>delete_outline</mat-icon>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="empty-state" *ngIf="documents.length === 0 && !isLoadingDocuments">
+                                    Keine Dokumente vorhanden.
                                 </div>
                             </div>
-
-                            <div class="empty-state" *ngIf="documents.length === 0 && !isLoadingDocuments">
-                                Keine Dokumente vorhanden.
-                            </div>
-
                         </div>
                     </div>
                 
@@ -200,11 +262,3 @@
         </mat-tab>
     </mat-tab-group>
 </div>
-
-
-
-
-
-
-
-

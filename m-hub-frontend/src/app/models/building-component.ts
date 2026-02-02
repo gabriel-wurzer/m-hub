@@ -9,24 +9,24 @@ import { Document } from "./document";
  */
 export abstract class BuildingComponent {
     id!: string;    // UUID of the building component
-    buildingId!: string;
+    building_id!: string;
     user_building_id!: string;        
-    ownerId!: string;
+    owner_id!: string;
     category!: BuildingComponentCategory;   // discriminator for filtering & serialization --> 'Bauteil' | 'Objekt'
     name!: string;
     description?: string;
-    isPublic!: boolean;
+    is_public!: boolean;
     documents?: Document[];
 }
 
 export class Bauteil extends BuildingComponent {
-    partStructure!: string;     // TODO: part strucutre model --> contains info for different layers (including layer_index, material, thickness)
-    partType!: PartType;        
+    part_structure!: string;     // TODO: part strucutre model --> contains info for different layers (including layer_index, material, thickness)
+    part_type!: PartType;        
     location!: string;          // TODO: concrete location --> buildingStructure element reference
 }
 
 export class Objekt extends BuildingComponent {
-    objectType!: ObjectType;
+    object_type!: ObjectType;
     count!: number;   
     location?: string;
 }
