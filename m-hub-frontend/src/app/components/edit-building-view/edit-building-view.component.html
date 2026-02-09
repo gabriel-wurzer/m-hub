@@ -69,7 +69,7 @@
                                         <button mat-icon-button color="primary" matTooltip="Bearbeiten">
                                             <mat-icon>edit</mat-icon>
                                         </button>
-                                        <button mat-icon-button color="warn" matTooltip="Löschen">
+                                        <button mat-icon-button color="warn" matTooltip="Löschen" (click)="openDeleteComponentDialog(part)">
                                             <mat-icon>delete_outline</mat-icon> 
                                         </button>
                                     </div>
@@ -120,7 +120,7 @@
                                         <button mat-icon-button color="primary" matTooltip="Bearbeiten">
                                             <mat-icon>edit</mat-icon>
                                         </button>
-                                        <button mat-icon-button color="warn" matTooltip="Löschen">
+                                        <button mat-icon-button color="warn" matTooltip="Löschen" (click)="openDeleteComponentDialog(obj)">
                                             <mat-icon>delete_outline</mat-icon> 
                                         </button>
                                     </div>

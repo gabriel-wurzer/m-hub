@@ -81,6 +81,14 @@
         "env": []
     },
     {
+        "id": "22c7f522d447c91f",
+        "type": "tab",
+        "label": "GET Components by Building",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "bc8f71868ee8d8a0",
         "type": "tab",
         "label": "GET Documents (by filter query parameters)",
@@ -105,9 +113,9 @@
         "env": []
     },
     {
-        "id": "22c7f522d447c91f",
+        "id": "fcfa959b27f7d27c",
         "type": "tab",
-        "label": "GET Components by Building",
+        "label": "DELETE Object",
         "disabled": false,
         "info": "",
         "env": []
@@ -124,6 +132,14 @@
         "id": "dbf7e38b784a0ea8",
         "type": "tab",
         "label": "GET Parts by User-Building",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "52c0ada6eac7a637",
+        "type": "tab",
+        "label": "DELETE Part",
         "disabled": false,
         "info": "",
         "env": []
@@ -1243,7 +1259,7 @@
         "type": "http in",
         "z": "b4d66047ba3aad6c",
         "name": "DELETE user-building",
-        "url": "/api/users/me/buildings/:id",
+        "url": "/api/users/me/buildings/:ID",
         "method": "delete",
         "upload": false,
         "skipBodyParsing": false,
@@ -1289,7 +1305,7 @@
         "type": "function",
         "z": "b4d66047ba3aad6c",
         "name": "build SQL query",
-        "func": "// Extract user id securly from JWT\nconst user_id = msg.user.sub;\n\n// Extract data\nconst target_id = msg.req.params.id;\n\nconst { name, address, structure } = msg.payload;\n\n// Validate required fields\nif (!user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"user_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!target_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Target ID is missing\" };\n    return [null, msg]; \n}\n\n// SQL Delete\nmsg.query = `\n    DELETE FROM user_buildings\n    WHERE id = $1 AND user_id = $2::uuid\n    RETURNING *;\n`;\n\nmsg.params = [\n    target_id,\n    user_id\n];\n\nreturn [msg, null];\n",
+        "func": "// Extract user id securly from JWT\nconst user_id = msg.user.sub;\n\n// Extract data\nconst target_id = msg.req.params.ID;\n\nconst { name, address, structure } = msg.payload;\n\n// Validate required fields\nif (!user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"user_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!target_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Target ID is missing\" };\n    return [null, msg]; \n}\n\n// SQL Delete\nmsg.query = `\n    DELETE FROM user_buildings\n    WHERE id = $1 AND user_id = $2::uuid\n    RETURNING *;\n`;\n\nmsg.params = [\n    target_id,\n    user_id\n];\n\nreturn [msg, null];\n",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -1692,6 +1708,166 @@
         "wires": [
             [
                 "7876acc0df9f5a4e"
+            ]
+        ]
+    },
+    {
+        "id": "1086f64389033747",
+        "type": "http in",
+        "z": "22c7f522d447c91f",
+        "name": "GET building components",
+        "url": "/api/buildings/:ID/components",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 160,
+        "wires": [
+            [
+                "194a05715e6e3ffc"
+            ]
+        ]
+    },
+    {
+        "id": "34491f89752256f4",
+        "type": "comment",
+        "z": "22c7f522d447c91f",
+        "name": "http://localhost:1880/api/buildings/building_id/components",
+        "info": "",
+        "x": 310,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "eb01e1c74897c85b",
+        "type": "function",
+        "z": "22c7f522d447c91f",
+        "name": "format result",
+        "func": "if (Array.isArray(msg.payload)) {\n    msg.statusCode = 200;\n} else {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Database query failed\" };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 700,
+        "wires": [
+            [
+                "a93e2cbc89e443e3"
+            ]
+        ]
+    },
+    {
+        "id": "a93e2cbc89e443e3",
+        "type": "http response",
+        "z": "22c7f522d447c91f",
+        "name": "components response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1040,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "8dad10eb512a35ca",
+        "type": "postgresql",
+        "z": "22c7f522d447c91f",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 540,
+        "y": 560,
+        "wires": [
+            [
+                "eb01e1c74897c85b"
+            ]
+        ]
+    },
+    {
+        "id": "2ef9e8532e3e44fb",
+        "type": "catch",
+        "z": "22c7f522d447c91f",
+        "name": "",
+        "scope": [
+            "8dad10eb512a35ca"
+        ],
+        "uncaught": false,
+        "x": 790,
+        "y": 440,
+        "wires": [
+            [
+                "aad27011d0814b3d"
+            ]
+        ]
+    },
+    {
+        "id": "aad27011d0814b3d",
+        "type": "function",
+        "z": "22c7f522d447c91f",
+        "name": "handle db errors",
+        "func": "const errMsg = msg.error && msg.error.message ? msg.error.message : '';\n\nmsg.statusCode = 500; // Internal Server Error\nmsg.payload = { error: 'Database error', details: errMsg };\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 980,
+        "y": 440,
+        "wires": [
+            [
+                "a93e2cbc89e443e3"
+            ]
+        ]
+    },
+    {
+        "id": "194a05715e6e3ffc",
+        "type": "function",
+        "z": "22c7f522d447c91f",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    // No token -> anonymous access allowed\n    msg.user = null;\n    return [msg, null];\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    // Invalid format -> treat as anonymous\n    msg.user = null;\n    return [msg, null];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    msg.user = decoded;\n} catch (err) {\n    // Invalid/expired -> treat as anonymous\n    msg.user = null;\n}\n\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 280,
+        "wires": [
+            [
+                "f0b956aa99b05d49"
+            ],
+            [
+                "a93e2cbc89e443e3"
+            ]
+        ]
+    },
+    {
+        "id": "f0b956aa99b05d49",
+        "type": "function",
+        "z": "22c7f522d447c91f",
+        "name": "build SQL query",
+        "func": "const user_id = msg.user?.sub || null;\nconst building_id = msg.req.params.ID;\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (user_id && !uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid user ID format\" };\n    return [null, msg];\n}\n\nif (!building_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"building_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (building_id.length > 10 || !/^[A-Za-z0-9_\\-]+$/.test(building_id)) {\n  msg.statusCode = 400;\n  msg.payload = { error: \"Invalid ID format\" };\n  return [null, msg];\n}\n\nmsg.query = `\n  SELECT\n    id,\n    name,\n    category,\n    (\n      COALESCE(is_public, false)\n      OR ($2::uuid IS NOT NULL AND owner_id = $2::uuid)\n    ) AS can_read\n  FROM building_parts\n  WHERE building_id = $1\n\n  UNION ALL\n\n  SELECT\n    id,\n    name,\n    category,\n    (\n      COALESCE(is_public, false)\n      OR ($2::uuid IS NOT NULL AND owner_id = $2::uuid)\n    ) AS can_read\n  FROM building_objects\n  WHERE building_id = $1\n`;\n\nmsg.params = [building_id, user_id];\n\n return [msg, null]\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 420,
+        "wires": [
+            [
+                "8dad10eb512a35ca"
+            ],
+            [
+                "a93e2cbc89e443e3"
             ]
         ]
     },
@@ -2147,164 +2323,164 @@
         ]
     },
     {
-        "id": "1086f64389033747",
+        "id": "2fe7fbaf7c4beb5b",
         "type": "http in",
-        "z": "22c7f522d447c91f",
-        "name": "GET building components",
-        "url": "/api/buildings/:ID/components",
-        "method": "get",
+        "z": "fcfa959b27f7d27c",
+        "name": "DELETE building object",
+        "url": "/api/objects/:ID",
+        "method": "delete",
         "upload": false,
         "skipBodyParsing": false,
         "swaggerDoc": "",
-        "x": 230,
-        "y": 160,
+        "x": 220,
+        "y": 180,
         "wires": [
             [
-                "194a05715e6e3ffc"
+                "2a1cc0e6fb127451"
             ]
         ]
     },
     {
-        "id": "34491f89752256f4",
-        "type": "comment",
-        "z": "22c7f522d447c91f",
-        "name": "http://localhost:1880/api/buildings/building_id/components",
-        "info": "",
-        "x": 310,
-        "y": 100,
-        "wires": []
-    },
-    {
-        "id": "eb01e1c74897c85b",
-        "type": "function",
-        "z": "22c7f522d447c91f",
-        "name": "format result",
-        "func": "if (Array.isArray(msg.payload)) {\n    msg.statusCode = 200;\n} else {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Database query failed\" };\n}\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 610,
-        "y": 700,
-        "wires": [
-            [
-                "a93e2cbc89e443e3"
-            ]
-        ]
-    },
-    {
-        "id": "a93e2cbc89e443e3",
-        "type": "http response",
-        "z": "22c7f522d447c91f",
-        "name": "components response",
-        "statusCode": "",
-        "headers": {},
-        "x": 1040,
-        "y": 700,
-        "wires": []
-    },
-    {
-        "id": "8dad10eb512a35ca",
+        "id": "a93c1ed3e9a04899",
         "type": "postgresql",
-        "z": "22c7f522d447c91f",
+        "z": "fcfa959b27f7d27c",
         "name": "mhub db",
         "query": "msg.query",
         "postgreSQLConfig": "e637e22c3aa8ed51",
         "split": false,
         "rowsPerMsg": 1,
         "outputs": 1,
-        "x": 540,
-        "y": 560,
+        "x": 380,
+        "y": 500,
         "wires": [
             [
-                "eb01e1c74897c85b"
+                "234dc9dafb0dd4d3"
             ]
         ]
     },
     {
-        "id": "2ef9e8532e3e44fb",
-        "type": "catch",
-        "z": "22c7f522d447c91f",
-        "name": "",
-        "scope": [
-            "8dad10eb512a35ca"
-        ],
-        "uncaught": false,
-        "x": 790,
-        "y": 440,
-        "wires": [
-            [
-                "aad27011d0814b3d"
-            ]
-        ]
-    },
-    {
-        "id": "aad27011d0814b3d",
+        "id": "c7264973b13ceab3",
         "type": "function",
-        "z": "22c7f522d447c91f",
-        "name": "handle db errors",
-        "func": "const errMsg = msg.error && msg.error.message ? msg.error.message : '';\n\nmsg.statusCode = 500; // Internal Server Error\nmsg.payload = { error: 'Database error', details: errMsg };\n\nreturn msg;\n",
+        "z": "fcfa959b27f7d27c",
+        "name": "build SQL query",
+        "func": "// Extract user id securly from JWT\nconst user_id = msg.user.sub;\n\n// Extract data\nconst target_id = msg.req.params.ID;\n\nconst { name, address, structure } = msg.payload;\n\n// Validate required fields\nif (!user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"user_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!target_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Target ID is missing\" };\n    return [null, msg]; \n}\n\n// SQL Delete\nmsg.query = `\n    DELETE FROM building_objects\n    WHERE id = $1::uuid AND owner_id = $2::uuid\n    RETURNING *;\n`;\n\nmsg.params = [\n    target_id,\n    user_id\n];\n\nreturn [msg, null];\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 380,
+        "wires": [
+            [
+                "a93c1ed3e9a04899"
+            ],
+            [
+                "1254345d2d26ae01"
+            ]
+        ]
+    },
+    {
+        "id": "234dc9dafb0dd4d3",
+        "type": "function",
+        "z": "fcfa959b27f7d27c",
+        "name": "function success",
+        "func": "const rows = msg.payload;\n\nif (rows && rows.length > 0) {\n    // Success: Return the deleted object\n    msg.statusCode = 200;\n    msg.payload = rows[0]; \n} else {\n    // Failure: No rows deleted.\n    // Either ID doesn't exist or User doesn't own it.\n    msg.statusCode = 404;\n    msg.payload = { error: \"Building object not found or permission denied.\" };\n}\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 980,
-        "y": 440,
+        "x": 480,
+        "y": 600,
         "wires": [
             [
-                "a93e2cbc89e443e3"
+                "1254345d2d26ae01"
             ]
         ]
     },
     {
-        "id": "194a05715e6e3ffc",
+        "id": "1254345d2d26ae01",
+        "type": "http response",
+        "z": "fcfa959b27f7d27c",
+        "name": "building-object response",
+        "statusCode": "",
+        "headers": {},
+        "x": 850,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "7ee1bfab5239f6ab",
+        "type": "catch",
+        "z": "fcfa959b27f7d27c",
+        "name": "",
+        "scope": [
+            "a93c1ed3e9a04899"
+        ],
+        "uncaught": false,
+        "x": 630,
+        "y": 400,
+        "wires": [
+            [
+                "ecb7435ab4d828e0"
+            ]
+        ]
+    },
+    {
+        "id": "ecb7435ab4d828e0",
         "type": "function",
-        "z": "22c7f522d447c91f",
+        "z": "fcfa959b27f7d27c",
+        "name": "handle db errors",
+        "func": "const err = msg.error;\nconst errMsg = err && err.message ? err.message : '';\n\n\n// 1. FOREIGN KEY VIOLATION (Specific to DELETE)\n// Code 23503: Occurs if you try to delete a building that is used in another table\nif (errMsg.includes('violates foreign key') || (err.code === '23503')) {\n    msg.statusCode = 409; // Conflict\n    msg.payload = { error: 'Cannot delete: This building object is referenced by other data.' };\n}\n\n// 2. INVALID DATA TYPE (e.g. Bad UUID string)\n// Code 22P02: Invalid text representation\nelse if (errMsg.includes('invalid input syntax') || (err.code === '22P02')) {\n    msg.statusCode = 400; // Bad Request\n    msg.payload = { error: 'Invalid ID format or data type.' };\n}\n\n// 3. GENERIC FALLBACK\nelse {\n    msg.statusCode = 500; // Internal Server Error\n    msg.payload = { error: 'Database error', details: errMsg };\n}\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 820,
+        "y": 400,
+        "wires": [
+            [
+                "1254345d2d26ae01"
+            ]
+        ]
+    },
+    {
+        "id": "2a1cc0e6fb127451",
+        "type": "function",
+        "z": "fcfa959b27f7d27c",
         "name": "verify JWT",
-        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    // No token -> anonymous access allowed\n    msg.user = null;\n    return [msg, null];\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    // Invalid format -> treat as anonymous\n    msg.user = null;\n    return [msg, null];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    msg.user = decoded;\n} catch (err) {\n    // Invalid/expired -> treat as anonymous\n    msg.user = null;\n}\n\nreturn [msg, null];",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg]; // Go to Output 2 (Error)\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    \n    msg.user = decoded; \n    \n    return [msg, null]; // Go to Output 1 (Success)\n\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 350,
+        "x": 270,
         "y": 280,
         "wires": [
             [
-                "f0b956aa99b05d49"
+                "c7264973b13ceab3"
             ],
             [
-                "a93e2cbc89e443e3"
+                "1254345d2d26ae01"
             ]
         ]
     },
     {
-        "id": "f0b956aa99b05d49",
-        "type": "function",
-        "z": "22c7f522d447c91f",
-        "name": "build SQL query",
-        "func": "const user_id = msg.user?.sub || null;\nconst building_id = msg.req.params.ID;\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (user_id && !uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid user ID format\" };\n    return [null, msg];\n}\n\nif (!building_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"building_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (building_id.length > 10 || !/^[A-Za-z0-9_\\-]+$/.test(building_id)) {\n  msg.statusCode = 400;\n  msg.payload = { error: \"Invalid ID format\" };\n  return [null, msg];\n}\n\nmsg.query = `\n  SELECT\n    id,\n    name,\n    category,\n    (\n      COALESCE(is_public, false)\n      OR ($2::uuid IS NOT NULL AND owner_id = $2::uuid)\n    ) AS can_read\n  FROM building_parts\n  WHERE building_id = $1\n\n  UNION ALL\n\n  SELECT\n    id,\n    name,\n    category,\n    (\n      COALESCE(is_public, false)\n      OR ($2::uuid IS NOT NULL AND owner_id = $2::uuid)\n    ) AS can_read\n  FROM building_objects\n  WHERE building_id = $1\n`;\n\nmsg.params = [building_id, user_id];\n\n return [msg, null]\n",
-        "outputs": 2,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 460,
-        "y": 420,
-        "wires": [
-            [
-                "8dad10eb512a35ca"
-            ],
-            [
-                "a93e2cbc89e443e3"
-            ]
-        ]
+        "id": "71d77a6f406a6772",
+        "type": "comment",
+        "z": "fcfa959b27f7d27c",
+        "name": "http://localhost:1880/api/objects/ID",
+        "info": "",
+        "x": 240,
+        "y": 120,
+        "wires": []
     },
     {
         "id": "38c5bdf5fd020510",
@@ -2625,6 +2801,166 @@
                 "0baa0f987a629f2f"
             ]
         ]
+    },
+    {
+        "id": "6d3bb782a9931bfd",
+        "type": "http in",
+        "z": "52c0ada6eac7a637",
+        "name": "DELETE building part",
+        "url": "/api/parts/:ID",
+        "method": "delete",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 240,
+        "y": 180,
+        "wires": [
+            [
+                "64c15c0fe7d847a5"
+            ]
+        ]
+    },
+    {
+        "id": "990480bf6a942235",
+        "type": "postgresql",
+        "z": "52c0ada6eac7a637",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 400,
+        "y": 500,
+        "wires": [
+            [
+                "2a6cdcc9264d220f"
+            ]
+        ]
+    },
+    {
+        "id": "377947164b9588d9",
+        "type": "function",
+        "z": "52c0ada6eac7a637",
+        "name": "build SQL query",
+        "func": "// Extract user id securly from JWT\nconst user_id = msg.user.sub;\n\n// Extract data\nconst target_id = msg.req.params.ID;\n\nconst { name, address, structure } = msg.payload;\n\n// Validate required fields\nif (!user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"user_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!target_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Target ID is missing\" };\n    return [null, msg]; \n}\n\n// SQL Delete\nmsg.query = `\n    DELETE FROM building_parts\n    WHERE id = $1::uuid AND owner_id = $2::uuid\n    RETURNING *;\n`;\n\nmsg.params = [\n    target_id,\n    user_id\n];\n\nreturn [msg, null];\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 380,
+        "wires": [
+            [
+                "990480bf6a942235"
+            ],
+            [
+                "db175b813c3adc39"
+            ]
+        ]
+    },
+    {
+        "id": "2a6cdcc9264d220f",
+        "type": "function",
+        "z": "52c0ada6eac7a637",
+        "name": "function success",
+        "func": "const rows = msg.payload;\n\nif (rows && rows.length > 0) {\n    // Success: Return the deleted object\n    msg.statusCode = 200;\n    msg.payload = rows[0]; \n} else {\n    // Failure: No rows deleted.\n    // Either ID doesn't exist or User doesn't own it.\n    msg.statusCode = 404;\n    msg.payload = { error: \"Building part not found or permission denied.\" };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 600,
+        "wires": [
+            [
+                "db175b813c3adc39"
+            ]
+        ]
+    },
+    {
+        "id": "db175b813c3adc39",
+        "type": "http response",
+        "z": "52c0ada6eac7a637",
+        "name": "building-part response",
+        "statusCode": "",
+        "headers": {},
+        "x": 860,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "3f998864e566642f",
+        "type": "catch",
+        "z": "52c0ada6eac7a637",
+        "name": "",
+        "scope": [
+            "990480bf6a942235"
+        ],
+        "uncaught": false,
+        "x": 650,
+        "y": 400,
+        "wires": [
+            [
+                "5eab02d64a37599c"
+            ]
+        ]
+    },
+    {
+        "id": "5eab02d64a37599c",
+        "type": "function",
+        "z": "52c0ada6eac7a637",
+        "name": "handle db errors",
+        "func": "const err = msg.error;\nconst errMsg = err && err.message ? err.message : '';\n\n\n// 1. FOREIGN KEY VIOLATION (Specific to DELETE)\n// Code 23503: Occurs if you try to delete a building that is used in another table\nif (errMsg.includes('violates foreign key') || (err.code === '23503')) {\n    msg.statusCode = 409; // Conflict\n    msg.payload = { error: 'Cannot delete: This building part is referenced by other data.' };\n}\n\n// 2. INVALID DATA TYPE (e.g. Bad UUID string)\n// Code 22P02: Invalid text representation\nelse if (errMsg.includes('invalid input syntax') || (err.code === '22P02')) {\n    msg.statusCode = 400; // Bad Request\n    msg.payload = { error: 'Invalid ID format or data type.' };\n}\n\n// 3. GENERIC FALLBACK\nelse {\n    msg.statusCode = 500; // Internal Server Error\n    msg.payload = { error: 'Database error', details: errMsg };\n}\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 840,
+        "y": 400,
+        "wires": [
+            [
+                "db175b813c3adc39"
+            ]
+        ]
+    },
+    {
+        "id": "64c15c0fe7d847a5",
+        "type": "function",
+        "z": "52c0ada6eac7a637",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg]; // Go to Output 2 (Error)\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    \n    msg.user = decoded; \n    \n    return [msg, null]; // Go to Output 1 (Success)\n\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 280,
+        "wires": [
+            [
+                "377947164b9588d9"
+            ],
+            [
+                "db175b813c3adc39"
+            ]
+        ]
+    },
+    {
+        "id": "440daef9b4f28dd9",
+        "type": "comment",
+        "z": "52c0ada6eac7a637",
+        "name": "http://localhost:1880/api/parts/ID",
+        "info": "",
+        "x": 250,
+        "y": 120,
+        "wires": []
     },
     {
         "id": "202af4e4ff054da0",

@@ -1,4 +1,4 @@
-import {
+﻿import {
   AfterViewInit,
   Component,
   ElementRef,
@@ -22,7 +22,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { Bauteil, Objekt } from '../../models/building-component';
+import { Bauteil, BuildingComponent, Objekt } from '../../models/building-component';
 import { Document } from '../../models/document';
 import { Floor } from '../../models/floor';
 import { FloorType } from '../../enums/floor-type.enum';
@@ -35,6 +35,7 @@ import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog
 import { BuildingPartService } from '../../services/building-part/building-part.service';
 import { BuildingObjectService } from '../../services/building-object/building-object.service';
 import { EntityInfoDialogComponent } from '../dialogs/entity-info-dialog/entity-info-dialog.component';
+import { finalize } from 'rxjs';
 
 export type EditBuildingPayload = {
   name: string;
@@ -242,6 +243,82 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
     });
   }
 
+
+  openDeleteComponentDialog(component: BuildingComponent): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      data: {
+        title: component.category === 'Bauteil' ? 'Bauteil löschen' : 'Objekt löschen',
+        message: `Möchtest du <strong>${component.name}</strong> (ID: ${component.id}) wirklich unwiderruflich löschen? Alle zugehörigen Daten gehen verloren.`,
+        confirmText: 'Löschen',
+        cancelText: 'Behalten',
+        requireSlider: true, 
+        sliderText: 'Löschen bestätigen' 
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.executeComponentDelete(component);
+      }
+    });
+  }
+
+  private executeComponentDelete(component: BuildingComponent): void {
+    const isPart = component.category === 'Bauteil';
+    const isObject = component.category === 'Objekt';
+
+    if (!isPart && !isObject) {
+      console.error('Unbekannte Komponente:', component.category, component);
+      this.snackBar.open(`Komponente konnte nicht gelöscht werden.`, 'OK', {
+        duration: 10000,
+        verticalPosition: 'top',
+        panelClass: 'snackbar-warn'
+      });
+      return;
+    }
+
+    const setLoadingState = (isLoading: boolean): void => {
+      if (isPart) {
+        this.isLoadingParts = isLoading;
+      } else {
+        this.isLoadingObjects = isLoading;
+      }
+    };
+
+    setLoadingState(true);
+
+    const deleteRequest$ = isPart
+      ? this.buildingPartService.deleteComponent(component.id)
+      : this.buildingObjectService.deleteComponent(component.id);
+
+    deleteRequest$
+      .pipe(finalize(() => setLoadingState(false)))
+      .subscribe({
+        next: () => {
+          if (isPart) {
+            this.buildingParts = this.buildingParts.filter(part => part.id !== component.id);
+          } else {
+            this.buildingObjects = this.buildingObjects.filter(object => object.id !== component.id);
+          }
+        },
+        complete: () => {
+          this.snackBar.open(`${component.name} erfolgreich gelöscht.`, 'OK', {
+            duration: 3000,
+            verticalPosition: 'top'
+          });
+        },
+        error: (error) => {
+          console.error('Failed to delete component:', error);
+          this.snackBar.open(`${component.name} konnte nicht gelöscht werden.`, 'OK', {
+            duration: 10000,
+            verticalPosition: 'top',
+            panelClass: 'snackbar-warn'
+          });
+        }
+      });
+  }
+
   getNameError(): string | null {
     if (this.name.trim().length === 0) {
       return 'Bitte Namen für das Gebäude angeben';
@@ -261,7 +338,7 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
   }
 
   formatBoolean(value: unknown): string {
-    if (value === null || value === undefined) return '—';
+    if (value === null || value === undefined) return 'unknown';
     if (typeof value === 'boolean') return value ? 'Ja' : 'Nein';
     if (typeof value === 'string') {
       const normalized = value.trim().toLowerCase();
@@ -491,6 +568,4 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
   //   contentEl.classList.toggle('has-scrollbar', hasScrollbar);
   // }
 }
-
-
 

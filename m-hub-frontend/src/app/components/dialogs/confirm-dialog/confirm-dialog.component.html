@@ -8,7 +8,7 @@
       <ng-container *ngIf="data.messageSuffix">{{ data.messageSuffix }}</ng-container>
     </span>
   </ng-container>
-  <ng-template #plainMessage>{{ data.message }}</ng-template>
+  <ng-template #plainMessage><span [innerHTML]="data.message"></span></ng-template>
 
   <div *ngIf="data.requireSlider" class="slider-container">
     <mat-slide-toggle 

@@ -112,7 +112,7 @@ export class UserDataComponent implements OnInit {
       width: '450px',
       data: {
         title: 'Gebäude löschen',
-        message: `Möchtest du das Gebäude "${building.name}" (ID: ${building.building_id}) wirklich unwiderruflich löschen? Alle zugehörigen Daten gehen verloren.`,
+        message: `Möchtest du das Gebäude <strong>${building.name}</strong> (ID: ${building.building_id}) wirklich unwiderruflich löschen? Alle zugehörigen Daten gehen verloren.`,
         confirmText: 'Löschen',
         cancelText: 'Behalten',
         requireSlider: true, 
@@ -149,7 +149,7 @@ export class UserDataComponent implements OnInit {
           console.error('Failed to delete building:', error);
           this.errorMessage = 'Gebäude konnte nicht entfernt werden.';
                   this.snackBar.open(this.errorMessage, 'OK', {
-            duration: 5000,
+            duration: 10000,
             verticalPosition: 'top'
           });
         }
