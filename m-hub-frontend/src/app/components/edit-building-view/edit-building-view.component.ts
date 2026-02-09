@@ -243,7 +243,6 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
     });
   }
 
-
   openDeleteComponentDialog(component: BuildingComponent): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
@@ -311,6 +310,52 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
         error: (error) => {
           console.error('Failed to delete component:', error);
           this.snackBar.open(`${component.name} konnte nicht gelöscht werden.`, 'OK', {
+            duration: 10000,
+            verticalPosition: 'top',
+            panelClass: 'snackbar-warn'
+          });
+        }
+      });
+  }
+
+  openDeleteDcoumentDialog(document: Document): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      data: {
+        title: 'Dokument löschen',
+        message: `Möchtest du das Dokument <strong>${document.name}</strong> wirklich unwiderruflich löschen? Alle zugehörigen Daten gehen verloren.`,
+        confirmText: 'Löschen',
+        cancelText: 'Behalten',
+        requireSlider: true, 
+        sliderText: 'Löschen bestätigen' 
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.executeDocumentDelete(document);
+      }
+    });
+  }
+
+  private executeDocumentDelete(document: Document): void {
+    this.isLoadingDocuments = true;
+
+    this.documentService.deleteDocument(document.id)
+      .pipe(finalize(() => this.isLoadingDocuments = false))
+      .subscribe({
+        next: () => {
+          this.documents = this.documents.filter(d => d.id !== document.id);
+        },
+        complete: () => {
+          this.snackBar.open('Dokument erfolgreich entfernt.', 'OK', {
+            duration: 3000,
+            verticalPosition: 'top'
+          });
+        },
+        error: (error) => {
+          console.error('Failed to delete document:', error);
+          this.snackBar.open(`Dokument konnte nicht gelöscht werden.`, 'OK', {
             duration: 10000,
             verticalPosition: 'top',
             panelClass: 'snackbar-warn'

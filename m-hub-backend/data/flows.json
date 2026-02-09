@@ -81,17 +81,17 @@
         "env": []
     },
     {
-        "id": "22c7f522d447c91f",
+        "id": "bc8f71868ee8d8a0",
         "type": "tab",
-        "label": "GET Components by Building",
+        "label": "GET Documents (by filter query parameters)",
         "disabled": false,
         "info": "",
         "env": []
     },
     {
-        "id": "bc8f71868ee8d8a0",
+        "id": "22c7f522d447c91f",
         "type": "tab",
-        "label": "GET Documents (by filter query parameters)",
+        "label": "GET Components by Building",
         "disabled": false,
         "info": "",
         "env": []
@@ -211,6 +211,14 @@
         "id": "8766fc61556de147",
         "type": "tab",
         "label": "GET Parts by Building ID",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "b48f11fbab89934d",
+        "type": "tab",
+        "label": "DELETE Document",
         "disabled": false,
         "info": "",
         "env": []
@@ -1712,6 +1720,120 @@
         ]
     },
     {
+        "id": "3c129ba07320274b",
+        "type": "http in",
+        "z": "bc8f71868ee8d8a0",
+        "name": "GET documents",
+        "url": "/api/documents",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 140,
+        "y": 200,
+        "wires": [
+            [
+                "61c2e06722aa0399"
+            ]
+        ]
+    },
+    {
+        "id": "b8b50779ec0b04a0",
+        "type": "comment",
+        "z": "bc8f71868ee8d8a0",
+        "name": "http://localhost:1880/api/documents?buildingId={buildingId}",
+        "info": "",
+        "x": 230,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "317420a4aa6c1d63",
+        "type": "http response",
+        "z": "bc8f71868ee8d8a0",
+        "name": "documents response",
+        "statusCode": "",
+        "headers": {},
+        "x": 780,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "ee29714a82a0df86",
+        "type": "postgresql",
+        "z": "bc8f71868ee8d8a0",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 360,
+        "y": 460,
+        "wires": [
+            [
+                "317420a4aa6c1d63"
+            ]
+        ]
+    },
+    {
+        "id": "61c2e06722aa0399",
+        "type": "function",
+        "z": "bc8f71868ee8d8a0",
+        "name": "build SQL query",
+        "func": "// Extract query params\nconst q = msg.req.query || {};\nconst buildingId = q.buildingId ? String(q.buildingId).trim() : null;\nconst componentId = q.componentId ? String(q.componentId).trim() : null;\nconst ownerId = q.ownerId ? String(q.ownerId).trim() : null;\n\n\n// Build dynamic SQL\nlet sql = `SELECT * FROM documents WHERE 1=1`;\nconst params = [];\n\n// Append filters dynamically\nif (buildingId) {\n  params.push(buildingId);\n  sql += ` AND building_id = $${params.length}`;\n}\n\nif (componentId) {\n  params.push(componentId);\n  sql += ` AND component_id = $${params.length}`;\n}\n\nif (ownerId) {\n  params.push(ownerId);\n  sql += ` AND owner_id = $${params.length}::uuid`;\n}\n\n// Order by name (optional)\nsql += ` ORDER BY name ASC;`;\n\n// Assign query and params for PostgreSQL node\nmsg.query = sql;\nmsg.params = params;\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 260,
+        "y": 320,
+        "wires": [
+            [
+                "ee29714a82a0df86"
+            ]
+        ]
+    },
+    {
+        "id": "7481035bc57f59bf",
+        "type": "catch",
+        "z": "bc8f71868ee8d8a0",
+        "name": "",
+        "scope": [
+            "ee29714a82a0df86"
+        ],
+        "uncaught": false,
+        "x": 570,
+        "y": 340,
+        "wires": [
+            [
+                "a6e2f11fe102bfbf"
+            ]
+        ]
+    },
+    {
+        "id": "a6e2f11fe102bfbf",
+        "type": "function",
+        "z": "bc8f71868ee8d8a0",
+        "name": "handle db errors",
+        "func": "const errMsg = msg.error && msg.error.message ? msg.error.message : '';\n\nmsg.statusCode = 500; // Internal Server Error\nmsg.payload = { error: 'Database error', details: errMsg };\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 340,
+        "wires": [
+            [
+                "317420a4aa6c1d63"
+            ]
+        ]
+    },
+    {
         "id": "1086f64389033747",
         "type": "http in",
         "z": "22c7f522d447c91f",
@@ -1868,120 +1990,6 @@
             ],
             [
                 "a93e2cbc89e443e3"
-            ]
-        ]
-    },
-    {
-        "id": "3c129ba07320274b",
-        "type": "http in",
-        "z": "bc8f71868ee8d8a0",
-        "name": "GET documents",
-        "url": "/api/documents",
-        "method": "get",
-        "upload": false,
-        "skipBodyParsing": false,
-        "swaggerDoc": "",
-        "x": 140,
-        "y": 200,
-        "wires": [
-            [
-                "61c2e06722aa0399"
-            ]
-        ]
-    },
-    {
-        "id": "b8b50779ec0b04a0",
-        "type": "comment",
-        "z": "bc8f71868ee8d8a0",
-        "name": "http://localhost:1880/api/documents?buildingId={buildingId}",
-        "info": "",
-        "x": 230,
-        "y": 140,
-        "wires": []
-    },
-    {
-        "id": "317420a4aa6c1d63",
-        "type": "http response",
-        "z": "bc8f71868ee8d8a0",
-        "name": "documents response",
-        "statusCode": "",
-        "headers": {},
-        "x": 780,
-        "y": 460,
-        "wires": []
-    },
-    {
-        "id": "ee29714a82a0df86",
-        "type": "postgresql",
-        "z": "bc8f71868ee8d8a0",
-        "name": "mhub db",
-        "query": "msg.query",
-        "postgreSQLConfig": "e637e22c3aa8ed51",
-        "split": false,
-        "rowsPerMsg": 1,
-        "outputs": 1,
-        "x": 360,
-        "y": 460,
-        "wires": [
-            [
-                "317420a4aa6c1d63"
-            ]
-        ]
-    },
-    {
-        "id": "61c2e06722aa0399",
-        "type": "function",
-        "z": "bc8f71868ee8d8a0",
-        "name": "build SQL query",
-        "func": "// Extract query params\nconst q = msg.req.query || {};\nconst buildingId = q.buildingId ? String(q.buildingId).trim() : null;\nconst componentId = q.componentId ? String(q.componentId).trim() : null;\nconst ownerId = q.ownerId ? String(q.ownerId).trim() : null;\n\n\n// Build dynamic SQL\nlet sql = `SELECT * FROM documents WHERE 1=1`;\nconst params = [];\n\n// Append filters dynamically\nif (buildingId) {\n  params.push(buildingId);\n  sql += ` AND building_id = $${params.length}`;\n}\n\nif (componentId) {\n  params.push(componentId);\n  sql += ` AND component_id = $${params.length}`;\n}\n\nif (ownerId) {\n  params.push(ownerId);\n  sql += ` AND owner_id = $${params.length}::uuid`;\n}\n\n// Order by name (optional)\nsql += ` ORDER BY name ASC;`;\n\n// Assign query and params for PostgreSQL node\nmsg.query = sql;\nmsg.params = params;\n\nreturn msg;\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 260,
-        "y": 320,
-        "wires": [
-            [
-                "ee29714a82a0df86"
-            ]
-        ]
-    },
-    {
-        "id": "7481035bc57f59bf",
-        "type": "catch",
-        "z": "bc8f71868ee8d8a0",
-        "name": "",
-        "scope": [
-            "ee29714a82a0df86"
-        ],
-        "uncaught": false,
-        "x": 570,
-        "y": 340,
-        "wires": [
-            [
-                "a6e2f11fe102bfbf"
-            ]
-        ]
-    },
-    {
-        "id": "a6e2f11fe102bfbf",
-        "type": "function",
-        "z": "bc8f71868ee8d8a0",
-        "name": "handle db errors",
-        "func": "const errMsg = msg.error && msg.error.message ? msg.error.message : '';\n\nmsg.statusCode = 500; // Internal Server Error\nmsg.payload = { error: 'Database error', details: errMsg };\n\nreturn msg;\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 760,
-        "y": 340,
-        "wires": [
-            [
-                "317420a4aa6c1d63"
             ]
         ]
     },
@@ -4513,5 +4521,165 @@
                 "8c7471a9d409c727"
             ]
         ]
+    },
+    {
+        "id": "8dea0cbce50630a0",
+        "type": "http in",
+        "z": "b48f11fbab89934d",
+        "name": "DELETE document",
+        "url": "/api/documents/:ID",
+        "method": "delete",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 140,
+        "wires": [
+            [
+                "31482535bc4931a2"
+            ]
+        ]
+    },
+    {
+        "id": "8c371db3b3949dd3",
+        "type": "postgresql",
+        "z": "b48f11fbab89934d",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 400,
+        "y": 460,
+        "wires": [
+            [
+                "26227b1d0b7a2e2f"
+            ]
+        ]
+    },
+    {
+        "id": "5d0db7ccaec7d10f",
+        "type": "function",
+        "z": "b48f11fbab89934d",
+        "name": "build SQL query",
+        "func": "// Extract user id securly from JWT\nconst user_id = msg.user.sub;\n\n// Extract data\nconst target_id = msg.req.params.ID;\n\nconst { name, address, structure } = msg.payload;\n\n// Validate required fields\nif (!user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"user_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!target_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Target ID is missing\" };\n    return [null, msg]; \n}\n\n// SQL Delete\nmsg.query = `\n    DELETE FROM documents\n    WHERE id = $1::uuid AND owner_id = $2::uuid\n    RETURNING *;\n`;\n\nmsg.params = [\n    target_id,\n    user_id\n];\n\nreturn [msg, null];\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 340,
+        "wires": [
+            [
+                "8c371db3b3949dd3"
+            ],
+            [
+                "e241e900fdc73003"
+            ]
+        ]
+    },
+    {
+        "id": "26227b1d0b7a2e2f",
+        "type": "function",
+        "z": "b48f11fbab89934d",
+        "name": "function success",
+        "func": "const rows = msg.payload;\n\nif (rows && rows.length > 0) {\n    // Success: Return the deleted object\n    msg.statusCode = 200;\n    msg.payload = rows[0]; \n} else {\n    // Failure: No rows deleted.\n    // Either ID doesn't exist or User doesn't own it.\n    msg.statusCode = 404;\n    msg.payload = { error: \"Document not found or permission denied.\" };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 560,
+        "wires": [
+            [
+                "e241e900fdc73003"
+            ]
+        ]
+    },
+    {
+        "id": "e241e900fdc73003",
+        "type": "http response",
+        "z": "b48f11fbab89934d",
+        "name": "document response",
+        "statusCode": "",
+        "headers": {},
+        "x": 850,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "39721287547cf1e8",
+        "type": "catch",
+        "z": "b48f11fbab89934d",
+        "name": "",
+        "scope": [
+            "8c371db3b3949dd3"
+        ],
+        "uncaught": false,
+        "x": 650,
+        "y": 360,
+        "wires": [
+            [
+                "30033f5a40f23065"
+            ]
+        ]
+    },
+    {
+        "id": "30033f5a40f23065",
+        "type": "function",
+        "z": "b48f11fbab89934d",
+        "name": "handle db errors",
+        "func": "const err = msg.error;\nconst errMsg = err && err.message ? err.message : '';\n\n\n// 1. FOREIGN KEY VIOLATION (Specific to DELETE)\n// Code 23503: Occurs if you try to delete a building that is used in another table\nif (errMsg.includes('violates foreign key') || (err.code === '23503')) {\n    msg.statusCode = 409; // Conflict\n    msg.payload = { error: 'Cannot delete: This Document is referenced by other data.' };\n}\n\n// 2. INVALID DATA TYPE (e.g. Bad UUID string)\n// Code 22P02: Invalid text representation\nelse if (errMsg.includes('invalid input syntax') || (err.code === '22P02')) {\n    msg.statusCode = 400; // Bad Request\n    msg.payload = { error: 'Invalid ID format or data type.' };\n}\n\n// 3. GENERIC FALLBACK\nelse {\n    msg.statusCode = 500; // Internal Server Error\n    msg.payload = { error: 'Database error', details: errMsg };\n}\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 840,
+        "y": 360,
+        "wires": [
+            [
+                "e241e900fdc73003"
+            ]
+        ]
+    },
+    {
+        "id": "31482535bc4931a2",
+        "type": "function",
+        "z": "b48f11fbab89934d",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg]; // Go to Output 2 (Error)\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    \n    msg.user = decoded; \n    \n    return [msg, null]; // Go to Output 1 (Success)\n\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 240,
+        "wires": [
+            [
+                "5d0db7ccaec7d10f"
+            ],
+            [
+                "e241e900fdc73003"
+            ]
+        ]
+    },
+    {
+        "id": "aa5bc8e33e0b4cfb",
+        "type": "comment",
+        "z": "b48f11fbab89934d",
+        "name": "http://localhost:1880/api/documents/ID",
+        "info": "",
+        "x": 270,
+        "y": 80,
+        "wires": []
     }
 ]

@@ -35,5 +35,16 @@ export class DocumentService {
     return this.http.get<Document[]>(`${this.apiUrl}/building/${userBuildingId}`);
   }
 
+  createDocument(document: Document): Observable<Document> {
+    return this.http.post<Document>(this.apiUrl, document);
+  }
+
+  updateDocument(document: Document): Observable<Document> {
+    return this.http.put<Document>(`${this.apiUrl}/${document.id}`, document);
+  }
+
+  deleteDocument(documentId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${documentId}`);
+  }
   
 }
