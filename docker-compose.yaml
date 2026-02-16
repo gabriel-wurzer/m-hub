@@ -6,8 +6,8 @@ services:
     image: m-hub-db
     build: ./m-hub-db
     platform: ${DOCKER_PLATFORM:-}
-    ports: 
-      - "5432:5432"
+    ports:
+      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -17,12 +17,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    volumes: 
+    volumes:
       - pgdata:/var/lib/postgresql/data
   gdal:
     image: osgeo/gdal:alpine-small-3.6.3
     volumes:
-      - ./data:/data                          
+      - ./data:/data
     depends_on:
       m-hub-db:
         condition: service_healthy
@@ -86,4 +86,4 @@ services:
       - m-hub-backend
 volumes:
   # declare named value
-  pgdata: 
+  pgdata:
