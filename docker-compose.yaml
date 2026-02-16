@@ -45,7 +45,7 @@ services:
     build: ./m-hub-postgis-api
     # Expose port 3000 from the container to the host port 3002
     ports:
-      - "3002:3000"
+      - "127.0.0.1:3002:3000"
     environment:
       POSTGRES_CONNECTION: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@m-hub-db:5432/mhubdb
       TABLES: '["buildings_details","buildingblocks"]'
