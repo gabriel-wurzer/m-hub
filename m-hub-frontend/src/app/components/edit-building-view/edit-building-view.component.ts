@@ -22,7 +22,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { Bauteil, BuildingComponent, Objekt } from '../../models/building-component';
+import { Bauteil, BuildingComponent, CreateObjektPayload, Objekt } from '../../models/building-component';
 import { Document } from '../../models/document';
 import { Floor } from '../../models/floor';
 import { FloorType } from '../../enums/floor-type.enum';
@@ -34,8 +34,10 @@ import { UserService } from '../../services/user/user.service';
 import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog.component';
 import { BuildingPartService } from '../../services/building-part/building-part.service';
 import { BuildingObjectService } from '../../services/building-object/building-object.service';
+import { AddObjectDialogComponent, AddObjectDialogResult } from '../dialogs/add-object-dialog/add-object-dialog.component';
 import { EntityInfoDialogComponent } from '../dialogs/entity-info-dialog/entity-info-dialog.component';
 import { finalize } from 'rxjs';
+import { BuildingComponentCategory } from '../../enums/component-category';
 
 export type EditBuildingPayload = {
   name: string;
@@ -221,11 +223,69 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
   }
 
   openAddBuildingPartDialog(): void {
+    //TODO: open a dialog for adding an Building Part.
+
     console.log('Open Add Building Part Dialog - Not yet implemented');
   }
 
   openAddBuildingObjectDialog(): void {
-    console.log('Open Add Building Object Dialog - Not yet implemented');
+    if (!this.userBuilding) return;
+
+    const userBuilding = this.userBuilding;
+    const dialogRef = this.dialog.open<AddObjectDialogComponent, { structure: Floor[] }, AddObjectDialogResult>(
+      AddObjectDialogComponent,
+      {
+      panelClass: 'custom-dialog',
+      autoFocus: false,
+      data: {
+        structure: userBuilding.structure ?? []
+      }
+      }
+    );
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
+
+      const parsedCount = Number(result.number);
+      const count = Number.isInteger(parsedCount) && parsedCount >= 1 ? parsedCount : 1;
+
+      const payload: CreateObjektPayload = {
+        building_id: userBuilding.building_id,
+        user_building_id: userBuilding.id,
+        owner_id: userBuilding.user_id,
+        category: BuildingComponentCategory.Objekt,
+        name: result.name,
+        description: result.description ?? undefined,
+        object_type: result.objectType,
+        count,
+        location: result.location,
+        is_public: result.isPublic ?? false
+      };
+
+      this.isLoadingObjects = true;
+
+      this.buildingObjectService.createComponent(payload)
+        .pipe(finalize(() => this.isLoadingObjects = false))
+        .subscribe({
+          next: createdObject => {
+            this.buildingObjects = [createdObject, ...this.buildingObjects];
+          },
+          complete: () => {
+            this.snackBar.open('Objekt hinzugefügt.', 'OK', {
+              duration: 3000,
+              verticalPosition: 'top'
+            });
+          },
+          error: error => {
+            console.error('Error creating object:', error);
+            this.snackBar.open('Fehler beim Hinzufügen des Objekts!', 'OK', {
+              duration: 10000,
+              verticalPosition: 'top',
+              panelClass: 'snackbar-warn'
+            });
+          }
+        });
+    });
   }
 
   openAddDocumentDialog(): void {
@@ -248,7 +308,7 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
       width: '450px',
       data: {
         title: component.category === 'Bauteil' ? 'Bauteil löschen' : 'Objekt löschen',
-        message: `Möchtest du <strong>${component.name}</strong> (ID: ${component.id}) wirklich unwiderruflich löschen? Alle zugehörigen Daten gehen verloren.`,
+        message: `Möchtest du <strong>${component.name}</strong> (ID: ${component.id}) unwiderruflich löschen? Alle zugehörigen Daten gehen verloren.`,
         confirmText: 'Löschen',
         cancelText: 'Behalten',
         requireSlider: true, 
@@ -318,12 +378,12 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
       });
   }
 
-  openDeleteDcoumentDialog(document: Document): void {
+  openDeleteDocumentDialog(document: Document): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
       data: {
         title: 'Dokument löschen',
-        message: `Möchtest du das Dokument <strong>${document.name}</strong> wirklich unwiderruflich löschen? Alle zugehörigen Daten gehen verloren.`,
+        message: `Möchtest du das Dokument <strong>${document.name}</strong> unwiderruflich löschen? Alle zugehörigen Daten gehen verloren.`,
         confirmText: 'Löschen',
         cancelText: 'Behalten',
         requireSlider: true, 
@@ -384,13 +444,9 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
 
   formatBoolean(value: unknown): string {
     if (value === null || value === undefined) return 'unknown';
-    if (typeof value === 'boolean') return value ? 'Ja' : 'Nein';
-    if (typeof value === 'string') {
-      const normalized = value.trim().toLowerCase();
-      if (['true', '1', 'yes', 'ja'].includes(normalized)) return 'Ja';
-      if (['false', '0', 'no', 'nein'].includes(normalized)) return 'Nein';
-    }
-    if (typeof value === 'number') return value === 1 ? 'Ja' : value === 0 ? 'Nein' : String(value);
+    if (typeof value === 'boolean') return value ? 'öffentlich' : 'privat';
+    if (typeof value === 'string') return value === 'true' ? 'öffentlich' : value === 'false' ? 'privat' : String(value);
+    if (typeof value === 'number') return value === 1 ? 'öffentlich' : value === 0 ? 'privat' : String(value);
     return String(value);
   }
 
