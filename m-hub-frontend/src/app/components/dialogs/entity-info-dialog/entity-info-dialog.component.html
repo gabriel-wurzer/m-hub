@@ -23,8 +23,8 @@
       <div class="value mono">{{ getValue(['file_url']) }}</div>
     </div>
     <div class="info-row">
-      <div class="label">Öffentlich</div>
-      <div class="value">{{ getValue(['is_public']) }}</div>
+      <div class="label">Sichtbarkeit</div>
+      <div class="value">{{ getVisibilityValue(['is_public', 'isPublic']) }}</div>
     </div>
     <div class="info-row">
       <div class="label">Gebäude ID</div>
@@ -63,7 +63,7 @@
         <div class="value">{{ getValue(['description']) }}</div>
       </div>
       <div class="info-row">
-        <div class="label">Ort</div>
+        <div class="label">Verortung</div>
         <div class="value">{{ getValue(['location']) }}</div>
       </div>
       <div class="info-row">
@@ -75,8 +75,8 @@
         <div class="value">{{ getValue(['documents']) }}</div>
       </div>
       <div class="info-row">
-        <div class="label">Öffentlich</div>
-        <div class="value">{{ getValue(['is_public']) }}</div>
+        <div class="label">Sichtbarkeit</div>
+        <div class="value">{{ getVisibilityValue(['is_public', 'isPublic']) }}</div>
       </div>
       <div class="info-row">
         <div class="label">Gebäude ID</div>
@@ -112,7 +112,7 @@
         <div class="value">{{ getValue(['description']) }}</div>
       </div>
       <div class="info-row">
-        <div class="label">Ort</div>
+        <div class="label">Verortung</div>
         <div class="value">{{ getValue(['location']) }}</div>
       </div>
       <div class="info-row">
@@ -120,8 +120,8 @@
         <div class="value">{{ getValue(['count']) }}</div>
       </div>
       <div class="info-row">
-        <div class="label">Öffentlich</div>
-        <div class="value">{{ getValue(['is_public']) }}</div>
+        <div class="label">Sichtbarkeit</div>
+        <div class="value">{{ getVisibilityValue(['is_public', 'isPublic']) }}</div>
       </div>
       <div class="info-row">
         <div class="label">Dokumente</div>

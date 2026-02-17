@@ -46,6 +46,21 @@ export class EntityInfoDialogComponent {
     return this.formatValue(this.readField(this.entity, keys));
   }
 
+  getVisibilityValue(keys: string[]): string {
+    const value = this.readField(this.entity, keys);
+
+    if (value === true) return 'öffentlich';
+    if (value === false) return 'private';
+
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (['true', '1', 'yes', 'ja'].includes(normalized)) return 'öffentlich';
+      if (['false', '0', 'no', 'nein'].includes(normalized)) return 'privat';
+    }
+
+    return this.formatValue(value);
+  }
+
   isDocument(): boolean {
     if (this.hasAnyField(this.entity, ['file_type', 'fileType', 'file_url', 'fileUrl', 'component_id', 'componentId'])) {
       return true;
