@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { BuildingComponent } from '../../models/building-component';
 
 @Injectable({
   providedIn: 'root'
 })
-export abstract class BuildingComponentService<T extends BuildingComponent> {
+export abstract class BuildingComponentService<T extends BuildingComponent, TCreate = T> {
 
   protected abstract apiUrl: string;  // To be set in subclasses
 
@@ -20,7 +20,7 @@ export abstract class BuildingComponentService<T extends BuildingComponent> {
     return this.http.get<T[]>(`${this.apiUrl}/building/${userBuildingId}`);
   }
 
-  createComponent(component: T): Observable<T> {
+  createComponent(component: TCreate): Observable<T> {
     return this.http.post<T>(this.apiUrl, component);
   }
 

@@ -1,0 +1,148 @@
+﻿<div class="dialog-container">
+  <div>
+    <h1 class="header">Objekt hinzufügen</h1>
+    <mat-divider />
+  </div>
+
+  <div mat-dialog-content class="content-wrapper">
+    <div class="object-info-wrapper">
+      <div class="name-wrapper">
+        <h2>Name</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Name</mat-label>
+          <input matInput [(ngModel)]="name" [required]="true" #nameCtrl="ngModel" />
+          <mat-error *ngIf="nameCtrl.invalid || getNameError()">{{ getNameError() }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="object-type-wrapper">
+        <h2>Objekt-Kategorie</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Kategorie</mat-label>
+          <mat-select [(ngModel)]="objectType" [required]="true" #objectTypeCtrl="ngModel">
+            <mat-option [value]="null" disabled>-- Objekt-Kategorie auswählen --</mat-option>
+            <mat-option *ngFor="let type of objectTypes" [value]="type">
+              {{ type }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="objectTypeCtrl.invalid || getObjectTypeError()">{{ getObjectTypeError() }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="number-wrapper">
+        <h2>Anzahl</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Anzahl</mat-label>
+          <input
+            matInput
+            type="number"
+            min="1"
+            step="1"
+            [(ngModel)]="number"
+            [required]="true"
+            #numberCtrl="ngModel"
+          />
+          <mat-error *ngIf="numberCtrl.invalid || getNumberError()">{{ getNumberError() }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="location-wrapper">
+        <h2>Verortung</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Geschoss(e)</mat-label>
+          <mat-select
+            [(ngModel)]="selectedLocations"
+            [required]="true"
+            #locationCtrl="ngModel"
+            multiple
+            (ngModelChange)="onLocationSelectionChange()"
+          >
+            <mat-option *ngFor="let locationOption of locationOptions" [value]="locationOption">
+              {{ locationOption }}
+            </mat-option>
+          </mat-select>
+          <mat-hint>Mehrfachauswahl möglich</mat-hint>
+          <mat-error *ngIf="locationCtrl.invalid || getLocationError()">{{ getLocationError() }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="description-wrapper">
+        <h2>Beschreibung</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Beschreibung</mat-label>
+          <textarea matInput rows="3" [(ngModel)]="description"></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="visibility-wrapper">
+        <h2>Sichtbarkeit</h2>
+        <div class="visibility-row">
+          <mat-checkbox class="visibility-toggle" [(ngModel)]="isPublic">Öffentlich
+            <mat-icon
+                class="visibility-info-icon"
+                aria-label="Information zur Sichtbarkeit"
+                matTooltip="Dieses Objekt wird für alle anderen Nutzer:innen sichtbar"
+              >
+                info
+            </mat-icon>
+          </mat-checkbox>
+        </div>
+      </div>
+    </div>
+
+    <!-- <h2>Bild</h2> -->
+    <div class="image-upload-wrapper">
+      <input #imageInput type="file" accept="image/*" (change)="onImageFileSelected($event)" hidden />
+
+      <div
+        class="drop-zone"
+        [class.drag-active]="isDragActive"
+        tabindex="0"
+        role="button"
+        aria-label="Bild hochladen"
+        (click)="imageInput.click()"
+        (keydown.enter)="imageInput.click()"
+        (keydown.space)="imageInput.click(); $event.preventDefault()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+      >
+        <div class="drop-zone-inner">
+          <mat-icon class="drop-zone-icon">attach_file</mat-icon>
+          <p class="drop-zone-text">
+            Drag & drop oder
+            <button type="button" class="choose-link" (click)="imageInput.click(); $event.stopPropagation()">Datei auswählen</button>
+          </p>
+        </div>
+      </div>
+
+      <div class="file-hints">
+        <span>Erlaubte Dateitypen: PNG, JPG, JPEG, WEBP.</span>
+        <span>Max. Dateigröße: 10MB</span>
+      </div>
+
+      <div class="image-meta-row" *ngIf="selectedImageFileName || imageError">
+        <div class="image-meta" *ngIf="selectedImageFileName">{{ selectedImageFileName }}</div>
+        <div class="image-error" *ngIf="imageError">{{ imageError }}</div>
+        <button
+          mat-button
+          type="button"
+          color="warn"
+          (click)="removeSelectedImage()"
+          [disabled]="!selectedImageFile"
+        >
+          Entfernen
+        </button>
+      </div>
+
+      <img *ngIf="selectedImagePreviewUrl" [src]="selectedImagePreviewUrl" alt="Bildvorschau" class="image-preview" />
+    </div>
+  </div>
+
+  <div mat-dialog-actions class="actions">
+    <button mat-button (click)="close()">Abbruch</button>
+    <button mat-button color="primary" (click)="confirmAddObject()" [disabled]="!isFormValid()">
+      Hinzufügen
+    </button>
+  </div>
+</div>

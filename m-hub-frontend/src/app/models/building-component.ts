@@ -22,11 +22,26 @@ export abstract class BuildingComponent {
 export class Bauteil extends BuildingComponent {
     part_structure!: string;     // TODO: part strucutre model --> contains info for different layers (including layer_index, material, thickness)
     part_type!: PartType;        
-    location!: string;          // TODO: concrete location --> buildingStructure element reference
+    location!: string;
 }
 
 export class Objekt extends BuildingComponent {
     object_type!: ObjectType;
     count!: number;   
-    location?: string;
+    location!: string;
+    image?: File;
 }
+
+export type CreateObjektPayload = {
+    building_id: string;
+    user_building_id: string;
+    owner_id: string;
+    category: BuildingComponentCategory.Objekt;
+    name: string;
+    description?: string;
+    is_public: boolean;
+    object_type: ObjectType;
+    count: number;
+    location: string;
+    image?: File;
+};

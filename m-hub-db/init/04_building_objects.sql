@@ -61,10 +61,10 @@ FROM (
     -- building_id, owner_id, category, location, name, description, object_type, count, is_public
     ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Objekt', NULL, 'Eingangstüre', 'Eingangstüre des Gebäudes', 'Tür', 1, TRUE),
     ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Objekt', 'DG', 'Dachfenster', NULL, 'Fenster', 1, FALSE),
-    ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Objekt', 'KG', 'Heizkessel', 'Hauptheizkessel des Gebäudes', 'Sonstige', 1, FALSE),
-    ('5312213', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Objekt', 'RG', 'Antenne', 'Antennenanlage auf dem Dach', 'Sonstige', 1, TRUE),
-    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Objekt','KG', 'Heizkessel', 'Hauptheizkessel des Gebäudes', 'Sonstige', 1, FALSE),
-    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Objekt', 'RG', 'Waschbecken', 'Waschbecken aus Prozelan', 'Sonstige', 1, TRUE)
+    ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Objekt', 'KG1', 'Heizkessel', 'Hauptheizkessel des Gebäudes', 'Sonstige', 1, FALSE),
+    ('5312213', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Objekt', 'RG1', 'Antenne', 'Antennenanlage auf dem Dach', 'Sonstige', 1, TRUE),
+    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Objekt','KG2', 'Heizkessel', 'Hauptheizkessel des Gebäudes', 'Sonstige', 1, FALSE),
+    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Objekt', 'RG2', 'Waschbecken', 'Waschbecken aus Prozelan', 'Sonstige', 1, TRUE)
 ) AS src(building_id, owner_id, category, location, name, description, object_type, count, is_public)
 JOIN user_buildings ub 
   ON ub.building_id = src.building_id 
