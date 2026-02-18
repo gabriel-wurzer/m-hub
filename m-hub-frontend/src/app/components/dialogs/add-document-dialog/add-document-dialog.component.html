@@ -1,0 +1,104 @@
+<div class="dialog-container">
+  <div>
+    <h1 class="header">Dokument hinzufügen</h1>
+    <mat-divider />
+  </div>
+
+  <div mat-dialog-content class="content-wrapper">
+    <div class="document-info-wrapper">
+      <div class="name-wrapper">
+        <h2>Name</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Name</mat-label>
+          <input matInput [(ngModel)]="name" [required]="true" #nameCtrl="ngModel" />
+          <mat-error *ngIf="nameCtrl.invalid || getNameError()">{{ getNameError() }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="description-wrapper">
+        <h2>Beschreibung</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Beschreibung</mat-label>
+          <textarea matInput rows="2" [(ngModel)]="description"></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="visibility-wrapper">
+        <h2>Sichtbarkeit</h2>
+        <div class="visibility-row">
+          <mat-checkbox class="visibility-toggle" [(ngModel)]="isPublic">Öffentlich
+            <mat-icon
+              class="visibility-info-icon"
+              aria-label="Information zur Sichtbarkeit"
+              matTooltip="Dieses Dokument wird für alle anderen Nutzer:innen sichtbar"
+            >
+              info
+            </mat-icon>
+          </mat-checkbox>
+        </div>
+      </div>
+    </div>
+
+    <div class="file-upload-wrapper">
+      <input #fileInput type="file" (change)="onFileSelected($event)" hidden />
+
+      <div
+        class="drop-zone"
+        [class.drag-active]="isDragActive"
+        tabindex="0"
+        role="button"
+        aria-label="Dokument hochladen"
+        (click)="fileInput.click()"
+        (keydown.enter)="fileInput.click()"
+        (keydown.space)="fileInput.click(); $event.preventDefault()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+      >
+        <div class="drop-zone-inner">
+          <mat-icon class="drop-zone-icon">upload_file</mat-icon>
+          <p class="drop-zone-text">
+            Drag & drop oder
+            <button type="button" class="choose-link" (click)="fileInput.click(); $event.stopPropagation()">Datei auswählen</button>
+          </p>
+        </div>
+      </div>
+
+      <div class="file-hints">
+        <!-- <span>Unterstützt: PDF, DOC/DOCX, TXT/MD, CSV, XLSX/XLSM, E57/OBJ/STL/PLY/GLB/GLTF/FBX/IFC</span> -->
+        <!-- <span>Max. Dateigröße: 25MB</span> -->
+      </div>
+
+      <div class="file-meta-row" *ngIf="selectedFileName || getFileError()">
+        <div class="file-meta" *ngIf="selectedFileName">{{ selectedFileName }}</div>
+        <div class="file-error" *ngIf="getFileError()">{{ getFileError() }}</div>
+        <button mat-button type="button" color="warn" (click)="removeSelectedFile()" [disabled]="!selectedFile">
+          Entfernen
+        </button>
+      </div>
+
+      <div class="file-preview-wrapper" *ngIf="selectedFile">
+        <img
+          *ngIf="selectedPreviewImageUrl; else iconPreview"
+          [src]="selectedPreviewImageUrl"
+          alt="Dateivorschau"
+          class="image-preview"
+        />
+
+        <ng-template #iconPreview>
+          <div class="icon-preview">
+            <mat-icon class="icon-preview-icon">{{ getPreviewIcon(selectedFileType) }}</mat-icon>
+            <div class="icon-preview-label">{{ getPreviewTypeLabel(selectedFileType) }}</div>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <div mat-dialog-actions class="actions">
+    <button mat-button (click)="close()">Abbruch</button>
+    <button mat-button color="primary" (click)="confirmAddDocument()" [disabled]="!isFormValid()">
+      Hinzufügen
+    </button>
+  </div>
+</div>

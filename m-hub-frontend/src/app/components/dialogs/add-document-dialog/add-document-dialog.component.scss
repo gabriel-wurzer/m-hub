@@ -1,0 +1,243 @@
+@use '@angular/material' as mat;
+@use '../../../../theme-setup' as vars;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.dialog-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px 20px 10px;
+  gap: 1.4rem;
+  box-sizing: border-box;
+}
+
+mat-divider {
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 12px;
+}
+
+h1 {
+  margin: 10px 0;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+h2 {
+  font-size: 1.2rem;
+  margin: 0 0 6px;
+}
+
+mat-form-field {
+  width: 100%;
+  font-size: 16px;
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.document-info-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  width: 100%;
+  margin-bottom: 1.2rem;
+}
+
+.name-wrapper,
+.description-wrapper {
+  flex-basis: 100%;
+}
+
+.visibility-wrapper {
+  flex-basis: 100%;
+}
+
+.visibility-toggle {
+  margin: 8px 0 2px;
+}
+
+.visibility-row {
+  display: flex;
+  align-items: center;
+}
+
+.visibility-info-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  vertical-align: top;
+  color: mat.get-color-from-palette(vars.$my-primary, 500);
+}
+
+.file-upload-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.drop-zone {
+  width: 100%;
+  min-height: 240px;
+  border: 2px dashed #b6c6dc;
+  border-radius: 8px;
+  background: #fbfdff;
+  transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+  cursor: pointer;
+}
+
+.drop-zone:hover {
+  border-color: mat.get-color-from-palette(vars.$my-primary, 500);
+  background: #f7fbff;
+}
+
+.drop-zone.drag-active {
+  border-color: mat.get-color-from-palette(vars.$my-primary, 500);
+  background: #eef6ff;
+  box-shadow: 0 0 0 3px rgba(24, 130, 193, 0.15);
+}
+
+.drop-zone-inner {
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.drop-zone-icon {
+  width: 48px;
+  height: 48px;
+  font-size: 48px;
+  color: #777c89;
+  margin-bottom: 12px;
+}
+
+.drop-zone-text {
+  margin: 0;
+  font-size: 1.14rem;
+  color: #2f3340;
+}
+
+.choose-link {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: mat.get-color-from-palette(vars.$my-primary, 600);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.choose-link:hover {
+  color: mat.get-color-from-palette(vars.$my-primary, 700);
+}
+
+.file-hints {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: #5a6473;
+}
+
+.file-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.file-meta {
+  font-size: 0.95rem;
+  color: #4d4d4d;
+}
+
+.file-error {
+  font-size: 0.95rem;
+  color: mat.get-color-from-palette(vars.$my-warn, 700);
+}
+
+.file-preview-wrapper {
+  width: 100%;
+}
+
+.image-preview {
+  width: 100%;
+  max-width: 420px;
+  max-height: 260px;
+  border-radius: 6px;
+  border: 1px solid #d8dee8;
+  object-fit: contain;
+  background: #fff;
+}
+
+.icon-preview {
+  width: 100%;
+  max-width: 300px;
+  min-height: 120px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.icon-preview-icon {
+  font-size: 44px;
+  width: 44px;
+  height: 44px;
+  color: #4e647f;
+}
+
+.icon-preview-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #25364c;
+  letter-spacing: 0.04em;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+@media (max-width: 520px) {
+  .dialog-container {
+    padding: 6px 8px;
+    gap: 1rem;
+  }
+
+  .header {
+    margin-bottom: 0;
+  }
+
+  .drop-zone,
+  .drop-zone-inner {
+    min-height: 200px;
+  }
+
+  .drop-zone-text {
+    font-size: 1.02rem;
+  }
+}
