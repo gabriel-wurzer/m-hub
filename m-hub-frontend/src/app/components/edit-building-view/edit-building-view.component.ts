@@ -23,7 +23,7 @@ import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { Bauteil, BuildingComponent, CreateObjektPayload, Objekt } from '../../models/building-component';
-import { Document } from '../../models/document';
+import { CreateDocumentPayload, Document } from '../../models/document';
 import { Floor } from '../../models/floor';
 import { FloorType } from '../../enums/floor-type.enum';
 import { RoofType } from '../../enums/roof-type.enum';
@@ -35,6 +35,7 @@ import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog
 import { BuildingPartService } from '../../services/building-part/building-part.service';
 import { BuildingObjectService } from '../../services/building-object/building-object.service';
 import { AddObjectDialogComponent, AddObjectDialogResult } from '../dialogs/add-object-dialog/add-object-dialog.component';
+import { AddDocumentDialogComponent, AddDocumentDialogResult } from '../dialogs/add-document-dialog/add-document-dialog.component';
 import { EntityInfoDialogComponent } from '../dialogs/entity-info-dialog/entity-info-dialog.component';
 import { finalize } from 'rxjs';
 import { BuildingComponentCategory } from '../../enums/component-category';
@@ -295,13 +296,63 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
   }
 
   openAddDocumentDialog(): void {
-    console.log('Open Add Document Dialog - Not yet implemented');
+    if (!this.userBuilding) return;
+
+    const userBuilding = this.userBuilding;
+    const dialogRef = this.dialog.open<AddDocumentDialogComponent, undefined, AddDocumentDialogResult>(
+      AddDocumentDialogComponent,
+      {
+        panelClass: 'custom-dialog',
+        autoFocus: false
+      }
+    );
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
+
+      const payload: CreateDocumentPayload = {
+        building_id: userBuilding.building_id,
+        user_building_id: userBuilding.id,
+        name: result.name,
+        description: result.description ?? undefined,
+        is_public: result.isPublic ?? false,
+        file_data_url: result.fileDataUrl,
+        file_mime_type: result.fileMimeType ?? undefined,
+        file_original_name: result.fileName,
+        file_type: result.fileType
+      };
+
+      this.isLoadingDocuments = true;
+
+      this.documentService.createDocument(payload)
+        .pipe(finalize(() => this.isLoadingDocuments = false))
+        .subscribe({
+          next: createdDocument => {
+            this.documents = [createdDocument, ...this.documents];
+          },
+          complete: () => {
+            this.snackBar.open('Dokument hinzugefügt.', 'OK', {
+              duration: 3000,
+              verticalPosition: 'top'
+            });
+          },
+          error: error => {
+            console.error('Error creating document:', error);
+            this.snackBar.open('Fehler beim Hinzufügen des Dokuments!', 'OK', {
+              duration: 10000,
+              verticalPosition: 'top',
+              panelClass: 'snackbar-warn'
+            });
+          }
+        });
+    });
   }
 
   openEntityInfoDialog(entity: Bauteil | Objekt | Document): void {
     this.dialog.open(EntityInfoDialogComponent, {
       width: '90%',
       maxWidth: '620px',
+      maxHeight: '90vh',
       autoFocus: false,
       data: {
         entity
