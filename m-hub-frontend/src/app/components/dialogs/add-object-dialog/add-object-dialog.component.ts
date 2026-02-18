@@ -57,7 +57,7 @@ export class AddObjectDialogComponent {
   private readonly maxImageSizeInBytes = 10 * 1024 * 1024; //10 MB Upload limit
   private readonly allowedImageMimeTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
   private readonly specialLocationOptions: string[] = [
-    'Einzelgeschoss ohne Typ (Details in Beschreibung angeben)'
+    'Einzelgeschoss (Verortung in Beschreibung angeben)'
   ];
 
   name: string = '';
