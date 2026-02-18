@@ -4,6 +4,8 @@ h2 {
 
 mat-dialog-content {
   padding: 16px 24px !important;
+  max-height: calc(90vh - 140px) !important;
+  overflow: auto;
 }
 
 .info-grid {
@@ -39,6 +41,74 @@ mat-dialog-content {
   display: flex;
   justify-content: flex-end;
   margin-top: 8px;
+}
+
+.document-preview-wrapper {
+  margin-top: 12px;
+  width: min(100%, 620px);
+}
+
+.document-open-link {
+  display: inline-block;
+  text-decoration: none;
+}
+
+.document-open-link.text-link {
+  display: block;
+  margin-top: 8px;
+  color: #1a73b8;
+}
+
+.document-image-preview {
+  display: block;
+  width: 100%;
+  max-height: 340px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  object-fit: contain;
+  background: #fff;
+}
+
+.document-pdf-preview {
+  display: block;
+  width: 100%;
+  min-height: 320px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.document-icon-card {
+  width: min(100%, 280px);
+  min-height: 140px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 8px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  color: #25364c;
+  padding: 12px;
+}
+
+.document-icon {
+  width: 44px;
+  height: 44px;
+  font-size: 44px;
+}
+
+.document-icon-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.document-icon-hint {
+  font-size: 1rem;
+  color: rgba(0, 0, 0, 0.65);
 }
 
 .image-wrapper {

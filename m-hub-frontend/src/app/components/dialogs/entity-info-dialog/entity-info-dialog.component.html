@@ -18,10 +18,10 @@
       <div class="label">Dateityp</div>
       <div class="value">{{ getValue(['file_type']) }}</div>
     </div>
-    <div class="info-row">
+    <!-- <div class="info-row">
       <div class="label">Datei URL</div>
       <div class="value mono">{{ getValue(['file_url']) }}</div>
-    </div>
+    </div> -->
     <div class="info-row">
       <div class="label">Sichtbarkeit</div>
       <div class="value">{{ getVisibilityValue(['is_public', 'isPublic']) }}</div>
@@ -42,6 +42,45 @@
       <div class="label">Besitzer ID</div>
       <div class="value mono">{{ getValue(['owner_id']) }}</div>
     </div>
+  </div>
+
+  <div class="document-preview-wrapper" *ngIf="isDocument() && getDocumentUrl() as documentUrl">
+    <ng-container *ngIf="isDocumentImagePreviewable(documentUrl); else nonImageDocumentPreview">
+      <a [href]="documentUrl" target="_blank" rel="noopener noreferrer" class="document-open-link">
+        <img [src]="documentUrl" alt="Dokumentvorschau" class="document-image-preview" />
+      </a>
+      <a [href]="documentUrl" target="_blank" rel="noopener noreferrer" class="document-open-link text-link">
+        Bild in neuem Tab öffnen
+      </a>
+    </ng-container>
+
+    <ng-template #nonImageDocumentPreview>
+      <ng-container *ngIf="isDocumentPdfPreviewable(documentUrl); else iconDocumentPreview">
+        <iframe
+          class="document-pdf-preview"
+          [src]="getTrustedDocumentPreviewUrl(documentUrl)"
+          title="Dokumentvorschau"
+          loading="lazy"
+        ></iframe>
+        <a [href]="documentUrl" target="_blank" rel="noopener noreferrer" class="document-open-link text-link">
+          Dokument in neuem Tab öffnen
+        </a>
+      </ng-container>
+    </ng-template>
+
+    <ng-template #iconDocumentPreview>
+      <a
+        [href]="documentUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="document-icon-card"
+        [attr.download]="isDocumentDownloadOnly(documentUrl) ? '' : null"
+      >
+        <mat-icon class="document-icon">{{ getDocumentPreviewIcon(documentUrl) }}</mat-icon>
+        <div class="document-icon-label">{{ getDocumentPreviewLabel(documentUrl) }}</div>
+        <div class="document-icon-hint">{{ getDocumentActionHint(documentUrl) }}</div>
+      </a>
+    </ng-template>
   </div>
 
   <ng-template #componentTemplate>

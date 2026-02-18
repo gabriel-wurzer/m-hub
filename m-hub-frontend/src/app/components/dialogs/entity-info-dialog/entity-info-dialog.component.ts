@@ -2,6 +2,8 @@ import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { Bauteil, Objekt } from '../../../models/building-component';
 import { Document } from '../../../models/document';
@@ -25,15 +27,43 @@ type RowDef<T> = {
 @Component({
   selector: 'app-entity-info-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
   templateUrl: './entity-info-dialog.component.html',
   styleUrl: './entity-info-dialog.component.scss'
 })
 export class EntityInfoDialogComponent {
+  private readonly documentImageTypes = new Set(['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'svg', 'webp']);
+  private readonly documentDownloadOnlyTypes = new Set(['csv', 'xlsx', 'xlsm']);
+  private readonly documentIconByType: Record<string, string> = {
+    pdf: 'picture_as_pdf',
+    csv: 'table_chart',
+    xlsx: 'table_chart',
+    xlsm: 'table_chart',
+    doc: 'description',
+    docx: 'description',
+    txt: 'description',
+    rtf: 'description',
+    odt: 'description',
+    html: 'code',
+    md: 'article',
+    e57: 'view_in_ar',
+    obj: 'view_in_ar',
+    stl: 'view_in_ar',
+    ply: 'view_in_ar',
+    glb: 'view_in_ar',
+    gltf: 'view_in_ar',
+    fbx: 'view_in_ar',
+    ifc: 'view_in_ar'
+  };
+  private readonly trustedDocumentUrlCache = new Map<string, SafeResourceUrl>();
+
   entity: Record<string, unknown>;
   objectImageLoaded = false;
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: EntityInfoDialogData) {
+  constructor(
+    @Inject(MAT_DIALOG_DATA) public data: EntityInfoDialogData,
+    private sanitizer: DomSanitizer
+  ) {
     this.entity = data.entity as any as Record<string, unknown>;
   }
 
@@ -98,6 +128,91 @@ export class EntityInfoDialogComponent {
     }
 
     return null;
+  }
+
+  getDocumentUrl(): string | null {
+    if (!this.isDocument()) return null;
+
+    const fileUrl = this.readField(this.entity, ['file_url', 'fileUrl']);
+    if (typeof fileUrl === 'string' && fileUrl.trim().length > 0) {
+      const normalized = fileUrl.trim();
+      if (['null', 'undefined', '—'].includes(normalized.toLowerCase())) {
+        return null;
+      }
+      return normalized;
+    }
+
+    return null;
+  }
+
+  isDocumentImagePreviewable(documentUrl: string): boolean {
+    const type = this.resolveDocumentType(documentUrl);
+    return !!type && this.documentImageTypes.has(type);
+  }
+
+  isDocumentPdfPreviewable(documentUrl: string): boolean {
+    return this.resolveDocumentType(documentUrl) === 'pdf';
+  }
+
+  getTrustedDocumentPreviewUrl(documentUrl: string): SafeResourceUrl {
+    const cached = this.trustedDocumentUrlCache.get(documentUrl);
+    if (cached) return cached;
+
+    const trusted = this.sanitizer.bypassSecurityTrustResourceUrl(documentUrl);
+    this.trustedDocumentUrlCache.set(documentUrl, trusted);
+    return trusted;
+  }
+
+  getDocumentPreviewIcon(documentUrl: string): string {
+    const type = this.resolveDocumentType(documentUrl);
+    if (!type) return 'insert_drive_file';
+
+    return this.documentIconByType[type] || 'insert_drive_file';
+  }
+
+  getDocumentPreviewLabel(documentUrl: string): string {
+    const type = this.resolveDocumentType(documentUrl);
+    return type ? type.toUpperCase() : 'DATEI';
+  }
+
+  isDocumentDownloadOnly(documentUrl: string): boolean {
+    const type = this.resolveDocumentType(documentUrl);
+    return !!type && this.documentDownloadOnlyTypes.has(type);
+  }
+
+  getDocumentActionHint(documentUrl: string): string {
+    return this.isDocumentDownloadOnly(documentUrl) ? 'Herunterladen' : 'In neuem Tab öffnen';
+  }
+
+  private resolveDocumentType(documentUrl: string): string | null {
+    const fileType = this.readField(this.entity, ['file_type', 'fileType']);
+    if (typeof fileType === 'string' && fileType.trim().length > 0) {
+      return fileType.trim().toLowerCase();
+    }
+
+    const extension = this.extractExtensionFromUrl(documentUrl);
+    return extension ? extension.toLowerCase() : null;
+  }
+
+  private extractExtensionFromUrl(documentUrl: string): string | null {
+    const fallbackFromString = (): string | null => {
+      const noQuery = documentUrl.split('?')[0].split('#')[0];
+      const parts = noQuery.split('.');
+      if (parts.length < 2) return null;
+      const extension = parts.pop();
+      return extension && extension.length > 0 ? extension : null;
+    };
+
+    try {
+      const parsedUrl = new URL(documentUrl);
+      const pathname = parsedUrl.pathname || '';
+      const parts = pathname.split('.');
+      if (parts.length < 2) return fallbackFromString();
+      const extension = parts.pop();
+      return extension && extension.length > 0 ? extension : fallbackFromString();
+    } catch {
+      return fallbackFromString();
+    }
   }
 
   private resolveTypeLabel(): string {
