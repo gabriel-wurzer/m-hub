@@ -155,7 +155,7 @@ module.exports = {
     /** The maximum size of HTTP request that will be accepted by the runtime api.
      * Default: 5mb
      */
-    //apiMaxLength: '5mb',
+    apiMaxLength: '25mb',
 
     /** The following property can be used to pass custom options to the Express.js
      * server used by Node-RED. For a full list of available options, refer
@@ -514,7 +514,8 @@ module.exports = {
     functionGlobalContext: {
         // os:require('os'),
         bcrypt:require('bcrypt'),
-        jwt:require('jsonwebtoken')
+        jwt:require('jsonwebtoken'),
+        fetch: (...args) => fetch(...args)
     },
 
     /** The maximum number of messages nodes will buffer internally as part of their

@@ -2242,8 +2242,7 @@
         "y": 260,
         "wires": [
             [
-                "390eaacf141c18b1",
-                "6ea340f07a5d3193"
+                "390eaacf141c18b1"
             ],
             [
                 "1b3633faa0c9a9b7"
@@ -2307,7 +2306,7 @@
         "type": "function",
         "z": "de6a97be0b856cb1",
         "name": "format result",
-        "func": "const rows = msg.payload;\n\nif (!Array.isArray(rows)) {\n  msg.statusCode = 500;\n  msg.payload = { error: \"Database query failed\" };\n  return msg;\n}\n\nif (rows.length > 0) {\n  msg.payload = rows[0];\n  msg.statusCode = 200;\n  return msg;\n}\n\nmsg.statusCode = 404;\nmsg.payload = { error: \"Building object not found\" };\nreturn msg;",
+        "func": "const rows = msg.payload;\nconst publicBaseUrl = (env.get('SEAWEED_PUBLIC_BASE_URL') || 'http://localhost:8888').replace(/\\/+$/, '');\n\nconst withImageUrl = (row) => {\n  if (!row || typeof row !== 'object') return row;\n  const imagePath = row.image_path || null;\n  return {\n    ...row,\n    image_url: imagePath ? `${publicBaseUrl}${imagePath}` : null\n  };\n};\n\nif (!Array.isArray(rows)) {\n  msg.statusCode = 500;\n  msg.payload = { error: 'Database query failed' };\n  return msg;\n}\n\nif (rows.length > 0) {\n  msg.payload = withImageUrl(rows[0]);\n  msg.statusCode = 200;\n  return msg;\n}\n\nmsg.statusCode = 404;\nmsg.payload = { error: 'Building object not found' };\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -2321,22 +2320,6 @@
                 "1b3633faa0c9a9b7"
             ]
         ]
-    },
-    {
-        "id": "6ea340f07a5d3193",
-        "type": "debug",
-        "z": "de6a97be0b856cb1",
-        "name": "debug 3",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 520,
-        "y": 220,
-        "wires": []
     },
     {
         "id": "c2d422076e99859b",
@@ -2371,7 +2354,7 @@
         "type": "function",
         "z": "60f2bdd9e7a72a65",
         "name": "format result",
-        "func": "if (Array.isArray(msg.payload)) {\n    msg.statusCode = 200;\n} else {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Database query failed\" };\n}\n\nreturn msg;",
+        "func": "const rows = msg.payload;\nconst publicBaseUrl = (env.get('SEAWEED_PUBLIC_BASE_URL') || 'http://localhost:8888').replace(/\\/+$/, '');\n\nconst withImageUrl = (row) => {\n    if (!row || typeof row !== 'object') return row;\n    const imagePath = row.image_path || null;\n    return {\n        ...row,\n        image_url: imagePath ? `${publicBaseUrl}${imagePath}` : null\n    };\n};\n\nif (Array.isArray(rows)) {\n    msg.statusCode = 200;\n    msg.payload = rows.map(withImageUrl);\n} else {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Database query failed' };\n}\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -2539,7 +2522,7 @@
         "type": "function",
         "z": "c32a8833b16842b0",
         "name": "build SQL query",
-        "func": "// Extract user id securly from JWT\nconst user_id = msg.user.sub;\n\n// Extract data from param\nconst {\n    building_id,\n    user_building_id,\n    name,\n    description,\n    is_public,\n    object_type,\n    count,\n    location\n} = msg.payload || {};\n\n// Validate required fields\nif (!user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"user_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!building_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"building_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (!user_building_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"user_building_id is missing\" };\n    return [null, msg];\n}\n\nif (!name || name.trim() === \"\") {\n    msg.statusCode = 400;\n    msg.payload = { error: \"name is required and cannot be empty\" };\n    return [null, msg];\n}\n\nif (!object_type || String(object_type).trim() === \"\") {\n    msg.statusCode = 400;\n    msg.payload = { error: \"object_type is required and cannot be empty\" };\n    return [null, msg];\n}\n\n// count: required, integer >= 1 (default wäre 1, aber du willst checken)\nconst parsedCount = Number(count);\nif (!Number.isInteger(parsedCount) || parsedCount < 1) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"count is required and must be an integer >= 1\" };\n    return [null, msg];\n}\n\nif (!location || String(location).trim() === \"\") {\n    msg.statusCode = 400;\n    msg.payload = { error: \"location is required and cannot be empty\" };\n    return [null, msg];\n}\n\n// ---------- SQL Insert ----------\nmsg.query = `\n  INSERT INTO building_objects\n    (building_id, user_building_id, owner_id, category, name, description, location, object_type, count, is_public)\n  VALUES\n    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)\n  RETURNING *;\n`;\n\nmsg.params = [\n    building_id,\n    user_building_id,\n    user_id,\n    \"Objekt\",\n    name.trim(),\n    description ?? null,\n    String(location).trim(),\n    String(object_type).trim(),\n    parsedCount,\n    typeof is_public === \"boolean\" ? is_public : false\n];\n\nreturn [msg, null];\n",
+        "func": "// Extract user id securely from JWT\nconst user_id = msg.user?.sub;\n\n// Extract data from payload\nconst {\n    building_id,\n    user_building_id,\n    name,\n    description,\n    is_public,\n    object_type,\n    count,\n    location,\n    image_data_url,\n    image_mime_type,\n    image_original_name\n} = msg.payload || {};\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nconst normalizeOptionalText = (value) => {\n    if (typeof value !== 'string') return null;\n    const trimmed = value.trim();\n    return trimmed.length ? trimmed : null;\n};\n\nconst buildUuidV4 = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {\n    const r = Math.random() * 16 | 0;\n    const v = c === 'x' ? r : (r & 0x3 | 0x8);\n    return v.toString(16);\n});\n\nconst extensionByMime = {\n    'image/png': 'png',\n    'image/jpeg': 'jpg',\n    'image/jpg': 'jpg',\n    'image/webp': 'webp'\n};\n\nconst sanitizeFileName = (name, fallback) => {\n    const normalized = normalizeOptionalText(name) || fallback;\n    return normalized\n        .replace(/[^a-zA-Z0-9._-]/g, '_')\n        .replace(/_+/g, '_')\n        .slice(0, 120);\n};\n\nreturn (async () => {\n    // Validate required fields\n    if (!user_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'user_id is missing' };\n        return [null, msg];\n    }\n\n    if (!uuidRegex.test(user_id)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid user ID format' };\n        return [null, msg];\n    }\n\n    if (!building_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'building_id is missing' };\n        return [null, msg];\n    }\n\n    if (!user_building_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'user_building_id is missing' };\n        return [null, msg];\n    }\n\n    if (!uuidRegex.test(String(user_building_id))) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid user_building_id format' };\n        return [null, msg];\n    }\n\n    if (!name || name.trim() === '') {\n        msg.statusCode = 400;\n        msg.payload = { error: 'name is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    if (!object_type || String(object_type).trim() === '') {\n        msg.statusCode = 400;\n        msg.payload = { error: 'object_type is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    const parsedCount = Number(count);\n    if (!Number.isInteger(parsedCount) || parsedCount < 1) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'count is required and must be an integer >= 1' };\n        return [null, msg];\n    }\n\n    if (!location || String(location).trim() === '') {\n        msg.statusCode = 400;\n        msg.payload = { error: 'location is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    const objectId = buildUuidV4();\n\n    let imagePath = null;\n    let imageMimeType = null;\n    let imageOriginalName = null;\n    let imageSizeBytes = null;\n\n    const rawImageDataUrl = normalizeOptionalText(image_data_url);\n    if (rawImageDataUrl) {\n        const dataUrlMatch = rawImageDataUrl.match(/^data:([^;]+);base64,(.+)$/i);\n        if (!dataUrlMatch) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Invalid image_data_url format. Expected data URL.' };\n            return [null, msg];\n        }\n\n        const parsedMimeType = String(dataUrlMatch[1]).toLowerCase();\n        const providedMimeType = normalizeOptionalText(image_mime_type);\n        imageMimeType = (providedMimeType || parsedMimeType).toLowerCase();\n\n        const allowedMimeTypes = new Set(['image/png', 'image/jpeg', 'image/jpg', 'image/webp']);\n        if (!allowedMimeTypes.has(imageMimeType)) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Unsupported image MIME type. Allowed: PNG, JPG, JPEG, WEBP.' };\n            return [null, msg];\n        }\n\n        let imageBuffer;\n        try {\n            imageBuffer = Buffer.from(dataUrlMatch[2], 'base64');\n        } catch (err) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Invalid base64 image payload.' };\n            return [null, msg];\n        }\n\n        if (!imageBuffer || !imageBuffer.length) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Image payload is empty.' };\n            return [null, msg];\n        }\n\n        const maxImageBytes = 10 * 1024 * 1024; // 10 MB\n        if (imageBuffer.length > maxImageBytes) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Image is too large. Maximum 10MB allowed.' };\n            return [null, msg];\n        }\n\n        const fallbackName = 'image.' + (extensionByMime[imageMimeType] || 'bin');\n        imageOriginalName = sanitizeFileName(image_original_name, fallbackName);\n        imagePath = '/mhub/objects/' + String(user_building_id) + '/' + objectId + '/' + imageOriginalName;\n        imageSizeBytes = imageBuffer.length;\n\n        const filerBaseUrl = (env.get('SEAWEED_FILER_INTERNAL_URL') || 'http://seaweed-filer:8888').replace(/\\/+$/, '');\n        const fetchFn = global.get('fetch') || globalThis.fetch;\n\n        if (typeof fetchFn !== 'function') {\n            msg.statusCode = 500;\n            msg.payload = { error: 'Server does not support fetch API for Seaweed upload.' };\n            return [null, msg];\n        }\n\n        let uploadResponse;\n        try {\n            uploadResponse = await fetchFn(filerBaseUrl + imagePath, {\n                method: 'PUT',\n                headers: {\n                    'Content-Type': imageMimeType\n                },\n                body: imageBuffer\n            });\n        } catch (err) {\n            msg.statusCode = 502;\n            msg.payload = { error: 'Failed to upload image to object storage.', details: err.message || String(err) };\n            return [null, msg];\n        }\n\n        if (!uploadResponse.ok) {\n            const details = await uploadResponse.text().catch(() => '');\n            msg.statusCode = 502;\n            msg.payload = {\n                error: 'Object storage rejected image upload.',\n                details: details || ('HTTP ' + uploadResponse.status)\n            };\n            return [null, msg];\n        }\n    }\n\n    msg.query = `\n      INSERT INTO building_objects\n        (id, building_id, user_building_id, owner_id, category, name, description, location, object_type, count, is_public, image_path, image_mime_type, image_original_name, image_size_bytes)\n      VALUES\n        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)\n      RETURNING *;\n    `;\n\n    msg.params = [\n        objectId,\n        building_id,\n        user_building_id,\n        user_id,\n        'Objekt',\n        name.trim(),\n        description ?? null,\n        String(location).trim(),\n        String(object_type).trim(),\n        parsedCount,\n        typeof is_public === 'boolean' ? is_public : false,\n        imagePath,\n        imageMimeType,\n        imageOriginalName,\n        imageSizeBytes\n    ];\n\n    return [msg, null];\n})();",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -2562,7 +2545,7 @@
         "type": "function",
         "z": "c32a8833b16842b0",
         "name": "function success",
-        "func": "const rows = msg.payload;\n\nif (rows && rows.length > 0) {\n    // Success: Return the deleted object\n    msg.statusCode = 200;\n    msg.payload = rows[0]; \n} else {\n    // Failure: No rows deleted.\n    // Either ID doesn't exist or User doesn't own it.\n    msg.statusCode = 404;\n    msg.payload = { error: \"Building object not found or permission denied.\" };\n}\n\nreturn msg;",
+        "func": "const rows = msg.payload;\nconst publicBaseUrl = (env.get('SEAWEED_PUBLIC_BASE_URL') || 'http://localhost:8888').replace(/\\/+$/, '');\n\nconst withImageUrl = (row) => {\n    if (!row || typeof row !== 'object') return row;\n    const imagePath = row.image_path || null;\n    return {\n        ...row,\n        image_url: imagePath ? `${publicBaseUrl}${imagePath}` : null\n    };\n};\n\nif (rows && rows.length > 0) {\n    msg.statusCode = 200;\n    msg.payload = withImageUrl(rows[0]);\n} else {\n    msg.statusCode = 404;\n    msg.payload = { error: 'Building object not found or permission denied.' };\n}\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -2722,7 +2705,7 @@
         "type": "function",
         "z": "fcfa959b27f7d27c",
         "name": "function success",
-        "func": "const rows = msg.payload;\n\nif (rows && rows.length > 0) {\n    // Success: Return the deleted object\n    msg.statusCode = 200;\n    msg.payload = rows[0]; \n} else {\n    // Failure: No rows deleted.\n    // Either ID doesn't exist or User doesn't own it.\n    msg.statusCode = 404;\n    msg.payload = { error: \"Building object not found or permission denied.\" };\n}\n\nreturn msg;",
+        "func": "const rows = msg.payload;\nconst publicBaseUrl = (env.get('SEAWEED_PUBLIC_BASE_URL') || 'http://localhost:8888').replace(/\\/+$/, '');\n\nconst withImageUrl = (row) => {\n    if (!row || typeof row !== 'object') return row;\n    const imagePath = row.image_path || null;\n    return {\n        ...row,\n        image_url: imagePath ? `${publicBaseUrl}${imagePath}` : null\n    };\n};\n\nif (rows && rows.length > 0) {\n    msg.statusCode = 200;\n    msg.payload = withImageUrl(rows[0]);\n} else {\n    msg.statusCode = 404;\n    msg.payload = { error: 'Building object not found or permission denied.' };\n}\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
