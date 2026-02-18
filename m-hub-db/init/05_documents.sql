@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS documents (
     description TEXT,
     is_public BOOLEAN NOT NULL DEFAULT FALSE,
     file_url TEXT,
-    file_type TEXT CHECK (file_type IN ('pdf', 'jpg', 'png', 'e57')),
+    file_type TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -35,6 +35,38 @@ ALTER TABLE documents
 --   FOREIGN KEY (component_id)
 --   REFERENCES building_parts(id) -- or building_objects(id)
 --   ON DELETE SET NULL;
+
+-- ===============================================
+--  FILE TYPE CONSTRAINT MIGRATION
+--  Remove legacy checks and enforce one canonical file_type check
+-- ===============================================
+DO $$
+DECLARE
+  constraint_row RECORD;
+BEGIN
+  FOR constraint_row IN
+    SELECT c.conname
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    WHERE t.relname = 'documents'
+      AND c.contype = 'c'
+      AND pg_get_constraintdef(c.oid) ILIKE '%file_type%'
+  LOOP
+    EXECUTE format('ALTER TABLE documents DROP CONSTRAINT IF EXISTS %I;', constraint_row.conname);
+  END LOOP;
+END;
+$$;
+
+ALTER TABLE documents
+ADD CONSTRAINT documents_file_type_check
+CHECK (
+  file_type IS NULL OR file_type IN (
+    'jpg', 'png', 'gif', 'bmp', 'tiff', 'svg', 'webp',
+    'pdf', 'doc', 'docx', 'txt', 'rtf', 'odt', 'html', 'md',
+    'csv', 'xlsx', 'xlsm',
+    'e57', 'obj', 'stl', 'ply', 'glb', 'gltf', 'fbx', 'ifc'
+  )
+);
 
 -- ===============================================
 --  INITIAL DATA INSERTS

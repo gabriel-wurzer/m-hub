@@ -155,7 +155,7 @@ module.exports = {
     /** The maximum size of HTTP request that will be accepted by the runtime api.
      * Default: 5mb
      */
-    apiMaxLength: '25mb',
+    apiMaxLength: '40mb',
 
     /** The following property can be used to pass custom options to the Express.js
      * server used by Node-RED. For a full list of available options, refer

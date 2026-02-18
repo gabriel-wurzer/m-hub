@@ -89,6 +89,14 @@
         "env": []
     },
     {
+        "id": "3fe8bf1ef8bccd96",
+        "type": "tab",
+        "label": "CREATE Document",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "b48f11fbab89934d",
         "type": "tab",
         "label": "DELETE Document",
@@ -1842,6 +1850,166 @@
         ]
     },
     {
+        "id": "53a505644eac033e",
+        "type": "http in",
+        "z": "3fe8bf1ef8bccd96",
+        "name": "CREATE document",
+        "url": "/api/documents",
+        "method": "post",
+        "upload": true,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 270,
+        "y": 140,
+        "wires": [
+            [
+                "e904630179d8bceb"
+            ]
+        ]
+    },
+    {
+        "id": "ed3d8210b5f2fa3f",
+        "type": "postgresql",
+        "z": "3fe8bf1ef8bccd96",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 440,
+        "y": 460,
+        "wires": [
+            [
+                "a427764d63f17fdd"
+            ]
+        ]
+    },
+    {
+        "id": "4da1b586d77615fe",
+        "type": "function",
+        "z": "3fe8bf1ef8bccd96",
+        "name": "build SQL query",
+        "func": "// Extract user id securely from JWT\nconst user_id = msg.user?.sub;\n\n// Extract data from payload\nconst {\n    building_id,\n    user_building_id,\n    component_id,\n    name,\n    description,\n    is_public,\n    file_data_url,\n    file_mime_type,\n    file_original_name,\n    file_type\n} = msg.payload || {};\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nconst normalizeOptionalText = (value) => {\n    if (typeof value !== 'string') return null;\n    const trimmed = value.trim();\n    return trimmed.length ? trimmed : null;\n};\n\nconst normalizeRequiredText = (value) => {\n    if (typeof value !== 'string') return '';\n    return value.trim();\n};\n\nconst buildUuidV4 = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {\n    const r = Math.random() * 16 | 0;\n    const v = c === 'x' ? r : (r & 0x3 | 0x8);\n    return v.toString(16);\n});\n\nconst extensionByMime = {\n    'image/png': 'png',\n    'image/jpeg': 'jpg',\n    'image/jpg': 'jpg',\n    'image/gif': 'gif',\n    'image/bmp': 'bmp',\n    'image/tiff': 'tiff',\n    'image/svg+xml': 'svg',\n    'image/webp': 'webp',\n    'application/pdf': 'pdf',\n    'application/msword': 'doc',\n    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',\n    'text/plain': 'txt',\n    'application/rtf': 'rtf',\n    'application/vnd.oasis.opendocument.text': 'odt',\n    'text/html': 'html',\n    'text/markdown': 'md',\n    'text/csv': 'csv',\n    'application/csv': 'csv',\n    'application/vnd.ms-excel': 'xlsx',\n    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',\n    'application/vnd.ms-excel.sheet.macroenabled.12': 'xlsm',\n    'model/obj': 'obj',\n    'model/stl': 'stl',\n    'application/sla': 'stl',\n    'application/vnd.ms-pki.stl': 'stl',\n    'model/ply': 'ply',\n    'model/gltf-binary': 'glb',\n    'model/gltf+json': 'gltf',\n    'application/octet-stream+fbx': 'fbx',\n    'application/x-step': 'ifc',\n    'application/octet-stream': 'e57'\n};\n\nconst allowedFileTypes = new Set([\n    'jpg', 'png', 'gif', 'bmp', 'tiff', 'svg', 'webp',\n    'pdf', 'doc', 'docx', 'txt', 'rtf', 'odt', 'html', 'md',\n    'csv', 'xlsx', 'xlsm',\n    'e57', 'obj', 'stl', 'ply', 'glb', 'gltf', 'fbx', 'ifc'\n]);\n\nconst extractExtension = (fileName) => {\n    const normalized = normalizeOptionalText(fileName);\n    if (!normalized || !normalized.includes('.')) return null;\n    const extension = normalized.split('.').pop();\n    return extension ? extension.toLowerCase() : null;\n};\n\nconst sanitizeFileName = (name, fallback) => {\n    const normalized = normalizeOptionalText(name) || fallback;\n    return normalized\n        .replace(/[^a-zA-Z0-9._-]/g, '_')\n        .replace(/_+/g, '_')\n        .slice(0, 180);\n};\n\nreturn (async () => {\n    // Validate required fields\n    if (!user_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'user_id is missing' };\n        return [null, msg];\n    }\n\n    if (!uuidRegex.test(user_id)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid user ID format' };\n        return [null, msg];\n    }\n\n    if (!building_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'building_id is missing' };\n        return [null, msg];\n    }\n\n    if (!user_building_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'user_building_id is missing' };\n        return [null, msg];\n    }\n\n    if (!uuidRegex.test(String(user_building_id))) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid user_building_id format' };\n        return [null, msg];\n    }\n\n    if (!name || name.trim() === '') {\n        msg.statusCode = 400;\n        msg.payload = { error: 'name is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    const normalizedComponentId = normalizeOptionalText(component_id);\n    if (normalizedComponentId && !uuidRegex.test(normalizedComponentId)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid component_id format' };\n        return [null, msg];\n    }\n\n    const normalizedName = normalizeRequiredText(name);\n    if (!normalizedName) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'name is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    const rawFileDataUrl = normalizeOptionalText(file_data_url);\n    if (!rawFileDataUrl) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'file_data_url is required' };\n        return [null, msg];\n    }\n\n    const dataUrlMatch = rawFileDataUrl.match(/^data:([^;]+);base64,(.+)$/i);\n    if (!dataUrlMatch) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid file_data_url format. Expected data URL.' };\n        return [null, msg];\n    }\n\n    const parsedMimeType = String(dataUrlMatch[1]).toLowerCase();\n    const providedMimeType = normalizeOptionalText(file_mime_type);\n    const normalizedMimeType = (providedMimeType || parsedMimeType).toLowerCase();\n\n    let fileBuffer;\n    try {\n        fileBuffer = Buffer.from(dataUrlMatch[2], 'base64');\n    } catch (err) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid base64 file payload.' };\n        return [null, msg];\n    }\n\n    if (!fileBuffer || !fileBuffer.length) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'File payload is empty.' };\n        return [null, msg];\n    }\n\n    const maxFileBytes = 25 * 1024 * 1024; // 25 MB\n    if (fileBuffer.length > maxFileBytes) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'File is too large. Maximum 25MB allowed.' };\n        return [null, msg];\n    }\n\n    const requestedFileType = normalizeOptionalText(file_type);\n    const extensionFromName = extractExtension(file_original_name);\n    const extensionFromMime = extensionByMime[normalizedMimeType] || null;\n\n    const resolvedFileType = (requestedFileType || extensionFromName || extensionFromMime || '').toLowerCase();\n    if (!resolvedFileType || !allowedFileTypes.has(resolvedFileType)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Unsupported or missing file_type.' };\n        return [null, msg];\n    }\n\n    const documentId = buildUuidV4();\n    const fallbackName = 'file.' + resolvedFileType;\n    const fileName = sanitizeFileName(file_original_name, fallbackName);\n    const filePath = '/mhub/documents/' + String(user_building_id) + '/' + documentId + '/' + fileName;\n\n    const filerBaseUrl = (env.get('SEAWEED_FILER_INTERNAL_URL') || 'http://seaweed-filer:8888').replace(/\\/+$/, '');\n    const fetchFn = global.get('fetch') || globalThis.fetch;\n\n    if (typeof fetchFn !== 'function') {\n        msg.statusCode = 500;\n        msg.payload = { error: 'Server does not support fetch API for Seaweed upload.' };\n        return [null, msg];\n    }\n\n    let uploadResponse;\n    try {\n        uploadResponse = await fetchFn(filerBaseUrl + filePath, {\n            method: 'PUT',\n            headers: {\n                'Content-Type': normalizedMimeType || 'application/octet-stream'\n            },\n            body: fileBuffer\n        });\n    } catch (err) {\n        msg.statusCode = 502;\n        msg.payload = { error: 'Failed to upload file to document storage.', details: err.message || String(err) };\n        return [null, msg];\n    }\n\n    if (!uploadResponse.ok) {\n        const details = await uploadResponse.text().catch(() => '');\n        msg.statusCode = 502;\n        msg.payload = {\n            error: 'Document storage rejected file upload.',\n            details: details || ('HTTP ' + uploadResponse.status)\n        };\n        return [null, msg];\n    }\n\n    msg.query = `\n      INSERT INTO documents\n        (id, building_id, owner_id, user_building_id, component_id, name, description, is_public, file_url, file_type)\n      VALUES\n        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)\n      RETURNING *;\n    `;\n\n    msg.params = [\n        documentId,\n        normalizedBuildingId,\n        user_id,\n        String(user_building_id),\n        normalizedComponentId,\n        normalizedName,\n        normalizeOptionalText(description),\n        typeof is_public === 'boolean' ? is_public : false,\n        filePath,\n        resolvedFileType\n    ];\n\n    return [msg, null];\n})();\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 340,
+        "wires": [
+            [
+                "ed3d8210b5f2fa3f"
+            ],
+            [
+                "8113b6a9feb04304"
+            ]
+        ]
+    },
+    {
+        "id": "a427764d63f17fdd",
+        "type": "function",
+        "z": "3fe8bf1ef8bccd96",
+        "name": "function success",
+        "func": "const rows = msg.payload;\nconst publicBaseUrl = (env.get('SEAWEED_PUBLIC_BASE_URL') || 'http://localhost:8888').replace(/\\/+$/, '');\n\nconst withResolvedFileUrl = (row) => {\n    if (!row || typeof row !== 'object') return row;\n\n    const rawFileUrl = typeof row.file_url === 'string' ? row.file_url.trim() : '';\n    if (!rawFileUrl) {\n        return { ...row, file_url: null };\n    }\n\n    if (/^https?:\\/\\//i.test(rawFileUrl)) {\n        return { ...row, file_url: rawFileUrl };\n    }\n\n    return { ...row, file_url: `${publicBaseUrl}${rawFileUrl}` };\n};\n\nif (Array.isArray(rows) && rows.length > 0) {\n    msg.statusCode = 201;\n    msg.payload = withResolvedFileUrl(rows[0]);\n    return msg;\n}\n\nmsg.statusCode = 500;\nmsg.payload = { error: 'Document could not be created.' };\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 560,
+        "wires": [
+            [
+                "8113b6a9feb04304"
+            ]
+        ]
+    },
+    {
+        "id": "8113b6a9feb04304",
+        "type": "http response",
+        "z": "3fe8bf1ef8bccd96",
+        "name": "document response",
+        "statusCode": "",
+        "headers": {},
+        "x": 900,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "6783551d2b76fa6b",
+        "type": "catch",
+        "z": "3fe8bf1ef8bccd96",
+        "name": "",
+        "scope": [
+            "ed3d8210b5f2fa3f"
+        ],
+        "uncaught": false,
+        "x": 690,
+        "y": 360,
+        "wires": [
+            [
+                "a8dfa50da5b75037"
+            ]
+        ]
+    },
+    {
+        "id": "a8dfa50da5b75037",
+        "type": "function",
+        "z": "3fe8bf1ef8bccd96",
+        "name": "handle db errors",
+        "func": "const err = msg.error;\nconst errMsg = err && err.message ? err.message : '';\n\n\n// 1. FOREIGN KEY VIOLATION (Specific to DELETE)\n// Code 23503: Occurs if you try to delete a building that is used in another table\nif (errMsg.includes('violates foreign key') || (err.code === '23503')) {\n    msg.statusCode = 409; // Conflict\n    msg.payload = { error: 'Cannot delete: This building object is referenced by other data.' };\n}\n\n// 2. INVALID DATA TYPE (e.g. Bad UUID string)\n// Code 22P02: Invalid text representation\nelse if (errMsg.includes('invalid input syntax') || (err.code === '22P02')) {\n    msg.statusCode = 400; // Bad Request\n    msg.payload = { error: 'Invalid ID format or data type.' };\n}\n\n// 3. GENERIC FALLBACK\nelse {\n    msg.statusCode = 500; // Internal Server Error\n    msg.payload = { error: 'Database error', details: errMsg };\n}\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 880,
+        "y": 360,
+        "wires": [
+            [
+                "8113b6a9feb04304"
+            ]
+        ]
+    },
+    {
+        "id": "e904630179d8bceb",
+        "type": "function",
+        "z": "3fe8bf1ef8bccd96",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg]; // Go to Output 2 (Error)\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    \n    msg.user = decoded; \n    \n    return [msg, null]; // Go to Output 1 (Success)\n\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 240,
+        "wires": [
+            [
+                "4da1b586d77615fe"
+            ],
+            [
+                "8113b6a9feb04304"
+            ]
+        ]
+    },
+    {
+        "id": "a037b3c9a76bb35b",
+        "type": "comment",
+        "z": "3fe8bf1ef8bccd96",
+        "name": "http://localhost:1880/api/documents",
+        "info": "",
+        "x": 300,
+        "y": 80,
+        "wires": []
+    },
+    {
         "id": "8dea0cbce50630a0",
         "type": "http in",
         "z": "b48f11fbab89934d",
@@ -2242,8 +2410,7 @@
         "y": 260,
         "wires": [
             [
-                "390eaacf141c18b1",
-                "6ea340f07a5d3193"
+                "390eaacf141c18b1"
             ],
             [
                 "1b3633faa0c9a9b7"
@@ -2321,22 +2488,6 @@
                 "1b3633faa0c9a9b7"
             ]
         ]
-    },
-    {
-        "id": "6ea340f07a5d3193",
-        "type": "debug",
-        "z": "de6a97be0b856cb1",
-        "name": "debug 3",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 520,
-        "y": 220,
-        "wires": []
     },
     {
         "id": "c2d422076e99859b",
