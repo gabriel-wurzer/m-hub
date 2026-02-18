@@ -40,3 +40,21 @@ mat-dialog-content {
   justify-content: flex-end;
   margin-top: 8px;
 }
+
+.image-wrapper {
+  margin-top: 12px;
+  width: min(100%, 580px);
+  max-height: 500px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.object-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 500px;
+  object-fit: contain;
+  border-radius: inherit;
+}

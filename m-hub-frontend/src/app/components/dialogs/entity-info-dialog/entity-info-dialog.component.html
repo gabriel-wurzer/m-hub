@@ -123,10 +123,10 @@
         <div class="label">Sichtbarkeit</div>
         <div class="value">{{ getVisibilityValue(['is_public', 'isPublic']) }}</div>
       </div>
-      <div class="info-row">
+      <!-- <div class="info-row">
         <div class="label">Dokumente</div>
         <div class="value">{{ getValue(['documents']) }}</div>
-      </div>
+      </div> -->
       <div class="info-row">
         <div class="label">Gebäude ID</div>
         <div class="value mono">{{ getValue(['building_id']) }}</div>
@@ -139,6 +139,9 @@
         <div class="label">Besitzer ID</div>
         <div class="value mono">{{ getValue(['owner_id']) }}</div>
       </div>
+    </div>
+    <div class="image-wrapper" *ngIf="getObjectImageUrl() as objectImageUrl">
+      <img [src]="objectImageUrl" alt="Objektbild" class="object-image" />
     </div>
   </ng-template>
 </mat-dialog-content>

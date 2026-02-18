@@ -30,7 +30,8 @@ type RowDef<T> = {
   styleUrl: './entity-info-dialog.component.scss'
 })
 export class EntityInfoDialogComponent {
-  readonly entity: Record<string, unknown>;
+  entity: Record<string, unknown>;
+  objectImageLoaded = false;
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: EntityInfoDialogData) {
     this.entity = data.entity as any as Record<string, unknown>;
@@ -78,6 +79,25 @@ export class EntityInfoDialogComponent {
 
   isObjekt(): boolean {
     return this.hasAnyField(this.entity, ['object_type', 'objectType', 'count']);
+  }
+
+  getObjectImageUrl(): string | null {
+    if (!this.isObjekt()) return null;
+
+    const explicitUrl = this.readField(this.entity, ['image_url', 'imageUrl']);
+    if (typeof explicitUrl === 'string' && explicitUrl.trim().length > 0) {
+      return explicitUrl.trim();
+    }
+
+    const imagePath = this.readField(this.entity, ['image_path', 'imagePath']);
+    if (typeof imagePath === 'string' && imagePath.trim().length > 0) {
+      const normalizedPath = imagePath.trim();
+      if (/^https?:\/\//i.test(normalizedPath)) {
+        return normalizedPath;
+      }
+    }
+
+    return null;
   }
 
   private resolveTypeLabel(): string {

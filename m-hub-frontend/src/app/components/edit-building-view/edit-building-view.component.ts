@@ -262,6 +262,12 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
         is_public: result.isPublic ?? false
       };
 
+      if (result.imagePreviewUrl && result.imageFile) {
+        payload.image_data_url = result.imagePreviewUrl;
+        payload.image_mime_type = result.imageFile.type || undefined;
+        payload.image_original_name = result.imageFileName || result.imageFile.name || undefined;
+      }
+
       this.isLoadingObjects = true;
 
       this.buildingObjectService.createComponent(payload)
@@ -669,4 +675,3 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
   //   contentEl.classList.toggle('has-scrollbar', hasScrollbar);
   // }
 }
-
