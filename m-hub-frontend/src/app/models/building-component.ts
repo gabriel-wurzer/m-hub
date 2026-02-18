@@ -29,7 +29,11 @@ export class Objekt extends BuildingComponent {
     object_type!: ObjectType;
     count!: number;   
     location!: string;
-    image?: File;
+    image_path?: string;
+    image_mime_type?: string;
+    image_original_name?: string;
+    image_size_bytes?: number;
+    image_url?: string;
 }
 
 export type CreateObjektPayload = {
@@ -43,5 +47,7 @@ export type CreateObjektPayload = {
     object_type: ObjectType;
     count: number;
     location: string;
-    image?: File;
+    image_data_url?: string;
+    image_mime_type?: string;
+    image_original_name?: string;
 };

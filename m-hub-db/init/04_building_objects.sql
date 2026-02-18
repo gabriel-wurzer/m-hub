@@ -17,6 +17,10 @@ CREATE TABLE IF NOT EXISTS building_objects (
     object_type TEXT,
     count INTEGER NOT NULL DEFAULT 1,
     is_public BOOLEAN NOT NULL DEFAULT FALSE,
+    image_path TEXT,
+    image_mime_type TEXT,
+    image_original_name TEXT,
+    image_size_bytes INTEGER,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
