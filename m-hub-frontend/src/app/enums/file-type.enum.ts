@@ -19,7 +19,10 @@ export enum FileType {
     RTF = "rtf",
     ODT = "odt",
     HTML = "html",
-    MD = "md", // Markdown
+    MD = "md",
+    CSV = "csv",
+    XLSX = "xlsx",
+    XLSM = "xlsm",
 
     // 3D object file formats
     E57 = "e57",
