@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Document } from '../../models/document';
+import { CreateDocumentPayload, Document } from '../../models/document';
 
 @Injectable({
   providedIn: 'root'
@@ -35,7 +35,7 @@ export class DocumentService {
     return this.http.get<Document[]>(`${this.apiUrl}/building/${userBuildingId}`);
   }
 
-  createDocument(document: Document): Observable<Document> {
+  createDocument(document: CreateDocumentPayload): Observable<Document> {
     return this.http.post<Document>(this.apiUrl, document);
   }
 
