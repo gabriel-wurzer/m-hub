@@ -66,7 +66,7 @@ if %ERRORLEVEL% NEQ 0 (
 )
 echo [OK] GeoPackage import finished.
 
-echo [START] Backend, Frontend and Postgis-API...
-docker compose up --build m-hub-postgis-api m-hub-backend m-hub-frontend
+echo [START] Backend, Frontend, Postgis-API and SeaweedFS...
+docker compose up --build seaweed-filer m-hub-postgis-api m-hub-backend m-hub-frontend
 
 :ENDSCRIPT

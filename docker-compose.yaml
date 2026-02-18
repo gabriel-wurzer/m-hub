@@ -2,6 +2,15 @@
 name: m-hub
 # Define the services for m-hub
 services:
+  seaweed-filer:
+    image: chrislusf/seaweedfs:3.93
+    command: server -ip=seaweed-filer -dir=/data -filer=true -volume.max=${SEAWEED_VOLUME_MAX:-0}
+    ports:
+      - "127.0.0.1:${SEAWEED_MASTER_PORT:-9333}:9333"
+      - "127.0.0.1:${SEAWEED_FILER_PORT:-8888}:8888"
+    volumes:
+      - seaweed_data:/data
+
   m-hub-db:
     image: m-hub-db
     build: ./m-hub-db
@@ -62,11 +71,14 @@ services:
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - SEAWEED_FILER_INTERNAL_URL=${SEAWEED_FILER_INTERNAL_URL:-http://seaweed-filer:8888}
+      - SEAWEED_PUBLIC_BASE_URL=${SEAWEED_PUBLIC_BASE_URL:-http://localhost:8888}
     # Mount host directories to container directories as volumes
     volumes:
       - ./m-hub-backend/data:/data
     depends_on:
       - m-hub-postgis-api
+      - seaweed-filer
   m-hub-frontend:
     image: m-hub-frontend
     build:
@@ -87,3 +99,4 @@ services:
 volumes:
   # declare named value
   pgdata:
+  seaweed_data:
