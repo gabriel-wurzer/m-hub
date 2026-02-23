@@ -35,6 +35,12 @@ type FloorOption = {
   label: string;
 };
 
+type LocationOptionVm = {
+  value: string;
+  main: string;
+  note?: string;
+};
+
 @Component({
   selector: 'app-add-object-dialog',
   standalone: true,
@@ -57,9 +63,7 @@ type FloorOption = {
 export class AddObjectDialogComponent {
   private readonly maxImageSizeInBytes = 10 * 1024 * 1024; //10 MB Upload limit
   private readonly allowedImageMimeTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-  private readonly specialLocationOptions: string[] = [
-    'Individuell (Verortung in Beschreibung angeben)'
-  ];
+  readonly specialLocationOptions: string[] = ['Individuell (Verortung in Beschreibung angeben)'];
 
   name: string = '';
   description: string = '';
@@ -71,6 +75,7 @@ export class AddObjectDialogComponent {
 
   floorOptions: FloorOption[] = [];
   locationOptions: string[] = [];
+  locationOptionVms: LocationOptionVm[] = [];
   objectTypes: ObjectType[] = Object.values(ObjectType);
 
   isDragActive: boolean = false;
@@ -86,6 +91,24 @@ export class AddObjectDialogComponent {
   ) {
     this.floorOptions = this.buildFloorOptions(this.data?.structure ?? []);
     this.locationOptions = [...this.floorOptions.map((option) => option.label), ...this.specialLocationOptions];
+    this.locationOptionVms = this.locationOptions.map((value) => this.toLocationOptionVm(value));
+  }
+
+  private toLocationOptionVm(value: string): LocationOptionVm {
+    if (!this.specialLocationOptions.includes(value)) {
+      return { value, main: value };
+    }
+
+    const match = value.match(/^(.*?)(\s*\(.*\))$/);
+    if (!match) {
+      return { value, main: value };
+    }
+
+    const main = match[1].trimEnd();
+    const noteRaw = match[2];
+    const note = noteRaw.startsWith(' ') ? noteRaw : ` ${noteRaw}`;
+
+    return { value, main, note };
   }
 
   getNameError(): string | null {
@@ -110,29 +133,20 @@ export class AddObjectDialogComponent {
     return null;
   }
 
-  getLocationError(): string | null {
-    if (this.selectedLocations.length === 0) {
-      return 'Geschoss erforderlich';
-    }
-    return null;
-  }
+  // getLocationError(): string | null {
+  //   if (this.selectedLocations.length === 0) {
+  //     return 'Geschoss erforderlich';
+  //   }
+  //   return null;
+  // }
 
   isFormValid(): boolean {
     const isNameValid = this.name.trim().length > 0;
     const isObjectTypeValid = !!this.objectType;
-    const isLocationValid = this.selectedLocations.length > 0;
+    // const isLocationValid = this.selectedLocations.length > 0;
     const parsedNumber = Number(this.number);
     const isNumberValid = Number.isInteger(parsedNumber) && parsedNumber >= 1;
-    return isNameValid && isObjectTypeValid && isLocationValid && isNumberValid;
-  }
-
-  onLocationSelectionChange(): void {
-    const selectedSpecials = this.selectedLocations.filter((value) => this.isSpecialLocationOption(value));
-
-    if (selectedSpecials.length === 0) return;
-
-    // Special options are exclusive and replace regular floor selections.
-    this.selectedLocations = [selectedSpecials[0]];
+    return isNameValid && isObjectTypeValid && isNumberValid;
   }
 
   onImageFileSelected(event: Event): void {
@@ -215,10 +229,6 @@ export class AddObjectDialogComponent {
 
       return { label: FloorType.D };
     });
-  }
-
-  private isSpecialLocationOption(value: string): boolean {
-    return this.specialLocationOptions.includes(value);
   }
 
   private formatLocationForPayload(): string {

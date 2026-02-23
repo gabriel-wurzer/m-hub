@@ -52,17 +52,14 @@
           <mat-label>Geschoss(e)</mat-label>
           <mat-select
             [(ngModel)]="selectedLocations"
-            [required]="true"
-            #locationCtrl="ngModel"
             multiple
-            (ngModelChange)="onLocationSelectionChange()"
           >
-            <mat-option *ngFor="let locationOption of locationOptions" [value]="locationOption">
-              {{ locationOption }}
+            <mat-option *ngFor="let option of locationOptionVms" [value]="option.value">
+              <span>{{ option.main }}</span>
+              <span *ngIf="option.note" class="location-option-note">{{ option.note }}</span>
             </mat-option>
           </mat-select>
           <mat-hint>Mehrfachauswahl möglich</mat-hint>
-          <mat-error *ngIf="locationCtrl.invalid || getLocationError()">{{ getLocationError() }}</mat-error>
         </mat-form-field>
       </div>
 
