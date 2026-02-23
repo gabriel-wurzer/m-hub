@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS building_parts (
     location TEXT,
     part_type TEXT,
     part_structure TEXT, -- Platzhalter für das zukünftige Modell
-    is_public BOOLEAN NOT NULL DEFAULT FALSE,
+    is_public BOOLEAN NOT NULL DEFAULT TRUE,
+    is_hazardous BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -42,7 +43,8 @@ INSERT INTO building_parts (
     description,
     location,
     part_type,
-    is_public
+    is_public,
+    is_hazardous
 )
 SELECT 
     src.building_id,
@@ -53,16 +55,17 @@ SELECT
     src.description,
     src.location,
     src.part_type,
-    src.is_public
+    src.is_public,
+    src.is_hazardous
 FROM (
     VALUES
     -- building_id, owner_id, category, location, name, description, part_type, is_public
-    ('5312213', '79e7432d-f1a0-4f31-9469-1e27b8d8c6cd'::uuid, 'Bauteil', 'RG1', 'Außenwand', 'Wandaufbau des Kellers', 'Wand', FALSE),
-    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'KG1', 'Kaminwand', 'Kaminwand des Gebäudes', 'Wand', TRUE),
-    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'KG2', 'Gebäudefundament', 'Fundament des Gebäudes', 'Boden', FALSE),
-    ('5363852', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'RG3', 'Aufzugsschachtwand', 'Aufzugsschacht', 'Wand', TRUE),
-    ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Bauteil', 'D', 'Dach', 'Dach des Gebäudes', 'Dachaufbau', FALSE)
-) AS src(building_id, owner_id, category, location, name, description, part_type, is_public)
+    ('5312213', '79e7432d-f1a0-4f31-9469-1e27b8d8c6cd'::uuid, 'Bauteil', 'RG1', 'Außenwand', 'Wandaufbau des Kellers', 'Wand', FALSE, TRUE),
+    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'KG1', 'Kaminwand', 'Kaminwand des Gebäudes', 'Wand', TRUE, FALSE),
+    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'KG2', 'Gebäudefundament', 'Fundament des Gebäudes', 'Boden', FALSE, FALSE),
+    ('5363852', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'RG3', 'Aufzugsschachtwand', 'Aufzugsschacht', 'Wand', TRUE, FALSE),
+    ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Bauteil', 'D', 'Dach', 'Dach des Gebäudes', 'Dachaufbau', FALSE, FALSE)
+) AS src(building_id, owner_id, category, location, name, description, part_type, is_public, is_hazardous)
 JOIN user_buildings ub 
   ON ub.building_id = src.building_id 
   AND ub.user_id = src.owner_id;
