@@ -105,8 +105,7 @@ export class AddObjectDialogComponent {
     }
 
     const main = match[1].trimEnd();
-    const noteRaw = match[2];
-    const note = noteRaw.startsWith(' ') ? noteRaw : ` ${noteRaw}`;
+    const note = match[2].trimStart();
 
     return { value, main, note };
   }

@@ -46,6 +46,11 @@ export type EditBuildingPayload = {
   structure: Floor[];
 };
 
+type LocationSegment = {
+  main: string;
+  note?: string;
+};
+
 @Component({
   selector: 'app-edit-building-view',
   standalone: true,
@@ -108,6 +113,8 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
   isLoadingObjects = false;
   isLoadingParts = false;
 
+  private readonly floorDescriptionByLocationLabel = new Map<string, string>();
+
   constructor(
     private documentService: DocumentService,
     private buildingPartService: BuildingPartService,
@@ -149,6 +156,7 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
     this.name = building.name || '';
     this.address = building.address || '';
     this.structure = building.structure ? JSON.parse(JSON.stringify(building.structure)) : [];
+    this.rebuildFloorDescriptionByLocationLabel();
 
     const shouldResetTab = building.id !== this.initializedBuildingId;
 
@@ -165,6 +173,83 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
     this.fetchDocuments(building);
     this.fetchBuildingParts(building);
     this.fetchBuildingObjects(building);
+  }
+
+  onStructureChange(nextStructure: Floor[]): void {
+    this.structure = nextStructure;
+    this.rebuildFloorDescriptionByLocationLabel();
+  }
+
+  getLocationSegments(location: string | null | undefined): LocationSegment[] {
+    if (!location) return [];
+
+    return location
+      .split(',')
+      .map((token) => token.trim())
+      .filter((token) => token.length > 0)
+      .map((token) => this.toLocationSegmentVm(token));
+  }
+
+  private toLocationSegmentVm(token: string): LocationSegment {
+    const desc = this.floorDescriptionByLocationLabel.get(token);
+    if (desc) {
+      return { main: token, note: this.formatLocationNote(desc) };
+    }
+
+    const match = token.match(/^(.*?)(\s*\(.*\))$/);
+    if (!match) {
+      return { main: token };
+    }
+
+    const main = match[1].trimEnd();
+    const note = match[2].trimStart();
+
+    return { main, note };
+  }
+
+  private formatLocationNote(description: string): string | undefined {
+    const trimmed = description.trim();
+    if (trimmed.length === 0) return undefined;
+
+    if (trimmed.startsWith('(') && trimmed.endsWith(')')) {
+      return trimmed;
+    }
+
+    return `(${trimmed})`;
+  }
+
+  private rebuildFloorDescriptionByLocationLabel(): void {
+    this.floorDescriptionByLocationLabel.clear();
+
+    let regularIndex = 0;
+    let basementIndex = 0;
+
+    for (const floor of this.structure ?? []) {
+      if (floor.type === FloorType.RG) {
+        regularIndex += 1;
+        const desc = typeof floor.description === 'string' ? floor.description.trim() : '';
+        if (desc.length > 0) {
+          this.floorDescriptionByLocationLabel.set(`${floor.type} ${regularIndex}`, desc);
+        }
+        continue;
+      }
+
+      if (floor.type === FloorType.KG) {
+        basementIndex += 1;
+        const desc = typeof floor.description === 'string' ? floor.description.trim() : '';
+        if (desc.length > 0) {
+          this.floorDescriptionByLocationLabel.set(`${floor.type} ${basementIndex}`, desc);
+        }
+        continue;
+      }
+
+      if (floor.type === FloorType.D) {
+        const desc = typeof floor.description === 'string' ? floor.description.trim() : '';
+        if (desc.length > 0) {
+          this.floorDescriptionByLocationLabel.set(floor.type, desc);
+        }
+      }
+    }
   }
 
   private fetchDocuments(building: UserBuilding): void {
@@ -571,6 +656,7 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
     this.originalName = this.name;
     this.originalAddress = this.address;
     this.originalStructureJson = JSON.stringify(this.structure);
+    this.rebuildFloorDescriptionByLocationLabel();
   }
 
   private discardUnsavedChanges(): void {
@@ -578,6 +664,7 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
     this.address = this.originalAddress;
     this.structure = this.originalStructureJson ? JSON.parse(this.originalStructureJson) : [];
     this.isStructureValid = this.isStructureValidFor(this.structure);
+    this.rebuildFloorDescriptionByLocationLabel();
   }
 
   private isStructureValidFor(structure: Floor[]): boolean {

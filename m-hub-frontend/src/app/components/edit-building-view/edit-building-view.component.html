@@ -59,7 +59,13 @@
                                     <div class="col-id">{{ part.id }}</div>
                                     <div class="col-name name-value">{{ part.name }}</div>
                                     <div class="col-type type-value">{{ part.part_type }}</div>
-                                    <div class="col-location">{{ part.location }}</div>
+                                    <div class="col-location">
+                                        <ng-container *ngFor="let seg of getLocationSegments(part.location); let last = last">
+                                            <span>{{ seg.main }}</span>
+                                            <span *ngIf="seg.note" class="location-note"> {{ seg.note }}</span>
+                                            <span *ngIf="!last">, </span>
+                                        </ng-container>
+                                    </div>
                                     <div class="col-description">{{ part.description }}</div>
                                     <div class="col-hazardous">{{ formatHazardousBoolean(part.is_hazardous) }}</div>
                                     <div class="col-public">{{ formatPublicBoolean(part.is_public) }}</div>
@@ -111,7 +117,12 @@
                                     <div class="col-id">{{ obj.id }}</div>
                                     <div class="col-name name-value">{{ obj.name }}</div>
                                     <div class="col-type type-value">{{ obj.object_type }}</div>
-                                    <div class="col-location">{{ obj.location }}</div>
+                                    <div class="col-location">
+                                        <ng-container *ngFor="let seg of getLocationSegments(obj.location); let last = last">
+                                            <div><span>{{ seg.main }} </span> <span *ngIf="seg.note" class="location-note"> {{ seg.note }}</span></div>
+                                            <span *ngIf="!last">,&nbsp; </span>
+                                        </ng-container>
+                                    </div>
                                     <div class="col-count">{{ obj.count }}</div>
                                     <div class="col-description">{{ obj.description }}</div>
                                     <div class="col-hazardous">{{ formatHazardousBoolean(obj.is_hazardous) }}</div>
@@ -220,7 +231,7 @@
                 <app-building-structure-list 
                     [structure]="structure"
                     [disableAnimations]="suppressStructureAnimations"
-                    (structureChange)="structure = $event"
+                    (structureChange)="onStructureChange($event)"
                     (validityChange)="isStructureValid = $event">
                 </app-building-structure-list>
 
