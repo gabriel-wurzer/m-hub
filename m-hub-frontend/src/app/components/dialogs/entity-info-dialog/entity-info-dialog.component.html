@@ -102,6 +102,10 @@
         <div class="value">{{ getValue(['description']) }}</div>
       </div>
       <div class="info-row">
+        <div class="label">Schadstoffe</div>
+        <div class="value">{{ getHazardousValue(['is_hazardous', 'isHazardous']) }}</div>
+      </div>
+      <div class="info-row">
         <div class="label">Verortung</div>
         <div class="value">{{ getValue(['location']) }}</div>
       </div>
@@ -149,6 +153,10 @@
       <div class="info-row">
         <div class="label">Beschreibung</div>
         <div class="value">{{ getValue(['description']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Schadstoffe</div>
+        <div class="value">{{ getHazardousValue(['is_hazardous', 'isHazardous']) }}</div>
       </div>
       <div class="info-row">
         <div class="label">Verortung</div>

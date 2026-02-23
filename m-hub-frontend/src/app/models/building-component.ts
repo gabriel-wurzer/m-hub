@@ -16,6 +16,7 @@ export abstract class BuildingComponent {
     name!: string;
     description?: string;
     is_public!: boolean;
+    is_hazardous!: boolean;
     documents?: Document[];
 }
 
@@ -44,6 +45,7 @@ export type CreateObjektPayload = {
     name: string;
     description?: string;
     is_public: boolean;
+    is_hazardous: boolean; 
     object_type: ObjectType;
     count: number;
     location: string;

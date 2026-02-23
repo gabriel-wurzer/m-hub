@@ -80,14 +80,19 @@ export class EntityInfoDialogComponent {
   getVisibilityValue(keys: string[]): string {
     const value = this.readField(this.entity, keys);
 
-    if (value === true) return 'öffentlich';
-    if (value === false) return 'private';
+    if (typeof value === 'boolean') return value ? 'öffentlich' : 'privat';
+    if (typeof value === 'string') return value === 'true' ? 'öffentlich' : value === 'false' ? 'privat' : String(value);
+    if (typeof value === 'number') return value === 1 ? 'öffentlich' : value === 0 ? 'privat' : String(value);
 
-    if (typeof value === 'string') {
-      const normalized = value.trim().toLowerCase();
-      if (['true', '1', 'yes', 'ja'].includes(normalized)) return 'öffentlich';
-      if (['false', '0', 'no', 'nein'].includes(normalized)) return 'privat';
-    }
+    return this.formatValue(value);
+  }
+
+  getHazardousValue(keys: string[]): string {
+    const value = this.readField(this.entity, keys);
+
+    if (typeof value === 'boolean') return value ? 'enthalten' : 'nicht enthalten';
+    if (typeof value === 'string') return value === 'true' ? 'enthalten' : value === 'false' ? 'nicht enthalten' : String(value);
+    if (typeof value === 'number') return value === 1 ? 'enthalten' : value === 0 ? 'nicht enthalten' : String(value);
 
     return this.formatValue(value);
   }

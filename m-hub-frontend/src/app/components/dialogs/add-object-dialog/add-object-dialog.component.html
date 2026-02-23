@@ -74,19 +74,38 @@
         </mat-form-field>
       </div>
 
-      <div class="visibility-wrapper">
-        <h2>Sichtbarkeit</h2>
-        <div class="visibility-row">
-          <mat-checkbox class="visibility-toggle" [(ngModel)]="isPublic">Öffentlich
-            <mat-icon
-                class="visibility-info-icon"
-                aria-label="Information zur Sichtbarkeit"
-                matTooltip="Dieses Objekt wird für alle anderen Nutzer:innen sichtbar"
-              >
-                info
-            </mat-icon>
-          </mat-checkbox>
+      <div class="checkbox-wrapper">
+
+        <div class="visibility-wrapper">
+          <h2>Sichtbarkeit</h2>
+          <div class="visibility-row">
+            <mat-checkbox class="visibility-toggle" [(ngModel)]="isPublic">Öffentlich
+              <mat-icon
+                  class="info-icon"
+                  aria-label="Information zur Sichtbarkeit"
+                  matTooltip="Dieses Objekt wird für alle anderen Nutzer:innen sichtbar"
+                >
+                  info
+              </mat-icon>
+            </mat-checkbox>
+          </div>
         </div>
+
+        <div class="hazardous-wrapper">
+          <h2>Schafstoffe</h2>
+          <div class="hazardous-row">
+            <mat-checkbox class="hazardous-toggle" [(ngModel)]="isHazardous">Enthält Schadstoffe
+              <mat-icon
+                  class="info-icon"
+                  aria-label="Information zu Schafstoffen"
+                  matTooltip="Angabe zu enthaltenen Schadstoffen im Feld Beschreibung"
+                >
+                  info
+              </mat-icon>
+            </mat-checkbox>
+          </div>
+        </div>
+      
       </div>
     </div>
 

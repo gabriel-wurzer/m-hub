@@ -66,24 +66,29 @@ mat-form-field {
   min-width: 260px;
 }
 
-.visibility-wrapper {
-  flex-basis: 100%;
+.checkbox-wrapper {
   display: flex;
+  flex: 1 1 0;
+  flex-direction: row;
+}
+
+.visibility-wrapper, .hazardous-wrapper {
+  flex-basis: 100%;
   flex-direction: column;
   justify-content: flex-end;
 }
 
-.visibility-toggle {
+.visibility-toggle, .hazardous-toggle {
   margin: 8px 0 2px;
 }
 
-.visibility-row {
+.visibility-row, .hazardous-row {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.visibility-info-icon {
+.info-icon {
   font-size: 16px;
   width: 16px;
   height: 16px;

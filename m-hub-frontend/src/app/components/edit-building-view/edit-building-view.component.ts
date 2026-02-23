@@ -260,7 +260,8 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
         object_type: result.objectType,
         count,
         location: result.location,
-        is_public: result.isPublic ?? false
+        is_public: result.isPublic ?? true,
+        is_hazardous: result.isHazardous ?? false
       };
 
       if (result.imagePreviewUrl && result.imageFile) {
@@ -499,11 +500,19 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
     return isNameValid && this.isStructureValid;
   }
 
-  formatBoolean(value: unknown): string {
+  formatPublicBoolean(value: unknown): string {
     if (value === null || value === undefined) return 'unknown';
     if (typeof value === 'boolean') return value ? 'öffentlich' : 'privat';
     if (typeof value === 'string') return value === 'true' ? 'öffentlich' : value === 'false' ? 'privat' : String(value);
     if (typeof value === 'number') return value === 1 ? 'öffentlich' : value === 0 ? 'privat' : String(value);
+    return String(value);
+  }
+
+  formatHazardousBoolean(value: unknown): string {
+    if (value === null || value === undefined) return 'unknown';
+    if (typeof value === 'boolean') return value ? 'enthalten' : 'nicht enthalten';
+    if (typeof value === 'string') return value === 'true' ? 'enthalten' : value === 'false' ? 'nicht enthalten' : String(value);
+    if (typeof value === 'number') return value === 1 ? 'enthalten' : value === 0 ? 'nicht enthalten' : String(value);
     return String(value);
   }
 

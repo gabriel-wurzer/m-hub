@@ -22,6 +22,7 @@ export type AddObjectDialogResult = {
   name: string;
   objectType: ObjectType;
   isPublic: boolean;
+  isHazardous: boolean;
   description: string | null;
   location: string;
   number: number;
@@ -57,7 +58,7 @@ export class AddObjectDialogComponent {
   private readonly maxImageSizeInBytes = 10 * 1024 * 1024; //10 MB Upload limit
   private readonly allowedImageMimeTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
   private readonly specialLocationOptions: string[] = [
-    'Einzelgeschoss (Verortung in Beschreibung angeben)'
+    'Individuell (Verortung in Beschreibung angeben)'
   ];
 
   name: string = '';
@@ -66,6 +67,7 @@ export class AddObjectDialogComponent {
   number: number = 1;
   objectType: ObjectType | null = null;
   isPublic: boolean = true;
+  isHazardous: boolean = false;
 
   floorOptions: FloorOption[] = [];
   locationOptions: string[] = [];
@@ -231,6 +233,7 @@ export class AddObjectDialogComponent {
       name: this.name.trim(),
       objectType: this.objectType,
       isPublic: this.isPublic,
+      isHazardous: this.isHazardous,
       description: this.normalizeOptionalInput(this.description),
       location: this.formatLocationForPayload(),
       number: Number(this.number),

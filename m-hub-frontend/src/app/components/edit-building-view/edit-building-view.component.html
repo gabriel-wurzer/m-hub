@@ -50,6 +50,7 @@
                                     <div class="col-type">Bauteil-Kategorie</div>
                                     <div class="col-location">Verortung</div>
                                     <div class="col-description">Beschreibung</div>
+                                    <div class="col-hazardous">Schadstoffe</div>
                                     <div class="col-public">Sichtbarkeit</div>
                                     <div class="col-actions"></div>
                                 </div>
@@ -60,7 +61,8 @@
                                     <div class="col-type type-value">{{ part.part_type }}</div>
                                     <div class="col-location">{{ part.location }}</div>
                                     <div class="col-description">{{ part.description }}</div>
-                                    <div class="col-public">{{ formatBoolean(part.is_public) }}</div>
+                                    <div class="col-hazardous">{{ formatHazardousBoolean(part.is_hazardous) }}</div>
+                                    <div class="col-public">{{ formatPublicBoolean(part.is_public) }}</div>
                                     
                                     <div class="col-actions">
                                         <button mat-icon-button color="primary" matTooltip="Informationen" (click)="openEntityInfoDialog(part)">
@@ -100,6 +102,7 @@
                                     <div class="col-location">Verortung</div>
                                     <div class="col-count">Anzahl</div>
                                     <div class="col-description">Beschreibung</div>
+                                    <div class="col-hazardous">Schadstoffe</div>
                                     <div class="col-public">Sichtbarkeit</div>
                                     <div class="col-actions"></div>
                                 </div>
@@ -111,7 +114,8 @@
                                     <div class="col-location">{{ obj.location }}</div>
                                     <div class="col-count">{{ obj.count }}</div>
                                     <div class="col-description">{{ obj.description }}</div>
-                                    <div class="col-public">{{ formatBoolean(obj.is_public) }}</div>
+                                    <div class="col-hazardous">{{ formatHazardousBoolean(obj.is_hazardous) }}</div>
+                                    <div class="col-public">{{ formatPublicBoolean(obj.is_public) }}</div>
                                     
                                     <div class="col-actions">
                                         <button mat-icon-button color="primary" matTooltip="Informationen" (click)="openEntityInfoDialog(obj)">
@@ -159,7 +163,7 @@
                                     <div class="col-type type-value">{{ doc.file_type }}</div>
                                     <div class="col-description">{{ doc.description }}</div>
                                     <!-- <div class="col-url">{{ doc.file_url }}</div> -->
-                                    <div class="col-public">{{ formatBoolean(doc.is_public) }}</div>
+                                    <div class="col-public">{{ formatPublicBoolean(doc.is_public) }}</div>
 
                                     <div class="col-actions">
                                         <button mat-icon-button color="primary" matTooltip="Informationen" (click)="openEntityInfoDialog(doc)">
