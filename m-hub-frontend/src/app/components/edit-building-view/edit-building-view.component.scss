@@ -156,12 +156,12 @@ h3 {
 }
 
 .list-row.grid-part {
-  grid-template-columns: 170px minmax(180px, 2fr) 120px minmax(140px, 250px) minmax(180px, 2fr) 100px 100px var(--actions-width);
+  grid-template-columns: 170px minmax(180px, 2fr) 120px minmax(140px, 260px) minmax(180px, 2fr) 100px 100px var(--actions-width);
   width: 100%;
 }
 
 .list-row.grid-object {
-  grid-template-columns: 170px minmax(180px, 2fr) 100px minmax(140px, 250px) 80px minmax(160px, 2fr) 100px 100px var(--actions-width);
+  grid-template-columns: 170px minmax(180px, 2fr) 100px minmax(140px, 260px) 80px minmax(160px, 2fr) 100px 100px var(--actions-width);
   width: 100%;
 }
 

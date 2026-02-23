@@ -33,6 +33,7 @@ export type AddObjectDialogResult = {
 
 type FloorOption = {
   label: string;
+  description?: string;
 };
 
 type LocationOptionVm = {
@@ -65,6 +66,7 @@ export class AddObjectDialogComponent {
   private readonly allowedImageMimeTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
   readonly specialLocationOptions: string[] = ['Individuell (Verortung in Beschreibung angeben)'];
   private readonly specialLocationOptionValue = 'Individuell';
+  private readonly floorDescriptionByLocationLabel = new Map<string, string>();
 
   name: string = '';
   description: string = '';
@@ -91,11 +93,17 @@ export class AddObjectDialogComponent {
     @Optional() @Inject(MAT_DIALOG_DATA) public data: AddObjectDialogData | null
   ) {
     this.floorOptions = this.buildFloorOptions(this.data?.structure ?? []);
+    this.rebuildFloorDescriptionByLocationLabel();
     this.locationOptions = [...this.floorOptions.map((option) => option.label), ...this.specialLocationOptions];
     this.locationOptionVms = this.locationOptions.map((value) => this.toLocationOptionVm(value));
   }
 
   private toLocationOptionVm(value: string): LocationOptionVm {
+    const floorDesc = this.floorDescriptionByLocationLabel.get(value);
+    if (floorDesc) {
+      return { value, main: value, note: this.formatLocationNote(floorDesc) };
+    }
+
     if (!this.specialLocationOptions.includes(value)) {
       return { value, main: value };
     }
@@ -109,6 +117,26 @@ export class AddObjectDialogComponent {
     const note = match[2].trimStart();
 
     return { value: this.specialLocationOptionValue, main, note };
+  }
+
+  private formatLocationNote(description: string): string | undefined {
+    const trimmed = description.trim();
+    if (trimmed.length === 0) return undefined;
+
+    if (trimmed.startsWith('(') && trimmed.endsWith(')')) {
+      return trimmed;
+    }
+
+    return `(${trimmed})`;
+  }
+
+  private rebuildFloorDescriptionByLocationLabel(): void {
+    this.floorDescriptionByLocationLabel.clear();
+
+    for (const option of this.floorOptions) {
+      if (!option.description) continue;
+      this.floorDescriptionByLocationLabel.set(option.label, option.description);
+    }
   }
 
   getNameError(): string | null {
@@ -222,12 +250,17 @@ export class AddObjectDialogComponent {
     };
 
     return structure.map((floor) => {
+      const description =
+        typeof floor.description === 'string' && floor.description.trim().length > 0
+          ? floor.description.trim()
+          : undefined;
+
       if (floor.type === FloorType.KG || floor.type === FloorType.RG) {
         floorTypeIndex[floor.type] += 1;
-        return { label: `${floor.type} ${floorTypeIndex[floor.type]}` };
+        return { label: `${floor.type} ${floorTypeIndex[floor.type]}`, description };
       }
 
-      return { label: FloorType.D };
+      return { label: floor.type, description };
     });
   }
 

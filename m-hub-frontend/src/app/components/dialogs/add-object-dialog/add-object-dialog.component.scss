@@ -221,8 +221,9 @@ mat-error {
 }
 
 .location-option-note {
-  font-style: italic;
-  color: #5a6473;
+  // font-style: italic;
+  // color: #5a6473;
+  color: rgba(0, 0, 0, 0.6);
 }
 
 @media (max-width: 520px) {
