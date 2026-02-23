@@ -61,9 +61,8 @@
                                     <div class="col-type type-value">{{ part.part_type }}</div>
                                     <div class="col-location">
                                         <ng-container *ngFor="let seg of getLocationSegments(part.location); let last = last">
-                                            <span>{{ seg.main }}</span>
-                                            <span *ngIf="seg.note" class="location-note"> {{ seg.note }}</span>
-                                            <span *ngIf="!last">, </span>
+                                            <div><span>{{ seg.main }} </span> <span *ngIf="seg.note" class="location-note"> {{ seg.note }}</span></div>
+                                            <span *ngIf="!last">,&nbsp; </span>
                                         </ng-container>
                                     </div>
                                     <div class="col-description">{{ part.description }}</div>

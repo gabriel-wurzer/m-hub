@@ -64,6 +64,7 @@ export class AddObjectDialogComponent {
   private readonly maxImageSizeInBytes = 10 * 1024 * 1024; //10 MB Upload limit
   private readonly allowedImageMimeTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
   readonly specialLocationOptions: string[] = ['Individuell (Verortung in Beschreibung angeben)'];
+  private readonly specialLocationOptionValue = 'Individuell';
 
   name: string = '';
   description: string = '';
@@ -107,7 +108,7 @@ export class AddObjectDialogComponent {
     const main = match[1].trimEnd();
     const note = match[2].trimStart();
 
-    return { value, main, note };
+    return { value: this.specialLocationOptionValue, main, note };
   }
 
   getNameError(): string | null {
