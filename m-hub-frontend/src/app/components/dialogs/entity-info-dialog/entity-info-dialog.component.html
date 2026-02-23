@@ -189,6 +189,9 @@
     </div>
     <div class="image-wrapper" *ngIf="getObjectImageUrl() as objectImageUrl">
       <img [src]="objectImageUrl" alt="Objektbild" class="object-image" />
+        <a [href]="objectImageUrl" target="_blank" rel="noopener noreferrer" class="document-open-link text-link">
+          Bild in neuem Tab öffnen
+        </a>
     </div>
   </ng-template>
 </mat-dialog-content>
