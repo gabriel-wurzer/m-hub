@@ -32,5 +32,7 @@ export enum FileType {
     GLB = "glb",
     GLTF = "gltf",
     FBX = "fbx",
-    IFC = "ifc"
+    IFC = "ifc",
+    LAS = "las",
+    LAZ = "laz"
 }

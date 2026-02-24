@@ -42,7 +42,7 @@ export type AddDocumentDialogResult = {
   styleUrl: './add-document-dialog.component.scss'
 })
 export class AddDocumentDialogComponent {
-  private readonly maxFileSizeInBytes = 25 * 1024 * 1024; // 25 MB
+  private readonly maxFileSizeInBytes = 1000 * 1024 * 1024; // 1 GB
   private readonly imageFileTypes = new Set<FileType>([
     FileType.JPG,
     FileType.PNG,
@@ -76,11 +76,15 @@ export class AddDocumentDialogComponent {
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': FileType.XLSX,
     'application/vnd.ms-excel.sheet.macroenabled.12': FileType.XLSM,
     'application/octet-stream': FileType.E57,
+    'application/vnd.las': FileType.LAS,
+    'application/x-las': FileType.LAS,
+    'application/x-laz': FileType.LAZ,
+    'application/x-ply': FileType.PLY,
+    'model/ply': FileType.PLY,
     'model/obj': FileType.OBJ,
     'model/stl': FileType.STL,
     'application/sla': FileType.STL,
     'application/vnd.ms-pki.stl': FileType.STL,
-    'model/ply': FileType.PLY,
     'model/gltf-binary': FileType.GLB,
     'model/gltf+json': FileType.GLTF,
     'application/octet-stream+fbx': FileType.FBX,
@@ -171,7 +175,7 @@ export class AddDocumentDialogComponent {
     if (fileType === FileType.PDF) return 'picture_as_pdf';
     if ([FileType.CSV, FileType.XLSX, FileType.XLSM].includes(fileType)) return 'table_chart';
     if ([FileType.DOC, FileType.DOCX, FileType.TXT, FileType.RTF, FileType.ODT, FileType.MD].includes(fileType)) return 'description';
-    if ([FileType.E57, FileType.OBJ, FileType.STL, FileType.PLY, FileType.GLB, FileType.GLTF, FileType.FBX, FileType.IFC].includes(fileType)) return 'view_in_ar';
+    if ([FileType.E57, FileType.OBJ, FileType.STL, FileType.PLY, FileType.GLB, FileType.GLTF, FileType.FBX, FileType.IFC, FileType.LAS, FileType.LAZ].includes(fileType)) return 'view_in_ar';
     return 'insert_drive_file';
   }
 
@@ -207,7 +211,7 @@ export class AddDocumentDialogComponent {
     this.fileError = '';
 
     if (file.size > this.maxFileSizeInBytes) {
-      this.fileError = 'Datei ist zu groß. Maximal 25MB erlaubt.';
+      this.fileError = 'Datei ist zu groß. Maximal 1GB erlaubt.';
       return;
     }
 
