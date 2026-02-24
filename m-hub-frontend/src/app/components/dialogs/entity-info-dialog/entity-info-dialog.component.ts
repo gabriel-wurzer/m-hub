@@ -33,7 +33,7 @@ type RowDef<T> = {
 })
 export class EntityInfoDialogComponent {
   private readonly documentImageTypes = new Set(['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'svg', 'webp']);
-  private readonly documentDownloadOnlyTypes = new Set(['csv', 'xlsx', 'xlsm']);
+  private readonly documentDownloadOnlyTypes = new Set(['csv', 'xlsx', 'xlsm', 'doc', 'docx', 'txt', 'html', 'rtf', 'odt', 'html', 'md']);
   private readonly documentIconByType: Record<string, string> = {
     pdf: 'picture_as_pdf',
     csv: 'table_chart',
