@@ -64,7 +64,7 @@ CHECK (
     'jpg', 'png', 'gif', 'bmp', 'tiff', 'svg', 'webp',
     'pdf', 'doc', 'docx', 'txt', 'rtf', 'odt', 'html', 'md',
     'csv', 'xlsx', 'xlsm',
-    'e57', 'obj', 'stl', 'ply', 'glb', 'gltf', 'fbx', 'ifc'
+    'e57', 'obj', 'stl', 'ply', 'glb', 'gltf', 'fbx', 'ifc', 'las', 'laz'
   )
 );
 
