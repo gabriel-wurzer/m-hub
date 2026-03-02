@@ -51,6 +51,7 @@ export class UserBuildingButtonComponent implements OnInit {
 
     const dialogRef = this.dialog.open(AddBuildingDialogComponent, {
       panelClass: 'custom-dialog',
+      disableClose: true,
       data: { structure: null }
     });
 

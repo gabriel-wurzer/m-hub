@@ -322,6 +322,7 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
       AddObjectDialogComponent,
       {
       panelClass: 'custom-dialog',
+      disableClose: true,
       autoFocus: false,
       data: {
         structure: userBuilding.structure ?? []
@@ -389,6 +390,7 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
       AddDocumentDialogComponent,
       {
         panelClass: 'custom-dialog',
+        disableClose: true,
         autoFocus: false
       }
     );
