@@ -10,7 +10,7 @@ import { AddBuildingDialogComponent } from '../../dialogs/add-building-dialog/ad
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
-  selector: 'user-add-building-button',
+  selector: 'user-building-button',
   standalone: true,
   imports: [CommonModule, MatButtonModule, MatProgressSpinnerModule, MatDialogModule],
     templateUrl: './user-building-button.component.html',
