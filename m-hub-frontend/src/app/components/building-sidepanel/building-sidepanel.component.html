@@ -21,12 +21,12 @@
 
         <div class="content-wrapper" *ngIf="!isLoading">
             <div class="building-info-data">
-                <user-add-building-button
+                <user-building-button
                   *ngIf="isOnMap() && (isLoggedIn$ | async)"
                   [building]="building"
                   [isInitiallyAdded]="isBuildingAdded"
                   (editRequested)="onEditBuildingRequested($event)">
-                </user-add-building-button>
+                </user-building-button>
         
                 <h3>Gebäude ID: {{ building.bw_geb_id }}</h3>
                 <p *ngIf="building.userBuilding && building.userBuilding.name">Name: {{ building.userBuilding.name }}</p>
