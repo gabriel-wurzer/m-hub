@@ -145,6 +145,14 @@
         "env": []
     },
     {
+        "id": "d06cd639c922eac1",
+        "type": "tab",
+        "label": "UPDATE Object",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "fcfa959b27f7d27c",
         "type": "tab",
         "label": "DELETE Object",
@@ -229,21 +237,6 @@
         "type": "tab",
         "label": "Update User-specific Building Data",
         "disabled": true,
-        "info": "",
-        "env": []
-    },
-    {
-        "id": "f6f2187d.f17ca8",
-        "type": "tab",
-        "label": "Flow 1",
-        "disabled": false,
-        "info": ""
-    },
-    {
-        "id": "e8d2c400a518975b",
-        "type": "tab",
-        "label": "API",
-        "disabled": false,
         "info": "",
         "env": []
     },
@@ -2978,6 +2971,166 @@
         "wires": []
     },
     {
+        "id": "cdbabbf872f18f7f",
+        "type": "http in",
+        "z": "d06cd639c922eac1",
+        "name": "UPDATE building object",
+        "url": "/api/objects/:ID",
+        "method": "put",
+        "upload": true,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 240,
+        "y": 120,
+        "wires": [
+            [
+                "e31dcaa5d3b910a4"
+            ]
+        ]
+    },
+    {
+        "id": "b1261b53ec82464f",
+        "type": "postgresql",
+        "z": "d06cd639c922eac1",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 400,
+        "y": 440,
+        "wires": [
+            [
+                "59a734fbd95e2156"
+            ]
+        ]
+    },
+    {
+        "id": "e134be949b22d8b4",
+        "type": "function",
+        "z": "d06cd639c922eac1",
+        "name": "build SQL query",
+        "func": "// Extract user id securely from JWT\nconst user_id = msg.user?.sub;\n\n// Extract data\nconst object_id = msg.req.params.ID;\n\n// Extract data from payload\nconst {\n    name,\n    description,\n    is_public,\n    is_hazardous,\n    object_type,\n    count,\n    location,\n    image_data_url,\n    image_mime_type,\n    image_original_name,\n    remove_image,\n    removeExistingImage\n} = msg.payload || {};\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nconst normalizeOptionalText = (value) => {\n    if (typeof value !== 'string') return null;\n    const trimmed = value.trim();\n    return trimmed.length ? trimmed : null;\n};\n\nconst extensionByMime = {\n    'image/png': 'png',\n    'image/jpeg': 'jpg',\n    'image/jpg': 'jpg',\n    'image/webp': 'webp'\n};\n\nconst sanitizeFileName = (name, fallback) => {\n    const normalized = normalizeOptionalText(name) || fallback;\n    return normalized\n        .replace(/[^a-zA-Z0-9._-]/g, '_')\n        .replace(/_+/g, '_')\n        .slice(0, 120);\n};\n\nreturn (async () => {\n    // Validate required fields\n    if (!user_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'user_id is missing' };\n        return [null, msg];\n    }\n\n    if (!uuidRegex.test(user_id)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid user ID format' };\n        return [null, msg];\n    }\n\n    if (!object_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'object id is missing (expected path param :id or payload.id)' };\n        return [null, msg];\n    }\n\n    if (!uuidRegex.test(object_id)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid object ID format' };\n        return [null, msg];\n    }\n\n    if (!name || name.trim() === '') {\n        msg.statusCode = 400;\n        msg.payload = { error: 'name is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    if (!object_type || String(object_type).trim() === '') {\n        msg.statusCode = 400;\n        msg.payload = { error: 'object_type is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    const parsedCount = Number(count);\n    if (!Number.isInteger(parsedCount) || parsedCount < 1) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'count is required and must be an integer >= 1' };\n        return [null, msg];\n    }\n\n\n    const wantsRemoveImage = remove_image === true || removeExistingImage === true;\n    const rawImageDataUrl = normalizeOptionalText(image_data_url);\n    const hasNewImage = !!rawImageDataUrl;\n\n    // if both are set, new image wins\n    const shouldReplaceImage = hasNewImage;\n    const shouldRemoveImage = !hasNewImage && wantsRemoveImage;\n\n    let newImagePath = null;\n    let newImageMimeType = null;\n    let newImageOriginalName = null;\n    let newImageSizeBytes = null;\n\n    if (hasNewImage) {\n        const dataUrlMatch = rawImageDataUrl.match(/^data:([^;]+);base64,(.+)$/i);\n        if (!dataUrlMatch) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Invalid image_data_url format. Expected data URL.' };\n            return [null, msg];\n        }\n\n        const parsedMimeType = String(dataUrlMatch[1]).toLowerCase();\n        const providedMimeType = normalizeOptionalText(image_mime_type);\n        newImageMimeType = (providedMimeType || parsedMimeType).toLowerCase();\n\n        const allowedMimeTypes = new Set(['image/png', 'image/jpeg', 'image/jpg', 'image/webp']);\n        if (!allowedMimeTypes.has(newImageMimeType)) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Unsupported image MIME type. Allowed: PNG, JPG, JPEG, WEBP.' };\n            return [null, msg];\n        }\n\n        let imageBuffer;\n        try {\n            imageBuffer = Buffer.from(dataUrlMatch[2], 'base64');\n        } catch (err) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Invalid base64 image payload.' };\n            return [null, msg];\n        }\n\n        if (!imageBuffer || !imageBuffer.length) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Image payload is empty.' };\n            return [null, msg];\n        }\n\n        const maxImageBytes = 10 * 1024 * 1024;\n        if (imageBuffer.length > maxImageBytes) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Image is too large. Maximum 10MB allowed.' };\n            return [null, msg];\n        }\n\n        const fallbackName = 'image.' + (extensionByMime[newImageMimeType] || 'bin');\n        newImageOriginalName = sanitizeFileName(image_original_name, fallbackName);\n        newImagePath = '/mhub/objects/' + String(user_id) + '/' + String(object_id) + '/' + newImageOriginalName;\n        newImageSizeBytes = imageBuffer.length;\n\n        const filerBaseUrl = (env.get('SEAWEED_FILER_INTERNAL_URL') || 'http://seaweed-filer:8888').replace(/\\/+$/, '');\n        const fetchFn = global.get('fetch') || globalThis.fetch;\n\n        if (typeof fetchFn !== 'function') {\n            msg.statusCode = 500;\n            msg.payload = { error: 'Server does not support fetch API for Seaweed upload.' };\n            return [null, msg];\n        }\n\n        let uploadResponse;\n        try {\n            uploadResponse = await fetchFn(filerBaseUrl + newImagePath, {\n                method: 'PUT',\n                headers: { 'Content-Type': newImageMimeType },\n                body: imageBuffer\n            });\n        } catch (err) {\n            msg.statusCode = 502;\n            msg.payload = { error: 'Failed to upload image to object storage.', details: err.message || String(err) };\n            return [null, msg];\n        }\n\n        if (!uploadResponse.ok) {\n            const details = await uploadResponse.text().catch(() => '');\n            msg.statusCode = 502;\n            msg.payload = {\n                error: 'Object storage rejected image upload.',\n                details: details || ('HTTP ' + uploadResponse.status)\n            };\n            return [null, msg];\n        }\n    }\n\n    // --- SQL ---\n    msg.query = `\n      WITH existing AS (\n        SELECT id, image_path\n        FROM building_objects\n        WHERE id = $1::uuid AND owner_id= $2::uuid \n        LIMIT 1\n      ),\n      updated AS (\n        UPDATE building_objects bo\n        SET\n          name = $3,\n          description = $4,\n          location = $5,\n          object_type = $6,\n          count = $7,\n          is_public = COALESCE($8::boolean, bo.is_public),\n          is_hazardous = COALESCE($9::boolean, bo.is_hazardous),\n          image_path = CASE\n            WHEN $10::boolean THEN NULL\n            WHEN $11::boolean THEN $12\n            ELSE bo.image_path\n          END,\n          image_mime_type = CASE\n            WHEN $10::boolean THEN NULL\n            WHEN $11::boolean THEN $13\n            ELSE bo.image_mime_type\n          END,\n          image_original_name = CASE\n            WHEN $10::boolean THEN NULL\n            WHEN $11::boolean THEN $14\n            ELSE bo.image_original_name\n          END,\n          image_size_bytes = CASE\n            WHEN $10::boolean THEN NULL\n            WHEN $11::boolean THEN $15\n            ELSE bo.image_size_bytes\n          END\n        FROM existing e\n        WHERE bo.id = e.id\n        RETURNING bo.*, e.image_path AS previous_image_path\n      )\n      SELECT * FROM updated;\n    `;\n\n    msg.params = [\n        object_id,\n        user_id,\n        name.trim(),\n        description ?? null,\n        String(location).trim(),\n        String(object_type).trim(),\n        parsedCount,\n        typeof is_public === 'boolean' ? is_public : true,\n        typeof is_hazardous === 'boolean' ? is_hazardous : false,\n        shouldRemoveImage,                            // $10\n        shouldReplaceImage,                           // $11\n        newImagePath,                                 // $12\n        newImageMimeType,                             // $13\n        newImageOriginalName,                         // $14\n        newImageSizeBytes   \n    ];\n\n    return [msg, null];\n})();",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 320,
+        "wires": [
+            [
+                "b1261b53ec82464f"
+            ],
+            [
+                "53e8cdadc3f8d289"
+            ]
+        ]
+    },
+    {
+        "id": "59a734fbd95e2156",
+        "type": "function",
+        "z": "d06cd639c922eac1",
+        "name": "function success",
+        "func": "// Function node after Postgres: map response + image_url + optional old-image cleanup\n\nconst rows = msg.payload;\nconst publicBaseUrl = (env.get('SEAWEED_PUBLIC_BASE_URL') || 'http://localhost:8888').replace(/\\/+$/, '');\nconst filerBaseUrl = (env.get('SEAWEED_FILER_INTERNAL_URL') || 'http://seaweed-filer:8888').replace(/\\/+$/, '');\nconst fetchFn = global.get('fetch') || globalThis.fetch;\n\nconst withImageUrl = (row) => {\n    if (!row || typeof row !== 'object') return row;\n    const imagePath = row.image_path || null;\n    const out = { ...row, image_url: imagePath ? `${publicBaseUrl}${imagePath}` : null };\n    delete out.previous_image_path;\n    return out;\n};\n\nreturn (async () => {\n    if (!rows || !rows.length) {\n        msg.statusCode = 404;\n        msg.payload = { error: 'Building object not found or permission denied.' };\n        return msg;\n    }\n\n    const row = rows[0];\n    const previousImagePath = row.previous_image_path || null;\n    const currentImagePath = row.image_path || null;\n\n    // cleanup old image when replaced or removed (best effort)\n    const shouldDeleteOld = previousImagePath && previousImagePath !== currentImagePath;\n    if (shouldDeleteOld && typeof fetchFn === 'function') {\n        try {\n            const delResp = await fetchFn(`${filerBaseUrl}${previousImagePath}`, { method: 'DELETE' });\n            if (!delResp.ok) {\n                node.warn(`Old image cleanup failed (${delResp.status}) for path: ${previousImagePath}`);\n            }\n        } catch (err) {\n            node.warn(`Old image cleanup error for path ${previousImagePath}: ${err.message || String(err)}`);\n        }\n    }\n\n    msg.statusCode = 200;\n    msg.payload = withImageUrl(row);\n    return msg;\n})();\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 540,
+        "wires": [
+            [
+                "53e8cdadc3f8d289"
+            ]
+        ]
+    },
+    {
+        "id": "53e8cdadc3f8d289",
+        "type": "http response",
+        "z": "d06cd639c922eac1",
+        "name": "building-object response",
+        "statusCode": "",
+        "headers": {},
+        "x": 870,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "2e4fa4be3e1e0f7b",
+        "type": "catch",
+        "z": "d06cd639c922eac1",
+        "name": "",
+        "scope": [
+            "b1261b53ec82464f"
+        ],
+        "uncaught": false,
+        "x": 650,
+        "y": 340,
+        "wires": [
+            [
+                "267814bf9324aa5f"
+            ]
+        ]
+    },
+    {
+        "id": "267814bf9324aa5f",
+        "type": "function",
+        "z": "d06cd639c922eac1",
+        "name": "handle db errors",
+        "func": "const err = msg.error;\nconst errMsg = err && err.message ? err.message : '';\n\n\n// 1. FOREIGN KEY VIOLATION (Specific to DELETE)\n// Code 23503: Occurs if you try to delete a building that is used in another table\nif (errMsg.includes('violates foreign key') || (err.code === '23503')) {\n    msg.statusCode = 409; // Conflict\n    msg.payload = { error: 'Cannot delete: This building object is referenced by other data.' };\n}\n\n// 2. INVALID DATA TYPE (e.g. Bad UUID string)\n// Code 22P02: Invalid text representation\nelse if (errMsg.includes('invalid input syntax') || (err.code === '22P02')) {\n    msg.statusCode = 400; // Bad Request\n    msg.payload = { error: 'Invalid ID format or data type.' };\n}\n\n// 3. GENERIC FALLBACK\nelse {\n    msg.statusCode = 500; // Internal Server Error\n    msg.payload = { error: 'Database error', details: errMsg };\n}\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 840,
+        "y": 340,
+        "wires": [
+            [
+                "53e8cdadc3f8d289"
+            ]
+        ]
+    },
+    {
+        "id": "e31dcaa5d3b910a4",
+        "type": "function",
+        "z": "d06cd639c922eac1",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg]; // Go to Output 2 (Error)\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    \n    msg.user = decoded; \n    \n    return [msg, null]; // Go to Output 1 (Success)\n\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 220,
+        "wires": [
+            [
+                "e134be949b22d8b4"
+            ],
+            [
+                "53e8cdadc3f8d289"
+            ]
+        ]
+    },
+    {
+        "id": "ec103b25c094b91e",
+        "type": "comment",
+        "z": "d06cd639c922eac1",
+        "name": "http://localhost:1880/api/objects/ID",
+        "info": "",
+        "x": 260,
+        "y": 60,
+        "wires": []
+    },
+    {
         "id": "2fe7fbaf7c4beb5b",
         "type": "http in",
         "z": "fcfa959b27f7d27c",
@@ -4973,200 +5126,5 @@
                 "2a4e92211ea6c8a6"
             ]
         ]
-    },
-    {
-        "id": "3cc11d24.ff01a2",
-        "type": "comment",
-        "z": "f6f2187d.f17ca8",
-        "name": "WARNING: please check you have started this container with a volume that is mounted to /data\\n otherwise any flow changes are lost when you redeploy or upgrade the container\\n (e.g. upgrade to a more recent node-red docker image).\\n  If you are using named volumes you can ignore this warning.\\n Double click or see info side panel to learn how to start Node-RED in Docker to save your work",
-        "info": "\nTo start docker with a bind mount volume (-v option), for example:\n\n```\ndocker run -it -p 1880:1880 -v /home/user/node_red_data:/data --name mynodered nodered/node-red\n```\n\nwhere `/home/user/node_red_data` is a directory on your host machine where you want to store your flows.\n\nIf you do not do this then you can experiment and redploy flows, but if you restart or upgrade the container the flows will be disconnected and lost. \n\nThey will still exist in a hidden data volume, which can be recovered using standard docker techniques, but that is much more complex than just starting with a named volume as described above.",
-        "x": 350,
-        "y": 80,
-        "wires": []
-    },
-    {
-        "id": "67e242a6fdfa39b6",
-        "type": "function",
-        "z": "f6f2187d.f17ca8",
-        "name": "open ifc file and convert to JSON",
-        "func": "const ifcData = msg.payload\nconst ifcBuffer = new Uint8Array(ifcData)\nconst modelID = context.get(\"webIfc\").OpenModel(ifcBuffer)\nconst fragments = context.get(\"components\").get(OBC.FragmentsManager);\nconst fragmentIfcLoader = context.get(\"components\").get(OBC.IfcLoader);\nconst exported = await context.get(\"exporter\").export(context.get(\"webIfc\"), modelID)\ncontext.get(\"webIfc\").CloseModel(modelID)\nmsg.payload = exported\nreturn msg\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "// Der Code hier wird ausgeführt,\n// wenn der Node gestartet wird\nconst components = new OBC.Components()\n//components.init()\ncontext.set(\"components\", components)\nconst exporter = components.get(OBC.IfcJsonExporter)\ncontext.set(\"exporter\", exporter)\n//node.log(JSON.stringify(exporter))\nconst webIfc = new WEBIFC.IfcAPI()\n//webIfc.SetWasmPath(\"https://unpkg.com/web-ifc@0.0.57/\", true)\n//webIfc.SetWasmPath(\"\",false)\n//node.log(util.inspect(webIfc))\nawait webIfc.Init()\ncontext.set(\"webIfc\", webIfc)\n//node.log(JSON.stringify(webIfc))\n//node.log('setup completed')\n",
-        "finalize": "",
-        "libs": [
-            {
-                "var": "OBC",
-                "module": "@thatopen/components"
-            },
-            {
-                "var": "WEBIFC",
-                "module": "web-ifc"
-            }
-        ],
-        "x": 220,
-        "y": 280,
-        "wires": [
-            [
-                "dd4e97322180a29f"
-            ]
-        ]
-    },
-    {
-        "id": "29efd0853df6ee13",
-        "type": "inject",
-        "z": "f6f2187d.f17ca8",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 140,
-        "y": 220,
-        "wires": [
-            [
-                "b8effc12f971c9b9"
-            ]
-        ]
-    },
-    {
-        "id": "b8effc12f971c9b9",
-        "type": "http request",
-        "z": "f6f2187d.f17ca8",
-        "name": "",
-        "method": "GET",
-        "ret": "bin",
-        "paytoqs": "ignore",
-        "url": "https://thatopen.github.io/engine_components/resources/small.ifc",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "senderr": false,
-        "headers": [],
-        "x": 310,
-        "y": 220,
-        "wires": [
-            [
-                "67e242a6fdfa39b6"
-            ]
-        ]
-    },
-    {
-        "id": "284c6fc27e3ce9c2",
-        "type": "debug",
-        "z": "f6f2187d.f17ca8",
-        "name": "debug 1",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 580,
-        "y": 340,
-        "wires": []
-    },
-    {
-        "id": "dd4e97322180a29f",
-        "type": "file",
-        "z": "f6f2187d.f17ca8",
-        "name": "",
-        "filename": "/data/test.json",
-        "filenameType": "str",
-        "appendNewline": true,
-        "createDir": false,
-        "overwriteFile": "true",
-        "encoding": "none",
-        "x": 400,
-        "y": 340,
-        "wires": [
-            [
-                "284c6fc27e3ce9c2"
-            ]
-        ]
-    },
-    {
-        "id": "e8ad80e4d0f32511",
-        "type": "comment",
-        "z": "f6f2187d.f17ca8",
-        "name": "download https://thatopen.github.io/engine_components/resources/small.ifc",
-        "info": "",
-        "x": 500,
-        "y": 180,
-        "wires": []
-    },
-    {
-        "id": "e49eac9b2532b6c4",
-        "type": "comment",
-        "z": "f6f2187d.f17ca8",
-        "name": "save as test.json",
-        "info": "",
-        "x": 400,
-        "y": 380,
-        "wires": []
-    },
-    {
-        "id": "1248ce57789522dd",
-        "type": "http in",
-        "z": "e8d2c400a518975b",
-        "name": "GET /test",
-        "url": "/test",
-        "method": "get",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 100,
-        "y": 40,
-        "wires": [
-            [
-                "9c7509f21076669f"
-            ]
-        ]
-    },
-    {
-        "id": "9c7509f21076669f",
-        "type": "template",
-        "z": "e8d2c400a518975b",
-        "name": "hello world (html)",
-        "field": "payload",
-        "fieldType": "msg",
-        "format": "html",
-        "syntax": "plain",
-        "template": "<html>\n    <head></head>\n    <body>\n        <h1>Hello World!</h1>\n    </body>\n</html>",
-        "output": "str",
-        "x": 290,
-        "y": 40,
-        "wires": [
-            [
-                "625e6556c0ae06ae"
-            ]
-        ]
-    },
-    {
-        "id": "625e6556c0ae06ae",
-        "type": "http response",
-        "z": "e8d2c400a518975b",
-        "name": "response",
-        "statusCode": "",
-        "headers": {},
-        "x": 480,
-        "y": 40,
-        "wires": []
     }
 ]

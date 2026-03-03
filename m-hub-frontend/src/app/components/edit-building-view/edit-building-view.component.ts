@@ -35,6 +35,7 @@ import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog
 import { BuildingPartService } from '../../services/building-part/building-part.service';
 import { BuildingObjectService } from '../../services/building-object/building-object.service';
 import { AddObjectDialogComponent, AddObjectDialogResult } from '../dialogs/add-object-dialog/add-object-dialog.component';
+import { EditObjectDialogComponent, EditObjectDialogData, EditObjectDialogResult } from '../dialogs/edit-object-dialog/edit-object-dialog.component';
 import { AddDocumentDialogComponent, AddDocumentDialogResult } from '../dialogs/add-document-dialog/add-document-dialog.component';
 import { EntityInfoDialogComponent } from '../dialogs/entity-info-dialog/entity-info-dialog.component';
 import { finalize } from 'rxjs';
@@ -373,6 +374,88 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
           error: error => {
             console.error('Error creating object:', error);
             this.snackBar.open('Fehler beim Hinzufügen des Objekts!', 'OK', {
+              duration: 10000,
+              verticalPosition: 'top',
+              panelClass: 'snackbar-warn'
+            });
+          }
+        });
+    });
+  }
+
+  openEditBuildingObjectDialog(object: Objekt): void {
+    if (!this.userBuilding) return;
+
+    const userBuilding = this.userBuilding;
+    const dialogRef = this.dialog.open<EditObjectDialogComponent, EditObjectDialogData, EditObjectDialogResult>(
+      EditObjectDialogComponent,
+      {
+        panelClass: 'custom-dialog',
+        disableClose: true,
+        autoFocus: false,
+        data: {
+          structure: userBuilding.structure ?? [],
+          object
+        }
+      }
+    );
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
+
+      const parsedCount = Number(result.number);
+      const count = Number.isInteger(parsedCount) && parsedCount >= 1 ? parsedCount : 1;
+
+      const payload: Objekt & {
+        image_data_url?: string;
+        image_mime_type?: string;
+        image_original_name?: string;
+        remove_image?: boolean;
+      } = {
+        ...object,
+        name: result.name,
+        description: result.description ?? undefined,
+        object_type: result.objectType,
+        count,
+        location: result.location,
+        is_public: result.isPublic ?? true,
+        is_hazardous: result.isHazardous ?? false
+      };
+
+      if (result.imagePreviewUrl && result.imageFile) {
+        payload.image_data_url = result.imagePreviewUrl;
+        payload.image_mime_type = result.imageFile.type || undefined;
+        payload.image_original_name = result.imageFileName || result.imageFile.name || undefined;
+      }
+
+      if (result.removeExistingImage) {
+        payload.remove_image = true;
+        payload.image_path = undefined;
+        payload.image_url = undefined;
+        payload.image_mime_type = undefined;
+        payload.image_original_name = undefined;
+        payload.image_size_bytes = undefined;
+      }
+
+      this.isLoadingObjects = true;
+
+      this.buildingObjectService.updateComponent(payload as Objekt)
+        .pipe(finalize(() => this.isLoadingObjects = false))
+        .subscribe({
+          next: updatedObject => {
+            this.buildingObjects = this.buildingObjects.map(current =>
+              current.id === updatedObject.id ? updatedObject : current
+            );
+          },
+          complete: () => {
+            this.snackBar.open('Gebäudeobjekt aktualisiert.', 'OK', {
+              duration: 3000,
+              verticalPosition: 'top'
+            });
+          },
+          error: error => {
+            console.error('Error updating object:', error);
+            this.snackBar.open('Fehler beim Aktualisieren des Gebäudeobjekts!', 'OK', {
               duration: 10000,
               verticalPosition: 'top',
               panelClass: 'snackbar-warn'
