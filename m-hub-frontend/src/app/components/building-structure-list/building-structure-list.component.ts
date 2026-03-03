@@ -89,18 +89,13 @@ export class BuildingStructureListComponent implements OnInit {
   animationsDisabled = true;
 
   ngOnInit(): void {
-    // If empty (Add Mode), initialize default
-    if (!this.structure || this.structure.length === 0) {
-      this.structure = [
-        { type: FloorType.D } as RoofFloor, 
-        this.createRegularFloor()
-      ];
-    }
+    this.normalizeStructure();
+
     // Prevent animation on load
     setTimeout(() => this.animationsDisabled = false);
 
-    // Initial validity check
-    this.emitChanges();
+    // Initial emit must be deferred to avoid ExpressionChangedAfterItHasBeenCheckedError
+    queueMicrotask(() => this.emitChanges());
   }
 
   // --- Getters ---
@@ -112,6 +107,20 @@ export class BuildingStructureListComponent implements OnInit {
   }
   get basementFloors(): StandardFloor[] {
     return this.structure.filter(f => f.type === FloorType.KG) as StandardFloor[];
+  }
+
+  private normalizeStructure(): void {
+    const source = Array.isArray(this.structure) ? this.structure : [];
+
+    const roof = source.find(f => f.type === FloorType.D) as RoofFloor | undefined;
+    const regular = source.filter(f => f.type === FloorType.RG) as StandardFloor[];
+    const basement = source.filter(f => f.type === FloorType.KG) as StandardFloor[];
+
+    this.structure = [
+      roof ?? ({ type: FloorType.D } as RoofFloor),
+      ...(regular.length > 0 ? regular : [this.createRegularFloor()]),
+      ...basement
+    ];
   }
 
   private createRegularFloor(): StandardFloor {

@@ -26,6 +26,10 @@ class FloorSelectMatcher implements ErrorStateMatcher {
   }
 }
 
+type AddBuildingDialogData = {
+  structure?: Floor[] | null;
+};
+
 @Component({
   selector: 'app-add-building-dialog',
   standalone: true,
@@ -105,26 +109,19 @@ export class AddBuildingDialogComponent {
   floorSvgUrl = 'assets/images/geschoss.svg';
   roofSvgUrl = 'assets/images/dach.svg';
 
-  structureIsAvailable: boolean = false;
-  confirmStructureChange: boolean = false;
-
   matcher = new FloorSelectMatcher();
 
   animationsDisabled = true;
 
   constructor(
     public dialogRef: MatDialogRef<AddBuildingDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: AddBuildingDialogData | null
   ) {
-    // const isValidStructure = !!(data.structure && data.structure.length === 3);
-    // this.structureIsAvailable = isValidStructure;
+    const incomingStructure = data?.structure;
+    this.structure = Array.isArray(incomingStructure)
+      ? incomingStructure.filter(this.isFloor).map(floor => ({ ...floor })) as Floor[]
+      : [];
   }
-
-  // // ngOnInit(): void {
-  // //   if (this.structureIsAvailable && this.data.structure) {
-  // //     this.originalStructure = [...this.data.structure];
-  // //   }
-  // // }
 
   getNameError(): string | null {
     if (this.name.trim().length === 0) {
@@ -147,20 +144,21 @@ export class AddBuildingDialogComponent {
   confirmAddBuilding(): void {
     if (!this.isFormValid()) return;
 
-    // if (this.hasStructureChanged() && !this.confirmStructureChange) return;
-
     const trimmedAddress = this.normalizeOptionalInput(this.address);
     
     this.dialogRef.close({
       name: this.name.trim(),
       address: trimmedAddress,
       structure: this.structure
-      // structureChanged: this.hasStructureChanged()
     });
   }
 
   close(): void {
     this.dialogRef.close();
+  }
+
+  private isFloor(value: unknown): value is Floor {
+    return !!value && typeof value === 'object' && 'type' in value;
   }
 
 }

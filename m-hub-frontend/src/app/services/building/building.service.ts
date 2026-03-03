@@ -17,21 +17,21 @@ export class BuildingService {
 
   // --- Base building ---
 
-    /**
+  /**
    * GET /api/buildings/:buildingId
    */
   getBuildingById(buildingId: string): Observable<Building> {
     return this.http.get<Building>(`${this.buildingsUrl}/${buildingId}`);
   } 
 
-    /**
+  /**
    * GET /api/buildings/:buildingId/components
    */ 
   getAllComponentsByBuilding(buildingId: string): Observable<BuildingComponent[]> {
     return this.http.get<BuildingComponent[]>(`${this.buildingsUrl}/${buildingId}/components`);
   }
 
-    /**
+  /**
    * GET /api/buildings/:buildingId/latest-structure
    */
   getLatestBuildingStructure(buildingId: string): Observable<Floor[]> {

@@ -47,6 +47,14 @@ $my-theme: mat.define-light-theme((
   }
 }
 
+.snackbar-above-dialog {
+  z-index: 2100 !important;
+}
+
+.cdk-overlay-container .cdk-global-overlay-wrapper:has(.snackbar-above-dialog) {
+  z-index: 2100 !important;
+}
+
 .custom-dialog, .mat-dialog-container {
   width: 1200px;
   max-width: 90vw;
