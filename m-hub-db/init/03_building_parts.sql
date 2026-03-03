@@ -60,11 +60,11 @@ SELECT
 FROM (
     VALUES
     -- building_id, owner_id, category, location, name, description, part_type, is_public
-    ('5312213', '79e7432d-f1a0-4f31-9469-1e27b8d8c6cd'::uuid, 'Bauteil', 'RG1', 'Außenwand', 'Wandaufbau des Kellers', 'Wand', FALSE, TRUE),
-    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'KG1', 'Kaminwand', 'Kaminwand des Gebäudes', 'Wand', TRUE, FALSE),
-    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'KG2', 'Gebäudefundament', 'Fundament des Gebäudes', 'Boden', FALSE, FALSE),
-    ('5363852', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'RG3', 'Aufzugsschachtwand', 'Aufzugsschacht', 'Wand', TRUE, FALSE),
-    ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Bauteil', 'D', 'Dach', 'Dach des Gebäudes', 'Dachaufbau', FALSE, FALSE)
+    ('5312213', '79e7432d-f1a0-4f31-9469-1e27b8d8c6cd'::uuid, 'Bauteil', 'Regelgeschoss 1', 'Außenwand', 'Wandaufbau des Kellers', 'Wand', FALSE, TRUE),
+    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'Kellergeschoss 1', 'Kaminwand', 'Kaminwand des Gebäudes', 'Wand', TRUE, FALSE),
+    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'Kellergeschoss 2', 'Gebäudefundament', 'Fundament des Gebäudes', 'Boden', FALSE, FALSE),
+    ('5363852', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'Regelgeschoss 1', 'Aufzugsschachtwand', 'Aufzugsschacht', 'Wand', TRUE, FALSE),
+    ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Bauteil', 'Dach', 'Dachaufbau', 'Dach des Gebäudes', 'Dachaufbau', FALSE, FALSE)
 ) AS src(building_id, owner_id, category, location, name, description, part_type, is_public, is_hazardous)
 JOIN user_buildings ub 
   ON ub.building_id = src.building_id 

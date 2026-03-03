@@ -37,8 +37,10 @@ VALUES
 ('c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, '5397325',
  '[
     {"type": "Dach", "roofType": "Flachdach"},
-    {"type": "Regelgeschoss", "count": 4, "height": 300, "area": 520},
-    {"type": "Kellergeschoss", "count": 1, "height": 270, "area": 500}
+    {"type": "Regelgeschoss", "count": 3, "height": 300, "area": 520},
+    {"type": "Regelgeschoss", "count": 1, "height": 340, "area": 520, "description": "Erdgeschoss"},
+    {"type": "Kellergeschoss", "count": 1, "height": 270, "area": 500},
+    {"type": "Kellergeschoss", "count": 1, "height": 270, "area": 430}
  ]',
  'ÖBB Zentrale',
  NULL
