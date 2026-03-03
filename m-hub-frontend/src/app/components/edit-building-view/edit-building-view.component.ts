@@ -146,9 +146,9 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
 
   private suppressStructureAnimationsOnce(): void {
     this.suppressStructureAnimations = true;
-    Promise.resolve().then(() => {
+    setTimeout(() => {
       this.suppressStructureAnimations = false;
-    });
+    }, 0);
   }
 
   private initializeFromBuilding(building: UserBuilding): void {

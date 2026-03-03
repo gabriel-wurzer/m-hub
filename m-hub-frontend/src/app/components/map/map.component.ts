@@ -129,20 +129,25 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onBuildingUpdated(updated: UserBuilding): void {
-    if (!updated || !this.selectedBuilding) return;
-    const existing = this.selectedBuilding.userBuilding;
-    if (existing && existing.id === updated.id) {
-      this.selectedBuilding = {
-        ...this.selectedBuilding,
-        userBuilding: { ...existing, ...updated }
-      };
-      return;
+    if (!updated) return;
+
+    if (this.selectedBuilding) {
+      const existing = this.selectedBuilding.userBuilding;
+      if (existing && existing.id === updated.id) {
+        this.selectedBuilding = {
+          ...this.selectedBuilding,
+          userBuilding: { ...existing, ...updated }
+        };
+      } else if (this.selectedBuilding.bw_geb_id === updated.building_id) {
+        this.selectedBuilding = {
+          ...this.selectedBuilding,
+          userBuilding: { ...(existing ?? ({} as UserBuilding)), ...updated }
+        };
+      }
     }
-    if (this.selectedBuilding.bw_geb_id === updated.building_id) {
-      this.selectedBuilding = {
-        ...this.selectedBuilding,
-        userBuilding: { ...(existing ?? ({} as UserBuilding)), ...updated }
-      };
+
+    if (this.editingBuilding?.id === updated.id) {
+      this.editingBuilding = { ...this.editingBuilding, ...updated };
     }
   }
 
