@@ -67,6 +67,10 @@ $my-theme: mat.define-light-theme((
     width: 96vw !important;
     max-width: 96vw !important;
   }
+
+  app-structure-details .mat-expansion-panel .mat-expansion-panel-body {
+    padding: 0 0 10px !important;
+  }
 }
 
 
