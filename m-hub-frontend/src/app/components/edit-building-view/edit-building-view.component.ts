@@ -23,7 +23,7 @@ import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { Bauteil, BuildingComponent, CreateObjektPayload, Objekt } from '../../models/building-component';
-import { CreateDocumentPayload, Document } from '../../models/document';
+import { Document, CreateDocumentPayload, UpdateDocumentPayload } from '../../models/document';
 import { Floor } from '../../models/floor';
 import { FloorType } from '../../enums/floor-type.enum';
 import { RoofType } from '../../enums/roof-type.enum';
@@ -37,6 +37,7 @@ import { BuildingObjectService } from '../../services/building-object/building-o
 import { AddObjectDialogComponent, AddObjectDialogResult } from '../dialogs/add-object-dialog/add-object-dialog.component';
 import { EditObjectDialogComponent, EditObjectDialogData, EditObjectDialogResult } from '../dialogs/edit-object-dialog/edit-object-dialog.component';
 import { AddDocumentDialogComponent, AddDocumentDialogResult } from '../dialogs/add-document-dialog/add-document-dialog.component';
+import { EditDocumentDialogComponent, EditDocumentDialogData, EditDocumentDialogResult } from '../dialogs/edit-document-dialog/edit-document-dialog.component';
 import { EntityInfoDialogComponent } from '../dialogs/entity-info-dialog/entity-info-dialog.component';
 import { finalize } from 'rxjs';
 import { BuildingComponentCategory } from '../../enums/component-category';
@@ -510,6 +511,64 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
           error: error => {
             console.error('Error creating document:', error);
             this.snackBar.open('Fehler beim Hinzufügen des Dokuments!', 'OK', {
+              duration: 10000,
+              verticalPosition: 'top',
+              panelClass: 'snackbar-warn'
+            });
+          }
+        });
+    });
+  }
+
+  openEditDocumentDialog(document: Document): void {
+    const dialogRef = this.dialog.open<EditDocumentDialogComponent, EditDocumentDialogData, EditDocumentDialogResult>(
+      EditDocumentDialogComponent,
+      {
+        panelClass: 'custom-dialog',
+        disableClose: true,
+        autoFocus: false,
+        data: {
+          document
+        }
+      }
+    );
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
+
+      const payload: UpdateDocumentPayload = {
+        id: document.id,
+        name: result.name,
+        description: result.description ?? undefined,
+        is_public: result.isPublic ?? false
+      };
+
+      if (result.replaceExistingFile && result.fileDataUrl && result.fileType) {
+        payload.file_data_url = result.fileDataUrl;
+        payload.file_mime_type = result.fileMimeType ?? undefined;
+        payload.file_original_name = result.fileName || result.file?.name || undefined;
+        payload.file_type = result.fileType;
+      }
+
+      this.isLoadingDocuments = true;
+
+      this.documentService.updateDocument(payload)
+        .pipe(finalize(() => this.isLoadingDocuments = false))
+        .subscribe({
+          next: updatedDocument => {
+            this.documents = this.documents.map(current =>
+              current.id === updatedDocument.id ? updatedDocument : current
+            );
+          },
+          complete: () => {
+            this.snackBar.open('Dokument aktualisiert.', 'OK', {
+              duration: 3000,
+              verticalPosition: 'top'
+            });
+          },
+          error: error => {
+            console.error('Error updating document:', error);
+            this.snackBar.open('Fehler beim Aktualisieren des Dokuments!', 'OK', {
               duration: 10000,
               verticalPosition: 'top',
               panelClass: 'snackbar-warn'
