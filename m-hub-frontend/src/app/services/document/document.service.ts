@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CreateDocumentPayload, Document } from '../../models/document';
+import { CreateDocumentPayload, Document, UpdateDocumentPayload } from '../../models/document';
 
 @Injectable({
   providedIn: 'root'
@@ -39,7 +39,7 @@ export class DocumentService {
     return this.http.post<Document>(this.apiUrl, document);
   }
 
-  updateDocument(document: Document): Observable<Document> {
+  updateDocument(document: UpdateDocumentPayload): Observable<Document> {
     return this.http.put<Document>(`${this.apiUrl}/${document.id}`, document);
   }
 

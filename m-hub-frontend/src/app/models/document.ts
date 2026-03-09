@@ -28,3 +28,14 @@ export type CreateDocumentPayload = {
     file_original_name?: string;
     file_type?: FileType;
 };
+
+export type UpdateDocumentPayload = {
+    id: string;
+    name: string;
+    description?: string;
+    is_public: boolean;
+    file_data_url?: string;
+    file_mime_type?: string;
+    file_original_name?: string;
+    file_type?: FileType;
+};
