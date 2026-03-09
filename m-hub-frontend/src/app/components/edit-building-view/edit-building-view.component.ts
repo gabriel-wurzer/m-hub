@@ -22,7 +22,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { Bauteil, BuildingComponent, CreateObjektPayload, Objekt } from '../../models/building-component';
+import { BuildingComponent, Bauteil, Objekt, CreateObjektPayload, UpdateObjektPayload } from '../../models/building-component';
 import { Document, CreateDocumentPayload, UpdateDocumentPayload } from '../../models/document';
 import { Floor } from '../../models/floor';
 import { FloorType } from '../../enums/floor-type.enum';
@@ -407,13 +407,8 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
       const parsedCount = Number(result.number);
       const count = Number.isInteger(parsedCount) && parsedCount >= 1 ? parsedCount : 1;
 
-      const payload: Objekt & {
-        image_data_url?: string;
-        image_mime_type?: string;
-        image_original_name?: string;
-        remove_image?: boolean;
-      } = {
-        ...object,
+      const payload: UpdateObjektPayload = {
+        id: object.id,
         name: result.name,
         description: result.description ?? undefined,
         object_type: result.objectType,
@@ -431,16 +426,11 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
 
       if (result.removeExistingImage) {
         payload.remove_image = true;
-        payload.image_path = undefined;
-        payload.image_url = undefined;
-        payload.image_mime_type = undefined;
-        payload.image_original_name = undefined;
-        payload.image_size_bytes = undefined;
       }
 
       this.isLoadingObjects = true;
 
-      this.buildingObjectService.updateComponent(payload as Objekt)
+      this.buildingObjectService.updateComponent(payload)
         .pipe(finalize(() => this.isLoadingObjects = false))
         .subscribe({
           next: updatedObject => {

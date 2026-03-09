@@ -6,7 +6,7 @@ import { BuildingComponent } from '../../models/building-component';
 @Injectable({
   providedIn: 'root'
 })
-export abstract class BuildingComponentService<T extends BuildingComponent, TCreate = T> {
+export abstract class BuildingComponentService<T extends BuildingComponent, TCreate = T, TUpdate extends { id: string } = T> {
 
   protected abstract apiUrl: string;  // To be set in subclasses
 
@@ -24,7 +24,7 @@ export abstract class BuildingComponentService<T extends BuildingComponent, TCre
     return this.http.post<T>(this.apiUrl, component);
   }
 
-  updateComponent(component: T): Observable<T> {
+  updateComponent(component: TUpdate): Observable<T> {
     return this.http.put<T>(`${this.apiUrl}/${component.id}`, component);
   }
 

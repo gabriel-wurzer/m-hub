@@ -53,3 +53,19 @@ export type CreateObjektPayload = {
     image_mime_type?: string;
     image_original_name?: string;
 };
+
+export type UpdateObjektPayload = {
+    id: string;
+    name: string;
+    description?: string;
+    is_public: boolean;
+    is_hazardous: boolean;
+    object_type: ObjectType;
+    count: number;
+    location: string;
+    image_data_url?: string;
+    image_mime_type?: string;
+    image_original_name?: string;
+    remove_image?: boolean;
+    removeExistingImage?: boolean;
+};
