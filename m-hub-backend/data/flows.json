@@ -105,6 +105,14 @@
         "env": []
     },
     {
+        "id": "b0d4ef51448e4ddc",
+        "type": "tab",
+        "label": "UPDATE Document",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "b48f11fbab89934d",
         "type": "tab",
         "label": "DELETE Document",
@@ -2171,6 +2179,251 @@
         "wires": []
     },
     {
+        "id": "0c915398e2399649",
+        "type": "http in",
+        "z": "b0d4ef51448e4ddc",
+        "name": "UPDATE document",
+        "url": "/api/documents/:ID",
+        "method": "put",
+        "upload": true,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 160,
+        "wires": [
+            [
+                "936dfbfaae0aa2af"
+            ]
+        ]
+    },
+    {
+        "id": "f5d6ada4d34fa72d",
+        "type": "postgresql",
+        "z": "b0d4ef51448e4ddc",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 400,
+        "y": 500,
+        "wires": [
+            [
+                "e634b24a01eb75c2",
+                "679a55e1f5f15232"
+            ]
+        ]
+    },
+    {
+        "id": "83cafdf1a87c902e",
+        "type": "function",
+        "z": "b0d4ef51448e4ddc",
+        "name": "build SQL query",
+        "func": "// Extract user id securely from JWT\nconst user_id = msg.user?.sub;\n\n// Extract data\nconst document_id = msg.req.params.ID;\n\n// Extract data from payload\nconst {\n    name,\n    description,\n    is_public,\n    file_data_url,\n    file_mime_type,\n    file_original_name,\n    file_type,\n    remove_file,\n    removeExistingFile\n} = msg.payload || {};\n\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nconst normalizeOptionalText = (value) => {\n    if (typeof value !== 'string') return null;\n    const trimmed = value.trim();\n    return trimmed.length ? trimmed : null;\n};\n\nconst normalizeRequiredText = (value) => {\n    if (typeof value !== 'string') return '';\n    return value.trim();\n};\n\nconst extractExtension = (fileName) => {\n    const normalized = normalizeOptionalText(fileName);\n    if (!normalized || !normalized.includes(\".\")) return null;\n    const ext = normalized.split(\".\").pop();\n    return ext ? ext.toLowerCase() : null;\n};\n\nconst sanitizeFileName = (name, fallback) => {\n    const normalized = normalizeOptionalText(name) || fallback;\n    return normalized\n        .replace(/[^a-zA-Z0-9._-]/g, \"_\")\n        .replace(/_+/g, \"_\")\n        .slice(0, 180);\n};\n\nconst extensionByMime = {\n    // Images\n    'image/png': 'png',\n    'image/jpeg': 'jpg',\n    'image/jpg': 'jpg',\n    'image/gif': 'gif',\n    'image/bmp': 'bmp',\n    'image/tiff': 'tiff',\n    'image/svg+xml': 'svg',\n    'image/webp': 'webp',\n    // Docs\n    'application/pdf': 'pdf',\n    'application/msword': 'doc',\n    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',\n    'text/plain': 'txt',\n    'application/rtf': 'rtf',\n    'application/vnd.oasis.opendocument.text': 'odt',\n    'text/html': 'html',\n    'text/markdown': 'md',\n    'text/csv': 'csv',\n    'application/csv': 'csv',\n    'application/vnd.ms-excel': 'xlsx',\n    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',\n    'application/vnd.ms-excel.sheet.macroenabled.12': 'xlsm',\n    // 3D Objects\n    'application/sla': 'stl',\n    'application/vnd.ms-pki.stl': 'stl',\n    'application/x-ply': 'ply',\n    'model/ply': 'ply',\n    'model/obj': 'obj',\n    'model/stl': 'stl',\n    'model/gltf-binary': 'glb',\n    'model/gltf+json': 'gltf',\n    'application/octet-stream+fbx': 'fbx',\n    'application/x-step': 'ifc',\n    'application/vnd.las': 'las',\n    'application/x-las': 'las',  \n    'application/x-laz': 'laz',\n    'application/octet-stream': 'e57'\n};\n\nconst allowedFileTypes = new Set([\n    'jpg', 'png', 'gif', 'bmp', 'tiff', 'svg', 'webp',\n    'pdf', 'doc', 'docx', 'txt', 'rtf', 'odt', 'html', 'md',\n    'csv', 'xlsx', 'xlsm',\n    'e57', 'obj', 'stl', 'ply', 'glb', 'gltf', 'fbx', 'ifc', 'las', 'laz'\n]);\n\n\nreturn (async () => {\n    // Validate required fields\n    if (!user_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'user_id is missing' };\n        return [null, msg];\n    }\n\n    if (!uuidRegex.test(user_id)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid user ID format' };\n        return [null, msg];\n    }\n\n    if (!document_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: \"document_id is missing (expected path param :id)\" };\n        return [null, msg];\n    }\n\n    if (!uuidRegex.test(document_id)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid document ID format' };\n        return [null, msg];\n    }\n\n    const normalizedName = normalizeRequiredText(name);\n    if (!normalizedName) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'name is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    // File replace/remove logic\n    const wantsRemoveFile = remove_file === true || removeExistingFile === true;\n    const rawFileDataUrl = normalizeOptionalText(file_data_url);\n    const hasNewFile = !!rawFileDataUrl;\n\n    // Replace old with new file\n    const shouldReplaceFile = hasNewFile;\n    const shouldRemoveFile = !hasNewFile && wantsRemoveFile;\n\n    let newFilePath = null;\n    let resolvedFileType = null;\n    let resolvedMimeType = null;\n\n\n     if (hasNewFile) {\n        const dataUrlMatch = rawFileDataUrl.match(/^data:([^;]+);base64,(.+)$/i);\n        if (!dataUrlMatch) {\n            msg.statusCode = 400;\n            msg.payload = { error: \"Invalid file_data_url format. Expected data URL.\" };\n            return [null, msg];\n        }\n\n        const parsedMimeType = String(dataUrlMatch[1]).toLowerCase();\n        const providedMimeType = normalizeOptionalText(file_mime_type);\n        resolvedMimeType = (providedMimeType || parsedMimeType || \"\").toLowerCase();\n\n        let fileBuffer;\n        try {\n            fileBuffer = Buffer.from(dataUrlMatch[2], \"base64\");\n        } catch (err) {\n            msg.statusCode = 400;\n            msg.payload = { error: \"Invalid base64 file payload.\" };\n            return [null, msg];\n        }\n\n        if (!fileBuffer || !fileBuffer.length) {\n            msg.statusCode = 400;\n            msg.payload = { error: \"File payload is empty.\" };\n            return [null, msg];\n        }\n\n        const maxFileBytes = 1000 * 1024 * 1024; // 1 GB\n        if (fileBuffer.length > maxFileBytes) {\n            msg.statusCode = 400;\n            msg.payload = { error: \"File is too large. Maximum 1 GB allowed.\" };\n            return [null, msg];\n        }\n\n        const requestedFileType = normalizeOptionalText(file_type)?.toLowerCase() || null;\n        const extensionFromName = extractExtension(file_original_name);\n        const extensionFromMime = extensionByMime[resolvedMimeType] || null;\n\n        resolvedFileType = (requestedFileType || extensionFromName || extensionFromMime || \"\").toLowerCase();\n        if (!resolvedFileType || !allowedFileTypes.has(resolvedFileType)) {\n            msg.statusCode = 400;\n            msg.payload = { error: \"Unsupported or missing file_type.\" };\n            return [null, msg];\n        }\n\n        const fallbackName = \"file.\" + resolvedFileType;\n        const storedFileName = sanitizeFileName(file_original_name, fallbackName);\n        newFilePath = \"/mhub/documents/\" + String(user_id) + \"/\" + String(document_id) + \"/\" + storedFileName;\n\n        const filerBaseUrl = (env.get(\"SEAWEED_FILER_INTERNAL_URL\") || \"http://seaweed-filer:8888\").replace(/\\/+$/, \"\");\n        const fetchFn = global.get(\"fetch\") || globalThis.fetch;\n\n        if (typeof fetchFn !== \"function\") {\n            msg.statusCode = 500;\n            msg.payload = { error: \"Server does not support fetch API for Seaweed upload.\" };\n            return [null, msg];\n        }\n\n        let uploadResponse;\n        try {\n            uploadResponse = await fetchFn(filerBaseUrl + newFilePath, {\n                method: \"PUT\",\n                headers: { \"Content-Type\": resolvedMimeType || \"application/octet-stream\" },\n                body: fileBuffer\n            });\n        } catch (err) {\n            msg.statusCode = 502;\n            msg.payload = {\n                error: \"Failed to upload file to document storage.\",\n                details: err.message || String(err)\n            };\n            return [null, msg];\n        }\n\n        if (!uploadResponse.ok) {\n            const details = await uploadResponse.text().catch(() => \"\");\n            msg.statusCode = 502;\n            msg.payload = {\n                error: \"Document storage rejected file upload.\",\n                details: details || (\"HTTP \" + uploadResponse.status)\n            };\n            return [null, msg];\n        }\n    }\n\n    // --- SQL ---\n    msg.query = `\n      WITH existing AS (\n        SELECT id, file_url\n        FROM documents\n        WHERE id = $1::uuid AND owner_id = $2::uuid\n        LIMIT 1\n      ),\n      updated AS (\n        UPDATE documents d\n        SET\n          name = $3,\n          description = $4,\n          is_public = COALESCE($5::boolean, d.is_public),\n          file_url = CASE\n            WHEN $6::boolean THEN NULL\n            WHEN $7::boolean THEN $8\n            ELSE d.file_url\n          END,\n          file_type = CASE\n            WHEN $6::boolean THEN NULL\n            WHEN $7::boolean THEN $9\n            ELSE d.file_type\n          END\n        FROM existing e\n        WHERE d.id = e.id\n        RETURNING d.*, e.file_url AS previous_file_url\n      )\n      SELECT * FROM updated;\n    `;\n\n    msg.params = [\n        document_id,                                    // $1\n        user_id,                                        // $2\n        normalizedName,                                 // $3\n        normalizeOptionalText(description),             // $4\n        typeof is_public === \"boolean\" ? is_public : null, // $5\n        shouldRemoveFile,                               // $6\n        shouldReplaceFile,                              // $7\n        newFilePath,                                    // $8\n        resolvedFileType                                // $9\n    ];\n\n    return [msg, null];\n})();",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 380,
+        "wires": [
+            [
+                "f5d6ada4d34fa72d",
+                "b642487370132d54"
+            ],
+            [
+                "9d043f89a14a0c8b"
+            ]
+        ]
+    },
+    {
+        "id": "e634b24a01eb75c2",
+        "type": "function",
+        "z": "b0d4ef51448e4ddc",
+        "name": "function success",
+        "func": "// Function node after Postgres: map response + file_url + optional old-file cleanup\n\nconst rows = msg.payload;\nconst publicBaseUrl = (env.get('SEAWEED_PUBLIC_BASE_URL') || 'http://localhost:8888').replace(/\\/+$/, '');\nconst filerBaseUrl = (env.get('SEAWEED_FILER_INTERNAL_URL') || 'http://seaweed-filer:8888').replace(/\\/+$/, '');\nconst fetchFn = global.get('fetch') || globalThis.fetch;\n\nconst isHttpUrl = (value) => /^https?:\\/\\//i.test(value || '');\n\nconst withResolvedFileUrl = (row) => {\n    if (!row || typeof row !== 'object') return row;\n\n    const rawFileUrl = typeof row.file_url === 'string' ? row.file_url.trim() : '';\n    const out = { ...row };\n\n    if (!rawFileUrl) {\n        out.file_url = null;\n    } else if (isHttpUrl(rawFileUrl)) {\n        out.file_url = rawFileUrl;\n    } else {\n        out.file_url = `${publicBaseUrl}${rawFileUrl}`;\n    }\n\n    delete out.previous_file_url;\n    return out;\n};\n\nreturn (async () => {\n    if (!Array.isArray(rows) || rows.length === 0) {\n        msg.statusCode = 404;\n        msg.payload = { error: 'Document not found or permission denied.' };\n        return msg;\n    }\n\n    const row = rows[0];\n    const previousFileUrl = typeof row.previous_file_url === 'string' ? row.previous_file_url.trim() : '';\n    const currentFileUrl = typeof row.file_url === 'string' ? row.file_url.trim() : '';\n\n    // Only delete old file from filer if it is a relative storage path and changed\n    const shouldDeleteOld =\n        previousFileUrl &&\n        !isHttpUrl(previousFileUrl) &&\n        previousFileUrl !== currentFileUrl;\n\n    if (shouldDeleteOld && typeof fetchFn === 'function') {\n        try {\n            const delResp = await fetchFn(`${filerBaseUrl}${previousFileUrl}`, { method: 'DELETE' });\n            if (!delResp.ok) {\n                node.warn(`Old document cleanup failed (${delResp.status}) for path: ${previousFileUrl}`);\n            }\n        } catch (err) {\n            node.warn(`Old document cleanup error for path ${previousFileUrl}: ${err.message || String(err)}`);\n        }\n    }\n\n    msg.statusCode = 200;\n    msg.payload = withResolvedFileUrl(row);\n    return msg;\n})();\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 620,
+        "wires": [
+            [
+                "9d043f89a14a0c8b",
+                "9b5ef475f9506da6"
+            ]
+        ]
+    },
+    {
+        "id": "9d043f89a14a0c8b",
+        "type": "http response",
+        "z": "b0d4ef51448e4ddc",
+        "name": "building-object response",
+        "statusCode": "",
+        "headers": {},
+        "x": 870,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "6dfd9723b54e5483",
+        "type": "catch",
+        "z": "b0d4ef51448e4ddc",
+        "name": "",
+        "scope": [
+            "f5d6ada4d34fa72d"
+        ],
+        "uncaught": false,
+        "x": 650,
+        "y": 380,
+        "wires": [
+            [
+                "278cef69695ec5ba",
+                "d9c58bf43e1b797a"
+            ]
+        ]
+    },
+    {
+        "id": "278cef69695ec5ba",
+        "type": "function",
+        "z": "b0d4ef51448e4ddc",
+        "name": "handle db errors",
+        "func": "const err = msg.error;\nconst errMsg = err && err.message ? err.message : '';\n\n\n// 1. FOREIGN KEY VIOLATION (Specific to DELETE)\n// Code 23503: Occurs if you try to delete a building that is used in another table\nif (errMsg.includes('violates foreign key') || (err.code === '23503')) {\n    msg.statusCode = 409; // Conflict\n    msg.payload = { error: 'Cannot delete: This building object is referenced by other data.' };\n}\n\n// 2. INVALID DATA TYPE (e.g. Bad UUID string)\n// Code 22P02: Invalid text representation\nelse if (errMsg.includes('invalid input syntax') || (err.code === '22P02')) {\n    msg.statusCode = 400; // Bad Request\n    msg.payload = { error: 'Invalid ID format or data type.' };\n}\n\n// 3. GENERIC FALLBACK\nelse {\n    msg.statusCode = 500; // Internal Server Error\n    msg.payload = { error: 'Database error', details: errMsg };\n}\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 840,
+        "y": 380,
+        "wires": [
+            [
+                "9d043f89a14a0c8b"
+            ]
+        ]
+    },
+    {
+        "id": "936dfbfaae0aa2af",
+        "type": "function",
+        "z": "b0d4ef51448e4ddc",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg]; // Go to Output 2 (Error)\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    \n    msg.user = decoded; \n    \n    return [msg, null]; // Go to Output 1 (Success)\n\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 260,
+        "wires": [
+            [
+                "83cafdf1a87c902e",
+                "a82fb28e5e8ca5fe"
+            ],
+            [
+                "9d043f89a14a0c8b"
+            ]
+        ]
+    },
+    {
+        "id": "f975b1512523f634",
+        "type": "comment",
+        "z": "b0d4ef51448e4ddc",
+        "name": "http://localhost:1880/api/documents/ID",
+        "info": "",
+        "x": 270,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "a82fb28e5e8ca5fe",
+        "type": "debug",
+        "z": "b0d4ef51448e4ddc",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 560,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "d9c58bf43e1b797a",
+        "type": "debug",
+        "z": "b0d4ef51448e4ddc",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "679a55e1f5f15232",
+        "type": "debug",
+        "z": "b0d4ef51448e4ddc",
+        "name": "debug 6",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 840,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "b642487370132d54",
+        "type": "debug",
+        "z": "b0d4ef51448e4ddc",
+        "name": "debug 7",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 180,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "9b5ef475f9506da6",
+        "type": "debug",
+        "z": "b0d4ef51448e4ddc",
+        "name": "debug 8",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 680,
+        "y": 760,
+        "wires": []
+    },
+    {
         "id": "8dea0cbce50630a0",
         "type": "http in",
         "z": "b48f11fbab89934d",
@@ -2999,7 +3252,7 @@
         "rowsPerMsg": 1,
         "outputs": 1,
         "x": 400,
-        "y": 440,
+        "y": 460,
         "wires": [
             [
                 "59a734fbd95e2156"
@@ -3011,7 +3264,7 @@
         "type": "function",
         "z": "d06cd639c922eac1",
         "name": "build SQL query",
-        "func": "// Extract user id securely from JWT\nconst user_id = msg.user?.sub;\n\n// Extract data\nconst object_id = msg.req.params.ID;\n\n// Extract data from payload\nconst {\n    name,\n    description,\n    is_public,\n    is_hazardous,\n    object_type,\n    count,\n    location,\n    image_data_url,\n    image_mime_type,\n    image_original_name,\n    remove_image,\n    removeExistingImage\n} = msg.payload || {};\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nconst normalizeOptionalText = (value) => {\n    if (typeof value !== 'string') return null;\n    const trimmed = value.trim();\n    return trimmed.length ? trimmed : null;\n};\n\nconst extensionByMime = {\n    'image/png': 'png',\n    'image/jpeg': 'jpg',\n    'image/jpg': 'jpg',\n    'image/webp': 'webp'\n};\n\nconst sanitizeFileName = (name, fallback) => {\n    const normalized = normalizeOptionalText(name) || fallback;\n    return normalized\n        .replace(/[^a-zA-Z0-9._-]/g, '_')\n        .replace(/_+/g, '_')\n        .slice(0, 120);\n};\n\nreturn (async () => {\n    // Validate required fields\n    if (!user_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'user_id is missing' };\n        return [null, msg];\n    }\n\n    if (!uuidRegex.test(user_id)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid user ID format' };\n        return [null, msg];\n    }\n\n    if (!object_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'object id is missing (expected path param :id or payload.id)' };\n        return [null, msg];\n    }\n\n    if (!uuidRegex.test(object_id)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid object ID format' };\n        return [null, msg];\n    }\n\n    if (!name || name.trim() === '') {\n        msg.statusCode = 400;\n        msg.payload = { error: 'name is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    if (!object_type || String(object_type).trim() === '') {\n        msg.statusCode = 400;\n        msg.payload = { error: 'object_type is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    const parsedCount = Number(count);\n    if (!Number.isInteger(parsedCount) || parsedCount < 1) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'count is required and must be an integer >= 1' };\n        return [null, msg];\n    }\n\n\n    const wantsRemoveImage = remove_image === true || removeExistingImage === true;\n    const rawImageDataUrl = normalizeOptionalText(image_data_url);\n    const hasNewImage = !!rawImageDataUrl;\n\n    // if both are set, new image wins\n    const shouldReplaceImage = hasNewImage;\n    const shouldRemoveImage = !hasNewImage && wantsRemoveImage;\n\n    let newImagePath = null;\n    let newImageMimeType = null;\n    let newImageOriginalName = null;\n    let newImageSizeBytes = null;\n\n    if (hasNewImage) {\n        const dataUrlMatch = rawImageDataUrl.match(/^data:([^;]+);base64,(.+)$/i);\n        if (!dataUrlMatch) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Invalid image_data_url format. Expected data URL.' };\n            return [null, msg];\n        }\n\n        const parsedMimeType = String(dataUrlMatch[1]).toLowerCase();\n        const providedMimeType = normalizeOptionalText(image_mime_type);\n        newImageMimeType = (providedMimeType || parsedMimeType).toLowerCase();\n\n        const allowedMimeTypes = new Set(['image/png', 'image/jpeg', 'image/jpg', 'image/webp']);\n        if (!allowedMimeTypes.has(newImageMimeType)) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Unsupported image MIME type. Allowed: PNG, JPG, JPEG, WEBP.' };\n            return [null, msg];\n        }\n\n        let imageBuffer;\n        try {\n            imageBuffer = Buffer.from(dataUrlMatch[2], 'base64');\n        } catch (err) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Invalid base64 image payload.' };\n            return [null, msg];\n        }\n\n        if (!imageBuffer || !imageBuffer.length) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Image payload is empty.' };\n            return [null, msg];\n        }\n\n        const maxImageBytes = 10 * 1024 * 1024;\n        if (imageBuffer.length > maxImageBytes) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Image is too large. Maximum 10MB allowed.' };\n            return [null, msg];\n        }\n\n        const fallbackName = 'image.' + (extensionByMime[newImageMimeType] || 'bin');\n        newImageOriginalName = sanitizeFileName(image_original_name, fallbackName);\n        newImagePath = '/mhub/objects/' + String(user_id) + '/' + String(object_id) + '/' + newImageOriginalName;\n        newImageSizeBytes = imageBuffer.length;\n\n        const filerBaseUrl = (env.get('SEAWEED_FILER_INTERNAL_URL') || 'http://seaweed-filer:8888').replace(/\\/+$/, '');\n        const fetchFn = global.get('fetch') || globalThis.fetch;\n\n        if (typeof fetchFn !== 'function') {\n            msg.statusCode = 500;\n            msg.payload = { error: 'Server does not support fetch API for Seaweed upload.' };\n            return [null, msg];\n        }\n\n        let uploadResponse;\n        try {\n            uploadResponse = await fetchFn(filerBaseUrl + newImagePath, {\n                method: 'PUT',\n                headers: { 'Content-Type': newImageMimeType },\n                body: imageBuffer\n            });\n        } catch (err) {\n            msg.statusCode = 502;\n            msg.payload = { error: 'Failed to upload image to object storage.', details: err.message || String(err) };\n            return [null, msg];\n        }\n\n        if (!uploadResponse.ok) {\n            const details = await uploadResponse.text().catch(() => '');\n            msg.statusCode = 502;\n            msg.payload = {\n                error: 'Object storage rejected image upload.',\n                details: details || ('HTTP ' + uploadResponse.status)\n            };\n            return [null, msg];\n        }\n    }\n\n    // --- SQL ---\n    msg.query = `\n      WITH existing AS (\n        SELECT id, image_path\n        FROM building_objects\n        WHERE id = $1::uuid AND owner_id= $2::uuid \n        LIMIT 1\n      ),\n      updated AS (\n        UPDATE building_objects bo\n        SET\n          name = $3,\n          description = $4,\n          location = $5,\n          object_type = $6,\n          count = $7,\n          is_public = COALESCE($8::boolean, bo.is_public),\n          is_hazardous = COALESCE($9::boolean, bo.is_hazardous),\n          image_path = CASE\n            WHEN $10::boolean THEN NULL\n            WHEN $11::boolean THEN $12\n            ELSE bo.image_path\n          END,\n          image_mime_type = CASE\n            WHEN $10::boolean THEN NULL\n            WHEN $11::boolean THEN $13\n            ELSE bo.image_mime_type\n          END,\n          image_original_name = CASE\n            WHEN $10::boolean THEN NULL\n            WHEN $11::boolean THEN $14\n            ELSE bo.image_original_name\n          END,\n          image_size_bytes = CASE\n            WHEN $10::boolean THEN NULL\n            WHEN $11::boolean THEN $15\n            ELSE bo.image_size_bytes\n          END\n        FROM existing e\n        WHERE bo.id = e.id\n        RETURNING bo.*, e.image_path AS previous_image_path\n      )\n      SELECT * FROM updated;\n    `;\n\n    msg.params = [\n        object_id,\n        user_id,\n        name.trim(),\n        description ?? null,\n        String(location).trim(),\n        String(object_type).trim(),\n        parsedCount,\n        typeof is_public === 'boolean' ? is_public : true,\n        typeof is_hazardous === 'boolean' ? is_hazardous : false,\n        shouldRemoveImage,                            // $10\n        shouldReplaceImage,                           // $11\n        newImagePath,                                 // $12\n        newImageMimeType,                             // $13\n        newImageOriginalName,                         // $14\n        newImageSizeBytes   \n    ];\n\n    return [msg, null];\n})();",
+        "func": "// Extract user id securely from JWT\nconst user_id = msg.user?.sub;\n\n// Extract data\nconst object_id = msg.req.params.ID;\n\n// Extract data from payload\nconst {\n    name,\n    description,\n    is_public,\n    is_hazardous,\n    object_type,\n    count,\n    location,\n    image_data_url,\n    image_mime_type,\n    image_original_name,\n    remove_image,\n    removeExistingImage\n} = msg.payload || {};\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nconst normalizeOptionalText = (value) => {\n    if (typeof value !== 'string') return null;\n    const trimmed = value.trim();\n    return trimmed.length ? trimmed : null;\n};\n\nconst extensionByMime = {\n    'image/png': 'png',\n    'image/jpeg': 'jpg',\n    'image/jpg': 'jpg',\n    'image/webp': 'webp'\n};\n\nconst sanitizeFileName = (name, fallback) => {\n    const normalized = normalizeOptionalText(name) || fallback;\n    return normalized\n        .replace(/[^a-zA-Z0-9._-]/g, '_')\n        .replace(/_+/g, '_')\n        .slice(0, 120);\n};\n\nreturn (async () => {\n    // Validate required fields\n    if (!user_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'user_id is missing' };\n        return [null, msg];\n    }\n\n    if (!uuidRegex.test(user_id)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid user ID format' };\n        return [null, msg];\n    }\n\n    if (!object_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'object id is missing (expected path param :id)' };\n        return [null, msg];\n    }\n\n    if (!uuidRegex.test(object_id)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid object ID format' };\n        return [null, msg];\n    }\n\n    if (!name || name.trim() === '') {\n        msg.statusCode = 400;\n        msg.payload = { error: 'name is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    if (!object_type || String(object_type).trim() === '') {\n        msg.statusCode = 400;\n        msg.payload = { error: 'object_type is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    const parsedCount = Number(count);\n    if (!Number.isInteger(parsedCount) || parsedCount < 1) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'count is required and must be an integer >= 1' };\n        return [null, msg];\n    }\n\n\n    const wantsRemoveImage = remove_image === true || removeExistingImage === true;\n    const rawImageDataUrl = normalizeOptionalText(image_data_url);\n    const hasNewImage = !!rawImageDataUrl;\n\n    // if both are set, new image wins\n    const shouldReplaceImage = hasNewImage;\n    const shouldRemoveImage = !hasNewImage && wantsRemoveImage;\n\n    let newImagePath = null;\n    let newImageMimeType = null;\n    let newImageOriginalName = null;\n    let newImageSizeBytes = null;\n\n    if (hasNewImage) {\n        const dataUrlMatch = rawImageDataUrl.match(/^data:([^;]+);base64,(.+)$/i);\n        if (!dataUrlMatch) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Invalid image_data_url format. Expected data URL.' };\n            return [null, msg];\n        }\n\n        const parsedMimeType = String(dataUrlMatch[1]).toLowerCase();\n        const providedMimeType = normalizeOptionalText(image_mime_type);\n        newImageMimeType = (providedMimeType || parsedMimeType).toLowerCase();\n\n        const allowedMimeTypes = new Set(['image/png', 'image/jpeg', 'image/jpg', 'image/webp']);\n        if (!allowedMimeTypes.has(newImageMimeType)) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Unsupported image MIME type. Allowed: PNG, JPG, JPEG, WEBP.' };\n            return [null, msg];\n        }\n\n        let imageBuffer;\n        try {\n            imageBuffer = Buffer.from(dataUrlMatch[2], 'base64');\n        } catch (err) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Invalid base64 image payload.' };\n            return [null, msg];\n        }\n\n        if (!imageBuffer || !imageBuffer.length) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Image payload is empty.' };\n            return [null, msg];\n        }\n\n        const maxImageBytes = 10 * 1024 * 1024;\n        if (imageBuffer.length > maxImageBytes) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Image is too large. Maximum 10MB allowed.' };\n            return [null, msg];\n        }\n\n        const fallbackName = 'image.' + (extensionByMime[newImageMimeType] || 'bin');\n        newImageOriginalName = sanitizeFileName(image_original_name, fallbackName);\n        newImagePath = '/mhub/objects/' + String(user_id) + '/' + String(object_id) + '/' + newImageOriginalName;\n        newImageSizeBytes = imageBuffer.length;\n\n        const filerBaseUrl = (env.get('SEAWEED_FILER_INTERNAL_URL') || 'http://seaweed-filer:8888').replace(/\\/+$/, '');\n        const fetchFn = global.get('fetch') || globalThis.fetch;\n\n        if (typeof fetchFn !== 'function') {\n            msg.statusCode = 500;\n            msg.payload = { error: 'Server does not support fetch API for Seaweed upload.' };\n            return [null, msg];\n        }\n\n        let uploadResponse;\n        try {\n            uploadResponse = await fetchFn(filerBaseUrl + newImagePath, {\n                method: 'PUT',\n                headers: { 'Content-Type': newImageMimeType },\n                body: imageBuffer\n            });\n        } catch (err) {\n            msg.statusCode = 502;\n            msg.payload = { error: 'Failed to upload image to object storage.', details: err.message || String(err) };\n            return [null, msg];\n        }\n\n        if (!uploadResponse.ok) {\n            const details = await uploadResponse.text().catch(() => '');\n            msg.statusCode = 502;\n            msg.payload = {\n                error: 'Object storage rejected image upload.',\n                details: details || ('HTTP ' + uploadResponse.status)\n            };\n            return [null, msg];\n        }\n    }\n\n    // --- SQL ---\n    msg.query = `\n      WITH existing AS (\n        SELECT id, image_path\n        FROM building_objects\n        WHERE id = $1::uuid AND owner_id= $2::uuid \n        LIMIT 1\n      ),\n      updated AS (\n        UPDATE building_objects bo\n        SET\n          name = $3,\n          description = $4,\n          location = $5,\n          object_type = $6,\n          count = $7,\n          is_public = COALESCE($8::boolean, bo.is_public),\n          is_hazardous = COALESCE($9::boolean, bo.is_hazardous),\n          image_path = CASE\n            WHEN $10::boolean THEN NULL\n            WHEN $11::boolean THEN $12\n            ELSE bo.image_path\n          END,\n          image_mime_type = CASE\n            WHEN $10::boolean THEN NULL\n            WHEN $11::boolean THEN $13\n            ELSE bo.image_mime_type\n          END,\n          image_original_name = CASE\n            WHEN $10::boolean THEN NULL\n            WHEN $11::boolean THEN $14\n            ELSE bo.image_original_name\n          END,\n          image_size_bytes = CASE\n            WHEN $10::boolean THEN NULL\n            WHEN $11::boolean THEN $15\n            ELSE bo.image_size_bytes\n          END\n        FROM existing e\n        WHERE bo.id = e.id\n        RETURNING bo.*, e.image_path AS previous_image_path\n      )\n      SELECT * FROM updated;\n    `;\n\n    msg.params = [\n        object_id,\n        user_id,\n        name.trim(),\n        description ?? null,\n        String(location).trim(),\n        String(object_type).trim(),\n        parsedCount,\n        typeof is_public === 'boolean' ? is_public : true,\n        typeof is_hazardous === 'boolean' ? is_hazardous : false,\n        shouldRemoveImage,                            // $10\n        shouldReplaceImage,                           // $11\n        newImagePath,                                 // $12\n        newImageMimeType,                             // $13\n        newImageOriginalName,                         // $14\n        newImageSizeBytes   \n    ];\n\n    return [msg, null];\n})();",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -3019,7 +3272,7 @@
         "finalize": "",
         "libs": [],
         "x": 340,
-        "y": 320,
+        "y": 340,
         "wires": [
             [
                 "b1261b53ec82464f"
@@ -3041,8 +3294,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 500,
-        "y": 540,
+        "x": 480,
+        "y": 580,
         "wires": [
             [
                 "53e8cdadc3f8d289"
