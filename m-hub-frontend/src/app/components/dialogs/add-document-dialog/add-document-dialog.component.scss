@@ -222,6 +222,14 @@ mat-form-field {
   margin-top: 1rem;
 }
 
+mat-error {
+  font-size: 14px;
+}
+
+mat-hint {
+  font-size: 14px;
+}
+
 @media (max-width: 520px) {
   .dialog-container {
     padding: 6px 8px;
