@@ -2,9 +2,12 @@
  * Enum for supported types of 'Bauteil'.
  */
 export enum PartType {
-    Wand = 'Wand', // keine Unterscheidung zwischen Außen-, Innen- & Zwischenwand
-    Boden = 'Boden',
-    Dachaufbau = 'Dachaufbau', // wie Boden2 im Regelgeschoss Dach mit Typ Steildach (da hier auch normaler Boden vorhanden); wie Boden im Regelgeschoss Dach mit Typ Flachdach
-    Kniestock = 'Kniestock', // wie Wand im Regelgeschoss Dach mit Typ Steildach
-    Attika = 'Attika', // wie Wand im Regelgeschoss Dach mit Typ Flachdach
+    // Wand = 'Wand',                   // Unterscheiden zwischen Wall-Types: Außen-, Innen- & Brandwand für RG und KG
+    Innenwand = 'Innenwand',
+    Aussenwand = 'Aussenwand',
+    Brandwand = 'Brandwand',
+    Kniestock = 'Kniestock',            // Wand im Geschosstyp Dach mit Typ Steildach
+    Attika = 'Attika',                  // Wand im Geschosstyp Dach mit Typ Flachdach
+    Boden = 'Boden',                    // nicht erlaubt für Dach mit Rooftype Flachdach
+    Dachaufbau = 'Dachaufbau',          // nicht erlaubt für KG; für RG muss zunächst auch Rooftype angegeben werden
 }
