@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Ebene_1" data-name="Ebene 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 890.48 226">
+  <path id="Fassade" d="M733.99,13v200H153.99V13" fill="none" stroke="#455a64" stroke-linecap="round" stroke-linejoin="round" stroke-width="26"/>
+  <g id="Fassade-2" data-name="Fassade">
+    <g>
+      <line x1="7" y1="219" x2="12.61" y2="210.72" fill="none" stroke="#455a64" stroke-linecap="round" stroke-linejoin="round" stroke-width="14"/>
+      <line x1="24.87" y1="192.66" x2="135.68" y2="29.31" fill="none" stroke="#455a64" stroke-dasharray="19.84 21.82" stroke-linecap="round" stroke-linejoin="round" stroke-width="14"/>
+      <line x1="141.81" y1="20.28" x2="147.42" y2="12" fill="none" stroke="#455a64" stroke-linecap="round" stroke-linejoin="round" stroke-width="14"/>
+    </g>
+  </g>
+  <path id="Fassade-3" data-name="Fassade" d="M7,219h140.26" fill="none" stroke="#455a64" stroke-dasharray="20 22" stroke-linecap="round" stroke-linejoin="round" stroke-width="13"/>
+  <g id="Fassade-4" data-name="Fassade">
+    <g>
+      <line x1="740.55" y1="11.5" x2="746.17" y2="19.78" fill="none" stroke="#455a64" stroke-linecap="round" stroke-linejoin="round" stroke-width="14"/>
+      <line x1="758.42" y1="37.84" x2="869.24" y2="201.19" fill="none" stroke="#455a64" stroke-dasharray="19.84 21.82" stroke-linecap="round" stroke-linejoin="round" stroke-width="14"/>
+      <line x1="875.36" y1="210.22" x2="880.98" y2="218.5" fill="none" stroke="#455a64" stroke-linecap="round" stroke-linejoin="round" stroke-width="14"/>
+    </g>
+  </g>
+  <path id="Fassade-5" data-name="Fassade" d="M736.56,218.5h147.41" fill="none" stroke="#455a64" stroke-dasharray="20 22 20" stroke-linecap="round" stroke-linejoin="round" stroke-width="13"/>
+</svg>
