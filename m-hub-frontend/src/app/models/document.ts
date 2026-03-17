@@ -16,6 +16,11 @@ export interface Document {
     file_type?: FileType; // Optional file type (e.g., 'pdf', 'jpg', 'e57')
 }
 
+export type DocumentSummaryDto = Pick<Document, 'id' | 'name' | 'file_type' | 'component_id'> & {
+    can_read?: boolean;
+    canRead?: boolean;
+};
+
 export type CreateDocumentPayload = {
     building_id: string;
     user_building_id: string;

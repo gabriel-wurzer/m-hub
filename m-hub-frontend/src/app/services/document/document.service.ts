@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CreateDocumentPayload, Document, UpdateDocumentPayload } from '../../models/document';
+import { CreateDocumentPayload, Document, DocumentSummaryDto, UpdateDocumentPayload } from '../../models/document';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +14,15 @@ export class DocumentService {
   getDocumentById(documentId: string): Observable<Document> {
     return this.http.get<Document>(`${this.apiUrl}/${documentId}`);
   } 
+
+  getDocumentSummariesByBuilding(buildingId: string, componentId?: string): Observable<DocumentSummaryDto[]> {
+    let params = new HttpParams();
+    if (componentId) {
+      params = params.set('componentId', componentId);
+    }
+
+    return this.http.get<DocumentSummaryDto[]>(`${this.apiUrl}/by-building/${buildingId}`, { params });
+  }
 
   /**
    * Generic document fetcher that supports multiple filters.

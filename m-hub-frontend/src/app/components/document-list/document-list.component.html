@@ -1,16 +1,19 @@
 <div class="list-container">
     <mat-spinner *ngIf="isLoading" [diameter]="40" [strokeWidth]="3" class="loading-spinner" />
 
-    <mat-list  *ngIf="!isLoading && documents.length > 0; else noDocsMessage">
-        <mat-list-item 
+    <mat-list *ngIf="!isLoading && documents.length > 0; else noDocsMessage">
+        <mat-list-item
             *ngFor="let doc of documents"
-            [class.private-element]="!doc.is_public && doc.owner_id !== userId"
-            [matTooltip]="(!doc.is_public && doc.owner_id !== userId) ? doc.name + ' ist nicht öffentlich.' : ''"
+            [class.private-element]="!doc.canRead"
+            [matTooltip]="(!doc.canRead) ? doc.name + ' ist nicht öffentlich.' : ''"
             matTooltipShowDelay="300"
+            (click)="onDocumentClick(doc)"
         >
             <mat-icon class="list-icon">insert_drive_file</mat-icon>
-            <span class="list-text">{{ doc.name }}.{{ doc.file_type }}</span>
-            <mat-icon *ngIf="!doc.is_public" class="lock-icon">lock</mat-icon>
+            <span class="list-text">
+              {{ doc.name }}<ng-container *ngIf="doc.fileType">.{{ doc.fileType }}</ng-container>
+            </span>
+            <mat-icon *ngIf="!doc.canRead" class="lock-icon">lock</mat-icon>
         </mat-list-item>
     </mat-list>
     <ng-template #noDocsMessage>

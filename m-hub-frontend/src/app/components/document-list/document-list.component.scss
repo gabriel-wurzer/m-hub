@@ -86,3 +86,7 @@ h3 {
         max-width: 100%;
     }
 }
+
+mat-list-item.private-element {
+    cursor: not-allowed;
+}

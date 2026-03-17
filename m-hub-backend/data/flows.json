@@ -43,7 +43,7 @@
     {
         "id": "5e9d06bb159e1d2b",
         "type": "tab",
-        "label": "GET User-Building",
+        "label": "GET User-Building by ID",
         "disabled": false,
         "info": "",
         "env": []
@@ -84,7 +84,15 @@
         "id": "21f39893d63240a6",
         "type": "tab",
         "label": "GET Document by ID",
-        "disabled": true,
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "1890f310e8c4ae9e",
+        "type": "tab",
+        "label": "GET Documents by Building",
+        "disabled": false,
         "info": "",
         "env": []
     },
@@ -92,7 +100,7 @@
         "id": "bc8f71868ee8d8a0",
         "type": "tab",
         "label": "GET Documents (by filter query parameters)",
-        "disabled": false,
+        "disabled": true,
         "info": "",
         "env": []
     },
@@ -1060,7 +1068,7 @@
         "type": "function",
         "z": "5e9d06bb159e1d2b",
         "name": "build SQL query",
-        "func": "const user_id = msg.user.sub;\nconst building_id = msg.req.params.buildingId;\n\nif (!building_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"building_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nmsg.query = \"SELECT * FROM user_buildings WHERE building_id = $1 AND user_id = $2::uuid LIMIT 1\";\nmsg.params = [building_id, user_id];\n\n return [msg, null]",
+        "func": "const user_id = msg.user.sub;\nconst building_id = msg.req.params.buildingId;\n\nif (!building_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"building_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nmsg.query = \"SELECT * FROM user_buildings WHERE building_id = $1 AND user_id = $2::uuid LIMIT 1\";\nmsg.params = [building_id, user_id];\n\nreturn [msg, null]",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -1781,7 +1789,7 @@
         "y": 200,
         "wires": [
             [
-                "21b424d7f9790875"
+                "7669cbebec482a71"
             ]
         ]
     },
@@ -1791,7 +1799,7 @@
         "z": "21f39893d63240a6",
         "name": "http://localhost:1880/api/documents/ID",
         "info": "",
-        "x": 290,
+        "x": 250,
         "y": 100,
         "wires": []
     },
@@ -1799,16 +1807,16 @@
         "id": "21b424d7f9790875",
         "type": "function",
         "z": "21f39893d63240a6",
-        "name": "validate SQL query parameter",
-        "func": "// Extract the path parameter directly from the HTTP request\nlet id = msg.req.params.ID;\n\n// Validation\nif (id === undefined || id === null) {\n  msg.statusCode = 400;\n  msg.payload = { error: \"Missing ID\" };\n  return [null, msg]; //Send to Output 2\n}\n\nid = String(id).trim();\n\n// Enforce uuid semantics (length + allowed chars)\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (!uuidRegex.test(id)) {\n  msg.statusCode = 400;\n  msg.payload = { error: \"Invalid UUID format\" };\n  return [null, msg]; //Send to Output 2\n}\n\nmsg.params = [ id ];\nreturn [msg, null]; //Send to Output 1\n",
+        "name": "validate SQL query",
+        "func": "// Extract the path parameter directly from the HTTP request\nconst user_id = msg.user?.sub || null;\nlet document_id = msg.req.params.ID;\n\n// Validation\nif (document_id === undefined || document_id === null) {\n  msg.statusCode = 400;\n  msg.payload = { error: \"Missing ID\" };\n  return [null, msg]; //Send to Output 2\n}\n\ndocument_id = String(document_id).trim();\n\n// Enforce uuid semantics (length + allowed chars)\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (!uuidRegex.test(document_id)) {\n  msg.statusCode = 400;\n  msg.payload = { error: \"Invalid UUID format\" };\n  return [null, msg]; //Send to Output 2\n}\n\nmsg.query = `\n  SELECT COALESCE(\n    json_agg(row_to_json(t))->0,\n    NULL\n  ) AS doc\n  FROM (\n    SELECT *\n    FROM documents\n    WHERE id = $1::uuid\n      AND (\n        COALESCE(is_public, false)\n        OR ($2::uuid IS NOT NULL AND owner_id = $2::uuid)\n      )\n    LIMIT 1\n  ) t;\n`;\nmsg.params = [document_id, user_id];\nreturn [msg, null]\n",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 350,
-        "y": 320,
+        "x": 270,
+        "y": 480,
         "wires": [
             [
                 "4483aa95bd222288"
@@ -1823,15 +1831,15 @@
         "type": "function",
         "z": "21f39893d63240a6",
         "name": "format result",
-        "func": "const rows = msg.payload;\nconst publicBaseUrl = (env.get('SEAWEED_PUBLIC_BASE_URL') || 'http://localhost:8888').replace(/\\/+$/, '');\n\nconst withResolvedFileUrl = (row) => {\n  if (!row || typeof row !== 'object') return row;\n\n  const rawFileUrl = typeof row.file_url === 'string' ? row.file_url.trim() : '';\n  if (!rawFileUrl) {\n    return { ...row, file_url: null };\n  }\n\n  if (/^https?:\\/\\//i.test(rawFileUrl)) {\n    return { ...row, file_url: rawFileUrl };\n  }\n\n  return { ...row, file_url: `${publicBaseUrl}${rawFileUrl}` };\n};\n\nif (!Array.isArray(rows)) {\n  msg.statusCode = 500;\n  msg.payload = { error: 'Database query failed' };\n  return msg;\n}\n\nif (rows.length === 0) {\n  msg.statusCode = 404;\n  msg.payload = { error: 'Document not found' };\n  return msg;\n}\n\nmsg.statusCode = 200;\nmsg.payload = withResolvedFileUrl(rows[0]);\nreturn msg;",
+        "func": "const rows = msg.payload;\nconst row = Array.isArray(rows) ? rows[0] : null;\nconst doc = row?.doc ?? null;\n\nif (!doc) {\n  msg.statusCode = 404;\n  msg.payload = { error: 'Document not found' };\n  return msg;\n}\n\n// resolve file_url as before\nconst publicBaseUrl = (env.get('SEAWEED_PUBLIC_BASE_URL') || 'http://localhost:8888').replace(/\\/+$/, '');\nconst rawFileUrl = typeof doc.file_url === 'string' ? doc.file_url.trim() : '';\n\ndoc.file_url = !rawFileUrl\n  ? null\n  : /^https?:\\/\\//i.test(rawFileUrl)\n    ? rawFileUrl\n    : `${publicBaseUrl}${rawFileUrl}`;\n\nmsg.statusCode = 200;\nmsg.payload = doc;\nreturn msg;\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 350,
-        "y": 580,
+        "x": 330,
+        "y": 760,
         "wires": [
             [
                 "7876acc0df9f5a4e"
@@ -1845,8 +1853,8 @@
         "name": "document response",
         "statusCode": "",
         "headers": {},
-        "x": 910,
-        "y": 580,
+        "x": 870,
+        "y": 700,
         "wires": []
     },
     {
@@ -1854,13 +1862,13 @@
         "type": "postgresql",
         "z": "21f39893d63240a6",
         "name": "mhub db",
-        "query": "SELECT * \nFROM documents\nWHERE id = $1::uuid\nLIMIT 1;\n",
+        "query": "msg.query",
         "postgreSQLConfig": "e637e22c3aa8ed51",
         "split": false,
-        "rowsPerMsg": 1,
+        "rowsPerMsg": "",
         "outputs": 1,
-        "x": 360,
-        "y": 440,
+        "x": 320,
+        "y": 620,
         "wires": [
             [
                 "af258860612939c4"
@@ -1877,7 +1885,7 @@
         ],
         "uncaught": false,
         "x": 670,
-        "y": 360,
+        "y": 480,
         "wires": [
             [
                 "9a2217980666d516"
@@ -1897,10 +1905,193 @@
         "finalize": "",
         "libs": [],
         "x": 860,
-        "y": 360,
+        "y": 480,
         "wires": [
             [
                 "7876acc0df9f5a4e"
+            ]
+        ]
+    },
+    {
+        "id": "7669cbebec482a71",
+        "type": "function",
+        "z": "21f39893d63240a6",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    // No token -> anonymous access allowed\n    msg.user = null;\n    return [msg, null];\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    // Invalid format -> treat as anonymous\n    msg.user = null;\n    return [msg, null];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    msg.user = decoded;\n} catch (err) {\n    // Invalid/expired -> treat as anonymous\n    msg.user = null;\n}\n\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 250,
+        "y": 340,
+        "wires": [
+            [
+                "21b424d7f9790875"
+            ],
+            [
+                "7876acc0df9f5a4e"
+            ]
+        ]
+    },
+    {
+        "id": "de62c3f15693aeca",
+        "type": "http in",
+        "z": "1890f310e8c4ae9e",
+        "name": "GET document summaries",
+        "url": "/api/documents/by-building/:buildingId",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 210,
+        "y": 140,
+        "wires": [
+            [
+                "40ae5338aaaaf3b1"
+            ]
+        ]
+    },
+    {
+        "id": "0add624d71ce413f",
+        "type": "comment",
+        "z": "1890f310e8c4ae9e",
+        "name": "http://localhost:1880/api/documents/by-building/:buildingId",
+        "info": "",
+        "x": 290,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "ef61589ec86e078a",
+        "type": "function",
+        "z": "1890f310e8c4ae9e",
+        "name": "format result",
+        "func": "if (Array.isArray(msg.payload)) {\n    msg.statusCode = 200;\n} else {\n    msg.statusCode = 500;\n    msg.payload = { error: \"Database query failed\" };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 590,
+        "y": 680,
+        "wires": [
+            [
+                "3a7f0dfcdf45eabf"
+            ]
+        ]
+    },
+    {
+        "id": "3a7f0dfcdf45eabf",
+        "type": "http response",
+        "z": "1890f310e8c4ae9e",
+        "name": "document summaries response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1050,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "5b2a889ae4a9093b",
+        "type": "postgresql",
+        "z": "1890f310e8c4ae9e",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 520,
+        "y": 540,
+        "wires": [
+            [
+                "ef61589ec86e078a"
+            ]
+        ]
+    },
+    {
+        "id": "708cc9529c8d7e5b",
+        "type": "catch",
+        "z": "1890f310e8c4ae9e",
+        "name": "",
+        "scope": [
+            "5b2a889ae4a9093b"
+        ],
+        "uncaught": false,
+        "x": 770,
+        "y": 420,
+        "wires": [
+            [
+                "5551e2a8ed42e564"
+            ]
+        ]
+    },
+    {
+        "id": "5551e2a8ed42e564",
+        "type": "function",
+        "z": "1890f310e8c4ae9e",
+        "name": "handle db errors",
+        "func": "const errMsg = msg.error && msg.error.message ? msg.error.message : '';\n\nmsg.statusCode = 500; // Internal Server Error\nmsg.payload = { error: 'Database error', details: errMsg };\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 960,
+        "y": 420,
+        "wires": [
+            [
+                "3a7f0dfcdf45eabf"
+            ]
+        ]
+    },
+    {
+        "id": "40ae5338aaaaf3b1",
+        "type": "function",
+        "z": "1890f310e8c4ae9e",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET') || 'change_this_secret';\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    // No token -> anonymous access allowed\n    msg.user = null;\n    return [msg, null];\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    // Invalid format -> treat as anonymous\n    msg.user = null;\n    return [msg, null];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    msg.user = decoded;\n} catch (err) {\n    // Invalid/expired -> treat as anonymous\n    msg.user = null;\n}\n\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 260,
+        "wires": [
+            [
+                "59f56ee415200b8c"
+            ],
+            [
+                "3a7f0dfcdf45eabf"
+            ]
+        ]
+    },
+    {
+        "id": "59f56ee415200b8c",
+        "type": "function",
+        "z": "1890f310e8c4ae9e",
+        "name": "build SQL query",
+        "func": "const user_id = msg.user?.sub || null;\nconst building_id = msg.req.params.buildingId;\nconst component_id = msg.req.query?.componentId ? String(msg.req.query.componentId).trim() : null;\n\n\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (user_id && !uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid user ID format\" };\n    return [null, msg];\n}\n\nif (!building_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"building_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (building_id.length > 10 || !/^[A-Za-z0-9_\\-]+$/.test(building_id)) {\n  msg.statusCode = 400;\n  msg.payload = { error: \"Invalid ID format\" };\n  return [null, msg];\n}\n\nif (component_id && !uuidRegex.test(component_id)) {\n  msg.statusCode = 400;\n  msg.payload = { error: \"Invalid component ID format\" };\n  return [null, msg];\n}\n\nmsg.query = `\n  SELECT\n    d.id,\n    d.name,\n    d.file_type,\n    d.component_id,\n    (\n      COALESCE(d.is_public, false)\n      OR ($2::uuid IS NOT NULL AND d.owner_id = $2::uuid)\n    ) AS can_read\n  FROM documents d\n  WHERE d.building_id = $1\n    AND ($3::uuid IS NULL OR d.component_id = $3::uuid)\n  ORDER BY d.name ASC;\n`;\n\nmsg.params = [building_id, user_id, component_id];\nreturn [msg, null];\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 400,
+        "wires": [
+            [
+                "5b2a889ae4a9093b"
+            ],
+            [
+                "3a7f0dfcdf45eabf"
             ]
         ]
     },
