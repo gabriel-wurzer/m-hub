@@ -24,21 +24,21 @@ export class DocumentService {
     return this.http.get<DocumentSummaryDto[]>(`${this.apiUrl}/by-building/${buildingId}`, { params });
   }
 
-  /**
-   * Generic document fetcher that supports multiple filters.
-   */
-  getDocuments(filters: { buildingId?: string; componentId?: string; ownerId?: string }): Observable<Document[]> {
-    const cleanFilters: any = {};
-    Object.keys(filters).forEach(key => {
-      const value = (filters as any)[key];
-      if (value !== null && value !== undefined && value !== '') {
-        cleanFilters[key] = value;
-      }
-    });
+  // /**
+  //  * Generic document fetcher that supports multiple filters.
+  //  */
+  // getDocuments(filters: { buildingId?: string; componentId?: string; ownerId?: string }): Observable<Document[]> {
+  //   const cleanFilters: any = {};
+  //   Object.keys(filters).forEach(key => {
+  //     const value = (filters as any)[key];
+  //     if (value !== null && value !== undefined && value !== '') {
+  //       cleanFilters[key] = value;
+  //     }
+  //   });
 
-    const params = new HttpParams({ fromObject: cleanFilters });
-    return this.http.get<Document[]>(this.apiUrl, { params });
-  }
+  //   const params = new HttpParams({ fromObject: cleanFilters });
+  //   return this.http.get<Document[]>(this.apiUrl, { params });
+  // }
 
   getDocumentsByUserBuilding(userBuildingId: string): Observable<Document[]> {
     return this.http.get<Document[]>(`${this.apiUrl}/building/${userBuildingId}`);

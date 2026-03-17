@@ -14,6 +14,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { EntityInfoDialogComponent } from '../dialogs/entity-info-dialog/entity-info-dialog.component';
 import { AuthenticationService } from '../../services/authentication/authentication.service';
 import { Subscription } from 'rxjs';
+import { FileType } from '../../enums/file-type.enum';
 
 type DocumentListItem = DocumentSummaryDto & {
   canRead: boolean;
@@ -35,6 +36,15 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
   documents: DocumentListItem[] = [];
   isLoading = false;
   errorMessage = '';
+  private readonly imageFileTypes = new Set<FileType>([
+    FileType.JPG,
+    FileType.PNG,
+    FileType.GIF,
+    FileType.BMP,
+    FileType.TIFF,
+    FileType.SVG,
+    FileType.WEBP
+  ]);
 
   private currentUserId: string | null = null;
   private authSubscription: Subscription | undefined;
@@ -117,7 +127,7 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
 
   onDocumentClick(document: DocumentListItem): void {
     if (!document.canRead) {
-      this.snackBar.open('Zugriff nicht erlaubt: Dieses Dokument ist nicht öffentlich.', 'OK', {
+      this.snackBar.open('Zugriff nicht erlaubt: Dokument ist nicht öffentlich.', 'OK', {
         duration: 5000,
         verticalPosition: 'top',
         panelClass: 'snackbar-warn'
@@ -142,6 +152,11 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
 
+  getDocumentIcon(document: DocumentListItem): string {
+    const fileType = this.normalizeFileType(document.fileType ?? document.file_type);
+    return this.getPreviewIcon(fileType);
+  }
+
   private normalizeDocument(document: Document | DocumentSummaryDto): DocumentListItem {
     return {
       ...document,
@@ -160,6 +175,26 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
     if ('owner_id' in document && this.currentUserId && document.owner_id === this.currentUserId) return true;
 
     return false;
+  }
+
+  private normalizeFileType(fileType: unknown): FileType | null {
+    if (typeof fileType !== 'string') return null;
+    const normalized = fileType.trim().toLowerCase();
+    return (Object.values(FileType) as string[]).includes(normalized)
+      ? (normalized as FileType)
+      : null;
+  }
+
+  private getPreviewIcon(fileType: FileType | null): string {
+    if (!fileType) return 'insert_drive_file';
+
+    if (this.imageFileTypes.has(fileType)) return 'image';
+    if (fileType === FileType.PDF) return 'picture_as_pdf';
+    if ([FileType.CSV, FileType.XLSX, FileType.XLSM].includes(fileType)) return 'table_chart';
+    if ([FileType.DOC, FileType.DOCX, FileType.TXT, FileType.RTF, FileType.ODT, FileType.MD].includes(fileType)) return 'description';
+    if ([FileType.E57, FileType.OBJ, FileType.STL, FileType.PLY, FileType.GLB, FileType.GLTF, FileType.FBX, FileType.IFC, FileType.LAS, FileType.LAZ].includes(fileType)) return 'view_in_ar';
+
+    return 'insert_drive_file';
   }
 
   private openEntityInfoDialog(entity: Document): void {

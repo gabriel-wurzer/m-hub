@@ -9,7 +9,7 @@
             matTooltipShowDelay="300"
             (click)="onDocumentClick(doc)"
         >
-            <mat-icon class="list-icon">insert_drive_file</mat-icon>
+            <mat-icon class="list-icon">{{ getDocumentIcon(doc) }}</mat-icon>
             <span class="list-text">
               {{ doc.name }}<ng-container *ngIf="doc.fileType">.{{ doc.fileType }}</ng-container>
             </span>
