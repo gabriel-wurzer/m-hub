@@ -12,6 +12,7 @@ import { BuildingComponentCategory } from '../../enums/component-category';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { BuildingService } from '../../services/building/building.service';
 import { AuthenticationService } from '../../services/authentication/authentication.service';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 interface TreeNode {
   id: string;
@@ -25,7 +26,7 @@ interface TreeNode {
 @Component({
   selector: 'app-structure-tree',
   standalone: true,
-  imports: [CommonModule, MatTreeModule, MatIconModule, MatButtonModule, MatTooltipModule],
+  imports: [CommonModule, MatTreeModule, MatIconModule, MatButtonModule, MatTooltipModule, MatSnackBarModule],
   templateUrl: './structure-tree.component.html',
   styleUrls: ['./structure-tree.component.scss']
 })
@@ -45,7 +46,8 @@ export class StructureTreeComponent implements OnInit, OnDestroy {
 
   constructor(
     private authService: AuthenticationService,
-    private buildingService: BuildingService
+    private buildingService: BuildingService,
+    private snackBar: MatSnackBar
   ) {
     this.isLoggedIn$ = this.authService.getUser$().pipe(
       map(user => !!user)
@@ -132,8 +134,12 @@ export class StructureTreeComponent implements OnInit, OnDestroy {
     // Only enforce access restrictions for components
     if (node.nodeType === 'component') {
       if (!node.canRead) {
-        console.warn(`Access denied to node: ${node.name}`);
-        return;
+        this.snackBar.open('Zugriff nicht erlaubt: Komponente ist nicht öffentlich.', 'OK', {
+          duration: 5000,
+          verticalPosition: 'top',
+          panelClass: 'snackbar-warn'
+        });
+      return;
       }
     }
 
