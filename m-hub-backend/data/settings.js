@@ -199,7 +199,12 @@ module.exports = {
      * details on its contents. The following is a basic permissive set of options:
      */
     httpNodeCors: {
-        origin: "*",
+         origin: [
+            "http://localhost",
+            "http://localhost:4200",
+            "http://127.0.0.1",
+            "http://127.0.0.1:4200"
+        ],
         methods: "GET,PUT,POST,PATCH,DELETE,OPTIONS",
         allowedHeaders: "Content-Type,Authorization",
     },
