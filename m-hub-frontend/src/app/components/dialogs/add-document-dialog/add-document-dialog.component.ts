@@ -1,15 +1,23 @@
 import { CommonModule } from '@angular/common';
-import { Component, Optional } from '@angular/core';
+import { Component, Inject, Optional } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FileType } from '../../../enums/file-type.enum';
+import { BuildingComponentCategory } from '../../../enums/component-category';
+import { Bauteil, Objekt } from '../../../models/building-component';
+
+export type AddDocumentDialogData = {
+  buildingParts?: Bauteil[];
+  buildingObjects?: Objekt[];
+};
 
 export type AddDocumentDialogResult = {
   name: string;
@@ -21,6 +29,13 @@ export type AddDocumentDialogResult = {
   fileMimeType: string | null;
   fileDataUrl: string;
   previewImageUrl: string | null;
+  componentId: string | null;
+};
+
+type ComponentOptionVm = {
+  id: string;
+  name: string;
+  context: string;
 };
 
 @Component({
@@ -34,6 +49,7 @@ export type AddDocumentDialogResult = {
     MatCheckboxModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatIconModule,
     MatTooltipModule,
     MatDividerModule
@@ -105,7 +121,18 @@ export class AddDocumentDialogComponent {
   selectedFileDataUrl: string | null = null;
   selectedPreviewImageUrl: string | null = null;
 
-  constructor(@Optional() public dialogRef: MatDialogRef<AddDocumentDialogComponent> | null) {}
+  componentOptions: ComponentOptionVm[] = [];
+  componentId: string | null = null;
+
+  constructor(
+    @Optional() public dialogRef: MatDialogRef<AddDocumentDialogComponent> | null,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: AddDocumentDialogData | null
+  ) {
+    this.componentOptions = this.buildComponentOptions(
+      this.data?.buildingParts ?? [],
+      this.data?.buildingObjects ?? []
+    );
+  }
 
   getNameError(): string | null {
     if (this.name.trim().length === 0) {
@@ -196,7 +223,8 @@ export class AddDocumentDialogComponent {
       fileType: this.selectedFileType,
       fileMimeType: this.selectedFileMimeType,
       fileDataUrl: this.selectedFileDataUrl,
-      previewImageUrl: this.selectedPreviewImageUrl
+      previewImageUrl: this.selectedPreviewImageUrl,
+      componentId: this.componentId
     };
 
     this.dialogRef?.close(result);
@@ -266,5 +294,34 @@ export class AddDocumentDialogComponent {
   private normalizeOptionalInput(input: string): string | null {
     const trimmed = input.trim();
     return trimmed.length === 0 ? null : trimmed;
+  }
+
+  private buildComponentOptions(parts: Bauteil[], objects: Objekt[]): ComponentOptionVm[] {
+    const options: ComponentOptionVm[] = [];
+
+    for (const part of parts) {
+      if (!part?.id) continue;
+      options.push(this.toComponentOptionVm(part, BuildingComponentCategory.Bauteil));
+    }
+
+    for (const object of objects) {
+      if (!object?.id) continue;
+      options.push(this.toComponentOptionVm(object, BuildingComponentCategory.Objekt));
+    }
+
+    return options.sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+  }
+
+  private toComponentOptionVm(component: Bauteil | Objekt, category: BuildingComponentCategory): ComponentOptionVm {
+    const normalizedName = component.name?.trim();
+    const name = normalizedName && normalizedName.length > 0 ? normalizedName : `Unbenanntes ${category}`;
+    const location = component.location?.trim();
+    const context = location && location.length > 0 ? `${category} - ${location}` : category;
+
+    return {
+      id: component.id,
+      name,
+      context
+    };
   }
 }

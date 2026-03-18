@@ -36,7 +36,7 @@ import { BuildingPartService } from '../../services/building-part/building-part.
 import { BuildingObjectService } from '../../services/building-object/building-object.service';
 import { AddObjectDialogComponent, AddObjectDialogResult } from '../dialogs/add-object-dialog/add-object-dialog.component';
 import { EditObjectDialogComponent, EditObjectDialogData, EditObjectDialogResult } from '../dialogs/edit-object-dialog/edit-object-dialog.component';
-import { AddDocumentDialogComponent, AddDocumentDialogResult } from '../dialogs/add-document-dialog/add-document-dialog.component';
+import { AddDocumentDialogComponent, AddDocumentDialogData, AddDocumentDialogResult } from '../dialogs/add-document-dialog/add-document-dialog.component';
 import { EditDocumentDialogComponent, EditDocumentDialogData, EditDocumentDialogResult } from '../dialogs/edit-document-dialog/edit-document-dialog.component';
 import { EntityInfoDialogComponent } from '../dialogs/entity-info-dialog/entity-info-dialog.component';
 import { finalize } from 'rxjs';
@@ -460,12 +460,16 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
     if (!this.userBuilding) return;
 
     const userBuilding = this.userBuilding;
-    const dialogRef = this.dialog.open<AddDocumentDialogComponent, undefined, AddDocumentDialogResult>(
+    const dialogRef = this.dialog.open<AddDocumentDialogComponent, AddDocumentDialogData, AddDocumentDialogResult>(
       AddDocumentDialogComponent,
       {
         panelClass: 'custom-dialog',
         disableClose: true,
-        autoFocus: false
+        autoFocus: false,
+        data: {
+          buildingParts: this.buildingParts,
+          buildingObjects: this.buildingObjects
+        }
       }
     );
 
@@ -475,6 +479,7 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
       const payload: CreateDocumentPayload = {
         building_id: userBuilding.building_id,
         user_building_id: userBuilding.id,
+        component_id: result.componentId ?? undefined,
         name: result.name,
         description: result.description ?? undefined,
         is_public: result.isPublic ?? false,
