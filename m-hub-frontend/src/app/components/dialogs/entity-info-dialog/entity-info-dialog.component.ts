@@ -7,9 +7,12 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { Bauteil, Objekt } from '../../../models/building-component';
 import { Document } from '../../../models/document';
+import { Floor } from '../../../models/floor';
+import { FloorType } from '../../../enums/floor-type.enum';
 
 export type EntityInfoDialogData = {
   entity: Bauteil | Objekt | Document;
+  structure?: Floor[];
 };
 
 type InfoRow = {
@@ -22,6 +25,11 @@ type RowDef<T> = {
   label: string;
   getValue: (entity: T) => unknown;
   mono?: boolean;
+};
+
+type LocationSegment = {
+  main: string;
+  note?: string;
 };
 
 @Component({
@@ -56,6 +64,7 @@ export class EntityInfoDialogComponent {
     ifc: 'view_in_ar'
   };
   private readonly trustedDocumentUrlCache = new Map<string, SafeResourceUrl>();
+  private readonly floorDescriptionByLocationLabel = new Map<string, string>();
 
   entity: Record<string, unknown>;
   objectImageLoaded = false;
@@ -65,6 +74,7 @@ export class EntityInfoDialogComponent {
     private sanitizer: DomSanitizer
   ) {
     this.entity = data.entity as any as Record<string, unknown>;
+    this.rebuildFloorDescriptionByLocationLabel(this.data.structure ?? []);
   }
 
   get title(): string {
@@ -95,6 +105,20 @@ export class EntityInfoDialogComponent {
     if (typeof value === 'number') return value === 1 ? 'enthalten' : value === 0 ? 'nicht enthalten' : String(value);
 
     return this.formatValue(value);
+  }
+
+  getLocationSegments(keys: string[]): LocationSegment[] {
+    const rawLocation = this.readField(this.entity, keys);
+    if (typeof rawLocation !== 'string') return [];
+
+    const normalized = rawLocation.trim();
+    if (normalized.length === 0) return [];
+
+    return normalized
+      .split(',')
+      .map((token) => token.trim())
+      .filter((token) => token.length > 0)
+      .map((token) => this.toLocationSegmentVm(token));
   }
 
   isDocument(): boolean {
@@ -225,6 +249,68 @@ export class EntityInfoDialogComponent {
     if (this.isBauteil()) return 'Bauteil';
     if (this.isObjekt()) return 'Objekt';
     return 'Komponente';
+  }
+
+  private toLocationSegmentVm(token: string): LocationSegment {
+    const desc = this.floorDescriptionByLocationLabel.get(token);
+    if (desc) {
+      return { main: token, note: this.formatLocationNote(desc) };
+    }
+
+    const match = token.match(/^(.*?)(\s*\(.*\))$/);
+    if (!match) {
+      return { main: token };
+    }
+
+    const main = match[1].trimEnd();
+    const note = match[2].trimStart();
+
+    return { main, note };
+  }
+
+  private formatLocationNote(description: string): string | undefined {
+    const trimmed = description.trim();
+    if (trimmed.length === 0) return undefined;
+
+    if (trimmed.startsWith('(') && trimmed.endsWith(')')) {
+      return trimmed;
+    }
+
+    return `(${trimmed})`;
+  }
+
+  private rebuildFloorDescriptionByLocationLabel(structure: Floor[]): void {
+    this.floorDescriptionByLocationLabel.clear();
+
+    let regularIndex = 0;
+    let basementIndex = 0;
+
+    for (const floor of structure ?? []) {
+      if (floor.type === FloorType.RG) {
+        regularIndex += 1;
+        const desc = typeof floor.description === 'string' ? floor.description.trim() : '';
+        if (desc.length > 0) {
+          this.floorDescriptionByLocationLabel.set(`${floor.type} ${regularIndex}`, desc);
+        }
+        continue;
+      }
+
+      if (floor.type === FloorType.KG) {
+        basementIndex += 1;
+        const desc = typeof floor.description === 'string' ? floor.description.trim() : '';
+        if (desc.length > 0) {
+          this.floorDescriptionByLocationLabel.set(`${floor.type} ${basementIndex}`, desc);
+        }
+        continue;
+      }
+
+      if (floor.type === FloorType.D) {
+        const desc = typeof floor.description === 'string' ? floor.description.trim() : '';
+        if (desc.length > 0) {
+          this.floorDescriptionByLocationLabel.set(floor.type, desc);
+        }
+      }
+    }
   }
 
   private resolveEntityName(): string {

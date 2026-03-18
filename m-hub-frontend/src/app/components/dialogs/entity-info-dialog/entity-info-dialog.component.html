@@ -103,7 +103,14 @@
       </div>
       <div class="info-row">
         <div class="label">Verortung</div>
-        <div class="value">{{ getValue(['location']) }}</div>
+        <div class="value" *ngIf="getLocationSegments(['location']) as locationSegments">
+          <ng-container *ngIf="locationSegments.length > 0; else noLocationValue">
+            <ng-container *ngFor="let seg of locationSegments; let last = last">
+              <span>{{ seg.main }}</span><span *ngIf="seg.note" class="location-note"> {{ seg.note }}</span><span *ngIf="!last">, </span>
+            </ng-container>
+          </ng-container>
+          <ng-template #noLocationValue>—</ng-template>
+        </div>
       </div>
       <div class="info-row">
         <div class="label">Struktur</div>
@@ -156,7 +163,14 @@
       </div>
       <div class="info-row">
         <div class="label">Verortung</div>
-        <div class="value">{{ getValue(['location']) }}</div>
+        <div class="value" *ngIf="getLocationSegments(['location']) as locationSegments">
+          <ng-container *ngIf="locationSegments.length > 0; else noObjectLocationValue">
+            <ng-container *ngFor="let seg of locationSegments; let last = last">
+              <span>{{ seg.main }}</span><span *ngIf="seg.note" class="location-note"> {{ seg.note }}</span><span *ngIf="!last">, </span>
+            </ng-container>
+          </ng-container>
+          <ng-template #noObjectLocationValue>—</ng-template>
+        </div>
       </div>
       <div class="info-row">
         <div class="label">Anzahl</div>

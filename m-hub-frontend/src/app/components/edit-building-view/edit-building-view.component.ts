@@ -583,7 +583,8 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
       maxHeight: '90vh',
       autoFocus: false,
       data: {
-        entity
+        entity,
+        structure: this.structure
       }
     });
   }
