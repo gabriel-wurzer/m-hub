@@ -73,6 +73,21 @@
 
       <div class="checkbox-wrapper">
 
+        <div class="hazardous-wrapper">
+          <h2>Schadstoffe</h2>
+          <div class="hazardous-row">
+            <mat-checkbox class="hazardous-toggle" [(ngModel)]="isHazardous">Enthält Schadstoffe
+              <mat-icon
+                  class="info-icon"
+                  aria-label="Information zu Schafstoffen"
+                  matTooltip="Angabe zu enthaltenen Schadstoffen im Feld Beschreibung"
+                >
+                  info
+              </mat-icon>
+            </mat-checkbox>
+          </div>
+        </div>
+
         <div class="visibility-wrapper">
           <h2>Sichtbarkeit</h2>
           <div class="visibility-row">
@@ -88,21 +103,6 @@
           </div>
         </div>
 
-        <div class="hazardous-wrapper">
-          <h2>Schadstoffe</h2>
-          <div class="hazardous-row">
-            <mat-checkbox class="hazardous-toggle" [(ngModel)]="isHazardous">Enthält Schadstoffe
-              <mat-icon
-                  class="info-icon"
-                  aria-label="Information zu Schafstoffen"
-                  matTooltip="Angabe zu enthaltenen Schadstoffen im Feld Beschreibung"
-                >
-                  info
-              </mat-icon>
-            </mat-checkbox>
-          </div>
-        </div>
-      
       </div>
     </div>
 
