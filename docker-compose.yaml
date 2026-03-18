@@ -88,12 +88,13 @@ services:
     build:
       context: ./m-hub-backend
     ports:
-      - "1880:1880"
+      - "127.0.0.1:1880:1880"
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - SEAWEED_FILER_INTERNAL_URL=${SEAWEED_FILER_INTERNAL_URL:-http://seaweed-filer:8888}
       - SEAWEED_PUBLIC_BASE_URL=${SEAWEED_PUBLIC_BASE_URL:-http://localhost:8888}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
     # Mount host directories to container directories as volumes
     volumes:
       - ./m-hub-backend/data:/data

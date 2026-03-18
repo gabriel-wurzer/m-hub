@@ -34,7 +34,9 @@ Follow these steps to set up the project environment and import the building dat
     cp .env.example .env
     ```   
     
-    Then set the appropriate value for POSTGRES_PASSWORD in the `.env` file.<br>
+    Then set the appropriate values for POSTGRES_PASSWORD and JWT_SECRET in the `.env` file.<br>
+    For generating the JWT_SECRET something like `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` can be used.<br>
+
     Note: If you are on an ARM64 platform, the run script should detect it and set DOCKER_PLATFORM=linux/amd64 in `.env`.
 
 2. **Build and run the project**
