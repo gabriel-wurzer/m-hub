@@ -36,6 +36,7 @@ export type CreateDocumentPayload = {
 
 export type UpdateDocumentPayload = {
     id: string;
+    component_id?: string;
     name: string;
     description?: string;
     is_public: boolean;

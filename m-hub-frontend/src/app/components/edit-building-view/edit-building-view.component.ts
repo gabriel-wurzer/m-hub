@@ -523,7 +523,9 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
         disableClose: true,
         autoFocus: false,
         data: {
-          document
+          document,
+          buildingParts: this.buildingParts,
+          buildingObjects: this.buildingObjects
         }
       }
     );
@@ -533,6 +535,7 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
 
       const payload: UpdateDocumentPayload = {
         id: document.id,
+        component_id: result.componentId ?? undefined,
         name: result.name,
         description: result.description ?? undefined,
         is_public: result.isPublic ?? false

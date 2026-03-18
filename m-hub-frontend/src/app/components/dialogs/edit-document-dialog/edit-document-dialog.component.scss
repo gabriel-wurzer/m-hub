@@ -60,8 +60,18 @@ mat-form-field {
   flex-basis: 100%;
 }
 
-.visibility-wrapper {
-  flex-basis: 100%;
+.row-wrapper {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  width: 100%;
+}
+
+.visibility-wrapper,
+.component-wrapper {
+  flex: 1 1 320px;
 }
 
 .visibility-toggle {
@@ -79,6 +89,25 @@ mat-form-field {
   height: 16px;
   vertical-align: top;
   color: mat.get-color-from-palette(vars.$my-primary, 500);
+}
+
+.component-select-field {
+  margin-top: 8px;
+}
+
+.component-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.component-option-name {
+  font-weight: 500;
+}
+
+.component-option-context {
+  font-size: 12px;
+  color: #5a6473;
 }
 
 .file-upload-wrapper {

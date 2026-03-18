@@ -23,19 +23,40 @@
         </mat-form-field>
       </div>
 
-      <div class="visibility-wrapper">
-        <h2>Sichtbarkeit</h2>
-        <div class="visibility-row">
-          <mat-checkbox class="visibility-toggle" [(ngModel)]="isPublic">Öffentlich
-            <mat-icon
-              class="visibility-info-icon"
-              aria-label="Information zur Sichtbarkeit"
-              matTooltip="Dieses Dokument wird für alle anderen Nutzer:innen sichtbar"
-            >
-              info
-            </mat-icon>
-          </mat-checkbox>
+      <div class="row-wrapper">
+
+        <div class="component-wrapper">
+          <h2>Komponente</h2>
+          <mat-form-field appearance="outline" class="full-width component-select-field">
+            <mat-label>Zuordnen zu</mat-label>
+            <mat-select [(ngModel)]="componentId">
+              <mat-option [value]="null">Keine Zuordnung</mat-option>
+              <mat-option *ngFor="let option of componentOptions" [value]="option.id">
+                <div class="component-option">
+                  <div class="component-option-name">{{ option.name }}</div>
+                  <div class="component-option-context"> {{ option.context }}</div>
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-hint *ngIf="componentOptions.length === 0">Keine Bauteile oder Objekte verfügbar</mat-hint>
+          </mat-form-field>
         </div>
+
+        <div class="visibility-wrapper">
+          <h2>Sichtbarkeit</h2>
+          <div class="visibility-row">
+            <mat-checkbox class="visibility-toggle" [(ngModel)]="isPublic">Öffentlich
+              <mat-icon
+                class="visibility-info-icon"
+                aria-label="Information zur Sichtbarkeit"
+                matTooltip="Dieses Dokument wird für alle anderen Nutzer:innen sichtbar"
+              >
+                info
+              </mat-icon>
+            </mat-checkbox>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -67,7 +88,7 @@
       <div class="file-meta-row" *ngIf="getActiveFileName() || getFileError()">
         <div class="file-meta" *ngIf="getActiveFileName()">{{ getActiveFileName() }}</div>
         <div class="file-error" *ngIf="getFileError()">{{ getFileError() }}</div>
-        <button mat-button type="button" color="warn" (click)="removeSelectedFile()" [disabled]="!selectedFile">
+        <button *ngIf="selectedFile" mat-button type="button" color="warn" (click)="removeSelectedFile()">
           Ausgewählte Datei verwerfen
         </button>
       </div>

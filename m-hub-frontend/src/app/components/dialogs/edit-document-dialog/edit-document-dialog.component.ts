@@ -8,13 +8,18 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+import { BuildingComponentCategory } from '../../../enums/component-category';
 import { FileType } from '../../../enums/file-type.enum';
+import { Bauteil, Objekt } from '../../../models/building-component';
 import { Document } from '../../../models/document';
 
 export type EditDocumentDialogData = {
   document?: Document;
+  buildingParts?: Bauteil[];
+  buildingObjects?: Objekt[];
 };
 
 export type EditDocumentDialogResult = {
@@ -28,6 +33,13 @@ export type EditDocumentDialogResult = {
   fileDataUrl: string | null;
   previewImageUrl: string | null;
   replaceExistingFile: boolean;
+  componentId: string | null;
+};
+
+type ComponentOptionVm = {
+  id: string;
+  name: string;
+  context: string;
 };
 
 @Component({
@@ -41,6 +53,7 @@ export type EditDocumentDialogResult = {
     MatCheckboxModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatIconModule,
     MatTooltipModule,
     MatDividerModule
@@ -112,6 +125,9 @@ export class EditDocumentDialogComponent {
   selectedFileDataUrl: string | null = null;
   selectedPreviewImageUrl: string | null = null;
 
+  componentOptions: ComponentOptionVm[] = [];
+  componentId: string | null = null;
+
   private existingFileName = '';
   private existingFileType: FileType | null = null;
   private existingFileUrl: string | null = null;
@@ -121,6 +137,10 @@ export class EditDocumentDialogComponent {
     @Optional() public dialogRef: MatDialogRef<EditDocumentDialogComponent> | null,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: EditDocumentDialogData | null
   ) {
+    this.componentOptions = this.buildComponentOptions(
+      this.data?.buildingParts ?? [],
+      this.data?.buildingObjects ?? []
+    );
     this.prefillFromDocument(this.data?.document);
   }
 
@@ -130,6 +150,7 @@ export class EditDocumentDialogComponent {
     this.name = document.name ?? '';
     this.description = document.description ?? '';
     this.isPublic = this.coerceBoolean(document.is_public, true);
+    this.componentId = document.component_id ?? null;
 
     this.existingFileType = this.resolveInitialFileType(document);
     this.existingFileUrl = this.normalizeOptionalInput(document.file_url ?? '');
@@ -296,7 +317,8 @@ export class EditDocumentDialogComponent {
       fileMimeType: hasReplacementFile ? this.selectedFileMimeType : null,
       fileDataUrl: hasReplacementFile ? this.selectedFileDataUrl : null,
       previewImageUrl: hasReplacementFile ? this.selectedPreviewImageUrl : this.existingPreviewImageUrl,
-      replaceExistingFile: hasReplacementFile
+      replaceExistingFile: hasReplacementFile,
+      componentId: this.componentId
     };
 
     this.dialogRef?.close(result);
@@ -383,6 +405,35 @@ export class EditDocumentDialogComponent {
     if (typeof input !== 'string') return null;
     const trimmed = input.trim();
     return trimmed.length === 0 ? null : trimmed;
+  }
+
+  private buildComponentOptions(parts: Bauteil[], objects: Objekt[]): ComponentOptionVm[] {
+    const options: ComponentOptionVm[] = [];
+
+    for (const part of parts) {
+      if (!part?.id) continue;
+      options.push(this.toComponentOptionVm(part, BuildingComponentCategory.Bauteil));
+    }
+
+    for (const object of objects) {
+      if (!object?.id) continue;
+      options.push(this.toComponentOptionVm(object, BuildingComponentCategory.Objekt));
+    }
+
+    return options.sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+  }
+
+  private toComponentOptionVm(component: Bauteil | Objekt, category: BuildingComponentCategory): ComponentOptionVm {
+    const normalizedName = component.name?.trim();
+    const name = normalizedName && normalizedName.length > 0 ? normalizedName : `Unbenanntes ${category}`;
+    const location = component.location?.trim();
+    const context = location && location.length > 0 ? `${category} - ${location}` : category;
+
+    return {
+      id: component.id,
+      name,
+      context
+    };
   }
 
 }
