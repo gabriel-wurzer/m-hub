@@ -22,7 +22,14 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { BuildingComponent, Bauteil, Objekt, CreateObjektPayload, UpdateObjektPayload } from '../../models/building-component';
+import {
+  BuildingComponent,
+  Bauteil,
+  CreateBauteilPayload,
+  CreateObjektPayload,
+  Objekt,
+  UpdateObjektPayload
+} from '../../models/building-component';
 import { Document, CreateDocumentPayload, UpdateDocumentPayload } from '../../models/document';
 import { Floor } from '../../models/floor';
 import { FloorType } from '../../enums/floor-type.enum';
@@ -34,6 +41,7 @@ import { UserService } from '../../services/user/user.service';
 import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog.component';
 import { BuildingPartService } from '../../services/building-part/building-part.service';
 import { BuildingObjectService } from '../../services/building-object/building-object.service';
+import { AddPartDialogComponent, AddPartDialogResult } from '../dialogs/add-part-dialog/add-part-dialog.component';
 import { AddObjectDialogComponent, AddObjectDialogResult } from '../dialogs/add-object-dialog/add-object-dialog.component';
 import { EditObjectDialogComponent, EditObjectDialogData, EditObjectDialogResult } from '../dialogs/edit-object-dialog/edit-object-dialog.component';
 import { AddDocumentDialogComponent, AddDocumentDialogData, AddDocumentDialogResult } from '../dialogs/add-document-dialog/add-document-dialog.component';
@@ -311,9 +319,62 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
   }
 
   openAddBuildingPartDialog(): void {
-    //TODO: open a dialog for adding an Building Part.
+    if (!this.userBuilding) return;
 
-    console.log('Open Add Building Part Dialog - Not yet implemented');
+    const userBuilding = this.userBuilding;
+    const dialogRef = this.dialog.open<AddPartDialogComponent, { structure: Floor[] }, AddPartDialogResult>(
+      AddPartDialogComponent,
+      {
+        panelClass: 'custom-dialog',
+        disableClose: true,
+        autoFocus: false,
+        data: {
+          structure: userBuilding.structure ?? []
+        }
+      }
+    );
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
+
+      const payload: CreateBauteilPayload = {
+        building_id: userBuilding.building_id,
+        user_building_id: userBuilding.id,
+        owner_id: userBuilding.user_id,
+        category: BuildingComponentCategory.Bauteil,
+        name: result.name,
+        description: result.description ?? undefined,
+        part_type: result.partType,
+        location: result.location,
+        is_public: result.isPublic ?? true,
+        is_hazardous: result.isHazardous ?? false,
+        part_structure: ''
+      };
+
+      this.isLoadingParts = true;
+
+      this.buildingPartService.createComponent(payload)
+        .pipe(finalize(() => this.isLoadingParts = false))
+        .subscribe({
+          next: createdPart => {
+            this.buildingParts = [createdPart, ...this.buildingParts];
+          },
+          complete: () => {
+            this.snackBar.open('Bauteil hinzugefügt.', 'OK', {
+              duration: 3000,
+              verticalPosition: 'top'
+            });
+          },
+          error: error => {
+            console.error('Error creating part:', error);
+            this.snackBar.open('Fehler beim Hinzufügen des Bauteils!', 'OK', {
+              duration: 10000,
+              verticalPosition: 'top',
+              panelClass: 'snackbar-warn'
+            });
+          }
+        });
+    });
   }
 
   openAddBuildingObjectDialog(): void {

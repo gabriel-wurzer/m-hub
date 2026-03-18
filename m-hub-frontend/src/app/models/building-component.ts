@@ -26,6 +26,20 @@ export class Bauteil extends BuildingComponent {
     location!: string;
 }
 
+export type CreateBauteilPayload = {
+    building_id: string;
+    user_building_id: string;
+    owner_id: string;
+    category: BuildingComponentCategory.Bauteil;
+    name: string;
+    description?: string;
+    is_public: boolean;
+    is_hazardous: boolean;
+    part_type: PartType;
+    location: string;
+    part_structure?: string;
+};
+
 export class Objekt extends BuildingComponent {
     object_type!: ObjectType;
     count!: number;   

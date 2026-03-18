@@ -1,1 +1,95 @@
-<p>add-part-dialog works!</p>
+<div class="dialog-container">
+  <div>
+    <h1 class="header">Bauteil hinzufügen</h1>
+    <mat-divider />
+  </div>
+
+  <div mat-dialog-content class="content-wrapper">
+    <div class="part-info-wrapper">
+      <div class="name-wrapper">
+        <h2>Name</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Name</mat-label>
+          <input matInput [(ngModel)]="name" [required]="true" #nameCtrl="ngModel" />
+          <mat-error *ngIf="nameCtrl.invalid || getNameError()">{{ getNameError() }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="part-type-wrapper">
+        <h2>Bauteil-Kategorie</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Kategorie</mat-label>
+          <mat-select [(ngModel)]="partType" [required]="true" #partTypeCtrl="ngModel">
+            <mat-option [value]="null" disabled>-- Bauteil-Kategorie auswählen --</mat-option>
+            <mat-option *ngFor="let type of partTypes" [value]="type">
+              {{ type }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="partTypeCtrl.invalid || getPartTypeError()">{{ getPartTypeError() }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="location-wrapper">
+        <h2>Verortung</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Geschoss(e)</mat-label>
+          <mat-select [(ngModel)]="selectedLocations" [required]="true" #locationCtrl="ngModel" multiple>
+            <mat-option *ngFor="let option of locationOptionVms" [value]="option.value">
+              <span>{{ option.main }}</span>
+              <span *ngIf="option.note" class="location-option-note"> {{ option.note }}</span>
+            </mat-option>
+          </mat-select>
+          <mat-hint>Mehrfachauswahl möglich</mat-hint>
+          <mat-error *ngIf="locationCtrl.invalid || getLocationError()">{{ getLocationError() }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="description-wrapper">
+        <h2>Beschreibung</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Beschreibung</mat-label>
+          <textarea matInput rows="3" [(ngModel)]="description"></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="checkbox-wrapper">
+        <div class="hazardous-wrapper">
+          <h2>Schadstoffe</h2>
+          <div class="hazardous-row">
+            <mat-checkbox class="hazardous-toggle" [(ngModel)]="isHazardous"
+              >Enthält Schadstoffe
+              <mat-icon
+                class="info-icon"
+                aria-label="Information zu Schadstoffen"
+                matTooltip="Angabe zu enthaltenen Schadstoffen im Feld Beschreibung"
+              >
+                info
+              </mat-icon>
+            </mat-checkbox>
+          </div>
+        </div>
+
+        <div class="visibility-wrapper">
+          <h2>Sichtbarkeit</h2>
+          <div class="visibility-row">
+            <mat-checkbox class="visibility-toggle" [(ngModel)]="isPublic"
+              >Öffentlich
+              <mat-icon
+                class="info-icon"
+                aria-label="Information zur Sichtbarkeit"
+                matTooltip="Dieses Bauteil wird für alle anderen Nutzer:innen sichtbar"
+              >
+                info
+              </mat-icon>
+            </mat-checkbox>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div mat-dialog-actions class="actions">
+    <button mat-button (click)="close()">Abbruch</button>
+    <button mat-button color="primary" (click)="confirmAddPart()" [disabled]="!isFormValid()">Hinzufügen</button>
+  </div>
+</div>
