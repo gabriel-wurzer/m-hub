@@ -103,6 +103,12 @@ mat-form-field {
   flex-basis: 100%;
 }
 
+.checkbox-wrapper {
+  h2 {
+    margin-bottom: 0;
+  }
+}
+
 .image-upload-wrapper {
   display: flex;
   flex-direction: column;
@@ -224,6 +230,18 @@ mat-error {
   // font-style: italic;
   // color: #5a6473;
   color: rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 800px) {
+  .checkbox-wrapper {
+    flex-wrap: wrap;
+    gap: 1.2rem;
+  }
+
+  .visibility-wrapper,
+  .hazardous-wrapper {
+    flex: 1 1 100%;
+  }
 }
 
 @media (max-width: 520px) {
