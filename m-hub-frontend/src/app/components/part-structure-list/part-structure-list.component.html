@@ -1,0 +1,125 @@
+<div class="part-structure-wrapper" *ngIf="orientation && measureType; else selectPartTypeHint">
+  <div class="part-structure-header">
+    <span class="orientation-hint">{{ orientationHint }}</span>
+    <button mat-stroked-button type="button" (click)="addLayer()">
+      <mat-icon>add</mat-icon>
+      Schicht hinzufügen
+    </button>
+  </div>
+
+  <div class="part-structure-content">
+    <div class="structure-visual" [class.wall-direction-labels]="isWallStructure">
+      <span class="direction-label" [class.direction-label-start]="isWallStructure">{{ directionStartLabel }}</span>
+      <div class="layer-stack" [class.wall-stack]="isWallStructure" [class.floor-stack]="isFloorStructure">
+        <div *ngFor="let layer of layers; trackBy: trackByLayer" class="layer-tile">
+          {{ layer.layer_index }}
+        </div>
+      </div>
+      <span class="direction-label" [class.direction-label-end]="isWallStructure">{{ directionEndLabel }}</span>
+    </div>
+
+    <div class="layers-list" [@.disabled]="animationsDisabled">
+      <div class="layer-row" *ngFor="let layer of layers; let i = index; trackBy: trackByLayer" @rowAnimation>
+        <div class="layer-row-header">
+          <h3>Schicht {{ i + 1 }}</h3>
+          <div class="layer-actions">
+            <button
+              *ngIf="layers.length > 1"
+              mat-icon-button
+              class="arrow-button"
+              type="button"
+              (click)="moveLayerUp(i)"
+              [disabled]="i === 0"
+              [matTooltip]="isWallStructure ? 'Schicht nach innen verschieben' : 'Schicht nach oben verschieben'"
+            >
+              <mat-icon>arrow_upward</mat-icon>
+            </button>
+
+            <button
+              *ngIf="layers.length > 1"
+              mat-icon-button
+              class="arrow-button"
+              type="button"
+              (click)="moveLayerDown(i)"
+              [disabled]="i === layers.length - 1"
+              [matTooltip]="isWallStructure ? 'Schicht nach außen verschieben' : 'Schicht nach unten verschieben'"
+            >
+              <mat-icon>arrow_downward</mat-icon>
+            </button>
+
+            <button
+              *ngIf="layers.length > 1"
+              mat-icon-button
+              class="delete-button"
+              type="button"
+              (click)="removeLayer(i)"
+              matTooltip="Schicht entfernen"
+            >
+              <mat-icon>remove_circle_outline</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="layer-fields">
+          <mat-form-field appearance="outline">
+            <mat-label>Material</mat-label>
+            <mat-select [(ngModel)]="layer.material" (ngModelChange)="emitChanges()" required #materialCtrl="ngModel">
+              <mat-option [value]="null">-- Material wählen --</mat-option>
+              <mat-option *ngFor="let material of materials" [value]="material">{{ material }}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="materialCtrl.touched && isMaterialMissing(layer)">Material erforderlich</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Stärke (mm)</mat-label>
+            <input
+              matInput
+              type="number"
+              min="1"
+              step="1"
+              [(ngModel)]="layer.thickness"
+              (ngModelChange)="emitChanges()"
+              required
+              #thicknessCtrl="ngModel"
+            />
+            <mat-error *ngIf="thicknessCtrl.touched && isThicknessInvalid(layer)">St&auml;rke muss mindestens 1 sein</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" *ngIf="isWallStructure">
+            <mat-label>Laufmeter (m)</mat-label>
+            <input
+              matInput
+              type="number"
+              min="1"
+              step="0.1"
+              [(ngModel)]="layer.length"
+              (ngModelChange)="emitChanges()"
+              required
+              #lengthCtrl="ngModel"
+            />
+            <mat-error *ngIf="lengthCtrl.touched && isMeasureInvalid(layer)">Länge muss mindestens 1 sein</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" *ngIf="isFloorStructure">
+            <mat-label>Fläche (m²)</mat-label>
+            <input
+              matInput
+              type="number"
+              min="1"
+              step="0.1"
+              [(ngModel)]="layer.area"
+              (ngModelChange)="emitChanges()"
+              required
+              #areaCtrl="ngModel"
+            />
+            <mat-error *ngIf="areaCtrl.touched && isMeasureInvalid(layer)">Fl&auml;che muss mindestens 1 sein</mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #selectPartTypeHint>
+  <p class="empty-state">Bitte zuerst eine Bauteil-Kategorie auswählen.</p>
+</ng-template>

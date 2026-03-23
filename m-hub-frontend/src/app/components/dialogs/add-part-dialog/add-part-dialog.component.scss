@@ -65,10 +65,22 @@ mat-form-field {
   min-width: 260px;
 }
 
+.part-structure-wrapper {
+  flex: 1 1 100%;
+  width: 100%;
+}
+
 .checkbox-wrapper {
   display: flex;
-  flex: 1 1 0;
+  flex: 1 1 100%;
   flex-direction: row;
+  // width: 100%;
+
+  margin-top: 1.6rem;
+
+  h2 {
+    margin-bottom: 0;
+  }
 }
 
 .visibility-wrapper,
@@ -119,6 +131,18 @@ mat-error {
 
 .location-option-note {
   color: rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 800px) {
+  .checkbox-wrapper {
+    flex-wrap: wrap;
+    gap: 1.2rem;
+  }
+
+  .visibility-wrapper,
+  .hazardous-wrapper {
+    flex: 1 1 100%;
+  }
 }
 
 @media (max-width: 520px) {

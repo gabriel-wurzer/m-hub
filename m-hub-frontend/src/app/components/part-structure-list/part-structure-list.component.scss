@@ -1,0 +1,177 @@
+@use '@angular/material' as mat;
+@use '../../../theme-setup' as vars;
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.part-structure-wrapper {
+  border: 2px dashed mat.get-color-from-palette(vars.$my-primary, 500);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.part-structure-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.orientation-hint {
+  font-size: 14px;
+}
+
+.part-structure-content {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.structure-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+// .structure-visual.wall-direction-labels {
+//   align-items: stretch;
+// }
+
+.direction-label {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+// .direction-label-start {
+//   text-align: start;
+// }
+
+// .direction-label-end {
+//   text-align: end;
+// }
+
+.layer-stack {
+  width: 92px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.wall-stack {
+  display: flex;
+  flex-direction: row;
+  height: 76px;
+}
+
+.floor-stack {
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
+}
+
+.layer-tile {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.72);
+  background: linear-gradient(180deg, rgba(2, 136, 209, 0.16), rgba(2, 136, 209, 0.08));
+}
+
+.wall-stack .layer-tile + .layer-tile {
+  border-left: 1px solid rgba(0, 0, 0, 0.16);
+}
+
+.floor-stack .layer-tile + .layer-tile {
+  border-top: 1px solid rgba(0, 0, 0, 0.16);
+}
+
+.layers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.layer-row {
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 10px;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.layer-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.layer-row-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.layer-actions {
+  display: flex;
+  align-items: center;
+}
+
+.delete-button {
+  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+
+  &:hover {
+    color: mat.get-color-from-palette(vars.$my-warn, 500);
+  }
+}
+
+.arrow-button:not(:disabled) {
+  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+
+  &:hover {
+    color: mat.get-color-from-palette(vars.$my-primary, 500);
+  }
+}
+
+.layer-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.empty-state {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.64);
+}
+
+mat-hint {
+  font-size: 14px;
+}
+
+mat-error {
+  font-size: 14px;
+}
+
+@media (max-width: 760px) {
+  .part-structure-content {
+    grid-template-columns: 1fr;
+  }
+
+  .structure-visual {
+    flex-direction: row;
+    justify-content: center;
+  }
+}

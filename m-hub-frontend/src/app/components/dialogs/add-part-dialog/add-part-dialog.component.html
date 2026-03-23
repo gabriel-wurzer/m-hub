@@ -15,41 +15,66 @@
         </mat-form-field>
       </div>
 
-      <div class="part-type-wrapper">
-        <h2>Bauteil-Kategorie</h2>
+      <div class="description-wrapper">
+        <h2>Bezeichnung</h2>
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Kategorie</mat-label>
-          <mat-select [(ngModel)]="partType" [required]="true" #partTypeCtrl="ngModel">
-            <mat-option [value]="null" disabled>-- Bauteil-Kategorie auswählen --</mat-option>
-            <mat-option *ngFor="let type of partTypes" [value]="type">
-              {{ type }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="partTypeCtrl.invalid || getPartTypeError()">{{ getPartTypeError() }}</mat-error>
+          <mat-label>Bezeichnung</mat-label>
+          <textarea matInput rows="1" [(ngModel)]="description"></textarea>
         </mat-form-field>
       </div>
+
+
 
       <div class="location-wrapper">
         <h2>Verortung</h2>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Geschoss(e)</mat-label>
-          <mat-select [(ngModel)]="selectedLocations" [required]="true" #locationCtrl="ngModel" multiple>
+          <mat-select
+            [(ngModel)]="selectedLocations"
+            (ngModelChange)="onLocationsChange()"
+            [required]="true"
+            #locationCtrl="ngModel"
+            multiple
+          >
             <mat-option *ngFor="let option of locationOptionVms" [value]="option.value">
               <span>{{ option.main }}</span>
               <span *ngIf="option.note" class="location-option-note"> {{ option.note }}</span>
             </mat-option>
           </mat-select>
-          <mat-hint>Mehrfachauswahl möglich</mat-hint>
+          <!-- <mat-hint>Mehrfachauswahl möglich</mat-hint> -->
           <mat-error *ngIf="locationCtrl.invalid || getLocationError()">{{ getLocationError() }}</mat-error>
         </mat-form-field>
       </div>
 
-      <div class="description-wrapper">
-        <h2>Beschreibung</h2>
+      <div class="part-type-wrapper">
+        <h2>Bauteil-Kategorie</h2>
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Beschreibung</mat-label>
-          <textarea matInput rows="3" [(ngModel)]="description"></textarea>
+          <mat-label>Kategorie</mat-label>
+          <mat-select
+            [(ngModel)]="partType"
+            (ngModelChange)="onPartTypeChange()"
+            [required]="true"
+            [disabled]="isPartTypeSelectionDisabled()"
+            #partTypeCtrl="ngModel"
+          >
+            <mat-option [value]="null" disabled>-- Bauteil-Kategorie auswählen --</mat-option>
+            <mat-option *ngFor="let type of availablePartTypes" [value]="type">
+              {{ type }}
+            </mat-option>
+          </mat-select>
+          <mat-hint *ngIf="getPartTypeHint() as hint">{{ hint }}</mat-hint>
+          <mat-error *ngIf="partTypeCtrl.touched && getPartTypeError()">{{ getPartTypeError() }}</mat-error>
         </mat-form-field>
+      </div>
+
+      <div class="part-structure-wrapper" *ngIf="partType" @partStructureBlend>
+        <h2>Schichtaufbau</h2>
+        <app-part-structure-list
+          [partType]="partType"
+          [structure]="partStructure"
+          (structureChange)="onPartStructureChange($event)"
+          (validityChange)="onPartStructureValidityChange($event)"
+        />
       </div>
 
       <div class="checkbox-wrapper">

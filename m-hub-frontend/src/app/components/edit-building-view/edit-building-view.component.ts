@@ -345,10 +345,10 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
         name: result.name,
         description: result.description ?? undefined,
         part_type: result.partType,
+        part_structure: result.partStructure ? JSON.stringify(result.partStructure) : '',
         location: result.location,
         is_public: result.isPublic ?? true,
-        is_hazardous: result.isHazardous ?? false,
-        part_structure: ''
+        is_hazardous: result.isHazardous ?? false
       };
 
       this.isLoadingParts = true;

@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { animate, style, transition, trigger } from '@angular/animations';
 import { Component, Inject, Optional } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,9 +11,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { PartStructureListComponent } from '../../part-structure-list/part-structure-list.component';
 import { FloorType } from '../../../enums/floor-type.enum';
 import { PartType } from '../../../enums/part-type.enum';
+import { RoofType } from '../../../enums/roof-type.enum';
 import { Floor } from '../../../models/floor';
+import { PartStructure } from '../../../models/part-structure';
 
 type AddPartDialogData = {
   structure?: Floor[];
@@ -21,6 +25,7 @@ type AddPartDialogData = {
 export type AddPartDialogResult = {
   name: string;
   partType: PartType;
+  partStructure: PartStructure | null;
   isPublic: boolean;
   isHazardous: boolean;
   description: string | null;
@@ -52,36 +57,78 @@ type LocationOptionVm = {
     MatSelectModule,
     MatTooltipModule,
     MatDividerModule,
-    MatIconModule
+    MatIconModule,
+    PartStructureListComponent
   ],
   templateUrl: './add-part-dialog.component.html',
-  styleUrl: './add-part-dialog.component.scss'
+  styleUrl: './add-part-dialog.component.scss',
+  animations: [
+    trigger('partStructureBlend', [
+      transition(':enter', [
+        style({
+          opacity: 0,
+          transform: 'translateY(-6px)',
+          height: '0px',
+          overflow: 'hidden'
+        }),
+        animate(
+          '260ms cubic-bezier(0.2, 0, 0, 1)',
+          style({
+            opacity: 1,
+            transform: 'translateY(0)',
+            height: '*'
+          })
+        )
+      ]),
+      transition(':leave', [
+        style({
+          opacity: 1,
+          transform: 'translateY(0)',
+          height: '*',
+          overflow: 'hidden'
+        }),
+        animate(
+          '200ms cubic-bezier(0.4, 0, 1, 1)',
+          style({
+            opacity: 0,
+            transform: 'translateY(-4px)',
+            height: '0px'
+          })
+        )
+      ])
+    ])
+  ]
 })
 export class AddPartDialogComponent {
   readonly specialLocationOptions: string[] = ['Individuell (Verortung in Beschreibung angeben)'];
   private readonly specialLocationOptionValue = 'Individuell';
   private readonly floorDescriptionByLocationLabel = new Map<string, string>();
+  private readonly roofTypeInBuilding: RoofType | null;
 
   name: string = '';
   description: string = '';
   selectedLocations: string[] = [];
   partType: PartType | null = null;
+  partStructure: PartStructure | null = null;
+  isPartStructureValid = false;
   isPublic: boolean = true;
   isHazardous: boolean = false;
 
   floorOptions: FloorOption[] = [];
   locationOptions: string[] = [];
   locationOptionVms: LocationOptionVm[] = [];
-  partTypes: PartType[] = Object.values(PartType);
-
+  readonly allPartTypes: PartType[] = Object.values(PartType);
+  availablePartTypes: PartType[] = [];
   constructor(
     @Optional() public dialogRef: MatDialogRef<AddPartDialogComponent> | null,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: AddPartDialogData | null
   ) {
+    this.roofTypeInBuilding = this.resolveRoofTypeInBuilding(this.data?.structure ?? []);
     this.floorOptions = this.buildFloorOptions(this.data?.structure ?? []);
     this.rebuildFloorDescriptionByLocationLabel();
     this.locationOptions = [...this.floorOptions.map((option) => option.label), ...this.specialLocationOptions];
     this.locationOptionVms = this.locationOptions.map((value) => this.toLocationOptionVm(value));
+    this.syncAvailablePartTypes();
   }
 
   private toLocationOptionVm(value: string): LocationOptionVm {
@@ -133,9 +180,14 @@ export class AddPartDialogComponent {
   }
 
   getPartTypeError(): string | null {
+    if (this.selectedLocations.length === 0 || this.availablePartTypes.length === 0) {
+      return null;
+    }
+
     if (!this.partType) {
       return 'Bauteiltyp erforderlich';
     }
+
     return null;
   }
 
@@ -148,9 +200,43 @@ export class AddPartDialogComponent {
 
   isFormValid(): boolean {
     const isNameValid = this.name.trim().length > 0;
-    const isPartTypeValid = !!this.partType;
+    const isPartTypeValid = !!this.partType && this.availablePartTypes.includes(this.partType);
     const isLocationValid = this.selectedLocations.length > 0;
-    return isNameValid && isPartTypeValid && isLocationValid;
+    const isPartStructureValid = this.partType ? this.isPartStructureValid : true;
+    return isNameValid && isPartTypeValid && isLocationValid && isPartStructureValid;
+  }
+
+  onLocationsChange(): void {
+    this.syncAvailablePartTypes();
+  }
+
+  onPartTypeChange(): void {
+    this.partStructure = null;
+    this.isPartStructureValid = false;
+  }
+
+  onPartStructureChange(structure: PartStructure | null): void {
+    this.partStructure = structure;
+  }
+
+  onPartStructureValidityChange(isValid: boolean): void {
+    this.isPartStructureValid = isValid;
+  }
+
+  isPartTypeSelectionDisabled(): boolean {
+    return this.selectedLocations.length === 0 || this.availablePartTypes.length === 0;
+  }
+
+  getPartTypeHint(): string | null {
+    if (this.selectedLocations.length === 0) {
+      return 'Bitte zuerst Verortung auswählen.';
+    }
+
+    if (this.availablePartTypes.length === 0) {
+      return 'Für die gewählte Verortung gibt es keine gemeinsame Bauteil-Kategorie.';
+    }
+
+    return null;
   }
 
   private normalizeOptionalInput(input: string): string | null {
@@ -179,6 +265,95 @@ export class AddPartDialogComponent {
     });
   }
 
+  private syncAvailablePartTypes(): void {
+    this.availablePartTypes = this.getAllowedPartTypesForSelectedLocations();
+
+    if (this.partType && !this.availablePartTypes.includes(this.partType)) {
+      this.partType = null;
+      this.partStructure = null;
+      this.isPartStructureValid = false;
+    }
+  }
+
+  private getAllowedPartTypesForSelectedLocations(): PartType[] {
+    if (this.selectedLocations.length === 0) {
+      return [];
+    }
+
+    return this.allPartTypes.filter((partType) =>
+      this.selectedLocations.every((location) => this.getAllowedPartTypesForLocation(location).has(partType))
+    );
+  }
+
+  private getAllowedPartTypesForLocation(location: string): Set<PartType> {
+    if (location === this.specialLocationOptionValue) {
+      return new Set(this.allPartTypes);
+    }
+
+    if (this.isRoofLocation(location)) {
+      return this.getAllowedRoofPartTypes();
+    }
+
+    if (this.isRegularFloorLocation(location)) {
+      const allowed = new Set<PartType>([
+        PartType.Innenwand,
+        PartType.Aussenwand,
+        PartType.Brandwand,
+        PartType.Boden
+      ]);
+
+      if (this.roofTypeInBuilding) {
+        allowed.add(PartType.Dachaufbau);
+      }
+
+      return allowed;
+    }
+
+    if (this.isBasementLocation(location)) {
+      return new Set<PartType>([
+        PartType.Innenwand,
+        PartType.Aussenwand,
+        PartType.Brandwand,
+        PartType.Boden
+      ]);
+    }
+
+    return new Set(this.allPartTypes);
+  }
+
+  private getAllowedRoofPartTypes(): Set<PartType> {
+    if (this.roofTypeInBuilding === RoofType.S) {
+      return new Set<PartType>([PartType.Kniestock, PartType.Boden, PartType.Dachaufbau]);
+    }
+
+    if (this.roofTypeInBuilding === RoofType.F) {
+      return new Set<PartType>([PartType.Attika, PartType.Dachaufbau]);
+    }
+
+    return new Set<PartType>([PartType.Dachaufbau]);
+  }
+
+  private isBasementLocation(location: string): boolean {
+    return location.startsWith(FloorType.KG);
+  }
+
+  private isRegularFloorLocation(location: string): boolean {
+    return location.startsWith(FloorType.RG);
+  }
+
+  private isRoofLocation(location: string): boolean {
+    return location === FloorType.D;
+  }
+
+  private resolveRoofTypeInBuilding(structure: Floor[]): RoofType | null {
+    const roof = structure.find((floor) => floor.type === FloorType.D);
+    if (!roof || !('roofType' in roof)) {
+      return null;
+    }
+
+    return roof.roofType ?? null;
+  }
+
   private formatLocationForPayload(): string {
     return this.selectedLocations.join(', ');
   }
@@ -190,6 +365,7 @@ export class AddPartDialogComponent {
     const result: AddPartDialogResult = {
       name: this.name.trim(),
       partType: this.partType,
+      partStructure: this.partStructure,
       isPublic: this.isPublic,
       isHazardous: this.isHazardous,
       description: this.normalizeOptionalInput(this.description),

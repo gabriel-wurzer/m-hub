@@ -3,6 +3,7 @@ import { ObjectType } from '../enums/object-type';
 import { PartType } from '../enums/part-type.enum';
 
 import { Document } from "./document";
+import { PartStructure } from './part-structure';
 
 /**
  * Interface for building components. Represents either a 'Bauteil' or 'Objekt'
@@ -21,7 +22,7 @@ export abstract class BuildingComponent {
 }
 
 export class Bauteil extends BuildingComponent {
-    part_structure!: string;     // TODO: part strucutre model --> contains info for different layers (including layer_index, material, thickness)
+    part_structure!: string | PartStructure;
     part_type!: PartType;        
     location!: string;
 }
@@ -37,7 +38,7 @@ export type CreateBauteilPayload = {
     is_hazardous: boolean;
     part_type: PartType;
     location: string;
-    part_structure?: string;
+    part_structure?: string | PartStructure;
 };
 
 export class Objekt extends BuildingComponent {
