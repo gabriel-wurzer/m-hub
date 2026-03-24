@@ -316,14 +316,16 @@ export class AddPartDialogComponent {
 
     if (this.isRegularFloorLocation(location)) {
       const allowed = new Set<PartType>([
-        PartType.Innenwand,
-        PartType.Aussenwand,
-        PartType.Brandwand,
-        PartType.Boden
+        PartType.IW,
+        PartType.AW,
+        PartType.BW,
+        PartType.BA
       ]);
 
       if (this.roofTypeInBuilding) {
-        allowed.add(PartType.Dachaufbau);
+        allowed.add(PartType.DA);
+        allowed.add(PartType.A);
+        allowed.add(PartType.KS);
       }
 
       return allowed;
@@ -331,10 +333,10 @@ export class AddPartDialogComponent {
 
     if (this.isBasementLocation(location)) {
       return new Set<PartType>([
-        PartType.Innenwand,
-        PartType.Aussenwand,
-        PartType.Brandwand,
-        PartType.Boden
+        PartType.IW,
+        PartType.AW,
+        PartType.BW,
+        PartType.BA
       ]);
     }
 
@@ -343,14 +345,14 @@ export class AddPartDialogComponent {
 
   private getAllowedRoofPartTypes(): Set<PartType> {
     if (this.roofTypeInBuilding === RoofType.S) {
-      return new Set<PartType>([PartType.Kniestock, PartType.Boden, PartType.Dachaufbau]);
+      return new Set<PartType>([PartType.KS, PartType.BA, PartType.DA]);
     }
 
     if (this.roofTypeInBuilding === RoofType.F) {
-      return new Set<PartType>([PartType.Attika, PartType.Dachaufbau]);
+      return new Set<PartType>([PartType.A, PartType.DA]);
     }
 
-    return new Set<PartType>([PartType.Dachaufbau]);
+    return new Set<PartType>([PartType.DA]);
   }
 
   private isBasementLocation(location: string): boolean {
