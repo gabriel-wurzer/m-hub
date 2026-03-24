@@ -1,7 +1,7 @@
 /**
  * Enum for supported mataterials.
  */
-export enum Material {
+export enum MaterialType {
   mat_1 = 'Ziegel',
   mat_2 = 'Mörtel',
   mat_3 = 'Beton',

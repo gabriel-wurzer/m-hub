@@ -2,7 +2,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PartStructureListComponent } from './part-structure-list.component';
 import { PartType } from '../../enums/part-type.enum';
-import { Material } from '../../enums/material.enum';
+import { ConnectionType } from '../../enums/connection-type.enum';
+import { MaterialType } from '../../enums/material.enum';
+import { UNKNOWN_LAYER_MATERIAL } from '../../models/layer-material';
 
 describe('PartStructureListComponent', () => {
   let component: PartStructureListComponent;
@@ -24,7 +26,7 @@ describe('PartStructureListComponent', () => {
   });
 
   it('should initialize a wall structure for wall part types', () => {
-    component.partType = PartType.Innenwand;
+    component.partType = PartType.IW;
     fixture.detectChanges();
 
     expect(component.structureType).toBe('wall');
@@ -32,11 +34,19 @@ describe('PartStructureListComponent', () => {
   });
 
   it('should initialize a floor structure for floor part types', () => {
-    component.partType = PartType.Boden;
+    component.partType = PartType.BA;
     fixture.detectChanges();
 
     expect(component.structureType).toBe('slab');
     expect(component.layers.length).toBe(1);
+  });
+
+  it('should expose all layer material options', () => {
+    fixture.detectChanges();
+
+    expect(component.layerMaterials).toContain(MaterialType.mat_3);
+    expect(component.layerMaterials).toContain(UNKNOWN_LAYER_MATERIAL);
+    expect(component.layerMaterials).toContain(ConnectionType.conn_1);
   });
 
   it('should report valid once required layer data is complete for wall', () => {
@@ -45,10 +55,10 @@ describe('PartStructureListComponent', () => {
       lastValidity = value;
     });
 
-    component.partType = PartType.Aussenwand;
+    component.partType = PartType.AW;
     fixture.detectChanges();
 
-    component.layers[0].material = Material.mat_3;
+    component.layers[0].material = MaterialType.mat_3;
     component.layers[0].thickness = 240;
     component.layers[0].length = 12.5;
     component.emitChanges();
@@ -62,10 +72,10 @@ describe('PartStructureListComponent', () => {
       lastValidity = value;
     });
 
-    component.partType = PartType.Aussenwand;
+    component.partType = PartType.AW;
     fixture.detectChanges();
 
-    component.layers[0].material = Material.mat_3;
+    component.layers[0].material = MaterialType.mat_3;
     component.layers[0].thickness = 0.5;
     component.layers[0].length = 12.5;
     component.emitChanges();

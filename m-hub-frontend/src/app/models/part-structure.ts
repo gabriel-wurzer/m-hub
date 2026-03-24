@@ -1,8 +1,8 @@
-import { Material } from '../enums/material.enum';
+import { LayerMaterial } from './layer-material';
 
 export interface BasePartLayer {
   layer_index: number;
-  material: Material | null;
+  material: LayerMaterial | null;
   thickness: number | null;
 }
 

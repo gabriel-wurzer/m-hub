@@ -21,13 +21,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Material } from '../../enums/material.enum';
 import { PartType } from '../../enums/part-type.enum';
 import { PartStructure, SlabLayer, WallLayer } from '../../models/part-structure';
+import { LayerMaterial, LAYER_MATERIAL_OPTIONS } from '../../models/layer-material';
 
 type EditablePartLayer = {
   layer_index: number;
-  material: Material | null;
+  material: LayerMaterial | null;
   thickness: number | null;
   length: number | null;
   area: number | null;
@@ -135,7 +135,7 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
     this.updateWallVisibleTileSlots();
   }
 
-  readonly materials: Material[] = Object.values(Material);
+  readonly layerMaterials: LayerMaterial[] = LAYER_MATERIAL_OPTIONS;
   readonly minimumLayerValue = 1;
   readonly mobileBreakpointPx = 860;
   readonly slabMobileVisibleLayerLimit = 6;
@@ -302,7 +302,7 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
     return tile.id;
   }
 
-  isMaterialMissing(material: Material | null): boolean {
+  isMaterialMissing(material: LayerMaterial | null): boolean {
     return !material;
   }
 

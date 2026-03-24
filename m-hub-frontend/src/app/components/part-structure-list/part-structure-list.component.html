@@ -70,7 +70,7 @@
             <mat-label>Material</mat-label>
             <mat-select [(ngModel)]="layer.material" (ngModelChange)="emitChanges()" required #materialCtrl="ngModel">
               <mat-option [value]="null" disabled>-- Material auswählen --</mat-option>
-              <mat-option *ngFor="let material of materials" [value]="material">{{ material }}</mat-option>
+              <mat-option *ngFor="let material of layerMaterials" [value]="material">{{ material }}</mat-option>
             </mat-select>
             <mat-error *ngIf="materialCtrl.touched && isMaterialMissing(layer.material)">Material erforderlich</mat-error>
           </mat-form-field>
