@@ -52,6 +52,7 @@
           <mat-label>Geschoss(e)</mat-label>
           <mat-select
             [(ngModel)]="selectedLocations"
+            (ngModelChange)="onLocationsChange($event)"
             multiple
           >
             <mat-option *ngFor="let option of locationOptionVms" [value]="option.value">

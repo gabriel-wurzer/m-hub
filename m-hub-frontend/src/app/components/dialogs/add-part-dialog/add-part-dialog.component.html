@@ -31,7 +31,7 @@
           <mat-label>Geschoss(e)</mat-label>
           <mat-select
             [(ngModel)]="selectedLocations"
-            (ngModelChange)="onLocationsChange()"
+            (ngModelChange)="onLocationsChange($event)"
             [required]="true"
             #locationCtrl="ngModel"
             multiple

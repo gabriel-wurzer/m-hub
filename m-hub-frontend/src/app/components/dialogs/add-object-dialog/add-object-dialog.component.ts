@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FloorType } from '../../../enums/floor-type.enum';
 import { ObjectType } from '../../../enums/object-type';
@@ -54,6 +55,7 @@ type LocationOptionVm = {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatSnackBarModule,
     MatTooltipModule,
     MatDividerModule,
     MatIconModule
@@ -67,6 +69,7 @@ export class AddObjectDialogComponent {
   readonly specialLocationOptions: string[] = ['Individuell (Verortung in Beschreibung angeben)'];
   private readonly specialLocationOptionValue = 'Individuell';
   private readonly floorDescriptionByLocationLabel = new Map<string, string>();
+  private previousSelectedLocations: string[] = [];
 
   name: string = '';
   description: string = '';
@@ -90,7 +93,8 @@ export class AddObjectDialogComponent {
 
   constructor(
     @Optional() public dialogRef: MatDialogRef<AddObjectDialogComponent> | null,
-    @Optional() @Inject(MAT_DIALOG_DATA) public data: AddObjectDialogData | null
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: AddObjectDialogData | null,
+    private snackBar: MatSnackBar
   ) {
     this.floorOptions = this.buildFloorOptions(this.data?.structure ?? []);
     this.rebuildFloorDescriptionByLocationLabel();
@@ -175,6 +179,27 @@ export class AddObjectDialogComponent {
     const parsedNumber = Number(this.number);
     const isNumberValid = Number.isInteger(parsedNumber) && parsedNumber >= 1;
     return isNameValid && isObjectTypeValid && isNumberValid;
+  }
+
+  onLocationsChange(selectedLocations: string[]): void {
+    const hadIndividualSelected = this.previousSelectedLocations.includes(this.specialLocationOptionValue);
+    const hasIndividualSelected = selectedLocations.includes(this.specialLocationOptionValue);
+
+    if (hasIndividualSelected && selectedLocations.length > 1) {
+      if (hadIndividualSelected) {
+        this.selectedLocations = selectedLocations.filter((location) => location !== this.specialLocationOptionValue);
+        this.openLocationSelectionHint('"Individuell" wurde abgewählt, da eine andere Verortung ausgewählt wurde.');
+      } else {
+        this.selectedLocations = [this.specialLocationOptionValue];
+        this.openLocationSelectionHint('"Individuell" wurde ausgewählt. Andere Verortungen wurden abgewählt.');
+      }
+    } else if (hasIndividualSelected) {
+      this.selectedLocations = [this.specialLocationOptionValue];
+    } else {
+      this.selectedLocations = selectedLocations;
+    }
+
+    this.previousSelectedLocations = [...this.selectedLocations];
   }
 
   onImageFileSelected(event: Event): void {
@@ -266,6 +291,13 @@ export class AddObjectDialogComponent {
 
   private formatLocationForPayload(): string {
     return this.selectedLocations.join(', ');
+  }
+
+  private openLocationSelectionHint(message: string): void {
+    this.snackBar.open(message, 'OK', {
+      duration: 3000,
+      verticalPosition: 'top'
+    });
   }
 
   confirmAddObject(): void {

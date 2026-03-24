@@ -11,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PartStructureListComponent } from '../../part-structure-list/part-structure-list.component';
 import { FloorType } from '../../../enums/floor-type.enum';
@@ -68,6 +69,7 @@ class PartTypeSelectMatcher implements ErrorStateMatcher {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatSnackBarModule,
     MatTooltipModule,
     MatDividerModule,
     MatIconModule,
@@ -117,6 +119,7 @@ export class AddPartDialogComponent {
   private readonly specialLocationOptionValue = 'Individuell';
   private readonly floorDescriptionByLocationLabel = new Map<string, string>();
   private readonly roofTypeInBuilding: RoofType | null;
+  private previousSelectedLocations: string[] = [];
 
   name: string = '';
   description: string = '';
@@ -137,7 +140,8 @@ export class AddPartDialogComponent {
   );
   constructor(
     @Optional() public dialogRef: MatDialogRef<AddPartDialogComponent> | null,
-    @Optional() @Inject(MAT_DIALOG_DATA) public data: AddPartDialogData | null
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: AddPartDialogData | null,
+    private snackBar: MatSnackBar
   ) {
     this.roofTypeInBuilding = this.resolveRoofTypeInBuilding(this.data?.structure ?? []);
     this.floorOptions = this.buildFloorOptions(this.data?.structure ?? []);
@@ -226,8 +230,26 @@ export class AddPartDialogComponent {
     return isNameValid && isPartTypeValid && isLocationValid && isPartStructureValid;
   }
 
-  onLocationsChange(): void {
+  onLocationsChange(selectedLocations: string[]): void {
+    const hadIndividualSelected = this.previousSelectedLocations.includes(this.specialLocationOptionValue);
+    const hasIndividualSelected = selectedLocations.includes(this.specialLocationOptionValue);
+
+    if (hasIndividualSelected && selectedLocations.length > 1) {
+      if (hadIndividualSelected) {
+        this.selectedLocations = selectedLocations.filter((location) => location !== this.specialLocationOptionValue);
+        this.openLocationSelectionHint('"Individuell" wurde abgewählt, da eine andere Verortung ausgewählt wurde.');
+      } else {
+        this.selectedLocations = [this.specialLocationOptionValue];
+        this.openLocationSelectionHint('"Individuell" wurde ausgewählt. Andere Verortungen wurden abgewählt.');
+      }
+    } else if (hasIndividualSelected) {
+      this.selectedLocations = [this.specialLocationOptionValue];
+    } else {
+      this.selectedLocations = selectedLocations;
+    }
+
     this.syncAvailablePartTypes();
+    this.previousSelectedLocations = [...this.selectedLocations];
   }
 
   onPartTypeChange(): void {
@@ -378,6 +400,13 @@ export class AddPartDialogComponent {
 
   private formatLocationForPayload(): string {
     return this.selectedLocations.join(', ');
+  }
+
+  private openLocationSelectionHint(message: string): void {
+    this.snackBar.open(message, 'OK', {
+      duration: 3000,
+      verticalPosition: 'top'
+    });
   }
 
   confirmAddPart(): void {
