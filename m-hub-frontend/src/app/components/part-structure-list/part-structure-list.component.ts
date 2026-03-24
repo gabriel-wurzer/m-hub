@@ -123,13 +123,13 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
     this.refreshWallWidthObserver();
   }
 
-  @ViewChild('directionStartLabelEl')
+  @ViewChild('directionStartLabel')
   set directionStartLabelRef(value: ElementRef<HTMLElement> | undefined) {
     this.directionStartLabelElement = value?.nativeElement ?? null;
     this.updateWallVisibleTileSlots();
   }
 
-  @ViewChild('directionEndLabelEl')
+  @ViewChild('directionEndLabel')
   set directionEndLabelRef(value: ElementRef<HTMLElement> | undefined) {
     this.directionEndLabelElement = value?.nativeElement ?? null;
     this.updateWallVisibleTileSlots();
