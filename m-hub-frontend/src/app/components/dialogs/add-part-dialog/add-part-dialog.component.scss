@@ -134,6 +134,11 @@ mat-error {
 }
 
 @media (max-width: 800px) {
+
+  .content-wrapper {
+    padding: 16px 12px
+  }
+
   .checkbox-wrapper {
     flex-wrap: wrap;
     gap: 1.2rem;
