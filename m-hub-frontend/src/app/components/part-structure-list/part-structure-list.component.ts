@@ -1,5 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  NgZone,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,6 +31,13 @@ type EditablePartLayer = {
   thickness: number | null;
   length: number | null;
   area: number | null;
+};
+
+type StructureVisualTile = {
+  id: string;
+  label: string;
+  isOverflow: boolean;
+  hiddenCount: number | null;
 };
 
 type StructureType = PartStructure['type'];
@@ -91,24 +111,67 @@ type StructureType = PartStructure['type'];
     ])
   ]
 })
-export class PartStructureListComponent implements OnInit, OnChanges {
+export class PartStructureListComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   @Input() partType: PartType | null = null;
   @Input() structure: PartStructure | null = null;
   @Output() structureChange = new EventEmitter<PartStructure | null>();
   @Output() validityChange = new EventEmitter<boolean>();
 
+  @ViewChild('structureVisual')
+  set structureVisualRef(value: ElementRef<HTMLElement> | undefined) {
+    this.structureVisualElement = value?.nativeElement ?? null;
+    this.refreshWallWidthObserver();
+  }
+
+  @ViewChild('directionStartLabelEl')
+  set directionStartLabelRef(value: ElementRef<HTMLElement> | undefined) {
+    this.directionStartLabelElement = value?.nativeElement ?? null;
+    this.updateWallVisibleTileSlots();
+  }
+
+  @ViewChild('directionEndLabelEl')
+  set directionEndLabelRef(value: ElementRef<HTMLElement> | undefined) {
+    this.directionEndLabelElement = value?.nativeElement ?? null;
+    this.updateWallVisibleTileSlots();
+  }
+
   readonly materials: Material[] = Object.values(Material);
   readonly minimumLayerValue = 1;
+  readonly mobileBreakpointPx = 860;
+  readonly slabMobileVisibleLayerLimit = 6;
+  readonly slabMobileLeadingLayerCount = 5;
+  readonly wallTileWidth = 50;
+  readonly wallMinimumStackWidth = 100;
+  readonly wallOverflowLabel = '..';
 
   structureType: StructureType | null = null;
   layers: EditablePartLayer[] = [];
   animationsDisabled = true;
+  isCompactViewport = false;
+  wallVisibleTileSlots: number | null = null;
   private lastEmittedStructureJson: string | null = null;
   private lastEmittedValidity: boolean | null = null;
+  private mobileViewportQuery: MediaQueryList | null = null;
+  private wallWidthObserver: ResizeObserver | null = null;
+  private structureVisualElement: HTMLElement | null = null;
+  private directionStartLabelElement: HTMLElement | null = null;
+  private directionEndLabelElement: HTMLElement | null = null;
+
+  constructor(private readonly ngZone: NgZone) {}
 
   ngOnInit(): void {
+    this.setupViewportQuery();
     this.syncFromInputs();
     setTimeout(() => (this.animationsDisabled = false));
+  }
+
+  ngAfterViewInit(): void {
+    this.updateWallVisibleTileSlots();
+  }
+
+  ngOnDestroy(): void {
+    this.mobileViewportQuery?.removeEventListener('change', this.handleViewportQueryChange);
+    this.wallWidthObserver?.disconnect();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -126,13 +189,49 @@ export class PartStructureListComponent implements OnInit, OnChanges {
   }
 
   get directionEndLabel(): string {
-    return this.isWallStructure ? 'Aussen' : 'Unten';
+    return this.isWallStructure ? 'Außen' : 'Unten';
   }
 
   get orientationHint(): string {
     return this.isWallStructure
       ? 'Schichten laufen von links (innen) nach rechts (außen).'
       : 'Schichten laufen von oben (höchste Lage) nach unten.';
+  }
+
+  get structureVisualTiles(): StructureVisualTile[] {
+    if (!this.isWallStructure) {
+      return this.getSlabStructureVisualTiles();
+    }
+
+    if (!this.wallVisibleTileSlots || this.layers.length <= this.wallVisibleTileSlots) {
+      return this.layers.map((layer) => this.createLayerVisualTile(layer));
+    }
+
+    if (this.wallVisibleTileSlots === 1) {
+      return [this.createOverflowVisualTile(this.layers.length)];
+    }
+
+    if (this.wallVisibleTileSlots === 2) {
+      return [
+        this.createLayerVisualTile(this.layers[0]),
+        this.createOverflowVisualTile(this.layers.length - 1)
+      ];
+    }
+
+    const visibleLayerSlots = this.wallVisibleTileSlots - 1;
+    const leadingLayerCount = Math.ceil(visibleLayerSlots / 2);
+    const trailingLayerCount = Math.floor(visibleLayerSlots / 2);
+    const hiddenLayerCount = this.layers.length - leadingLayerCount - trailingLayerCount;
+
+    if (hiddenLayerCount <= 0) {
+      return this.layers.map((layer) => this.createLayerVisualTile(layer));
+    }
+
+    return [
+      ...this.layers.slice(0, leadingLayerCount).map((layer) => this.createLayerVisualTile(layer)),
+      this.createOverflowVisualTile(hiddenLayerCount),
+      ...this.layers.slice(this.layers.length - trailingLayerCount).map((layer) => this.createLayerVisualTile(layer))
+    ];
   }
 
   addLayer(): void {
@@ -199,6 +298,10 @@ export class PartStructureListComponent implements OnInit, OnChanges {
     return layer;
   }
 
+  trackByStructureVisualTile(_: number, tile: StructureVisualTile): string {
+    return tile.id;
+  }
+
   isMaterialMissing(material: Material | null): boolean {
     return !material;
   }
@@ -207,9 +310,16 @@ export class PartStructureListComponent implements OnInit, OnChanges {
     return this.isInvalidLayerNumber(this.isWallStructure ? layer.length : layer.area);
   }
 
+  getStructureVisualTileTooltip(tile: StructureVisualTile): string {
+    return tile.isOverflow && tile.hiddenCount
+      ? `${tile.hiddenCount} weitere Schichten ausgeblendet`
+      : '';
+  }
+
   private syncFromInputs(): void {
     const nextStructureType = this.getStructureType(this.partType);
     this.structureType = nextStructureType;
+    this.refreshWallWidthObserver();
 
     if (!nextStructureType) {
       this.layers = [];
@@ -241,6 +351,52 @@ export class PartStructureListComponent implements OnInit, OnChanges {
 
   private emitChangesDeferred(): void {
     queueMicrotask(() => this.emitChanges());
+  }
+
+  private setupViewportQuery(): void {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
+
+    this.mobileViewportQuery = window.matchMedia(`(max-width: ${this.mobileBreakpointPx}px)`);
+    this.isCompactViewport = this.mobileViewportQuery.matches;
+    this.mobileViewportQuery.addEventListener('change', this.handleViewportQueryChange);
+  }
+
+  private readonly handleViewportQueryChange = (event: MediaQueryListEvent): void => {
+    this.isCompactViewport = event.matches;
+  };
+
+  private createLayerVisualTile(layer: EditablePartLayer): StructureVisualTile {
+    return {
+      id: `layer-${layer.layer_index}`,
+      label: String(layer.layer_index),
+      isOverflow: false,
+      hiddenCount: null
+    };
+  }
+
+  private createOverflowVisualTile(hiddenCount: number): StructureVisualTile {
+    return {
+      id: `overflow-${hiddenCount}`,
+      label: this.wallOverflowLabel,
+      isOverflow: true,
+      hiddenCount
+    };
+  }
+
+  private getSlabStructureVisualTiles(): StructureVisualTile[] {
+    if (!this.isCompactViewport || this.layers.length <= this.slabMobileVisibleLayerLimit) {
+      return this.layers.map((layer) => this.createLayerVisualTile(layer));
+    }
+
+    const hiddenLayerCount = this.layers.length - this.slabMobileLeadingLayerCount - 1;
+
+    return [
+      ...this.layers.slice(0, this.slabMobileLeadingLayerCount).map((layer) => this.createLayerVisualTile(layer)),
+      this.createOverflowVisualTile(hiddenLayerCount),
+      this.createLayerVisualTile(this.layers[this.layers.length - 1])
+    ];
   }
 
   private getCurrentStructureJson(): string | null {
@@ -298,14 +454,14 @@ export class PartStructureListComponent implements OnInit, OnChanges {
 
   private getStructureType(partType: PartType | null | undefined): StructureType | null {
     switch (partType) {
-      case PartType.Innenwand:
-      case PartType.Aussenwand:
-      case PartType.Brandwand:
-      case PartType.Kniestock:
-      case PartType.Attika:
+      case PartType.IW:
+      case PartType.AW:
+      case PartType.BW:
+      case PartType.KS:
+      case PartType.A:
         return 'wall';
-      case PartType.Boden:
-      case PartType.Dachaufbau:
+      case PartType.BA:
+      case PartType.DA:
         return 'slab';
       default:
         return null;
@@ -364,6 +520,69 @@ export class PartStructureListComponent implements OnInit, OnChanges {
     }
 
     return value;
+  }
+
+  private refreshWallWidthObserver(): void {
+    this.wallWidthObserver?.disconnect();
+    this.wallWidthObserver = null;
+
+    if (!this.isWallStructure || !this.structureVisualElement || typeof ResizeObserver === 'undefined') {
+      this.updateWallVisibleTileSlots();
+      return;
+    }
+
+    const observedElement = this.structureVisualElement;
+
+    this.ngZone.runOutsideAngular(() => {
+      this.wallWidthObserver = new ResizeObserver(() => {
+        const nextVisibleTileSlots = this.calculateWallVisibleTileSlots();
+
+        if (nextVisibleTileSlots !== this.wallVisibleTileSlots) {
+          this.ngZone.run(() => {
+            this.wallVisibleTileSlots = nextVisibleTileSlots;
+          });
+        }
+      });
+
+      this.wallWidthObserver.observe(observedElement);
+    });
+
+    this.updateWallVisibleTileSlots();
+  }
+
+  private updateWallVisibleTileSlots(): void {
+    const nextVisibleTileSlots = this.calculateWallVisibleTileSlots();
+
+    if (nextVisibleTileSlots !== this.wallVisibleTileSlots) {
+      this.wallVisibleTileSlots = nextVisibleTileSlots;
+    }
+  }
+
+  private calculateWallVisibleTileSlots(): number | null {
+    if (!this.isWallStructure || !this.structureVisualElement) {
+      return null;
+    }
+
+    const containerWidth = this.structureVisualElement.clientWidth;
+
+    if (containerWidth <= 0) {
+      return null;
+    }
+
+    const startLabelWidth = this.directionStartLabelElement?.offsetWidth ?? 0;
+    const endLabelWidth = this.directionEndLabelElement?.offsetWidth ?? 0;
+    const visualStyles = window.getComputedStyle(this.structureVisualElement);
+    const gapValue = visualStyles.columnGap || visualStyles.gap || '0px';
+    const visualGap = this.parsePixelValue(gapValue);
+    const reservedWidth = startLabelWidth + endLabelWidth + visualGap * 2;
+    const availableStackWidth = Math.max(this.wallMinimumStackWidth, containerWidth - reservedWidth);
+
+    return Math.max(1, Math.floor(availableStackWidth / this.wallTileWidth));
+  }
+
+  private parsePixelValue(value: string): number {
+    const parsedValue = Number.parseFloat(value);
+    return Number.isFinite(parsedValue) ? parsedValue : 0;
   }
 
   private emitIfChanged(structure: PartStructure | null, isValid: boolean): void {

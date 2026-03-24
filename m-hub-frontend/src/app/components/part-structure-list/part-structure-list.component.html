@@ -8,14 +8,19 @@
   </div>
 
   <div class="part-structure-content" [class.wall-content]="isWallStructure">
-    <div class="structure-visual" [class.wall-direction-labels]="isWallStructure">
-      <span class="direction-label" [class.direction-label-start]="isWallStructure">{{ directionStartLabel }}</span>
+    <div #structureVisual class="structure-visual" [class.wall-direction-labels]="isWallStructure">
+      <span #directionStartLabelEl class="direction-label" [class.direction-label-start]="isWallStructure">{{ directionStartLabel }}</span>
       <div class="layer-stack" [class.wall-stack]="isWallStructure" [class.slab-stack]="!isWallStructure">
-        <div *ngFor="let layer of layers; trackBy: trackByLayer" class="layer-tile">
-          {{ layer.layer_index }}
+        <div
+          *ngFor="let tile of structureVisualTiles; trackBy: trackByStructureVisualTile"
+          class="layer-tile"
+          [class.overflow-tile]="tile.isOverflow"
+          [matTooltip]="getStructureVisualTileTooltip(tile)"
+        >
+          {{ tile.label }}
         </div>
       </div>
-      <span class="direction-label" [class.direction-label-end]="isWallStructure">{{ directionEndLabel }}</span>
+      <span #directionEndLabelEl class="direction-label" [class.direction-label-end]="isWallStructure">{{ directionEndLabel }}</span>
     </div>
 
     <div class="layers-list" [@.disabled]="animationsDisabled">
