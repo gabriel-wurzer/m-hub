@@ -65,7 +65,7 @@ SELECT
     src.is_hazardous
 FROM (
     VALUES
-    -- building_id, owner_id, category, location, name, description, object_type, count, is_public
+    -- building_id, owner_id, category, location, name, description, object_type, count, is_public, is_hazardous
     ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Objekt', 'Individuell' , 'Eingangstüre', 'Haupteingangstüre des Gebäudes. Befindet sich im Eingangsbereich des EG.', 'Tür', 1, TRUE, FALSE),
     ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Objekt', 'Dach', 'Dachfenster', NULL, 'Fenster', 8, FALSE, FALSE),
     ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Objekt', 'Kellergeschoss 1', 'Heizkessel', 'Hauptheizkessel des Gebäudes', 'Sonstige', 1, FALSE, TRUE),
