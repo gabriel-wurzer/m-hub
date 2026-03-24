@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { Component, Inject, Optional } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -42,6 +43,18 @@ type LocationOptionVm = {
   main: string;
   note?: string;
 };
+
+class PartTypeSelectMatcher implements ErrorStateMatcher {
+  constructor(private readonly hasNoAvailablePartTypes: () => boolean) {}
+
+  isErrorState(control: FormControl | null): boolean {
+    if (this.hasNoAvailablePartTypes()) {
+      return true;
+    }
+
+    return !!(control && control.invalid && (control.dirty || control.touched));
+  }
+}
 
 @Component({
   selector: 'app-add-part-dialog',
@@ -119,6 +132,9 @@ export class AddPartDialogComponent {
   locationOptionVms: LocationOptionVm[] = [];
   readonly allPartTypes: PartType[] = Object.values(PartType);
   availablePartTypes: PartType[] = [];
+  readonly partTypeMatcher = new PartTypeSelectMatcher(
+    () => this.selectedLocations.length > 0 && this.availablePartTypes.length === 0
+  );
   constructor(
     @Optional() public dialogRef: MatDialogRef<AddPartDialogComponent> | null,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: AddPartDialogData | null
@@ -180,8 +196,12 @@ export class AddPartDialogComponent {
   }
 
   getPartTypeError(): string | null {
-    if (this.selectedLocations.length === 0 || this.availablePartTypes.length === 0) {
+    if (this.selectedLocations.length === 0) {
       return null;
+    }
+
+    if (this.availablePartTypes.length === 0) {
+      return 'Für die gewählte Verortung gibt es keine gemeinsame Bauteil-Kategorie.';
     }
 
     if (!this.partType) {
@@ -229,11 +249,11 @@ export class AddPartDialogComponent {
 
   getPartTypeHint(): string | null {
     if (this.selectedLocations.length === 0) {
-      return 'Bitte zuerst Verortung auswählen.';
+      return 'Bitte zuerst Verortung auswählen';
     }
 
     if (this.availablePartTypes.length === 0) {
-      return 'Für die gewählte Verortung gibt es keine gemeinsame Bauteil-Kategorie.';
+      return 'Für die gewählte Verortung gibt es keine gemeinsame Bauteil-Kategorie!';
     }
 
     return null;

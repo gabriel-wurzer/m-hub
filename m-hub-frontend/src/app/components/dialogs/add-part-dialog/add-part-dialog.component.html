@@ -41,7 +41,7 @@
               <span *ngIf="option.note" class="location-option-note"> {{ option.note }}</span>
             </mat-option>
           </mat-select>
-          <!-- <mat-hint>Mehrfachauswahl möglich</mat-hint> -->
+          <mat-hint>Mehrfachauswahl möglich</mat-hint>
           <mat-error *ngIf="locationCtrl.invalid || getLocationError()">{{ getLocationError() }}</mat-error>
         </mat-form-field>
       </div>
@@ -55,6 +55,7 @@
             (ngModelChange)="onPartTypeChange()"
             [required]="true"
             [disabled]="isPartTypeSelectionDisabled()"
+            [errorStateMatcher]="partTypeMatcher"
             #partTypeCtrl="ngModel"
           >
             <mat-option [value]="null" disabled>-- Bauteil-Kategorie auswählen --</mat-option>
@@ -63,7 +64,7 @@
             </mat-option>
           </mat-select>
           <mat-hint *ngIf="getPartTypeHint() as hint">{{ hint }}</mat-hint>
-          <mat-error *ngIf="partTypeCtrl.touched && getPartTypeError()">{{ getPartTypeError() }}</mat-error>
+          <mat-error *ngIf="getPartTypeError() as error">{{ error }}</mat-error>
         </mat-form-field>
       </div>
 
