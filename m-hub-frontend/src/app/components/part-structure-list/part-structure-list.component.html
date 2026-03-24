@@ -7,7 +7,7 @@
     </button>
   </div>
 
-  <div class="part-structure-content">
+  <div class="part-structure-content" [class.wall-content]="isWallStructure">
     <div class="structure-visual" [class.wall-direction-labels]="isWallStructure">
       <span class="direction-label" [class.direction-label-start]="isWallStructure">{{ directionStartLabel }}</span>
       <div class="layer-stack" [class.wall-stack]="isWallStructure" [class.slab-stack]="!isWallStructure">

@@ -17,10 +17,10 @@
 
 .part-structure-header {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .orientation-hint {
@@ -42,6 +42,14 @@
   align-items: start;
 }
 
+.part-structure-content.wall-content {
+  grid-template-columns: minmax(0, 1fr);
+
+  .layers-list {
+    padding-top: 16px;
+}
+}
+
 .structure-visual {
   display: flex;
   flex-direction: column;
@@ -49,22 +57,25 @@
   gap: 6px;
 }
 
-// .structure-visual.wall-direction-labels {
-//   align-items: stretch;
-// }
+.structure-visual.wall-direction-labels {
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
 
 .direction-label {
   font-size: 12px;
   color: rgba(0, 0, 0, 0.6);
 }
 
-// .direction-label-start {
-//   text-align: start;
-// }
+.direction-label-start {
+  text-align: right;
+}
 
-// .direction-label-end {
-//   text-align: end;
-// }
+.direction-label-end {
+  text-align: left;
+}
 
 .layer-stack {
   width: 92px;
@@ -77,13 +88,13 @@
 .wall-stack {
   display: flex;
   flex-direction: row;
-  height: 76px;
+  height: 92px;
 }
 
 .slab-stack {
   display: flex;
   flex-direction: column;
-  min-height: 120px;
+  min-height: 100px;
 }
 
 .layer-tile {
@@ -105,15 +116,20 @@
   border-top: 1px solid rgba(0, 0, 0, 0.16);
 }
 
+.slab-stack .layer-tile {
+  height: 50px;
+}
+
 .layers-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding: 12px;
 }
 
 .layer-row {
   border: 1px solid rgba(0, 0, 0, 0.14);
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 10px;
   background-color: rgba(0, 0, 0, 0.02);
 }
@@ -173,13 +189,45 @@ mat-error {
   font-size: 14px;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 860px) {
+
+  .content-wrapper {
+    padding: 16px 12px
+  }
+
+  .part-structure-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding-bottom: 14px;
+    gap: 14px;
+  }
+
+  .orientation-hint {
+    align-self: flex-start;
+    text-align: left;
+  }
+
+  .add-layer-button {
+    align-self: center;
+  }
+
   .part-structure-content {
     grid-template-columns: 1fr;
   }
 
   .structure-visual {
-    flex-direction: row;
     justify-content: center;
+  }
+
+  .layers-list {
+    padding: 0;
+  }
+
+  .slab-stack {
+    min-height: 68px;
+  }
+
+  .slab-stack .layer-tile {
+    height: 33px;
   }
 }

@@ -131,8 +131,8 @@ export class PartStructureListComponent implements OnInit, OnChanges {
 
   get orientationHint(): string {
     return this.isWallStructure
-      ? 'Schichten laufen von links (innen) nach rechts (aussen).'
-      : 'Schichten laufen von oben (hoechste Lage) nach unten.';
+      ? 'Schichten laufen von links (innen) nach rechts (außen).'
+      : 'Schichten laufen von oben (höchste Lage) nach unten.';
   }
 
   addLayer(): void {
