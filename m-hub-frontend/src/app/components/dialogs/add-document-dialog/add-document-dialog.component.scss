@@ -259,6 +259,13 @@ mat-hint {
   font-size: 14px;
 }
 
+@media (max-width: 800px) {
+
+  .content-wrapper {
+    padding: 16px 12px
+  }
+}
+
 @media (max-width: 520px) {
   .dialog-container {
     padding: 6px 8px;
