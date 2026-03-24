@@ -3,7 +3,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PartStructureListComponent } from './part-structure-list.component';
 import { PartType } from '../../enums/part-type.enum';
 import { Material } from '../../enums/material.enum';
-import { PartStructureMeasureType, PartStructureOrientation } from '../../models/part-structure';
 
 describe('PartStructureListComponent', () => {
   let component: PartStructureListComponent;
@@ -28,8 +27,7 @@ describe('PartStructureListComponent', () => {
     component.partType = PartType.Innenwand;
     fixture.detectChanges();
 
-    expect(component.orientation).toBe(PartStructureOrientation.Vertical);
-    expect(component.measureType).toBe(PartStructureMeasureType.Length);
+    expect(component.structureType).toBe('wall');
     expect(component.layers.length).toBe(1);
   });
 
@@ -37,8 +35,7 @@ describe('PartStructureListComponent', () => {
     component.partType = PartType.Boden;
     fixture.detectChanges();
 
-    expect(component.orientation).toBe(PartStructureOrientation.Horizontal);
-    expect(component.measureType).toBe(PartStructureMeasureType.Area);
+    expect(component.structureType).toBe('slab');
     expect(component.layers.length).toBe(1);
   });
 

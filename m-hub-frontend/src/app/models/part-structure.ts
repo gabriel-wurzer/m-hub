@@ -1,50 +1,27 @@
 import { Material } from '../enums/material.enum';
-import { PartType } from '../enums/part-type.enum';
 
-export enum PartStructureOrientation {
-  Vertical = 'vertical',
-  Horizontal = 'horizontal'
-}
-
-export enum PartStructureMeasureType {
-  Length = 'length',
-  Area = 'area'
-}
-
-export interface PartLayer {
+export interface BasePartLayer {
   layer_index: number;
   material: Material | null;
   thickness: number | null;
+}
+
+export interface WallLayer extends BasePartLayer {
   length: number | null;
+}
+
+export interface SlabLayer extends BasePartLayer {
   area: number | null;
 }
 
-export interface PartStructure {
-  orientation: PartStructureOrientation;
-  measureType: PartStructureMeasureType;
-  layers: PartLayer[];
+export interface WallStructure {
+  type: 'wall';
+  layers: WallLayer[];
 }
 
-export const WALL_PART_TYPES: readonly PartType[] = [
-  PartType.Innenwand,
-  PartType.Aussenwand,
-  PartType.Brandwand,
-  PartType.Kniestock,
-  PartType.Attika
-];
-
-export const FLOOR_PART_TYPES: readonly PartType[] = [PartType.Boden, PartType.Dachaufbau];
-
-export function getPartStructureOrientation(partType: PartType | null | undefined): PartStructureOrientation | null {
-  if (!partType) return null;
-  if (WALL_PART_TYPES.includes(partType)) return PartStructureOrientation.Vertical;
-  if (FLOOR_PART_TYPES.includes(partType)) return PartStructureOrientation.Horizontal;
-  return null;
+export interface SlabStructure {
+  type: 'slab';
+  layers: SlabLayer[];
 }
 
-export function getPartStructureMeasureType(partType: PartType | null | undefined): PartStructureMeasureType | null {
-  if (!partType) return null;
-  if (WALL_PART_TYPES.includes(partType)) return PartStructureMeasureType.Length;
-  if (FLOOR_PART_TYPES.includes(partType)) return PartStructureMeasureType.Area;
-  return null;
-}
+export type PartStructure = WallStructure | SlabStructure;

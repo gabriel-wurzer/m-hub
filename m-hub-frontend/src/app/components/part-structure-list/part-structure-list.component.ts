@@ -10,14 +10,17 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Material } from '../../enums/material.enum';
 import { PartType } from '../../enums/part-type.enum';
-import {
-  PartLayer,
-  PartStructure,
-  PartStructureMeasureType,
-  PartStructureOrientation,
-  getPartStructureMeasureType,
-  getPartStructureOrientation
-} from '../../models/part-structure';
+import { PartStructure, SlabLayer, WallLayer } from '../../models/part-structure';
+
+type EditablePartLayer = {
+  layer_index: number;
+  material: Material | null;
+  thickness: number | null;
+  length: number | null;
+  area: number | null;
+};
+
+type StructureType = PartStructure['type'];
 
 @Component({
   selector: 'app-part-structure-list',
@@ -97,9 +100,8 @@ export class PartStructureListComponent implements OnInit, OnChanges {
   readonly materials: Material[] = Object.values(Material);
   readonly minimumLayerValue = 1;
 
-  orientation: PartStructureOrientation | null = null;
-  measureType: PartStructureMeasureType | null = null;
-  layers: PartLayer[] = [];
+  structureType: StructureType | null = null;
+  layers: EditablePartLayer[] = [];
   animationsDisabled = true;
   private lastEmittedStructureJson: string | null = null;
   private lastEmittedValidity: boolean | null = null;
@@ -116,11 +118,7 @@ export class PartStructureListComponent implements OnInit, OnChanges {
   }
 
   get isWallStructure(): boolean {
-    return this.orientation === PartStructureOrientation.Vertical;
-  }
-
-  get isFloorStructure(): boolean {
-    return this.orientation === PartStructureOrientation.Horizontal;
+    return this.structureType === 'wall';
   }
 
   get directionStartLabel(): string {
@@ -128,23 +126,17 @@ export class PartStructureListComponent implements OnInit, OnChanges {
   }
 
   get directionEndLabel(): string {
-    return this.isWallStructure ? 'Außen' : 'Unten';
+    return this.isWallStructure ? 'Aussen' : 'Unten';
   }
 
   get orientationHint(): string {
-    if (this.isWallStructure) {
-      return 'Schichten laufen von links (innen) nach rechts (außen).';
-    }
-
-    if (this.isFloorStructure) {
-      return 'Schichten laufen von oben (höchste Lage) nach unten.';
-    }
-
-    return '';
+    return this.isWallStructure
+      ? 'Schichten laufen von links (innen) nach rechts (aussen).'
+      : 'Schichten laufen von oben (hoechste Lage) nach unten.';
   }
 
   addLayer(): void {
-    if (!this.orientation || !this.measureType) {
+    if (!this.structureType) {
       return;
     }
 
@@ -159,7 +151,7 @@ export class PartStructureListComponent implements OnInit, OnChanges {
 
     this.layers.splice(index, 1);
 
-    if (this.layers.length === 0) {
+    if (this.layers.length === 0 && this.structureType) {
       this.layers.push(this.createEmptyLayer(1));
     }
 
@@ -188,84 +180,48 @@ export class PartStructureListComponent implements OnInit, OnChanges {
   }
 
   emitChanges(): void {
-    if (!this.orientation || !this.measureType) {
+    if (!this.structureType) {
       this.emitIfChanged(null, false);
       return;
     }
 
     this.reindexLayers();
-
-    const structure: PartStructure = {
-      orientation: this.orientation,
-      measureType: this.measureType,
-      layers: this.layers.map((layer) => ({
-        layer_index: layer.layer_index,
-        material: layer.material ?? null,
-        thickness: this.normalizeNumber(layer.thickness),
-        length:
-          this.measureType === PartStructureMeasureType.Length ? this.normalizeNumber(layer.length) : null,
-        area: this.measureType === PartStructureMeasureType.Area ? this.normalizeNumber(layer.area) : null
-      }))
-    };
+    const structure = this.buildStructure(this.layers);
+    if (!structure) {
+      this.emitIfChanged(null, false);
+      return;
+    }
 
     this.emitIfChanged(structure, this.isStructureValid(structure));
   }
 
-  trackByLayer(_: number, layer: PartLayer): PartLayer {
+  trackByLayer(_: number, layer: EditablePartLayer): EditablePartLayer {
     return layer;
   }
 
-  isMaterialMissing(layer: PartLayer): boolean {
-    return !layer.material;
+  isMaterialMissing(material: Material | null): boolean {
+    return !material;
   }
 
-  isThicknessInvalid(layer: PartLayer): boolean {
-    return this.isInvalidLayerNumber(layer.thickness);
-  }
-
-  isMeasureInvalid(layer: PartLayer): boolean {
-    if (this.measureType === PartStructureMeasureType.Length) {
-      return this.isInvalidLayerNumber(layer.length);
-    }
-
-    if (this.measureType === PartStructureMeasureType.Area) {
-      return this.isInvalidLayerNumber(layer.area);
-    }
-
-    return true;
+  isMeasureInvalid(layer: EditablePartLayer): boolean {
+    return this.isInvalidLayerNumber(this.isWallStructure ? layer.length : layer.area);
   }
 
   private syncFromInputs(): void {
-    const nextOrientation = getPartStructureOrientation(this.partType);
-    const nextMeasureType = getPartStructureMeasureType(this.partType);
+    const nextStructureType = this.getStructureType(this.partType);
+    this.structureType = nextStructureType;
 
-    if (!nextOrientation || !nextMeasureType) {
-      this.orientation = null;
-      this.measureType = null;
+    if (!nextStructureType) {
       this.layers = [];
       this.emitChangesDeferred();
       return;
     }
 
-    this.orientation = nextOrientation;
-    this.measureType = nextMeasureType;
+    if (this.structure && this.structure.type === nextStructureType && this.structure.layers.length > 0) {
+      const normalizedLayers = this.structure.layers.map((layer, index) => this.normalizeIncomingLayer(layer, index + 1));
 
-    if (
-      this.structure &&
-      this.structure.orientation === nextOrientation &&
-      this.structure.measureType === nextMeasureType &&
-      this.structure.layers.length > 0
-    ) {
-      const normalizedLayers = this.structure.layers.map((layer, index) =>
-        this.normalizeLayer(layer, index + 1, nextMeasureType)
-      );
-      const normalizedStructure: PartStructure = {
-        orientation: nextOrientation,
-        measureType: nextMeasureType,
-        layers: normalizedLayers
-      };
-      const incomingStructureJson = JSON.stringify(normalizedStructure);
-      const currentStructureJson = this.getCurrentStructureJson(nextOrientation, nextMeasureType);
+      const incomingStructureJson = JSON.stringify(this.buildStructure(normalizedLayers));
+      const currentStructureJson = this.getCurrentStructureJson();
       const shouldApplyIncomingStructure =
         this.layers.length === 0 ||
         (incomingStructureJson !== currentStructureJson &&
@@ -287,36 +243,76 @@ export class PartStructureListComponent implements OnInit, OnChanges {
     queueMicrotask(() => this.emitChanges());
   }
 
-  private getCurrentStructureJson(
-    orientation: PartStructureOrientation,
-    measureType: PartStructureMeasureType
-  ): string {
-    const structure: PartStructure = {
-      orientation,
-      measureType,
-      layers: this.layers.map((layer, index) => ({
-        layer_index: index + 1,
-        material: layer.material ?? null,
-        thickness: this.normalizeNumber(layer.thickness),
-        length: measureType === PartStructureMeasureType.Length ? this.normalizeNumber(layer.length) : null,
-        area: measureType === PartStructureMeasureType.Area ? this.normalizeNumber(layer.area) : null
-      }))
-    };
-
-    return JSON.stringify(structure);
+  private getCurrentStructureJson(): string | null {
+    const structure = this.buildStructure(this.layers);
+    return structure ? JSON.stringify(structure) : null;
   }
 
-  private normalizeLayer(layer: PartLayer, index: number, measureType: PartStructureMeasureType): PartLayer {
+  private buildStructure(layers: EditablePartLayer[]): PartStructure | null {
+    if (this.structureType === 'wall') {
+      return {
+        type: 'wall',
+        layers: layers.map((layer, index): WallLayer => ({
+          layer_index: index + 1,
+          material: layer.material ?? null,
+          thickness: this.normalizeNumber(layer.thickness),
+          length: this.normalizeNumber(layer.length)
+        }))
+      };
+    }
+
+    if (this.structureType === 'slab') {
+      return {
+        type: 'slab',
+        layers: layers.map((layer, index): SlabLayer => ({
+          layer_index: index + 1,
+          material: layer.material ?? null,
+          thickness: this.normalizeNumber(layer.thickness),
+          area: this.normalizeNumber(layer.area)
+        }))
+      };
+    }
+
+    return null;
+  }
+
+  private normalizeIncomingLayer(layer: WallLayer | SlabLayer, index: number): EditablePartLayer {
+    if ('length' in layer) {
+      return {
+        layer_index: index,
+        material: layer.material ?? null,
+        thickness: this.normalizeNumber(layer.thickness),
+        length: this.normalizeNumber(layer.length),
+        area: null
+      };
+    }
+
     return {
       layer_index: index,
       material: layer.material ?? null,
       thickness: this.normalizeNumber(layer.thickness),
-      length: measureType === PartStructureMeasureType.Length ? this.normalizeNumber(layer.length) : null,
-      area: measureType === PartStructureMeasureType.Area ? this.normalizeNumber(layer.area) : null
+      length: null,
+      area: this.normalizeNumber(layer.area)
     };
   }
 
-  private createEmptyLayer(layerIndex: number): PartLayer {
+  private getStructureType(partType: PartType | null | undefined): StructureType | null {
+    switch (partType) {
+      case PartType.Innenwand:
+      case PartType.Aussenwand:
+      case PartType.Brandwand:
+      case PartType.Kniestock:
+      case PartType.Attika:
+        return 'wall';
+      case PartType.Boden:
+      case PartType.Dachaufbau:
+        return 'slab';
+      default:
+        return null;
+    }
+  }
+
+  private createEmptyLayer(layerIndex: number): EditablePartLayer {
     return {
       layer_index: layerIndex,
       material: null,
@@ -337,19 +333,24 @@ export class PartStructureListComponent implements OnInit, OnChanges {
       return false;
     }
 
+    if (structure.type === 'wall') {
+      return structure.layers.every((layer) => {
+        const hasMaterial = !this.isMaterialMissing(layer.material);
+        const hasThickness = !this.isInvalidLayerNumber(layer.thickness);
+        const hasLength = !this.isInvalidLayerNumber(layer.length);
+        return hasMaterial && hasThickness && hasLength;
+      });
+    }
+
     return structure.layers.every((layer) => {
-      const hasMaterial = !this.isMaterialMissing(layer);
+      const hasMaterial = !this.isMaterialMissing(layer.material);
       const hasThickness = !this.isInvalidLayerNumber(layer.thickness);
-
-      if (structure.measureType === PartStructureMeasureType.Length) {
-        return hasMaterial && hasThickness && !this.isInvalidLayerNumber(layer.length);
-      }
-
-      return hasMaterial && hasThickness && !this.isInvalidLayerNumber(layer.area);
+      const hasArea = !this.isInvalidLayerNumber(layer.area);
+      return hasMaterial && hasThickness && hasArea;
     });
   }
 
-  private isInvalidLayerNumber(value: number | null | undefined): boolean {
+  isInvalidLayerNumber(value: number | null | undefined): boolean {
     if (value === null || value === undefined) {
       return true;
     }
@@ -378,5 +379,4 @@ export class PartStructureListComponent implements OnInit, OnChanges {
       this.validityChange.emit(isValid);
     }
   }
-
 }

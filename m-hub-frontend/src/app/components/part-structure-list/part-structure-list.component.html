@@ -1,7 +1,7 @@
-<div class="part-structure-wrapper" *ngIf="orientation && measureType; else selectPartTypeHint">
+<div class="part-structure-wrapper" *ngIf="structureType; else selectPartTypeHint">
   <div class="part-structure-header">
     <span class="orientation-hint">{{ orientationHint }}</span>
-    <button mat-stroked-button type="button" (click)="addLayer()">
+    <button mat-stroked-button type="button" class="add-layer-button" (click)="addLayer()">
       <mat-icon>add</mat-icon>
       Schicht hinzufügen
     </button>
@@ -10,7 +10,7 @@
   <div class="part-structure-content">
     <div class="structure-visual" [class.wall-direction-labels]="isWallStructure">
       <span class="direction-label" [class.direction-label-start]="isWallStructure">{{ directionStartLabel }}</span>
-      <div class="layer-stack" [class.wall-stack]="isWallStructure" [class.floor-stack]="isFloorStructure">
+      <div class="layer-stack" [class.wall-stack]="isWallStructure" [class.slab-stack]="!isWallStructure">
         <div *ngFor="let layer of layers; trackBy: trackByLayer" class="layer-tile">
           {{ layer.layer_index }}
         </div>
@@ -64,10 +64,10 @@
           <mat-form-field appearance="outline">
             <mat-label>Material</mat-label>
             <mat-select [(ngModel)]="layer.material" (ngModelChange)="emitChanges()" required #materialCtrl="ngModel">
-              <mat-option [value]="null">-- Material wählen --</mat-option>
+              <mat-option [value]="null" disabled>-- Material auswählen --</mat-option>
               <mat-option *ngFor="let material of materials" [value]="material">{{ material }}</mat-option>
             </mat-select>
-            <mat-error *ngIf="materialCtrl.touched && isMaterialMissing(layer)">Material erforderlich</mat-error>
+            <mat-error *ngIf="materialCtrl.touched && isMaterialMissing(layer.material)">Material erforderlich</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
@@ -82,7 +82,7 @@
               required
               #thicknessCtrl="ngModel"
             />
-            <mat-error *ngIf="thicknessCtrl.touched && isThicknessInvalid(layer)">St&auml;rke muss mindestens 1 sein</mat-error>
+            <mat-error *ngIf="thicknessCtrl.touched && isInvalidLayerNumber(layer.thickness)">St&auml;rke muss mindestens 1 sein</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" *ngIf="isWallStructure">
@@ -100,7 +100,7 @@
             <mat-error *ngIf="lengthCtrl.touched && isMeasureInvalid(layer)">Länge muss mindestens 1 sein</mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" *ngIf="isFloorStructure">
+          <mat-form-field appearance="outline" *ngIf="!isWallStructure">
             <mat-label>Fläche (m²)</mat-label>
             <input
               matInput

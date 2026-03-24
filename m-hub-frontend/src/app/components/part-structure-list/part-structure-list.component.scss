@@ -27,6 +27,14 @@
   font-size: 14px;
 }
 
+.add-layer-button {
+  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+
+  &:hover {
+    color: mat.get-color-from-palette(vars.$my-primary, 500);
+  }
+}
+ 
 .part-structure-content {
   display: grid;
   grid-template-columns: 110px minmax(0, 1fr);
@@ -72,7 +80,7 @@
   height: 76px;
 }
 
-.floor-stack {
+.slab-stack {
   display: flex;
   flex-direction: column;
   min-height: 120px;
@@ -93,7 +101,7 @@
   border-left: 1px solid rgba(0, 0, 0, 0.16);
 }
 
-.floor-stack .layer-tile + .layer-tile {
+.slab-stack .layer-tile + .layer-tile {
   border-top: 1px solid rgba(0, 0, 0, 0.16);
 }
 
