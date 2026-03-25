@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS building_parts (
     name TEXT NOT NULL,
     description TEXT,
     location TEXT,
-    part_type TEXT,
-    part_structure TEXT, -- Platzhalter für das zukünftige Modell
+    part_type TEXT NOT NULL,
+    part_structure JSONB NOT NULL,
     is_public BOOLEAN NOT NULL DEFAULT TRUE,
     is_hazardous BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -43,6 +43,7 @@ INSERT INTO building_parts (
     description,
     location,
     part_type,
+    part_structure,
     is_public,
     is_hazardous
 )
@@ -55,17 +56,74 @@ SELECT
     src.description,
     src.location,
     src.part_type,
+    src.part_structure,
     src.is_public,
     src.is_hazardous
 FROM (
     VALUES
-    -- building_id, owner_id, category, location, name, description, part_type, is_public
-    ('5312213', '79e7432d-f1a0-4f31-9469-1e27b8d8c6cd'::uuid, 'Bauteil', 'Regelgeschoss 1', 'Außenwand', 'Wandaufbau des Kellers', 'Wand', FALSE, TRUE),
-    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'Kellergeschoss 1', 'Kaminwand', 'Kaminwand des Gebäudes', 'Wand', TRUE, FALSE),
-    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'Kellergeschoss 2', 'Gebäudefundament', 'Fundament des Gebäudes', 'Boden', FALSE, FALSE),
-    ('5363852', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'Regelgeschoss 1', 'Aufzugsschachtwand', 'Aufzugsschacht', 'Wand', TRUE, FALSE),
-    ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Bauteil', 'Dach', 'Dachaufbau', 'Dach des Gebäudes', 'Dachaufbau', FALSE, FALSE)
-) AS src(building_id, owner_id, category, location, name, description, part_type, is_public, is_hazardous)
+    -- building_id, owner_id, category, location, name, description, part_type, part_structure, is_public, is_hazardous
+    ('5312213', '79e7432d-f1a0-4f31-9469-1e27b8d8c6cd'::uuid, 'Bauteil', 'Regelgeschoss 1', 'Keller-Außenwand', 'Wandaufbau des Kellers', 'Außenwand',
+    '{
+      "type": "wall",
+      "length": 8.4,
+      "layers": [
+        { "layer_index": 1, "material": "Beton", "thickness": 60 },
+        { "layer_index": 2, "material": "Mineralwolle", "thickness": 30 },
+        { "layer_index": 3, "material": "Beton", "thickness": 80 }
+      ]
+    }'::jsonb,
+    FALSE, TRUE),
+    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'Kellergeschoss 1', 'Kaminwand', 'Kaminwand des Gebäudes', 'Brandwand',
+    '{
+      "type": "wall",
+      "length": 4.2,
+      "layers": [
+        { "layer_index": 1, "material": "Putz", "thickness": 15 },
+        { "layer_index": 2, "material": "Klebeverbindung", "thickness": 0 },
+        { "layer_index": 3, "material": "Ziegel", "thickness": 175 }
+      ]
+    }'::jsonb,
+    TRUE, FALSE),
+    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'Kellergeschoss 2', 'Gebäudefundament', 'Fundament des Gebäudes', 'Bodenaufbau',
+    '{
+      "type": "slab",
+      "area": 32.5,
+      "layers": [
+        { "layer_index": 1, "material": "Beton", "thickness": 250 }
+      ]
+    }'::jsonb,
+    FALSE, FALSE),
+    ('5363852', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Bauteil', 'Regelgeschoss 1', 'Aufzugsschachtwand', 'Aufzugsschacht', 'Innenwand',
+    '{
+      "type": "wall",
+      "length": 3.6,
+      "layers": [
+        { "layer_index": 1, "material": "Putz", "thickness": 10 },
+        { "layer_index": 2, "material": "Beton", "thickness": 200 }
+      ]
+    }'::jsonb,
+    TRUE, FALSE),
+    ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Bauteil', 'Dach', 'Dachaufbau', NULL, 'Dachaufbau',
+    '{
+      "type": "slab",
+      "area": 58.0,
+      "layers": [
+        { "layer_index": 1, "material": "Beton", "thickness": 180 }
+      ]
+    }'::jsonb,
+    FALSE, FALSE),
+    ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Bauteil', 'Dach', 'Attika Nordseite', 'Attika des Flachdachs (nordseitig)', 'Attika',
+    '{
+      "type": "wall",
+      "length": 6.1,
+      "layers": [
+        { "layer_index": 1, "material": "Beton", "thickness": 160 },
+        { "layer_index": 2, "material": "Schraubverbindung", "thickness": 0 },
+        { "layer_index": 3, "material": "Aluminium", "thickness": 15 }
+      ]
+    }'::jsonb,
+    FALSE, FALSE)
+) AS src(building_id, owner_id, category, location, name, description, part_type, part_structure, is_public, is_hazardous)
 JOIN user_buildings ub 
   ON ub.building_id = src.building_id 
   AND ub.user_id = src.owner_id;
