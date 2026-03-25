@@ -60,7 +60,7 @@ describe('PartStructureListComponent', () => {
 
     component.layers[0].material = MaterialType.mat_3;
     component.layers[0].thickness = 240;
-    component.layers[0].length = 12.5;
+    component.structureMeasure = 12.5;
     component.emitChanges();
 
     expect(lastValidity).toBeTrue();
@@ -77,9 +77,28 @@ describe('PartStructureListComponent', () => {
 
     component.layers[0].material = MaterialType.mat_3;
     component.layers[0].thickness = 0.5;
-    component.layers[0].length = 12.5;
+    component.structureMeasure = 12.5;
     component.emitChanges();
 
     expect(lastValidity).toBeFalse();
+  });
+
+  it('should emit measure on structure level instead of per layer', () => {
+    let emittedStructure: any;
+    component.structureChange.subscribe((value) => {
+      emittedStructure = value;
+    });
+
+    component.partType = PartType.AW;
+    fixture.detectChanges();
+
+    component.layers[0].material = MaterialType.mat_3;
+    component.layers[0].thickness = 240;
+    component.structureMeasure = 12.5;
+    component.emitChanges();
+
+    expect(emittedStructure?.type).toBe('wall');
+    expect(emittedStructure?.length).toBe(12.5);
+    expect(emittedStructure?.layers?.[0]?.length).toBeUndefined();
   });
 });

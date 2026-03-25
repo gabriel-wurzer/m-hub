@@ -27,7 +27,7 @@ type AddPartDialogData = {
 export type AddPartDialogResult = {
   name: string;
   partType: PartType;
-  partStructure: PartStructure | null;
+  partStructure: PartStructure;
   isPublic: boolean;
   isHazardous: boolean;
   description: string | null;
@@ -412,6 +412,7 @@ export class AddPartDialogComponent {
   confirmAddPart(): void {
     if (!this.isFormValid()) return;
     if (!this.partType) return;
+    if (!this.partStructure) return;
 
     const result: AddPartDialogResult = {
       name: this.name.trim(),

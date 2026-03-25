@@ -3,7 +3,7 @@
     <span class="orientation-hint">{{ orientationHint }}</span>
     <button mat-stroked-button type="button" class="add-layer-button" (click)="addLayer()">
       <mat-icon>add</mat-icon>
-      Schicht hinzufügen
+      Schicht hinzuf&uuml;gen
     </button>
   </div>
 
@@ -24,6 +24,25 @@
     </div>
 
     <div class="layers-list" [@.disabled]="animationsDisabled">
+      <div class="part-measure-row">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ isWallStructure ? 'Laufmeter (m)' : 'Fl&auml;che (m&sup2;)' }}</mat-label>
+          <input
+            matInput
+            type="number"
+            min="1"
+            step="0.1"
+            [(ngModel)]="structureMeasure"
+            (ngModelChange)="emitChanges()"
+            required
+            #measureCtrl="ngModel"
+          />
+          <mat-error *ngIf="measureCtrl.touched && isMeasureInvalid()">
+            {{ isWallStructure ? 'L&auml;nge muss mindestens 1 sein' : 'Fl&auml;che muss mindestens 1 sein' }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
       <div class="layer-row" *ngFor="let layer of layers; let i = index; trackBy: trackByLayer" @rowAnimation>
         <div class="layer-row-header">
           <h3>Schicht {{ i + 1 }}</h3>
@@ -47,7 +66,7 @@
               type="button"
               (click)="moveLayerDown(i)"
               [disabled]="i === layers.length - 1"
-              [matTooltip]="isWallStructure ? 'Schicht nach außen verschieben' : 'Schicht nach unten verschieben'"
+              [matTooltip]="isWallStructure ? 'Schicht nach au&szlig;en verschieben' : 'Schicht nach unten verschieben'"
             >
               <mat-icon>arrow_downward</mat-icon>
             </button>
@@ -69,14 +88,14 @@
           <mat-form-field appearance="outline">
             <mat-label>Material</mat-label>
             <mat-select [(ngModel)]="layer.material" (ngModelChange)="emitChanges()" required #materialCtrl="ngModel">
-              <mat-option [value]="null" disabled>-- Material auswählen --</mat-option>
+              <mat-option [value]="null" disabled>-- Material ausw&auml;hlen --</mat-option>
               <mat-option *ngFor="let material of layerMaterials" [value]="material">{{ material }}</mat-option>
             </mat-select>
             <mat-error *ngIf="materialCtrl.touched && isMaterialMissing(layer.material)">Material erforderlich</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Stärke (mm)</mat-label>
+            <mat-label>St&auml;rke (mm)</mat-label>
             <input
               matInput
               type="number"
@@ -89,36 +108,6 @@
             />
             <mat-error *ngIf="thicknessCtrl.touched && isInvalidLayerNumber(layer.thickness)">St&auml;rke muss mindestens 1 sein</mat-error>
           </mat-form-field>
-
-          <mat-form-field appearance="outline" *ngIf="isWallStructure">
-            <mat-label>Laufmeter (m)</mat-label>
-            <input
-              matInput
-              type="number"
-              min="1"
-              step="0.1"
-              [(ngModel)]="layer.length"
-              (ngModelChange)="emitChanges()"
-              required
-              #lengthCtrl="ngModel"
-            />
-            <mat-error *ngIf="lengthCtrl.touched && isMeasureInvalid(layer)">Länge muss mindestens 1 sein</mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" *ngIf="!isWallStructure">
-            <mat-label>Fläche (m²)</mat-label>
-            <input
-              matInput
-              type="number"
-              min="1"
-              step="0.1"
-              [(ngModel)]="layer.area"
-              (ngModelChange)="emitChanges()"
-              required
-              #areaCtrl="ngModel"
-            />
-            <mat-error *ngIf="areaCtrl.touched && isMeasureInvalid(layer)">Fl&auml;che muss mindestens 1 sein</mat-error>
-          </mat-form-field>
         </div>
       </div>
     </div>
@@ -126,5 +115,5 @@
 </div>
 
 <ng-template #selectPartTypeHint>
-  <p class="empty-state">Bitte zuerst eine Bauteil-Kategorie auswählen.</p>
+  <p class="empty-state">Bitte zuerst eine Bauteil-Kategorie ausw&auml;hlen.</p>
 </ng-template>

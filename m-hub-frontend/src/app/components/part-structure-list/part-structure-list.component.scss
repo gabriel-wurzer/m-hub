@@ -140,6 +140,10 @@
   padding: 12px;
 }
 
+.part-measure-row mat-form-field {
+  width: min(320px, 100%);
+}
+
 .layer-row {
   border: 1px solid rgba(0, 0, 0, 0.14);
   border-radius: 12px;

@@ -22,7 +22,7 @@ export abstract class BuildingComponent {
 }
 
 export class Bauteil extends BuildingComponent {
-    part_structure!: string | PartStructure;
+    part_structure!: PartStructure;
     part_type!: PartType;        
     location!: string;
 }
@@ -37,8 +37,8 @@ export type CreateBauteilPayload = {
     is_public: boolean;
     is_hazardous: boolean;
     part_type: PartType;
+    part_structure: PartStructure;
     location: string;
-    part_structure?: string | PartStructure;
 };
 
 export class Objekt extends BuildingComponent {

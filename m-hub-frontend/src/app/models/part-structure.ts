@@ -1,27 +1,21 @@
 import { LayerMaterial } from './layer-material';
 
-export interface BasePartLayer {
+export interface Layer {
   layer_index: number;
   material: LayerMaterial | null;
   thickness: number | null;
 }
 
-export interface WallLayer extends BasePartLayer {
-  length: number | null;
-}
-
-export interface SlabLayer extends BasePartLayer {
-  area: number | null;
-}
-
 export interface WallStructure {
   type: 'wall';
-  layers: WallLayer[];
+  length: number | null;
+  layers: Layer[];
 }
 
 export interface SlabStructure {
   type: 'slab';
-  layers: SlabLayer[];
+  area: number | null;
+  layers: Layer[];
 }
 
 export type PartStructure = WallStructure | SlabStructure;
