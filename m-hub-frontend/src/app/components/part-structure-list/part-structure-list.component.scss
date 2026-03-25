@@ -7,58 +7,135 @@
 }
 
 .part-structure-wrapper {
-  border: 2px dashed mat.get-color-from-palette(vars.$my-primary, 500);
-  border-radius: 8px;
-  padding: 12px;
+  border: 1px solid rgba(2, 136, 209, 0.24);
+  border-radius: 12px;
+  // padding: 14px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  background:
+    radial-gradient(circle at top left, rgba(2, 136, 209, 0.12), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(249, 251, 252, 0.96));
 }
 
-.part-structure-header {
+.part-structure-topbar {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.topbar-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  flex: 1 1 320px;
+  min-width: 320px;
+}
+
+.topbar-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 6px;
+  flex: 1 1 320px;
+  min-width: 320px;
+}
+
+.measure-heading {
+  font-size: 1.2rem;
+  margin: 0 0 6px;
 }
 
 .orientation-hint {
-  font-size: 14px;
+  font-size: 15px;
+  color: rgba(0, 0, 0, 0.62);
+  display: block;
+  max-width: 520px;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.layer-count-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  // border-radius: 999px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.layer-count-chip mat-icon {
+  width: 17px;
+  height: 17px;
+  font-size: 17px;
 }
 
 .add-layer-button {
-  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+  background-color: mat.get-color-from-palette(vars.$my-primary, 500);
+  color: #fff;
 
   &:hover {
-    color: mat.get-color-from-palette(vars.$my-primary, 500);
+    background-color: mat.get-color-from-palette(vars.$my-primary, 600);
   }
 }
- 
+
 .part-structure-content {
   display: grid;
-  grid-template-columns: 110px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: minmax(128px, 190px) minmax(0, 1fr);
+  gap: 14px;
   align-items: start;
 }
 
 .part-structure-content.wall-content {
   grid-template-columns: minmax(0, 1fr);
+}
 
-  .structure-visual {
-    width: 100%;
-  }
+.structure-visual-card {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-  .layers-list {
-    padding-top: 16px;
-  }
+.visual-title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.52);
+  text-align: center;
+  width: 100%;
 }
 
 .structure-visual {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
 }
 
 .structure-visual.wall-direction-labels {
@@ -69,8 +146,10 @@
 }
 
 .direction-label {
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.72);
+  white-space: nowrap;
 }
 
 .direction-label-start {
@@ -82,8 +161,8 @@
 }
 
 .layer-stack {
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 8px;
   overflow: hidden;
   background-color: #fff;
 }
@@ -98,7 +177,7 @@
 .slab-stack {
   display: flex;
   flex-direction: column;
-  width: 92px;
+  width: 122px;
   min-height: 100px;
 }
 
@@ -136,19 +215,31 @@
 .layers-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px;
+  gap: 12px;
+}
+
+.part-measure-row {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .part-measure-row mat-form-field {
-  width: min(320px, 100%);
+  width: 100%;
+  font-size: 16px;
 }
 
 .layer-row {
-  border: 1px solid rgba(0, 0, 0, 0.14);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 12px;
-  padding: 10px;
-  background-color: rgba(0, 0, 0, 0.02);
+  padding-left: 12px;
+  background-color: rgba(255, 255, 255, 0.85);
+}
+
+.layer-fields {
+  padding-right: 12px;
 }
 
 .layer-row-header {
@@ -160,8 +251,8 @@
 
 .layer-row-header h3 {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 0.98rem;
+  font-weight: 600;
 }
 
 .layer-actions {
@@ -169,7 +260,7 @@
   align-items: center;
 }
 
-.delete-button {
+.delete-button:not(:disabled) {
   color: mat.get-color-from-palette(vars.$my-secondary, 700);
 
   &:hover {
@@ -185,9 +276,14 @@
   }
 }
 
+.arrow-button:disabled,
+.delete-button:disabled {
+  color: rgba(0, 0, 0, 0.34);
+}
+
 .layer-fields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(246px, 1fr));
   gap: 8px;
   margin-top: 8px;
 }
@@ -206,38 +302,46 @@ mat-error {
   font-size: 14px;
 }
 
-@media (max-width: 860px) {
+@media (min-width: 1200px) { 
+    .layer-fields {
+      gap: 1rem;
+  }
+}
 
-  .content-wrapper {
-    padding: 16px 12px
+@media (max-width: 860px) {
+  .part-structure-wrapper {
+    padding: 12px;
   }
 
-  .part-structure-header {
-    flex-direction: column;
-    align-items: stretch;
-    padding-bottom: 14px;
-    gap: 14px;
+  .topbar-left {
+    min-width: 280px;
+  }
+
+  .topbar-right {
+    min-width: 280px;
+    align-items: flex-start;
+  }
+
+  .topbar-actions {
+    width: auto;
+    justify-content: flex-start;
   }
 
   .orientation-hint {
-    align-self: flex-start;
+    max-width: none;
     text-align: left;
-  }
-
-  .add-layer-button {
-    align-self: center;
   }
 
   .part-structure-content {
     grid-template-columns: 1fr;
   }
 
-  .structure-visual {
-    justify-content: center;
+  .layers-list {
+    gap: 10px;
   }
 
-  .layers-list {
-    padding: 0;
+  .part-measure-row {
+    width: 100%;
   }
 
   .slab-stack {
@@ -247,4 +351,18 @@ mat-error {
   .slab-stack .layer-tile {
     height: 33px;
   }
+}
+
+@media (max-width: 600px) {
+  .layer-fields {
+      gap: 0;
+  }
+}
+
+@media (max-width: 400px) {
+ .topbar-actions {
+    width: 100%;
+    justify-content: space-between;
+ }
+
 }

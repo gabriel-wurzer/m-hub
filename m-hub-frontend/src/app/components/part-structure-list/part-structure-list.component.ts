@@ -22,6 +22,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PartType } from '../../enums/part-type.enum';
+import { MaterialType } from '../../enums/material-type.enum';
 import { PartStructure, Layer } from '../../models/part-structure';
 import { LayerMaterial, LAYER_MATERIAL_OPTIONS } from '../../models/layer-material';
 
@@ -106,6 +107,37 @@ type StructureType = PartStructure['type'];
           })
         )
       ])
+    ]),
+    trigger('measureModeBlend', [
+      transition(':enter', [
+        style({
+          opacity: 0,
+          transform: 'translateY(-6px)'
+        }),
+        animate(
+          '260ms cubic-bezier(0.2, 0, 0, 1)',
+          style({
+            opacity: 1,
+            transform: 'translateY(0)'
+          })
+        )
+      ]),
+      transition('wall <=> slab', [
+        animate(
+          '140ms cubic-bezier(0.4, 0, 1, 1)',
+          style({
+            opacity: 0.68,
+            transform: 'translateY(4px)'
+          })
+        ),
+        animate(
+          '220ms cubic-bezier(0.2, 0, 0, 1)',
+          style({
+            opacity: 1,
+            transform: 'translateY(0)'
+          })
+        )
+      ])
     ])
   ]
 })
@@ -121,13 +153,13 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
     this.refreshWallWidthObserver();
   }
 
-  @ViewChild('directionStartLabel')
+  @ViewChild('directionStartLabelEl')
   set directionStartLabelRef(value: ElementRef<HTMLElement> | undefined) {
     this.directionStartLabelElement = value?.nativeElement ?? null;
     this.updateWallVisibleTileSlots();
   }
 
-  @ViewChild('directionEndLabel')
+  @ViewChild('directionEndLabelEl')
   set directionEndLabelRef(value: ElementRef<HTMLElement> | undefined) {
     this.directionEndLabelElement = value?.nativeElement ?? null;
     this.updateWallVisibleTileSlots();
@@ -136,21 +168,25 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
   readonly layerMaterials: LayerMaterial[] = LAYER_MATERIAL_OPTIONS;
   readonly minimumLayerValue = 1;
   readonly mobileBreakpointPx = 860;
+  readonly layerChipCompactBreakpointPx = 540;
   readonly slabMobileVisibleLayerLimit = 6;
   readonly slabMobileLeadingLayerCount = 5;
   readonly wallTileWidth = 50;
   readonly wallMinimumStackWidth = 100;
   readonly wallOverflowLabel = '..';
+  private readonly materialTypeValues = new Set<MaterialType>(Object.values(MaterialType));
 
   structureType: StructureType | null = null;
   layers: EditablePartLayer[] = [];
   structureMeasure: number | null = null;
   animationsDisabled = true;
   isCompactViewport = false;
+  isLayerChipCompact = false;
   wallVisibleTileSlots: number | null = null;
   private lastEmittedStructureJson: string | null = null;
   private lastEmittedValidity: boolean | null = null;
   private mobileViewportQuery: MediaQueryList | null = null;
+  private layerChipCompactQuery: MediaQueryList | null = null;
   private wallWidthObserver: ResizeObserver | null = null;
   private structureVisualElement: HTMLElement | null = null;
   private directionStartLabelElement: HTMLElement | null = null;
@@ -170,6 +206,7 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
 
   ngOnDestroy(): void {
     this.mobileViewportQuery?.removeEventListener('change', this.handleViewportQueryChange);
+    this.layerChipCompactQuery?.removeEventListener('change', this.handleLayerChipCompactQueryChange);
     this.wallWidthObserver?.disconnect();
   }
 
@@ -283,6 +320,7 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
       return;
     }
 
+    this.enforceLayerThicknessRules();
     this.reindexLayers();
     const structure = this.buildStructure(this.layers, this.structureMeasure);
     if (!structure) {
@@ -309,6 +347,23 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
     return this.isInvalidLayerNumber(this.structureMeasure);
   }
 
+  onLayerMaterialChange(layer: EditablePartLayer): void {
+    this.enforceLayerThicknessRule(layer);
+    this.emitChanges();
+  }
+
+  isThicknessDisabled(layer: EditablePartLayer): boolean {
+    return this.requiresFixedZeroThickness(layer.material);
+  }
+
+  isLayerThicknessInvalid(layer: { material: LayerMaterial | null; thickness: number | null }): boolean {
+    if (this.requiresFixedZeroThickness(layer.material)) {
+      return false;
+    }
+
+    return this.isInvalidLayerNumber(layer.thickness);
+  }
+
   getStructureVisualTileTooltip(tile: StructureVisualTile): string {
     return tile.isOverflow && tile.hiddenCount
       ? `${tile.hiddenCount} weitere Schichten ausgeblendet`
@@ -329,6 +384,7 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
 
     if (this.structure && this.structure.type === nextStructureType && this.structure.layers.length > 0) {
       const normalizedLayers = this.structure.layers.map((layer, index) => this.normalizeIncomingLayer(layer, index + 1));
+      normalizedLayers.forEach((layer) => this.enforceLayerThicknessRule(layer));
       const normalizedMeasure = this.normalizeIncomingStructureMeasure(this.structure);
 
       const incomingStructureJson = JSON.stringify(this.buildStructure(normalizedLayers, normalizedMeasure));
@@ -364,10 +420,18 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
     this.mobileViewportQuery = window.matchMedia(`(max-width: ${this.mobileBreakpointPx}px)`);
     this.isCompactViewport = this.mobileViewportQuery.matches;
     this.mobileViewportQuery.addEventListener('change', this.handleViewportQueryChange);
+
+    this.layerChipCompactQuery = window.matchMedia(`(max-width: ${this.layerChipCompactBreakpointPx}px)`);
+    this.isLayerChipCompact = this.layerChipCompactQuery.matches;
+    this.layerChipCompactQuery.addEventListener('change', this.handleLayerChipCompactQueryChange);
   }
 
   private readonly handleViewportQueryChange = (event: MediaQueryListEvent): void => {
     this.isCompactViewport = event.matches;
+  };
+
+  private readonly handleLayerChipCompactQueryChange = (event: MediaQueryListEvent): void => {
+    this.isLayerChipCompact = event.matches;
   };
 
   private createLayerVisualTile(layer: EditablePartLayer): StructureVisualTile {
@@ -505,9 +569,23 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
 
     return structure.layers.every((layer) => {
       const hasMaterial = !this.isMaterialMissing(layer.material);
-      const hasThickness = !this.isInvalidLayerNumber(layer.thickness);
+      const hasThickness = !this.isLayerThicknessInvalid(layer);
       return hasMaterial && hasThickness;
     });
+  }
+
+  private enforceLayerThicknessRules(): void {
+    this.layers.forEach((layer) => this.enforceLayerThicknessRule(layer));
+  }
+
+  private enforceLayerThicknessRule(layer: EditablePartLayer): void {
+    if (this.requiresFixedZeroThickness(layer.material)) {
+      layer.thickness = 0;
+    }
+  }
+
+  private requiresFixedZeroThickness(material: LayerMaterial | null): boolean {
+    return material !== null && !this.materialTypeValues.has(material as MaterialType);
   }
 
   isInvalidLayerNumber(value: number | null | undefined): boolean {

@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PartStructureListComponent } from './part-structure-list.component';
 import { PartType } from '../../enums/part-type.enum';
 import { ConnectionType } from '../../enums/connection-type.enum';
-import { MaterialType } from '../../enums/material.enum';
+import { MaterialType } from '../../enums/material-type.enum';
 import { UNKNOWN_LAYER_MATERIAL } from '../../models/layer-material';
 
 describe('PartStructureListComponent', () => {
@@ -81,6 +81,52 @@ describe('PartStructureListComponent', () => {
     component.emitChanges();
 
     expect(lastValidity).toBeFalse();
+  });
+
+  it('should force thickness to 0 for connection type materials', () => {
+    let lastValidity: boolean | undefined;
+    let emittedStructure: any;
+    component.validityChange.subscribe((value) => {
+      lastValidity = value;
+    });
+    component.structureChange.subscribe((value) => {
+      emittedStructure = value;
+    });
+
+    component.partType = PartType.AW;
+    fixture.detectChanges();
+
+    component.layers[0].material = ConnectionType.conn_1;
+    component.layers[0].thickness = 240;
+    component.structureMeasure = 12.5;
+    component.emitChanges();
+
+    expect(component.layers[0].thickness).toBe(0);
+    expect(emittedStructure?.layers?.[0]?.thickness).toBe(0);
+    expect(lastValidity).toBeTrue();
+  });
+
+  it('should force thickness to 0 for unknown material', () => {
+    let lastValidity: boolean | undefined;
+    let emittedStructure: any;
+    component.validityChange.subscribe((value) => {
+      lastValidity = value;
+    });
+    component.structureChange.subscribe((value) => {
+      emittedStructure = value;
+    });
+
+    component.partType = PartType.AW;
+    fixture.detectChanges();
+
+    component.layers[0].material = UNKNOWN_LAYER_MATERIAL;
+    component.layers[0].thickness = 180;
+    component.structureMeasure = 12.5;
+    component.emitChanges();
+
+    expect(component.layers[0].thickness).toBe(0);
+    expect(emittedStructure?.layers?.[0]?.thickness).toBe(0);
+    expect(lastValidity).toBeTrue();
   });
 
   it('should emit measure on structure level instead of per layer', () => {

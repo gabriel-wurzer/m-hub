@@ -1,31 +1,27 @@
 <div class="part-structure-wrapper" *ngIf="structureType; else selectPartTypeHint">
-  <div class="part-structure-header">
-    <span class="orientation-hint">{{ orientationHint }}</span>
-    <button mat-stroked-button type="button" class="add-layer-button" (click)="addLayer()">
-      <mat-icon>add</mat-icon>
-      Schicht hinzuf&uuml;gen
-    </button>
-  </div>
-
-  <div class="part-structure-content" [class.wall-content]="isWallStructure">
-    <div #structureVisual class="structure-visual" [class.wall-direction-labels]="isWallStructure">
-      <span #directionStartLabelEl class="direction-label" [class.direction-label-start]="isWallStructure">{{ directionStartLabel }}</span>
-      <div class="layer-stack" [class.wall-stack]="isWallStructure" [class.slab-stack]="!isWallStructure">
-        <div
-          *ngFor="let tile of structureVisualTiles; trackBy: trackByStructureVisualTile"
-          class="layer-tile"
-          [class.overflow-tile]="tile.isOverflow"
-          [matTooltip]="getStructureVisualTileTooltip(tile)"
-        >
-          {{ tile.label }}
-        </div>
+  <div class="part-structure-topbar">
+    <div class="topbar-left">
+      <div class="topbar-actions">
+        <button mat-stroked-button type="button" class="add-layer-button" (click)="addLayer()">
+          <mat-icon>add</mat-icon>
+          Schicht hinzuf&uuml;gen
+        </button>
+        <span class="layer-count-chip">
+          <mat-icon>layers</mat-icon>
+          {{ layers.length }}<ng-container *ngIf="!isLayerChipCompact">&nbsp;{{ layers.length === 1 ? 'Schicht' : 'Schichten' }}</ng-container>
+        </span>
       </div>
-      <span #directionEndLabelEl class="direction-label" [class.direction-label-end]="isWallStructure">{{ directionEndLabel }}</span>
+      <span class="orientation-hint">{{ orientationHint }}</span>
     </div>
 
-    <div class="layers-list" [@.disabled]="animationsDisabled">
-      <div class="part-measure-row">
-        <mat-form-field appearance="outline">
+    <div class="topbar-right">
+      <div
+        class="part-measure-row"
+        [class.wall-measure-row]="isWallStructure"
+        [class.slab-measure-row]="!isWallStructure"
+        [@measureModeBlend]="isWallStructure ? 'wall' : 'slab'"
+      >
+        <mat-form-field appearance="outline" class="measure-field">
           <mat-label>{{ isWallStructure ? 'Laufmeter (m)' : 'Fl&auml;che (m&sup2;)' }}</mat-label>
           <input
             matInput
@@ -42,41 +38,61 @@
           </mat-error>
         </mat-form-field>
       </div>
+    </div>
+  </div>
 
+  <div class="part-structure-content" [class.wall-content]="isWallStructure">
+    <div class="structure-visual-card">
+      <span class="visual-title"> Darstellung Schichten </span>
+      <div #structureVisual class="structure-visual" [class.wall-direction-labels]="isWallStructure">
+        <span #directionStartLabelEl class="direction-label" [class.direction-label-start]="isWallStructure">{{ directionStartLabel }}</span>
+        <div class="layer-stack" [class.wall-stack]="isWallStructure" [class.slab-stack]="!isWallStructure">
+          <div
+            *ngFor="let tile of structureVisualTiles; trackBy: trackByStructureVisualTile"
+            class="layer-tile"
+            [class.overflow-tile]="tile.isOverflow"
+            [matTooltip]="getStructureVisualTileTooltip(tile)"
+          >
+            {{ tile.label }}
+          </div>
+        </div>
+        <span #directionEndLabelEl class="direction-label" [class.direction-label-end]="isWallStructure">{{ directionEndLabel }}</span>
+      </div>
+    </div>
+
+    <div class="layers-list" [@.disabled]="animationsDisabled">
       <div class="layer-row" *ngFor="let layer of layers; let i = index; trackBy: trackByLayer" @rowAnimation>
         <div class="layer-row-header">
           <h3>Schicht {{ i + 1 }}</h3>
           <div class="layer-actions">
             <button
-              *ngIf="layers.length > 1"
               mat-icon-button
               class="arrow-button"
               type="button"
               (click)="moveLayerUp(i)"
-              [disabled]="i === 0"
+              [disabled]="layers.length <= 1 || i === 0"
               [matTooltip]="isWallStructure ? 'Schicht nach innen verschieben' : 'Schicht nach oben verschieben'"
             >
               <mat-icon>arrow_upward</mat-icon>
             </button>
 
             <button
-              *ngIf="layers.length > 1"
               mat-icon-button
               class="arrow-button"
               type="button"
               (click)="moveLayerDown(i)"
-              [disabled]="i === layers.length - 1"
+              [disabled]="layers.length <= 1 || i === layers.length - 1"
               [matTooltip]="isWallStructure ? 'Schicht nach au&szlig;en verschieben' : 'Schicht nach unten verschieben'"
             >
               <mat-icon>arrow_downward</mat-icon>
             </button>
 
             <button
-              *ngIf="layers.length > 1"
               mat-icon-button
               class="delete-button"
               type="button"
               (click)="removeLayer(i)"
+              [disabled]="layers.length <= 1"
               matTooltip="Schicht entfernen"
             >
               <mat-icon>remove_circle_outline</mat-icon>
@@ -87,7 +103,7 @@
         <div class="layer-fields">
           <mat-form-field appearance="outline">
             <mat-label>Material</mat-label>
-            <mat-select [(ngModel)]="layer.material" (ngModelChange)="emitChanges()" required #materialCtrl="ngModel">
+            <mat-select [(ngModel)]="layer.material" (ngModelChange)="onLayerMaterialChange(layer)" required #materialCtrl="ngModel">
               <mat-option [value]="null" disabled>-- Material ausw&auml;hlen --</mat-option>
               <mat-option *ngFor="let material of layerMaterials" [value]="material">{{ material }}</mat-option>
             </mat-select>
@@ -103,10 +119,11 @@
               step="1"
               [(ngModel)]="layer.thickness"
               (ngModelChange)="emitChanges()"
+              [disabled]="isThicknessDisabled(layer)"
               required
               #thicknessCtrl="ngModel"
             />
-            <mat-error *ngIf="thicknessCtrl.touched && isInvalidLayerNumber(layer.thickness)">St&auml;rke muss mindestens 1 sein</mat-error>
+            <mat-error *ngIf="thicknessCtrl.touched && isLayerThicknessInvalid(layer)">St&auml;rke muss mindestens 1 sein</mat-error>
           </mat-form-field>
         </div>
       </div>
