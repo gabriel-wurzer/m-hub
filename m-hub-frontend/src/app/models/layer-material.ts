@@ -1,5 +1,5 @@
 import { ConnectionType } from '../enums/connection-type.enum';
-import { MaterialType } from '../enums/material.enum';
+import { MaterialType } from '../enums/material-type.enum';
 
 export const UNKNOWN_LAYER_MATERIAL = 'Unbekannt' as const;
 
