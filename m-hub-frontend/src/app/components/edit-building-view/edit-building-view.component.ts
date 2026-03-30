@@ -28,6 +28,7 @@ import {
   CreateBauteilPayload,
   CreateObjektPayload,
   Objekt,
+  UpdateBauteilPayload,
   UpdateObjektPayload
 } from '../../models/building-component';
 import { Document, CreateDocumentPayload, UpdateDocumentPayload } from '../../models/document';
@@ -42,6 +43,7 @@ import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog
 import { BuildingPartService } from '../../services/building-part/building-part.service';
 import { BuildingObjectService } from '../../services/building-object/building-object.service';
 import { AddPartDialogComponent, AddPartDialogResult } from '../dialogs/add-part-dialog/add-part-dialog.component';
+import { EditPartDialogComponent, EditPartDialogData, EditPartDialogResult } from '../dialogs/edit-part-dialog/edit-part-dialog.component';
 import { AddObjectDialogComponent, AddObjectDialogResult } from '../dialogs/add-object-dialog/add-object-dialog.component';
 import { EditObjectDialogComponent, EditObjectDialogData, EditObjectDialogResult } from '../dialogs/edit-object-dialog/edit-object-dialog.component';
 import { AddDocumentDialogComponent, AddDocumentDialogData, AddDocumentDialogResult } from '../dialogs/add-document-dialog/add-document-dialog.component';
@@ -377,6 +379,65 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
     });
   }
 
+  openEditBuildingPartDialog(part: Bauteil): void {
+    if (!this.userBuilding) return;
+
+    const userBuilding = this.userBuilding;
+    const dialogRef = this.dialog.open<EditPartDialogComponent, EditPartDialogData, EditPartDialogResult>(
+      EditPartDialogComponent,
+      {
+        panelClass: 'custom-dialog',
+        disableClose: true,
+        autoFocus: false,
+        data: {
+          structure: userBuilding.structure,
+          part
+        }
+      }
+    );
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
+
+      const payload: UpdateBauteilPayload = {
+        id: part.id,
+        name: result.name,
+        description: result.description ?? undefined,
+        part_type: result.partType,
+        part_structure: result.partStructure,
+        location: result.location,
+        is_public: result.isPublic ?? true,
+        is_hazardous: result.isHazardous ?? false
+      };
+
+      this.isLoadingParts = true;
+
+      this.buildingPartService.updateComponent(payload)
+        .pipe(finalize(() => this.isLoadingParts = false))
+        .subscribe({
+          next: updatedPart => {
+            this.buildingParts = this.buildingParts.map(current =>
+              current.id === updatedPart.id ? updatedPart : current
+            );
+          },
+          complete: () => {
+            this.snackBar.open('Bauteil aktualisiert.', 'OK', {
+              duration: 3000,
+              verticalPosition: 'top'
+            });
+          },
+          error: error => {
+            console.error('Error updating part:', error);
+            this.snackBar.open('Fehler beim Aktualisieren des Bauteils!', 'OK', {
+              duration: 10000,
+              verticalPosition: 'top',
+              panelClass: 'snackbar-warn'
+            });
+          }
+        });
+    });
+  }
+
   openAddBuildingObjectDialog(): void {
     if (!this.userBuilding) return;
 
@@ -500,14 +561,14 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
             );
           },
           complete: () => {
-            this.snackBar.open('Gebäudeobjekt aktualisiert.', 'OK', {
+            this.snackBar.open('Objekt aktualisiert.', 'OK', {
               duration: 3000,
               verticalPosition: 'top'
             });
           },
           error: error => {
             console.error('Error updating object:', error);
-            this.snackBar.open('Fehler beim Aktualisieren des Gebäudeobjekts!', 'OK', {
+            this.snackBar.open('Fehler beim Aktualisieren des Objekts!', 'OK', {
               duration: 10000,
               verticalPosition: 'top',
               panelClass: 'snackbar-warn'

@@ -41,6 +41,17 @@ export type CreateBauteilPayload = {
     location: string;
 };
 
+export type UpdateBauteilPayload = {
+    id: string;
+    name: string;
+    description?: string;
+    is_public: boolean;
+    is_hazardous: boolean;
+    part_type: PartType;
+    part_structure: PartStructure;
+    location: string;
+};
+
 export class Objekt extends BuildingComponent {
     object_type!: ObjectType;
     count!: number;   
