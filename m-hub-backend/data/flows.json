@@ -209,6 +209,14 @@
         "env": []
     },
     {
+        "id": "6679681a3efe97be",
+        "type": "tab",
+        "label": "UPDATE Part",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "52c0ada6eac7a637",
         "type": "tab",
         "label": "DELETE Part",
@@ -4312,6 +4320,166 @@
         "info": "",
         "x": 320,
         "y": 120,
+        "wires": []
+    },
+    {
+        "id": "a0760018dea9fb81",
+        "type": "http in",
+        "z": "6679681a3efe97be",
+        "name": "UPDATE building-part",
+        "url": "/api/parts/:ID",
+        "method": "put",
+        "upload": true,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 220,
+        "y": 100,
+        "wires": [
+            [
+                "d5c9c10ba47256af"
+            ]
+        ]
+    },
+    {
+        "id": "0e7d3d8256e64ac5",
+        "type": "postgresql",
+        "z": "6679681a3efe97be",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 380,
+        "y": 440,
+        "wires": [
+            [
+                "0c2fb6246ec0adaf"
+            ]
+        ]
+    },
+    {
+        "id": "607a721e103076a2",
+        "type": "function",
+        "z": "6679681a3efe97be",
+        "name": "build SQL query",
+        "func": "// Extract user id securely from JWT\nconst user_id = msg.user?.sub;\n\n// Extract target id from path param\nconst part_id = msg.req.params.ID;\n\n// Extract data from payload\nconst {\n    name,\n    description,\n    is_public,\n    is_hazardous,\n    part_type,\n    part_structure,\n    location\n} = msg.payload || {};\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nconst allowedPartTypes = new Set([\n    'Bodenaufbau',\n    'Dachaufbau',\n    'Innenwand',\n    'Außenwand',\n    'Brandwand',\n    'Kniestock',\n    'Attika'\n]);\n\nconst normalizeOptionalText = (value) => {\n    if (typeof value !== 'string') return null;\n    const trimmed = value.trim();\n    return trimmed.length ? trimmed : null;\n};\n\nconst normalizeRequiredText = (value) => {\n    if (typeof value !== 'string') return '';\n    return value.trim();\n};\n\nconst parsePositiveInt = (value, fieldName) => {\n    const parsed = Number(value);\n    if (!Number.isInteger(parsed) || parsed < 1) {\n        return { error: `${fieldName} must be an integer >= 1` };\n    }\n    return { value: parsed };\n};\n\nconst parseNullableNumber = (value, fieldName) => {\n    if (value === null || value === undefined || value === '') {\n        return { value: null };\n    }\n\n    const parsed = Number(value);\n    if (!Number.isFinite(parsed)) {\n        return { error: `${fieldName} must be a number or null` };\n    }\n\n    return { value: parsed };\n};\n\nconst normalizeLayer = (layer, index) => {\n    if (!layer || typeof layer !== 'object' || Array.isArray(layer)) {\n        return { error: `part_structure.layers[${index}] must be an object` };\n    }\n\n    const layerIndexResult = parsePositiveInt(\n        layer.layer_index,\n        `part_structure.layers[${index}].layer_index`\n    );\n    if (layerIndexResult.error) return layerIndexResult;\n\n    const material = layer.material === null ? null : normalizeOptionalText(layer.material);\n    if (layer.material !== null && material === null) {\n        return { error: `part_structure.layers[${index}].material must be a non-empty string or null` };\n    }\n\n    const thicknessResult = parseNullableNumber(\n        layer.thickness,\n        `part_structure.layers[${index}].thickness`\n    );\n    if (thicknessResult.error) return thicknessResult;\n\n    return {\n        value: {\n            layer_index: layerIndexResult.value,\n            material,\n            thickness: thicknessResult.value\n        }\n    };\n};\n\nconst normalizePartStructure = (value) => {\n    let parsed = value;\n\n    if (typeof parsed === 'string') {\n        const trimmed = parsed.trim();\n        if (!trimmed) {\n            return { error: 'part_structure is required and cannot be empty' };\n        }\n\n        try {\n            parsed = JSON.parse(trimmed);\n        } catch (err) {\n            return { error: 'part_structure must be valid JSON' };\n        }\n    }\n\n    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {\n        return { error: 'part_structure must be an object' };\n    }\n\n    const type = normalizeRequiredText(parsed.type);\n    if (type !== 'wall' && type !== 'slab') {\n        return { error: \"part_structure.type must be either 'wall' or 'slab'\" };\n    }\n\n    if (!Array.isArray(parsed.layers) || parsed.layers.length === 0) {\n        return { error: 'part_structure.layers must be a non-empty array' };\n    }\n\n    const normalizedLayers = [];\n    for (let i = 0; i < parsed.layers.length; i++) {\n        const layerResult = normalizeLayer(parsed.layers[i], i);\n        if (layerResult.error) return layerResult;\n        normalizedLayers.push(layerResult.value);\n    }\n\n    if (type === 'wall') {\n        const lengthResult = parseNullableNumber(parsed.length, 'part_structure.length');\n        if (lengthResult.error) return lengthResult;\n\n        return {\n            value: {\n                type: 'wall',\n                length: lengthResult.value,\n                layers: normalizedLayers\n            }\n        };\n    }\n\n    const areaResult = parseNullableNumber(parsed.area, 'part_structure.area');\n    if (areaResult.error) return areaResult;\n\n    return {\n        value: {\n            type: 'slab',\n            area: areaResult.value,\n            layers: normalizedLayers\n        }\n    };\n};\n\nreturn (() => {\n    // Validate required fields\n    if (!user_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'user_id is missing' };\n        return [null, msg];\n    }\n\n    if (!uuidRegex.test(user_id)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid user ID format' };\n        return [null, msg];\n    }\n\n    if (!part_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'part id is missing (expected path param :ID)' };\n        return [null, msg];\n    }\n\n    if (!uuidRegex.test(String(part_id))) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid part ID format' };\n        return [null, msg];\n    }\n\n    const normalizedName = normalizeRequiredText(name);\n    if (!normalizedName) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'name is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    const normalizedLocation = normalizeRequiredText(location);\n    if (!normalizedLocation) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'location is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    const normalizedPartType = normalizeRequiredText(part_type);\n    if (!normalizedPartType) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'part_type is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    if (!allowedPartTypes.has(normalizedPartType)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid part_type value' };\n        return [null, msg];\n    }\n\n    if (part_structure === undefined || part_structure === null) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'part_structure is required' };\n        return [null, msg];\n    }\n\n    const partStructureResult = normalizePartStructure(part_structure);\n    if (partStructureResult.error) {\n        msg.statusCode = 400;\n        msg.payload = { error: partStructureResult.error };\n        return [null, msg];\n    }\n\n    if (is_public !== undefined && typeof is_public !== 'boolean') {\n        msg.statusCode = 400;\n        msg.payload = { error: 'is_public must be a boolean when provided' };\n        return [null, msg];\n    }\n\n    if (is_hazardous !== undefined && typeof is_hazardous !== 'boolean') {\n        msg.statusCode = 400;\n        msg.payload = { error: 'is_hazardous must be a boolean when provided' };\n        return [null, msg];\n    }\n\n    msg.query = `\n      UPDATE building_parts bp\n      SET\n        name = $3,\n        description = $4,\n        location = $5,\n        part_type = $6,\n        part_structure = $7::jsonb,\n        is_public = COALESCE($8::boolean, bp.is_public),\n        is_hazardous = COALESCE($9::boolean, bp.is_hazardous)\n      WHERE bp.id = $1::uuid\n        AND bp.owner_id = $2::uuid\n      RETURNING bp.*;\n    `;\n\n    msg.params = [\n        String(part_id),\n        user_id,\n        normalizedName,\n        normalizeOptionalText(description),\n        normalizedLocation,\n        normalizedPartType,\n        JSON.stringify(partStructureResult.value),\n        typeof is_public === 'boolean' ? is_public : null,\n        typeof is_hazardous === 'boolean' ? is_hazardous : null\n    ];\n\n    return [msg, null];\n})();",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 320,
+        "wires": [
+            [
+                "0e7d3d8256e64ac5"
+            ],
+            [
+                "0260f6ddac9675e0"
+            ]
+        ]
+    },
+    {
+        "id": "0c2fb6246ec0adaf",
+        "type": "function",
+        "z": "6679681a3efe97be",
+        "name": "function success",
+        "func": "const rows = msg.payload;\n\nif (rows && rows.length > 0) {\n    // SUCCESS: The row was found AND the user owned it.\n    msg.statusCode = 200;\n    msg.payload = rows[0];\n} else {\n    // FAILURE: No rows were updated.\n    msg.statusCode = 404;\n    msg.payload = { error: \"Building part not found or permission denied.\" };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 560,
+        "wires": [
+            [
+                "0260f6ddac9675e0"
+            ]
+        ]
+    },
+    {
+        "id": "0260f6ddac9675e0",
+        "type": "http response",
+        "z": "6679681a3efe97be",
+        "name": "building-part response",
+        "statusCode": "",
+        "headers": {},
+        "x": 840,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "535a7c7f3bf6650d",
+        "type": "catch",
+        "z": "6679681a3efe97be",
+        "name": "",
+        "scope": [
+            "0e7d3d8256e64ac5"
+        ],
+        "uncaught": false,
+        "x": 630,
+        "y": 320,
+        "wires": [
+            [
+                "c3a30db414500670"
+            ]
+        ]
+    },
+    {
+        "id": "c3a30db414500670",
+        "type": "function",
+        "z": "6679681a3efe97be",
+        "name": "handle db errors",
+        "func": "const err = msg.error;\nconst errMsg = err && err.message ? err.message : '';\n\n\n// 1. FOREIGN KEY VIOLATION (Specific to DELETE)\n// Code 23503: Occurs if you try to delete a building that is used in another table\nif (errMsg.includes('violates foreign key') || (err.code === '23503')) {\n    msg.statusCode = 409; // Conflict\n    msg.payload = { error: 'Cannot delete: This building object is referenced by other data.' };\n}\n\n// 2. INVALID DATA TYPE (e.g. Bad UUID string)\n// Code 22P02: Invalid text representation\nelse if (errMsg.includes('invalid input syntax') || (err.code === '22P02')) {\n    msg.statusCode = 400; // Bad Request\n    msg.payload = { error: 'Invalid ID format or data type.' };\n}\n\n// 3. GENERIC FALLBACK\nelse {\n    msg.statusCode = 500; // Internal Server Error\n    msg.payload = { error: 'Database error', details: errMsg };\n}\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 820,
+        "y": 320,
+        "wires": [
+            [
+                "0260f6ddac9675e0"
+            ]
+        ]
+    },
+    {
+        "id": "d5c9c10ba47256af",
+        "type": "function",
+        "z": "6679681a3efe97be",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET');\n\n// 0. Server config check\nif (!secret) {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Server misconfigured: JWT_SECRET missing' };\n    return [null, msg];\n}\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg]; // Go to Output 2 (Error)\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    \n    msg.user = decoded; \n    \n    return [msg, null]; // Go to Output 1 (Success)\n\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 270,
+        "y": 200,
+        "wires": [
+            [
+                "607a721e103076a2"
+            ],
+            [
+                "0260f6ddac9675e0"
+            ]
+        ]
+    },
+    {
+        "id": "3af3e951d639f464",
+        "type": "comment",
+        "z": "6679681a3efe97be",
+        "name": "http://localhost:1880/api/parts/ID",
+        "info": "",
+        "x": 230,
+        "y": 40,
         "wires": []
     },
     {

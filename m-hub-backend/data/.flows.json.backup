@@ -209,6 +209,14 @@
         "env": []
     },
     {
+        "id": "6679681a3efe97be",
+        "type": "tab",
+        "label": "UPDATE Part",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "52c0ada6eac7a637",
         "type": "tab",
         "label": "DELETE Part",
@@ -4195,7 +4203,7 @@
         "type": "function",
         "z": "30a8412fd1556e21",
         "name": "build SQL query",
-        "func": "// Extract user id securely from JWT\nconst user_id = msg.user?.sub;\n\n// Extract data from payload\nconst {\n    building_id,\n    user_building_id,\n    owner_id,   // optional in payload, but JWT stays the source of truth\n    category,\n    name,\n    description,\n    is_public,\n    is_hazardous,\n    part_type,\n    part_structure,\n    location\n} = msg.payload || {};\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nconst allowedPartTypes = new Set([\n    'Bodenaufbau',\n    'Dachaufbau',\n    'Innenwand',\n    'Außenwand',\n    'Brandwand',\n    'Kniestock',\n    'Attika'\n]);\n\nconst normalizeOptionalText = (value) => {\n    if (typeof value !== 'string') return null;\n    const trimmed = value.trim();\n    return trimmed.length ? trimmed : null;\n};\n\nconst normalizeRequiredText = (value) => {\n    if (typeof value !== 'string') return '';\n    return value.trim();\n};\n\nconst normalizeStringLike = (value) => {\n    if (value === undefined || value === null) return '';\n    return String(value).trim();\n};\n\nconst normalizeUuidText = (value) => {\n    if (value === undefined || value === null) return null;\n    const trimmed = String(value).trim();\n    return trimmed.length ? trimmed : null;\n};\n\nconst buildUuidV4 = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {\n    const r = Math.random() * 16 | 0;\n    const v = c === 'x' ? r : (r & 0x3 | 0x8);\n    return v.toString(16);\n});\n\nconst parsePositiveInt = (value, fieldName) => {\n    const parsed = Number(value);\n    if (!Number.isInteger(parsed) || parsed < 1) {\n        return { error: `${fieldName} must be an integer >= 1` };\n    }\n    return { value: parsed };\n};\n\nconst parseNullableNumber = (value, fieldName) => {\n    if (value === null || value === undefined || value === '') {\n        return { value: null };\n    }\n\n    const parsed = Number(value);\n    if (!Number.isFinite(parsed)) {\n        return { error: `${fieldName} must be a number or null` };\n    }\n\n    return { value: parsed };\n};\n\nconst normalizeLayer = (layer, index) => {\n    if (!layer || typeof layer !== 'object' || Array.isArray(layer)) {\n        return { error: `part_structure.layers[${index}] must be an object` };\n    }\n\n    const layerIndexResult = parsePositiveInt(\n        layer.layer_index,\n        `part_structure.layers[${index}].layer_index`\n    );\n    if (layerIndexResult.error) return layerIndexResult;\n\n    const material =\n        layer.material === null\n            ? null\n            : normalizeOptionalText(layer.material);\n\n    if (layer.material !== null && material === null) {\n        return {\n            error: `part_structure.layers[${index}].material must be a non-empty string or null`\n        };\n    }\n\n    const thicknessResult = parseNullableNumber(\n        layer.thickness,\n        `part_structure.layers[${index}].thickness`\n    );\n    if (thicknessResult.error) return thicknessResult;\n\n    return {\n        value: {\n            layer_index: layerIndexResult.value,\n            material,\n            thickness: thicknessResult.value\n        }\n    };\n};\n\nconst normalizePartStructure = (value) => {\n    let parsed = value;\n\n    if (typeof parsed === 'string') {\n        const trimmed = parsed.trim();\n        if (!trimmed) {\n            return { error: 'part_structure is required and cannot be empty' };\n        }\n\n        try {\n            parsed = JSON.parse(trimmed);\n        } catch (err) {\n            return { error: 'part_structure must be valid JSON' };\n        }\n    }\n\n    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {\n        return { error: 'part_structure must be an object' };\n    }\n\n    const type = normalizeRequiredText(parsed.type);\n    if (type !== 'wall' && type !== 'slab') {\n        return { error: \"part_structure.type must be either 'wall' or 'slab'\" };\n    }\n\n    if (!Array.isArray(parsed.layers)) {\n        return { error: 'part_structure.layers must be an array' };\n    }\n\n    if (parsed.layers.length === 0) {\n        return { error: 'part_structure.layers must contain at least one layer' };\n    }\n\n    const normalizedLayers = [];\n    for (let i = 0; i < parsed.layers.length; i++) {\n        const layerResult = normalizeLayer(parsed.layers[i], i);\n        if (layerResult.error) return layerResult;\n        normalizedLayers.push(layerResult.value);\n    }\n\n    if (type === 'wall') {\n        const lengthResult = parseNullableNumber(parsed.length, 'part_structure.length');\n        if (lengthResult.error) return lengthResult;\n\n        return {\n            value: {\n                type: 'wall',\n                length: lengthResult.value,\n                layers: normalizedLayers\n            }\n        };\n    }\n\n    const areaResult = parseNullableNumber(parsed.area, 'part_structure.area');\n    if (areaResult.error) return areaResult;\n\n    return {\n        value: {\n            type: 'slab',\n            area: areaResult.value,\n            layers: normalizedLayers\n        }\n    };\n};\n\n// Validate required fields\nif (!user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'user_id is missing' };\n    return [null, msg];\n}\n\nif (!uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Invalid user ID format' };\n    return [null, msg];\n}\n\nconst normalizedBuildingId = normalizeStringLike(building_id);\nif (!normalizedBuildingId) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'building_id is missing' };\n    return [null, msg];\n}\n\nconst normalizedUserBuildingId = normalizeUuidText(user_building_id);\nif (!normalizedUserBuildingId) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'user_building_id is missing' };\n    return [null, msg];\n}\n\nif (!uuidRegex.test(normalizedUserBuildingId)) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Invalid user_building_id format' };\n    return [null, msg];\n}\n\nif (owner_id !== undefined && owner_id !== null) {\n    const normalizedOwnerId = normalizeUuidText(owner_id);\n\n    if (!normalizedOwnerId || !uuidRegex.test(normalizedOwnerId)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid owner_id format' };\n        return [null, msg];\n    }\n\n    if (normalizedOwnerId !== user_id) {\n        msg.statusCode = 403;\n        msg.payload = { error: 'owner_id does not match authenticated user' };\n        return [null, msg];\n    }\n}\n\nconst normalizedCategory = normalizeOptionalText(category) || 'Bauteil';\nif (normalizedCategory !== 'Bauteil') {\n    msg.statusCode = 400;\n    msg.payload = { error: \"category must be 'Bauteil'\" };\n    return [null, msg];\n}\n\nconst normalizedName = normalizeRequiredText(name);\nif (!normalizedName) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'name is required and cannot be empty' };\n    return [null, msg];\n}\n\nconst normalizedLocation = normalizeRequiredText(location);\nif (!normalizedLocation) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'location is required and cannot be empty' };\n    return [null, msg];\n}\n\nconst normalizedPartType = normalizeRequiredText(part_type);\nif (!normalizedPartType) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'part_type is required and cannot be empty' };\n    return [null, msg];\n}\n\nif (!allowedPartTypes.has(normalizedPartType)) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Invalid part_type value' };\n    return [null, msg];\n}\n\nif (part_structure === undefined || part_structure === null) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'part_structure is required' };\n    return [null, msg];\n}\n\nconst partStructureResult = normalizePartStructure(part_structure);\nif (partStructureResult.error) {\n    msg.statusCode = 400;\n    msg.payload = { error: partStructureResult.error };\n    return [null, msg];\n}\n\nconst partId = buildUuidV4();\n\nmsg.query = `\n  INSERT INTO building_parts\n    (id, building_id, user_building_id, owner_id, category, name, description, location, part_type, part_structure, is_public, is_hazardous)\n  VALUES\n    ($1::uuid, $2, $3::uuid, $4::uuod, $5, $6, $7, $8, $9, $10::jsonb, $11, $12)\n  RETURNING *;\n`;\n\nmsg.params = [\n    partId,\n    normalizedBuildingId,\n    normalizedUserBuildingId,\n    user_id,\n    normalizedCategory,\n    normalizedName,\n    normalizeOptionalText(description),\n    normalizedLocation,\n    normalizedPartType,\n    JSON.stringify(partStructureResult.value),\n    typeof is_public === 'boolean' ? is_public : true,\n    typeof is_hazardous === 'boolean' ? is_hazardous : false\n];\n\nreturn [msg, null];",
+        "func": "// Extract user id securely from JWT\nconst user_id = msg.user?.sub;\n\n// Extract data from payload\nconst {\n    building_id,\n    user_building_id,\n    owner_id,   // optional in payload, but JWT stays the source of truth\n    category,\n    name,\n    description,\n    is_public,\n    is_hazardous,\n    part_type,\n    part_structure,\n    location\n} = msg.payload || {};\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nconst allowedPartTypes = new Set([\n    'Bodenaufbau',\n    'Dachaufbau',\n    'Innenwand',\n    'Außenwand',\n    'Brandwand',\n    'Kniestock',\n    'Attika'\n]);\n\nconst normalizeOptionalText = (value) => {\n    if (typeof value !== 'string') return null;\n    const trimmed = value.trim();\n    return trimmed.length ? trimmed : null;\n};\n\nconst normalizeRequiredText = (value) => {\n    if (typeof value !== 'string') return '';\n    return value.trim();\n};\n\nconst normalizeStringLike = (value) => {\n    if (value === undefined || value === null) return '';\n    return String(value).trim();\n};\n\nconst normalizeUuidText = (value) => {\n    if (value === undefined || value === null) return null;\n    const trimmed = String(value).trim();\n    return trimmed.length ? trimmed : null;\n};\n\nconst buildUuidV4 = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {\n    const r = Math.random() * 16 | 0;\n    const v = c === 'x' ? r : (r & 0x3 | 0x8);\n    return v.toString(16);\n});\n\nconst parsePositiveInt = (value, fieldName) => {\n    const parsed = Number(value);\n    if (!Number.isInteger(parsed) || parsed < 1) {\n        return { error: `${fieldName} must be an integer >= 1` };\n    }\n    return { value: parsed };\n};\n\nconst parseNullableNumber = (value, fieldName) => {\n    if (value === null || value === undefined || value === '') {\n        return { value: null };\n    }\n\n    const parsed = Number(value);\n    if (!Number.isFinite(parsed)) {\n        return { error: `${fieldName} must be a number or null` };\n    }\n\n    return { value: parsed };\n};\n\nconst normalizeLayer = (layer, index) => {\n    if (!layer || typeof layer !== 'object' || Array.isArray(layer)) {\n        return { error: `part_structure.layers[${index}] must be an object` };\n    }\n\n    const layerIndexResult = parsePositiveInt(\n        layer.layer_index,\n        `part_structure.layers[${index}].layer_index`\n    );\n    if (layerIndexResult.error) return layerIndexResult;\n\n    const material =\n        layer.material === null\n            ? null\n            : normalizeOptionalText(layer.material);\n\n    if (layer.material !== null && material === null) {\n        return {\n            error: `part_structure.layers[${index}].material must be a non-empty string or null`\n        };\n    }\n\n    const thicknessResult = parseNullableNumber(\n        layer.thickness,\n        `part_structure.layers[${index}].thickness`\n    );\n    if (thicknessResult.error) return thicknessResult;\n\n    return {\n        value: {\n            layer_index: layerIndexResult.value,\n            material,\n            thickness: thicknessResult.value\n        }\n    };\n};\n\nconst normalizePartStructure = (value) => {\n    let parsed = value;\n\n    if (typeof parsed === 'string') {\n        const trimmed = parsed.trim();\n        if (!trimmed) {\n            return { error: 'part_structure is required and cannot be empty' };\n        }\n\n        try {\n            parsed = JSON.parse(trimmed);\n        } catch (err) {\n            return { error: 'part_structure must be valid JSON' };\n        }\n    }\n\n    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {\n        return { error: 'part_structure must be an object' };\n    }\n\n    const type = normalizeRequiredText(parsed.type);\n    if (type !== 'wall' && type !== 'slab') {\n        return { error: \"part_structure.type must be either 'wall' or 'slab'\" };\n    }\n\n    if (!Array.isArray(parsed.layers)) {\n        return { error: 'part_structure.layers must be an array' };\n    }\n\n    if (parsed.layers.length === 0) {\n        return { error: 'part_structure.layers must contain at least one layer' };\n    }\n\n    const normalizedLayers = [];\n    for (let i = 0; i < parsed.layers.length; i++) {\n        const layerResult = normalizeLayer(parsed.layers[i], i);\n        if (layerResult.error) return layerResult;\n        normalizedLayers.push(layerResult.value);\n    }\n\n    if (type === 'wall') {\n        const lengthResult = parseNullableNumber(parsed.length, 'part_structure.length');\n        if (lengthResult.error) return lengthResult;\n\n        return {\n            value: {\n                type: 'wall',\n                length: lengthResult.value,\n                layers: normalizedLayers\n            }\n        };\n    }\n\n    const areaResult = parseNullableNumber(parsed.area, 'part_structure.area');\n    if (areaResult.error) return areaResult;\n\n    return {\n        value: {\n            type: 'slab',\n            area: areaResult.value,\n            layers: normalizedLayers\n        }\n    };\n};\n\n// Validate required fields\nif (!user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'user_id is missing' };\n    return [null, msg];\n}\n\nif (!uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Invalid user ID format' };\n    return [null, msg];\n}\n\nconst normalizedBuildingId = normalizeStringLike(building_id);\nif (!normalizedBuildingId) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'building_id is missing' };\n    return [null, msg];\n}\n\nconst normalizedUserBuildingId = normalizeUuidText(user_building_id);\nif (!normalizedUserBuildingId) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'user_building_id is missing' };\n    return [null, msg];\n}\n\nif (!uuidRegex.test(normalizedUserBuildingId)) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Invalid user_building_id format' };\n    return [null, msg];\n}\n\nif (owner_id !== undefined && owner_id !== null) {\n    const normalizedOwnerId = normalizeUuidText(owner_id);\n\n    if (!normalizedOwnerId || !uuidRegex.test(normalizedOwnerId)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid owner_id format' };\n        return [null, msg];\n    }\n\n    if (normalizedOwnerId !== user_id) {\n        msg.statusCode = 403;\n        msg.payload = { error: 'owner_id does not match authenticated user' };\n        return [null, msg];\n    }\n}\n\nconst normalizedCategory = normalizeOptionalText(category) || 'Bauteil';\nif (normalizedCategory !== 'Bauteil') {\n    msg.statusCode = 400;\n    msg.payload = { error: \"category must be 'Bauteil'\" };\n    return [null, msg];\n}\n\nconst normalizedName = normalizeRequiredText(name);\nif (!normalizedName) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'name is required and cannot be empty' };\n    return [null, msg];\n}\n\nconst normalizedLocation = normalizeRequiredText(location);\nif (!normalizedLocation) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'location is required and cannot be empty' };\n    return [null, msg];\n}\n\nconst normalizedPartType = normalizeRequiredText(part_type);\nif (!normalizedPartType) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'part_type is required and cannot be empty' };\n    return [null, msg];\n}\n\nif (!allowedPartTypes.has(normalizedPartType)) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Invalid part_type value' };\n    return [null, msg];\n}\n\nif (part_structure === undefined || part_structure === null) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'part_structure is required' };\n    return [null, msg];\n}\n\nconst partStructureResult = normalizePartStructure(part_structure);\nif (partStructureResult.error) {\n    msg.statusCode = 400;\n    msg.payload = { error: partStructureResult.error };\n    return [null, msg];\n}\n\nconst partId = buildUuidV4();\n\nmsg.query = `\n  INSERT INTO building_parts\n    (id, building_id, user_building_id, owner_id, category, name, description, location, part_type, part_structure, is_public, is_hazardous)\n  VALUES\n    ($1::uuid, $2, $3::uuid, $4::uuid, $5, $6, $7, $8, $9, $10::jsonb, $11, $12)\n  RETURNING *;\n`;\n\nmsg.params = [\n    partId,\n    normalizedBuildingId,\n    normalizedUserBuildingId,\n    user_id,\n    normalizedCategory,\n    normalizedName,\n    normalizeOptionalText(description),\n    normalizedLocation,\n    normalizedPartType,\n    JSON.stringify(partStructureResult.value),\n    typeof is_public === 'boolean' ? is_public : true,\n    typeof is_hazardous === 'boolean' ? is_hazardous : false\n];\n\nreturn [msg, null];",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -4312,6 +4320,166 @@
         "info": "",
         "x": 320,
         "y": 120,
+        "wires": []
+    },
+    {
+        "id": "a0760018dea9fb81",
+        "type": "http in",
+        "z": "6679681a3efe97be",
+        "name": "UPDATE building part",
+        "url": "/api/parts/:ID",
+        "method": "put",
+        "upload": true,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 220,
+        "y": 100,
+        "wires": [
+            [
+                "d5c9c10ba47256af"
+            ]
+        ]
+    },
+    {
+        "id": "0e7d3d8256e64ac5",
+        "type": "postgresql",
+        "z": "6679681a3efe97be",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 380,
+        "y": 440,
+        "wires": [
+            [
+                "0c2fb6246ec0adaf"
+            ]
+        ]
+    },
+    {
+        "id": "607a721e103076a2",
+        "type": "function",
+        "z": "6679681a3efe97be",
+        "name": "build SQL query",
+        "func": "// Extract user id securely from JWT\nconst user_id = msg.user?.sub;\n\n// Extract data\nconst object_id = msg.req.params.ID;\n\n// Extract data from payload\nconst {\n    name,\n    description,\n    is_public,\n    is_hazardous,\n    object_type,\n    count,\n    location,\n    image_data_url,\n    image_mime_type,\n    image_original_name,\n    remove_image,\n    removeExistingImage\n} = msg.payload || {};\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nconst normalizeOptionalText = (value) => {\n    if (typeof value !== 'string') return null;\n    const trimmed = value.trim();\n    return trimmed.length ? trimmed : null;\n};\n\nconst extensionByMime = {\n    'image/png': 'png',\n    'image/jpeg': 'jpg',\n    'image/jpg': 'jpg',\n    'image/webp': 'webp'\n};\n\nconst sanitizeFileName = (name, fallback) => {\n    const normalized = normalizeOptionalText(name) || fallback;\n    return normalized\n        .replace(/[^a-zA-Z0-9._-]/g, '_')\n        .replace(/_+/g, '_')\n        .slice(0, 120);\n};\n\nreturn (async () => {\n    // Validate required fields\n    if (!user_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'user_id is missing' };\n        return [null, msg];\n    }\n\n    if (!uuidRegex.test(user_id)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid user ID format' };\n        return [null, msg];\n    }\n\n    if (!object_id) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'object id is missing (expected path param :id)' };\n        return [null, msg];\n    }\n\n    if (!uuidRegex.test(object_id)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Invalid object ID format' };\n        return [null, msg];\n    }\n\n    if (!name || name.trim() === '') {\n        msg.statusCode = 400;\n        msg.payload = { error: 'name is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    if (!object_type || String(object_type).trim() === '') {\n        msg.statusCode = 400;\n        msg.payload = { error: 'object_type is required and cannot be empty' };\n        return [null, msg];\n    }\n\n    const parsedCount = Number(count);\n    if (!Number.isInteger(parsedCount) || parsedCount < 1) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'count is required and must be an integer >= 1' };\n        return [null, msg];\n    }\n\n\n    const wantsRemoveImage = remove_image === true || removeExistingImage === true;\n    const rawImageDataUrl = normalizeOptionalText(image_data_url);\n    const hasNewImage = !!rawImageDataUrl;\n\n    // if both are set, new image wins\n    const shouldReplaceImage = hasNewImage;\n    const shouldRemoveImage = !hasNewImage && wantsRemoveImage;\n\n    let newImagePath = null;\n    let newImageMimeType = null;\n    let newImageOriginalName = null;\n    let newImageSizeBytes = null;\n\n    if (hasNewImage) {\n        const dataUrlMatch = rawImageDataUrl.match(/^data:([^;]+);base64,(.+)$/i);\n        if (!dataUrlMatch) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Invalid image_data_url format. Expected data URL.' };\n            return [null, msg];\n        }\n\n        const parsedMimeType = String(dataUrlMatch[1]).toLowerCase();\n        const providedMimeType = normalizeOptionalText(image_mime_type);\n        newImageMimeType = (providedMimeType || parsedMimeType).toLowerCase();\n\n        const allowedMimeTypes = new Set(['image/png', 'image/jpeg', 'image/jpg', 'image/webp']);\n        if (!allowedMimeTypes.has(newImageMimeType)) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Unsupported image MIME type. Allowed: PNG, JPG, JPEG, WEBP.' };\n            return [null, msg];\n        }\n\n        let imageBuffer;\n        try {\n            imageBuffer = Buffer.from(dataUrlMatch[2], 'base64');\n        } catch (err) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Invalid base64 image payload.' };\n            return [null, msg];\n        }\n\n        if (!imageBuffer || !imageBuffer.length) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Image payload is empty.' };\n            return [null, msg];\n        }\n\n        const maxImageBytes = 10 * 1024 * 1024;\n        if (imageBuffer.length > maxImageBytes) {\n            msg.statusCode = 400;\n            msg.payload = { error: 'Image is too large. Maximum 10MB allowed.' };\n            return [null, msg];\n        }\n\n        const fallbackName = 'image.' + (extensionByMime[newImageMimeType] || 'bin');\n        newImageOriginalName = sanitizeFileName(image_original_name, fallbackName);\n        newImagePath = '/mhub/objects/' + String(user_id) + '/' + String(object_id) + '/' + newImageOriginalName;\n        newImageSizeBytes = imageBuffer.length;\n\n        const filerBaseUrl = (env.get('SEAWEED_FILER_INTERNAL_URL') || 'http://seaweed-filer:8888').replace(/\\/+$/, '');\n        const fetchFn = global.get('fetch') || globalThis.fetch;\n\n        if (typeof fetchFn !== 'function') {\n            msg.statusCode = 500;\n            msg.payload = { error: 'Server does not support fetch API for Seaweed upload.' };\n            return [null, msg];\n        }\n\n        let uploadResponse;\n        try {\n            uploadResponse = await fetchFn(filerBaseUrl + newImagePath, {\n                method: 'PUT',\n                headers: { 'Content-Type': newImageMimeType },\n                body: imageBuffer\n            });\n        } catch (err) {\n            msg.statusCode = 502;\n            msg.payload = { error: 'Failed to upload image to object storage.', details: err.message || String(err) };\n            return [null, msg];\n        }\n\n        if (!uploadResponse.ok) {\n            const details = await uploadResponse.text().catch(() => '');\n            msg.statusCode = 502;\n            msg.payload = {\n                error: 'Object storage rejected image upload.',\n                details: details || ('HTTP ' + uploadResponse.status)\n            };\n            return [null, msg];\n        }\n    }\n\n    // --- SQL ---\n    msg.query = `\n      WITH existing AS (\n        SELECT id, image_path\n        FROM building_objects\n        WHERE id = $1::uuid AND owner_id= $2::uuid \n        LIMIT 1\n      ),\n      updated AS (\n        UPDATE building_objects bo\n        SET\n          name = $3,\n          description = $4,\n          location = $5,\n          object_type = $6,\n          count = $7,\n          is_public = COALESCE($8::boolean, bo.is_public),\n          is_hazardous = COALESCE($9::boolean, bo.is_hazardous),\n          image_path = CASE\n            WHEN $10::boolean THEN NULL\n            WHEN $11::boolean THEN $12\n            ELSE bo.image_path\n          END,\n          image_mime_type = CASE\n            WHEN $10::boolean THEN NULL\n            WHEN $11::boolean THEN $13\n            ELSE bo.image_mime_type\n          END,\n          image_original_name = CASE\n            WHEN $10::boolean THEN NULL\n            WHEN $11::boolean THEN $14\n            ELSE bo.image_original_name\n          END,\n          image_size_bytes = CASE\n            WHEN $10::boolean THEN NULL\n            WHEN $11::boolean THEN $15\n            ELSE bo.image_size_bytes\n          END\n        FROM existing e\n        WHERE bo.id = e.id\n        RETURNING bo.*, e.image_path AS previous_image_path\n      )\n      SELECT * FROM updated;\n    `;\n\n    msg.params = [\n        object_id,\n        user_id,\n        name.trim(),\n        description ?? null,\n        String(location).trim(),\n        String(object_type).trim(),\n        parsedCount,\n        typeof is_public === 'boolean' ? is_public : true,\n        typeof is_hazardous === 'boolean' ? is_hazardous : false,\n        shouldRemoveImage,                            // $10\n        shouldReplaceImage,                           // $11\n        newImagePath,                                 // $12\n        newImageMimeType,                             // $13\n        newImageOriginalName,                         // $14\n        newImageSizeBytes   \n    ];\n\n    return [msg, null];\n})();",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 320,
+        "wires": [
+            [
+                "0e7d3d8256e64ac5"
+            ],
+            [
+                "0260f6ddac9675e0"
+            ]
+        ]
+    },
+    {
+        "id": "0c2fb6246ec0adaf",
+        "type": "function",
+        "z": "6679681a3efe97be",
+        "name": "function success",
+        "func": "const rows = msg.payload;\n\nif (rows && rows.length > 0) {\n    // SUCCESS: The row was found AND the user owned it.\n    msg.statusCode = 200;\n    msg.payload = rows[0];\n} else {\n    // FAILURE: No rows were updated.\n    msg.statusCode = 404;\n    msg.payload = { error: \"Building part not found or permission denied.\" };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 560,
+        "wires": [
+            [
+                "0260f6ddac9675e0"
+            ]
+        ]
+    },
+    {
+        "id": "0260f6ddac9675e0",
+        "type": "http response",
+        "z": "6679681a3efe97be",
+        "name": "building-object response",
+        "statusCode": "",
+        "headers": {},
+        "x": 850,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "535a7c7f3bf6650d",
+        "type": "catch",
+        "z": "6679681a3efe97be",
+        "name": "",
+        "scope": [
+            "0e7d3d8256e64ac5"
+        ],
+        "uncaught": false,
+        "x": 630,
+        "y": 320,
+        "wires": [
+            [
+                "c3a30db414500670"
+            ]
+        ]
+    },
+    {
+        "id": "c3a30db414500670",
+        "type": "function",
+        "z": "6679681a3efe97be",
+        "name": "handle db errors",
+        "func": "const err = msg.error;\nconst errMsg = err && err.message ? err.message : '';\n\n\n// 1. FOREIGN KEY VIOLATION (Specific to DELETE)\n// Code 23503: Occurs if you try to delete a building that is used in another table\nif (errMsg.includes('violates foreign key') || (err.code === '23503')) {\n    msg.statusCode = 409; // Conflict\n    msg.payload = { error: 'Cannot delete: This building object is referenced by other data.' };\n}\n\n// 2. INVALID DATA TYPE (e.g. Bad UUID string)\n// Code 22P02: Invalid text representation\nelse if (errMsg.includes('invalid input syntax') || (err.code === '22P02')) {\n    msg.statusCode = 400; // Bad Request\n    msg.payload = { error: 'Invalid ID format or data type.' };\n}\n\n// 3. GENERIC FALLBACK\nelse {\n    msg.statusCode = 500; // Internal Server Error\n    msg.payload = { error: 'Database error', details: errMsg };\n}\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 820,
+        "y": 320,
+        "wires": [
+            [
+                "0260f6ddac9675e0"
+            ]
+        ]
+    },
+    {
+        "id": "d5c9c10ba47256af",
+        "type": "function",
+        "z": "6679681a3efe97be",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET');\n\n// 0. Server config check\nif (!secret) {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Server misconfigured: JWT_SECRET missing' };\n    return [null, msg];\n}\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg]; // Go to Output 2 (Error)\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n    \n    msg.user = decoded; \n    \n    return [msg, null]; // Go to Output 1 (Success)\n\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 270,
+        "y": 200,
+        "wires": [
+            [
+                "607a721e103076a2"
+            ],
+            [
+                "0260f6ddac9675e0"
+            ]
+        ]
+    },
+    {
+        "id": "3af3e951d639f464",
+        "type": "comment",
+        "z": "6679681a3efe97be",
+        "name": "http://localhost:1880/api/parts/ID",
+        "info": "",
+        "x": 230,
+        "y": 40,
         "wires": []
     },
     {
