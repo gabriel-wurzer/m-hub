@@ -66,8 +66,137 @@ mat-expansion-panel-header {
     align-items: center;
 }
 
+.structure-section {
+    margin-top: 16px;
+}
+
+.structure-section-label {
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.structure-value {
+    overflow: visible;
+}
+
+.location-note {
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.object-image-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.object-image {
+    width: min(100%, 420px);
+    max-height: 320px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.object-image-link {
+    width: fit-content;
+    color: inherit;
+}
+
+.part-structure-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: min(100%, 780px);
+    padding: 12px;
+    box-sizing: border-box;
+    border: 1px solid rgba(2, 136, 209, 0.2);
+    border-radius: 12px;
+    background:
+        radial-gradient(circle at top left, rgba(2, 136, 209, 0.1), transparent 48%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.98));
+}
+
+.part-structure-summary-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.structure-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.72);
+}
+
+.structure-layer-list {
+    display: grid;
+    gap: 8px;
+}
+
+.structure-layer-item {
+    display: grid;
+    grid-template-columns: minmax(88px, 112px) minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.structure-layer-index {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.66);
+}
+
+.structure-layer-material {
+    min-width: 0;
+}
+
+.structure-layer-thickness {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.66);
+    white-space: nowrap;
+}
+
+.structure-layer-thickness-muted {
+    color: rgba(0, 0, 0, 0.38);
+}
+
+.structure-empty-state {
+    font-size: 0.9rem;
+    color: rgba(0, 0, 0, 0.58);
+}
+
+.structure-raw-value {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-size: 0.9rem;
+    word-break: break-word;
+}
+
 @media (max-width: 800) {
     mat-expansion-panel-header {
         padding-right: 24px;
+    }
+}
+
+@media (max-width: 720px) {
+    .structure-layer-item {
+        grid-template-columns: 1fr;
+    }
+
+    .structure-layer-thickness {
+        white-space: normal;
     }
 }

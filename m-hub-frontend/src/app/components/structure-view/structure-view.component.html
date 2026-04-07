@@ -22,6 +22,7 @@
 
             <app-structure-details
                 [entity]="selectedEntity"
+                [structure]="rootBuilding.userBuilding?.structure ?? null"
                 (loadingChange)="onDetailsLoading($event)">
             </app-structure-details>
             
