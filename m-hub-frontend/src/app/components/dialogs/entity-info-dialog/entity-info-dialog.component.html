@@ -113,8 +113,41 @@
         </div>
       </div>
       <div class="info-row">
-        <div class="label">Struktur</div>
-        <div class="value">{{ getValue(['part_structure']) }}</div>
+        <div class="label">Aufbau</div>
+        <div class="value structure-value" *ngIf="partStructure as resolvedPartStructure; else rawPartStructureValue">
+          <div class="part-structure-summary">
+            <div class="part-structure-summary-header">
+              <span
+                class="structure-chip"
+                [matTooltip]="getPartStructureOrientationHint(resolvedPartStructure)"
+                matTooltipPosition="above"
+              >
+                {{ getPartStructureTypeLabel(resolvedPartStructure) }}
+              </span>
+              <span class="structure-chip">{{ getPartStructureMeasureLabel(resolvedPartStructure) }}: {{ getPartStructureMeasureValue(resolvedPartStructure) }}</span>
+            </div>
+
+            <div class="structure-layer-list" *ngIf="resolvedPartStructure.layers.length > 0; else noStructureLayers">
+              <div
+                class="structure-layer-item"
+                *ngFor="let layer of resolvedPartStructure.layers; trackBy: trackByPartStructureLayer"
+              >
+                <span class="structure-layer-index">Schicht {{ layer.layer_index }}</span>
+                <span class="structure-layer-material">{{ getLayerMaterialLabel(layer) }}</span>
+                <span class="structure-layer-thickness" [class.structure-layer-thickness-muted]="isLayerThicknessMuted(layer)">
+                  {{ getRenderedLayerThicknessLabel(layer) }}
+                </span>
+              </div>
+            </div>
+
+            <ng-template #noStructureLayers>
+              <div class="structure-empty-state">Keine Schichten vorhanden.</div>
+            </ng-template>
+          </div>
+        </div>
+        <ng-template #rawPartStructureValue>
+          <div class="value mono">{{ getValue(['part_structure']) }}</div>
+        </ng-template>
       </div>
       <!-- <div class="info-row">
         <div class="label">Dokumente</div>

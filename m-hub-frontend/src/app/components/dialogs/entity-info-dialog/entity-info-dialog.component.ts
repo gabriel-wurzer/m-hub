@@ -3,12 +3,16 @@ import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { Bauteil, Objekt } from '../../../models/building-component';
 import { Document } from '../../../models/document';
+import { MaterialType } from '../../../enums/material-type.enum';
 import { Floor } from '../../../models/floor';
 import { FloorType } from '../../../enums/floor-type.enum';
+import { PartType } from '../../../enums/part-type.enum';
+import { Layer, PartStructure } from '../../../models/part-structure';
 
 export type EntityInfoDialogData = {
   entity: Bauteil | Objekt | Document;
@@ -35,7 +39,7 @@ type LocationSegment = {
 @Component({
   selector: 'app-entity-info-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, MatTooltipModule],
   templateUrl: './entity-info-dialog.component.html',
   styleUrl: './entity-info-dialog.component.scss'
 })
@@ -65,8 +69,10 @@ export class EntityInfoDialogComponent {
   };
   private readonly trustedDocumentUrlCache = new Map<string, SafeResourceUrl>();
   private readonly floorDescriptionByLocationLabel = new Map<string, string>();
+  private readonly materialTypeValues = new Set<MaterialType>(Object.values(MaterialType));
 
   entity: Record<string, unknown>;
+  readonly partStructure: PartStructure | null;
   objectImageLoaded = false;
 
   constructor(
@@ -75,6 +81,7 @@ export class EntityInfoDialogComponent {
   ) {
     this.entity = data.entity as any as Record<string, unknown>;
     this.rebuildFloorDescriptionByLocationLabel(this.data.structure ?? []);
+    this.partStructure = this.resolvePartStructure();
   }
 
   get title(): string {
@@ -138,6 +145,82 @@ export class EntityInfoDialogComponent {
 
   isObjekt(): boolean {
     return this.hasAnyField(this.entity, ['object_type', 'objectType', 'count']);
+  }
+
+  isWallPartStructure(structure: PartStructure): boolean {
+    return structure.type === 'wall';
+  }
+
+  getPartStructureMeasureLabel(structure: PartStructure): string {
+    return this.isWallPartStructure(structure) ? 'Laufmeter' : 'Fläche';
+  }
+
+  getPartStructureMeasureValue(structure: PartStructure): string {
+    const value = structure.type === 'wall' ? structure.length : structure.area;
+    if (value === null || value === undefined) {
+      return '—';
+    }
+
+    return `${this.formatNumber(value)} ${structure.type === 'wall' ? 'm' : 'm²'}`;
+  }
+
+  getPartStructureDirectionStartLabel(structure: PartStructure): string {
+    return this.isWallPartStructure(structure) ? 'Innen' : 'Oben';
+  }
+
+  getPartStructureDirectionEndLabel(structure: PartStructure): string {
+    return this.isWallPartStructure(structure) ? 'Außen' : 'Unten';
+  }
+
+  getPartStructureOrientationHint(structure: PartStructure): string {
+    return this.isWallPartStructure(structure)
+      ? 'Schichten laufen von innen nach außen.'
+      : 'Schichten laufen von oben nach unten.';
+  }
+
+  getPartStructureTypeLabel(structure: PartStructure): string {
+    const partType = this.readField(this.entity, ['part_type', 'partType']);
+
+    switch (partType) {
+      case PartType.BA:
+        return 'Bodenaufbau';
+      case PartType.DA:
+        return 'Dachaufbau';
+      default:
+        return 'Wandaufbau';
+    }
+  }
+
+  getLayerMaterialLabel(layer: Layer): string {
+    if (typeof layer.material === 'string' && layer.material.trim().length > 0) {
+      return layer.material.trim();
+    }
+
+    return 'Material offen';
+  }
+
+  getLayerThicknessLabel(layer: Layer): string {
+    if (layer.thickness === null || layer.thickness === undefined) {
+      return '—';
+    }
+
+    return `${this.formatNumber(layer.thickness)} mm`;
+  }
+
+  getRenderedLayerThicknessLabel(layer: Layer): string {
+    if (this.requiresFixedZeroThickness(layer.material)) {
+      return '0 mm';
+    }
+
+    return this.getLayerThicknessLabel(layer);
+  }
+
+  isLayerThicknessMuted(layer: Layer): boolean {
+    return this.requiresFixedZeroThickness(layer.material);
+  }
+
+  trackByPartStructureLayer(_: number, layer: Layer): number {
+    return layer.layer_index;
   }
 
   getObjectImageUrl(): string | null {
@@ -251,6 +334,76 @@ export class EntityInfoDialogComponent {
     return 'Komponente';
   }
 
+  private resolvePartStructure(): PartStructure | null {
+    return this.coercePartStructure(this.readField(this.entity, ['part_structure', 'partStructure']));
+  }
+
+  private coercePartStructure(rawValue: unknown): PartStructure | null {
+    let normalizedValue = rawValue;
+
+    if (typeof normalizedValue === 'string') {
+      const trimmed = normalizedValue.trim();
+      if (trimmed.length === 0) {
+        return null;
+      }
+
+      try {
+        normalizedValue = JSON.parse(trimmed);
+      } catch {
+        return null;
+      }
+    }
+
+    if (!normalizedValue || typeof normalizedValue !== 'object') {
+      return null;
+    }
+
+    const structure = normalizedValue as Partial<PartStructure> & Record<string, unknown>;
+    if (structure.type !== 'wall' && structure.type !== 'slab') {
+      return null;
+    }
+
+    const rawLayers = Array.isArray(structure.layers) ? structure.layers : [];
+    const layers = rawLayers
+      .map((layer, index) => this.coerceStructureLayer(layer, index))
+      .filter((layer): layer is Layer => layer !== null);
+
+    if (structure.type === 'wall') {
+      return {
+        type: 'wall',
+        length: this.normalizeNumber(structure.length),
+        layers
+      };
+    }
+
+    return {
+      type: 'slab',
+      area: this.normalizeNumber(structure.area),
+      layers
+    };
+  }
+
+  private coerceStructureLayer(rawLayer: unknown, index: number): Layer | null {
+    if (!rawLayer || typeof rawLayer !== 'object') {
+      return null;
+    }
+
+    const layer = rawLayer as Partial<Layer> & Record<string, unknown>;
+    const layerIndex = typeof layer.layer_index === 'number' && Number.isFinite(layer.layer_index)
+      ? layer.layer_index
+      : index + 1;
+
+    return {
+      layer_index: layerIndex,
+      material: typeof layer.material === 'string' ? layer.material : null,
+      thickness: this.normalizeNumber(layer.thickness)
+    };
+  }
+
+  private requiresFixedZeroThickness(material: Layer['material']): boolean {
+    return material !== null && material !== undefined && !this.materialTypeValues.has(material as MaterialType);
+  }
+
   private toLocationSegmentVm(token: string): LocationSegment {
     const desc = this.floorDescriptionByLocationLabel.get(token);
     if (desc) {
@@ -324,7 +477,7 @@ export class EntityInfoDialogComponent {
   private formatValue(value: unknown): string {
     if (value === null || value === undefined || value === '') return '—';
     if (typeof value === 'boolean') return value ? 'Ja' : 'Nein';
-    if (typeof value === 'number') return String(value);
+    if (typeof value === 'number') return this.formatNumber(value);
     if (typeof value === 'string') return value;
     if (Array.isArray(value)) {
       if (!value.length) return '—';
@@ -345,6 +498,18 @@ export class EntityInfoDialogComponent {
     } catch {
       return String(value);
     }
+  }
+
+  private formatNumber(value: number): string {
+    return new Intl.NumberFormat('de-AT', { maximumFractionDigits: 2 }).format(value);
+  }
+
+  private normalizeNumber(value: unknown): number | null {
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      return null;
+    }
+
+    return value;
   }
 
   private readField(entity: Record<string, unknown>, keys: string[]): unknown {

@@ -35,6 +35,83 @@ mat-dialog-content {
   color: rgba(0, 0, 0, 0.6);
 }
 
+.structure-value {
+  overflow: visible;
+}
+
+.part-structure-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(2, 136, 209, 0.2);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at top left, rgba(2, 136, 209, 0.1), transparent 48%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.98));
+}
+
+.part-structure-summary-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.structure-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.72);
+}
+
+.structure-layer-list {
+  display: grid;
+  gap: 8px;
+}
+
+.structure-layer-item {
+  display: grid;
+  grid-template-columns: minmax(88px, 112px) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.structure-layer-index {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.66);
+}
+
+.structure-layer-material {
+  min-width: 0;
+}
+
+.structure-layer-thickness {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.66);
+  white-space: nowrap;
+}
+
+.structure-layer-thickness-muted {
+  color: rgba(0, 0, 0, 0.38);
+}
+
+.structure-empty-state {
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.58);
+}
+
 .value.mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
   font-size: 0.9rem;
@@ -131,4 +208,14 @@ mat-dialog-content {
   max-height: 500px;
   object-fit: contain;
   border-radius: inherit;
+}
+
+@media (max-width: 720px) {
+  .structure-layer-item {
+    grid-template-columns: 1fr;
+  }
+
+  .structure-layer-thickness {
+    white-space: normal;
+  }
 }
