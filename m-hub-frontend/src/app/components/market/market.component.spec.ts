@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { HubComponent } from './hub.component';
+import { HubComponent } from './market.component';
 
 describe('HubComponent', () => {
   let component: HubComponent;

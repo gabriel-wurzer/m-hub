@@ -18,7 +18,7 @@
       <button mat-icon-button matTooltip="Karte" matTooltipPosition="after" matTooltipShowDelay="500" (click)="onMenuClick('map')" [ngClass]="{'active': currentRoute.includes('/map')}">
         <mat-icon>map</mat-icon>
       </button>
-      <button mat-icon-button matTooltip="Hub" matTooltipPosition="after" matTooltipShowDelay="500" (click)="onMenuClick('hub')" [ngClass]="{'active': currentRoute.includes('/hub')}">
+      <button mat-icon-button matTooltip="Markt" matTooltipPosition="after" matTooltipShowDelay="500" (click)="onMenuClick('market')" [ngClass]="{'active': currentRoute.includes('/market')}">
         <mat-icon>hub</mat-icon>
       </button>
       <button 
@@ -84,11 +84,11 @@
         <span>Karte</span>
       </div>
 
-      <div class="menu-item" (click)="onMenuClick('hub')">
+      <div class="menu-item" (click)="onMenuClick('market')">
         <button mat-menu-item disableRipple >
           <mat-icon>hub</mat-icon> 
         </button>
-        <span>Hub</span>
+        <span>Markt</span>
       </div>
 
       <ng-container *ngIf="{ user: user$ | async } as auth">
