@@ -4,7 +4,7 @@
 
 export enum MaterialGroup {
     mg_1 = 'Beton inkl. Estrich',
-    mg_2 = 'Ziegelmauerwerk,',
+    mg_2 = 'Ziegelmauerwerk',
     mg_3 = 'Holz',
     mg_4 = 'Stahl',
     mg_5 = 'Glas',
