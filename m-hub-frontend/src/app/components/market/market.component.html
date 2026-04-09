@@ -1,1 +1,117 @@
-<p>hub works!</p>
+<main>
+  <div class="market-container">
+    <div id="market" [class.detail-active]="selectedCategory">
+      <ng-container *ngIf="!selectedCategory; else categoryView">
+        <header class="market-header">
+          <div class="headline-copy">
+            <h1>M-Hub Markt</h1>
+          </div>
+        </header>
+
+        <mat-divider class="horizontal-divider"></mat-divider>
+
+        <div class="market-content">
+          <section class="market-section">
+            <div class="section-header">
+              <h2>Materialien</h2>
+              <p>{{ materialGroups.length }} Materialgruppen</p>
+            </div>
+
+            <div class="card-grid">
+              <mat-card
+                class="market-card"
+                *ngFor="let item of materialGroups; trackBy: trackByCategoryId"
+                tabindex="0"
+                role="button"
+                (click)="openCategory(item)"
+                (keydown.enter)="openCategory(item)"
+                (keydown.space)="openCategory(item); $event.preventDefault()">
+                <div class="card-image-shell">
+                  <img
+                    [src]="item.imageSrc"
+                    [alt]="item.imageAlt"
+                    class="card-image"
+                    loading="lazy" />
+                </div>
+
+                <mat-card-content class="card-content">
+                  <div class="card-header-row">
+                    <h3>{{ item.title }}</h3>
+                    <span class="card-tag">{{ item.listings.length }} Inserate</span>
+                  </div>
+                  <ng-container
+                    *ngTemplateOutlet="marketTeaser; context: { id: item.id }"></ng-container>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </section>
+
+          <mat-divider></mat-divider>
+
+          <section class="market-section">
+            <div class="section-header">
+              <h2>Objekte</h2>
+              <p>{{ objectTypes.length }} Kategorien</p>
+            </div>
+
+            <div class="card-grid">
+              <mat-card
+                class="market-card"
+                *ngFor="let item of objectTypes; trackBy: trackByCategoryId"
+                tabindex="0"
+                role="button"
+                (click)="openCategory(item)"
+                (keydown.enter)="openCategory(item)"
+                (keydown.space)="openCategory(item); $event.preventDefault()">
+                <div class="card-image-shell">
+                  <img
+                    [src]="item.imageSrc"
+                    [alt]="item.imageAlt"
+                    class="card-image"
+                    loading="lazy" />
+                </div>
+
+                <mat-card-content class="card-content">
+                  <div class="card-header-row">
+                    <h3>{{ item.title }}</h3>
+                    <span class="card-tag">{{ item.listings.length }} Inserate</span>
+                  </div>
+                  <ng-container
+                    *ngTemplateOutlet="marketTeaser; context: { id: item.id }"></ng-container>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </section>
+        </div>
+      </ng-container>
+
+      <ng-template #categoryView>
+        <app-market-category-view
+          [category]="selectedCategory"
+          (back)="closeCategory()"></app-market-category-view>
+      </ng-template>
+    </div>
+  </div>
+</main>
+
+<ng-template #marketTeaser let-id="id">
+  <ng-container [ngSwitch]="id">
+    <p class="card-description" *ngSwitchCase="'material-beton-inkl-estrich'">Betonplatten und Estrichelemente</p>
+    <p class="card-description" *ngSwitchCase="'material-ziegelmauerwerk'">Ziegelpakete, Vollziegel und gereinigtes Mauerwerk</p>
+    <p class="card-description" *ngSwitchCase="'material-holz'">Dielen, Balken und Holzwerkstoffe</p>
+    <p class="card-description" *ngSwitchCase="'material-stahl'">Träger, Bleche und Profile</p>
+    <p class="card-description" *ngSwitchCase="'material-glas'">Glasscheiben und Trennwände</p>
+    <p class="card-description" *ngSwitchCase="'material-mineralwolle'">Dämmstoffe für Akustik, Installationen und Trockenbau</p>
+    <p class="card-description" *ngSwitchCase="'material-polystyrol'">EPS- und XPS-Platten</p>
+    <p class="card-description" *ngSwitchCase="'material-gipsplatten-gips'">Trockenbauplatten und Gipsfaser</p>
+    <p class="card-description" *ngSwitchCase="'material-sand-kies-stein'">Kies, Sand und Naturstein</p>
+    <p class="card-description" *ngSwitchCase="'object-abhangung'">Abhängesysteme, Rasterdecken und Unterkonstruktionen</p>
+    <p class="card-description" *ngSwitchCase="'object-tuer'">Innen-, Außen- und Spezialtüren.</p>
+    <p class="card-description" *ngSwitchCase="'object-zarge'">Stahl- und Holzzargen</p>
+    <p class="card-description" *ngSwitchCase="'object-fenster'">Fensterelemente</p>
+    <p class="card-description" *ngSwitchCase="'object-heizkoerper'">Heizkörper</p>
+    <p class="card-description" *ngSwitchCase="'object-rohre'">Installationsrohre aus Kupfer, PVC und Mischsystemen</p>
+    <p class="card-description" *ngSwitchCase="'object-kabel'">Energie-, Steuer- und Datenkabel</p>
+    <p class="card-description" *ngSwitchCase="'object-sonstige'">Sonderteile, Module und vielseitige Restposten</p>
+  </ng-container>
+</ng-template>
