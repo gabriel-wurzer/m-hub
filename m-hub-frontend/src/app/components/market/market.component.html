@@ -1,6 +1,6 @@
 <main>
   <div class="market-container">
-    <div id="market" [class.detail-active]="selectedCategory">
+    <div id="market" [class.category-active]="selectedCategory">
       <ng-container *ngIf="!selectedCategory; else categoryView">
         <header class="market-header">
           <div class="headline-copy">
@@ -88,6 +88,9 @@
       <ng-template #categoryView>
         <app-market-category-view
           [category]="selectedCategory"
+          [materialCategories]="materialGroups"
+          [objectCategories]="objectTypes"
+          (categorySelect)="openCategory($event)"
           (back)="closeCategory()"></app-market-category-view>
       </ng-template>
     </div>

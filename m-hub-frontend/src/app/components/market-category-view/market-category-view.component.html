@@ -1,0 +1,92 @@
+<ng-container *ngIf="category as currentCategory">
+  <div class="market-category-view">
+    <header class="market-category-header">
+      <button mat-stroked-button class="back-button" type="button" (click)="back.emit()">
+        <mat-icon>arrow_back</mat-icon>
+        Zur Übersicht
+      </button>
+
+      <div class="market-category-heading">
+        <div class="market-category-title-row">
+          <h1>Kategorie: {{ currentCategory.title }}</h1>
+          <span class="listing-count-chip">{{ currentCategory.listings.length }} Anzeigen</span>
+        </div>
+        <p>{{ currentCategory.description }}</p>
+      </div>
+    </header>
+
+    <mat-divider></mat-divider>
+
+    <div class="market-category-content">
+      <aside class="category-sidebar" aria-label="Kategorienavigation">
+        <section class="category-nav-block">
+          <h3>Materialien</h3>
+
+          <button
+            class="category-nav-link"
+            type="button"
+            *ngFor="let item of materialCategories; trackBy: trackByCategoryId"
+            [class.active]="item.id === currentCategory.id"
+            (click)="selectCategory(item)">
+            <span>{{ item.title }}</span>
+            <span class="category-count" *ngIf="item.id === currentCategory.id">{{ item.listings.length }}</span>
+          </button>
+        </section>
+
+        <section class="category-nav-block">
+          <h3>Objektkategorien</h3>
+
+          <button
+            class="category-nav-link"
+            type="button"
+            *ngFor="let item of objectCategories; trackBy: trackByCategoryId"
+            [class.active]="item.id === currentCategory.id"
+            (click)="selectCategory(item)">
+            <span>{{ item.title }}</span>
+            <span class="category-count" *ngIf="item.id === currentCategory.id">{{ item.listings.length }}</span>
+          </button>
+        </section>
+      </aside>
+
+      <mat-divider vertical class="category-content-divider"></mat-divider>
+      <mat-divider class="category-content-divider-mobile"></mat-divider>
+
+      <section class="listing-panel">
+
+        <div class="listing-stack">
+          <mat-card
+            class="listing-card"
+            *ngFor="let item of currentCategory.listings; trackBy: trackByListingId">
+            <div class="listing-image-shell">
+              <img
+                [src]="item.imageSrc"
+                [alt]="item.imageAlt"
+                class="listing-image"
+                loading="lazy" />
+            </div>
+
+            <div class="listing-copy">
+              <h2>{{ item.title }}</h2>
+
+              <div class="listing-specs">
+                <div class="spec-column">
+                  <p>Preis: {{ item.price }}</p>
+                  <p>Menge: {{ item.quantity }}</p>
+                  <p>Zustand: {{ item.condition }}</p>
+                </div>
+
+                <div class="spec-column">
+                  <p *ngFor="let dimension of item.dimensions">
+                    {{ dimension.label }}: {{ dimension.value }}
+                  </p>
+                </div>
+              </div>
+
+              <p class="listing-location">Standort: {{ item.location }}</p>
+            </div>
+          </mat-card>
+        </div>
+      </section>
+    </div>
+  </div>
+</ng-container>

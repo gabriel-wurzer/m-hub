@@ -58,7 +58,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
         quantity: '24 Stk.',
         condition: 'gut',
         location: 'Leopoldauer Strasse 87, 1210 Wien',
-        dimensions: [{ label: 'Laenge', value: '120 cm' }, { label: 'Breite', value: '60 cm' }, { label: 'Hoehe', value: '8 cm' }]
+        dimensions: [{ label: 'Länge', value: '120 cm' }, { label: 'Breite', value: '60 cm' }, { label: 'Höhe', value: '8 cm' }]
       },
       {
         title: 'Trockenestrich-Elemente',
@@ -66,7 +66,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
         quantity: '36 Stk.',
         condition: 'sehr gut',
         location: 'An den alten Schanzen 14, 1220 Wien',
-        dimensions: [{ label: 'Laenge', value: '150 cm' }, { label: 'Breite', value: '50 cm' }, { label: 'Hoehe', value: '4 cm' }]
+        dimensions: [{ label: 'Länge', value: '150 cm' }, { label: 'Breite', value: '50 cm' }, { label: 'Höhe', value: '4 cm' }]
       }
     ]
   },
@@ -76,20 +76,20 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
     theme: { background: '#FBF1EB', surface: '#F2D2BF', accent: '#C47152', accentSoft: '#E7B9A0', ink: '#7B3D24' },
     listings: [
       {
-        title: 'Recycling-Vollziegel gereinigt',
+        title: 'Recycling-Vollziegel',
         price: '1.40 EUR / Stk.',
         quantity: '420 Stk.',
         condition: 'gut',
         location: 'Gudrunstrasse 102, 1100 Wien',
-        dimensions: [{ label: 'Laenge', value: '25 cm' }, { label: 'Breite', value: '12 cm' }, { label: 'Hoehe', value: '6.5 cm' }]
+        dimensions: [{ label: 'Länge', value: '25 cm' }, { label: 'Breite', value: '12 cm' }, { label: 'Höhe', value: '6.5 cm' }]
       },
       {
-        title: 'Ziegelpaket fuer Innenwaende',
+        title: 'Ziegelpaket',
         price: '280 EUR / ges.',
         quantity: '1 Palette',
         condition: 'gebraucht',
         location: 'Industriestrasse 9, 2345 Brunn am Gebirge',
-        dimensions: [{ label: 'Laenge', value: '24 cm' }, { label: 'Breite', value: '11.5 cm' }, { label: 'Hoehe', value: '7.1 cm' }]
+        dimensions: [{ label: 'Länge', value: '24 cm' }, { label: 'Breite', value: '11.5 cm' }, { label: 'Höhe', value: '7.1 cm' }]
       }
     ]
   },
@@ -104,7 +104,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
         quantity: '6 Stk.',
         condition: 'gut',
         location: 'Muehlgasse 12, 1040 Wien',
-        dimensions: [{ label: 'Laenge', value: '210 cm' }, { label: 'Breite', value: '45 cm' }, { label: 'Hoehe', value: '5 cm' }]
+        dimensions: [{ label: 'Länge', value: '210 cm' }, { label: 'Breite', value: '45 cm' }, { label: 'Höhe', value: '5 cm' }]
       },
       {
         title: 'Holzbalken (Fichte)',
@@ -112,7 +112,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
         quantity: '4 Stk.',
         condition: 'neuwertig',
         location: 'Reinlgasse 23, 1120 Wien',
-        dimensions: [{ label: 'Laenge', value: '200 cm' }, { label: 'Breite', value: '50 cm' }, { label: 'Hoehe', value: '20 cm' }]
+        dimensions: [{ label: 'Länge', value: '200 cm' }, { label: 'Breite', value: '50 cm' }, { label: 'Höhe', value: '20 cm' }]
       }
     ]
   },
@@ -127,7 +127,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
         quantity: '8 Stk.',
         condition: 'gut',
         location: 'Laxenburger Strasse 210, 1230 Wien',
-        dimensions: [{ label: 'Laenge', value: '360 cm' }, { label: 'Breite', value: '18 cm' }, { label: 'Hoehe', value: '17 cm' }]
+        dimensions: [{ label: 'Länge', value: '360 cm' }, { label: 'Breite', value: '18 cm' }, { label: 'Höhe', value: '17 cm' }]
       },
       {
         title: 'Stahlbleche verzinkt',
@@ -135,7 +135,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
         quantity: '15 Platten',
         condition: 'sehr gut',
         location: 'Triester Strasse 14, 2351 Wiener Neudorf',
-        dimensions: [{ label: 'Laenge', value: '250 cm' }, { label: 'Breite', value: '125 cm' }, { label: 'Staerke', value: '4 mm' }]
+        dimensions: [{ label: 'Länge', value: '250 cm' }, { label: 'Breite', value: '125 cm' }, { label: 'Staerke', value: '4 mm' }]
       }
     ]
   },
@@ -145,20 +145,20 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
     theme: { background: '#EEF8FA', surface: '#D1EBF0', accent: '#78B9C9', accentSoft: '#A4D5DF', ink: '#2B6674' },
     listings: [
       {
-        title: 'Isolierglasscheiben klar',
+        title: 'Isolierglasscheiben',
         price: '96 EUR / Stk.',
         quantity: '10 Stk.',
         condition: 'gut',
         location: 'Ketzergasse 77, 1230 Wien',
-        dimensions: [{ label: 'Laenge', value: '140 cm' }, { label: 'Breite', value: '120 cm' }, { label: 'Staerke', value: '24 mm' }]
+        dimensions: [{ label: 'Länge', value: '140 cm' }, { label: 'Breite', value: '120 cm' }, { label: 'Staerke', value: '24 mm' }]
       },
       {
-        title: 'Glastrennwand mit Beschlaegen',
+        title: 'Glastrennwand mit Beschlägen',
         price: '380 EUR / ges.',
         quantity: '1 Set',
         condition: 'sehr gut',
         location: 'Mariahilfer Guertel 5, 1150 Wien',
-        dimensions: [{ label: 'Laenge', value: '280 cm' }, { label: 'Hoehe', value: '240 cm' }, { label: 'Staerke', value: '10 mm' }]
+        dimensions: [{ label: 'Länge', value: '280 cm' }, { label: 'Höhe', value: '240 cm' }, { label: 'Staerke', value: '10 mm' }]
       }
     ]
   },
@@ -173,15 +173,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
         quantity: '48 m2',
         condition: 'neu',
         location: 'Siemensstrasse 120, 1210 Wien',
-        dimensions: [{ label: 'Laenge', value: '125 cm' }, { label: 'Breite', value: '62.5 cm' }, { label: 'Staerke', value: '8 cm' }]
-      },
-      {
-        title: 'Daemmkeile fuer Dachanschluss',
-        price: '42 EUR / Paket',
-        quantity: '9 Pakete',
-        condition: 'neu',
-        location: 'Steinergasse 4, 1170 Wien',
-        dimensions: [{ label: 'Laenge', value: '120 cm' }, { label: 'Breite', value: '40 cm' }, { label: 'Staerke', value: '12 cm' }]
+        dimensions: [{ label: 'Länge', value: '125 cm' }, { label: 'Breite', value: '62.5 cm' }, { label: 'Staerke', value: '8 cm' }]
       }
     ]
   },
@@ -196,7 +188,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
         quantity: '74 m2',
         condition: 'neu',
         location: 'Liesinger Flur Gasse 18, 1230 Wien',
-        dimensions: [{ label: 'Laenge', value: '100 cm' }, { label: 'Breite', value: '50 cm' }, { label: 'Staerke', value: '14 cm' }]
+        dimensions: [{ label: 'Länge', value: '100 cm' }, { label: 'Breite', value: '50 cm' }, { label: 'Staerke', value: '14 cm' }]
       },
       {
         title: 'XPS-Sockelplatten',
@@ -204,7 +196,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
         quantity: '32 m2',
         condition: 'neu',
         location: 'Wagramer Strasse 310, 1220 Wien',
-        dimensions: [{ label: 'Laenge', value: '125 cm' }, { label: 'Breite', value: '60 cm' }, { label: 'Staerke', value: '10 cm' }]
+        dimensions: [{ label: 'Länge', value: '125 cm' }, { label: 'Breite', value: '60 cm' }, { label: 'Staerke', value: '10 cm' }]
       }
     ]
   },
@@ -219,15 +211,15 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
         quantity: '40 Platten',
         condition: 'neu',
         location: 'Hernalser Hauptstrasse 195, 1170 Wien',
-        dimensions: [{ label: 'Laenge', value: '200 cm' }, { label: 'Breite', value: '125 cm' }, { label: 'Staerke', value: '12.5 mm' }]
+        dimensions: [{ label: 'Länge', value: '200 cm' }, { label: 'Breite', value: '125 cm' }, { label: 'Staerke', value: '12.5 mm' }]
       },
       {
-        title: 'Gipsfaserplatten feuchtraumgeeignet',
+        title: 'Gipsfaserplatten',
         price: '11 EUR / Platte',
         quantity: '22 Platten',
         condition: 'sehr gut',
         location: 'Perfektastrasse 62, 1230 Wien',
-        dimensions: [{ label: 'Laenge', value: '260 cm' }, { label: 'Breite', value: '120 cm' }, { label: 'Staerke', value: '15 mm' }]
+        dimensions: [{ label: 'Länge', value: '260 cm' }, { label: 'Breite', value: '120 cm' }, { label: 'Staerke', value: '15 mm' }]
       }
     ]
   },
@@ -242,7 +234,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
         quantity: '65 m2',
         condition: 'gut',
         location: 'Breitenleer Strasse 250, 1220 Wien',
-        dimensions: [{ label: 'Laenge', value: '10 cm' }, { label: 'Breite', value: '10 cm' }, { label: 'Hoehe', value: '8 cm' }]
+        dimensions: [{ label: 'Länge', value: '10 cm' }, { label: 'Breite', value: '10 cm' }, { label: 'Höhe', value: '8 cm' }]
       },
       {
         title: 'Drainagekies 16/32',
@@ -276,7 +268,7 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
         quantity: '1 Set',
         condition: 'sehr gut',
         location: 'Arbeiterstrandbadstrasse 128, 1220 Wien',
-        dimensions: [{ label: 'Laenge', value: '480 cm' }, { label: 'Breite', value: '300 cm' }, { label: 'Systemhoehe', value: '18 cm' }]
+        dimensions: [{ label: 'Länge', value: '480 cm' }, { label: 'Breite', value: '300 cm' }, { label: 'SystemHöhe', value: '18 cm' }]
       }
     ]
   },
@@ -291,7 +283,7 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
         quantity: '3 Stk.',
         condition: 'sehr gut',
         location: 'Puchsbaumgasse 8, 1100 Wien',
-        dimensions: [{ label: 'Hoehe', value: '205 cm' }, { label: 'Breite', value: '90 cm' }, { label: 'Staerke', value: '4 cm' }]
+        dimensions: [{ label: 'Höhe', value: '205 cm' }, { label: 'Breite', value: '90 cm' }, { label: 'Staerke', value: '4 cm' }]
       },
       {
         title: 'Brandschutztuer EI30',
@@ -299,7 +291,7 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
         quantity: '2 Stk.',
         condition: 'gut',
         location: 'Franzosengraben 12, 1030 Wien',
-        dimensions: [{ label: 'Hoehe', value: '210 cm' }, { label: 'Breite', value: '100 cm' }, { label: 'Staerke', value: '6 cm' }]
+        dimensions: [{ label: 'Höhe', value: '210 cm' }, { label: 'Breite', value: '100 cm' }, { label: 'Staerke', value: '6 cm' }]
       }
     ]
   },
@@ -314,7 +306,7 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
         quantity: '5 Stk.',
         condition: 'sehr gut',
         location: 'Wiedner Guertel 18, 1040 Wien',
-        dimensions: [{ label: 'Hoehe', value: '205 cm' }, { label: 'Breite', value: '88 cm' }, { label: 'Wandstaerke', value: '12 cm' }]
+        dimensions: [{ label: 'Höhe', value: '205 cm' }, { label: 'Breite', value: '88 cm' }, { label: 'Wandstaerke', value: '12 cm' }]
       },
       {
         title: 'Holzzarge Buche',
@@ -322,7 +314,7 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
         quantity: '4 Stk.',
         condition: 'gut',
         location: 'Antonigasse 71, 1180 Wien',
-        dimensions: [{ label: 'Hoehe', value: '200 cm' }, { label: 'Breite', value: '80 cm' }, { label: 'Wandstaerke', value: '10 cm' }]
+        dimensions: [{ label: 'Höhe', value: '200 cm' }, { label: 'Breite', value: '80 cm' }, { label: 'Wandstaerke', value: '10 cm' }]
       }
     ]
   },
@@ -337,7 +329,7 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
         quantity: '6 Stk.',
         condition: 'sehr gut',
         location: 'Erdberger Laende 34, 1030 Wien',
-        dimensions: [{ label: 'Hoehe', value: '140 cm' }, { label: 'Breite', value: '160 cm' }, { label: 'Uw', value: '1.1 W/m2K' }]
+        dimensions: [{ label: 'Höhe', value: '140 cm' }, { label: 'Breite', value: '160 cm' }, { label: 'Uw', value: '1.1 W/m2K' }]
       },
       {
         title: 'Dachfenster mit Eindeckrahmen',
@@ -345,7 +337,7 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
         quantity: '2 Stk.',
         condition: 'gut',
         location: 'Schanzstrasse 31, 1140 Wien',
-        dimensions: [{ label: 'Hoehe', value: '118 cm' }, { label: 'Breite', value: '78 cm' }, { label: 'Einbauart', value: 'Schraeg' }]
+        dimensions: [{ label: 'Höhe', value: '118 cm' }, { label: 'Breite', value: '78 cm' }, { label: 'Einbauart', value: 'Schraeg' }]
       }
     ]
   },
@@ -355,12 +347,12 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
     theme: { background: '#FBF7F2', surface: '#E7DCCF', accent: '#C49C72', accentSoft: '#DEC4A7', ink: '#77522D' },
     listings: [
       {
-        title: 'Flachheizkoerper Typ 22',
+        title: 'Flachheizkörper Typ 22',
         price: '85 EUR / Stk.',
         quantity: '7 Stk.',
         condition: 'gut',
         location: 'Rudolfsplatz 9, 1010 Wien',
-        dimensions: [{ label: 'Hoehe', value: '60 cm' }, { label: 'Breite', value: '120 cm' }, { label: 'Tiefe', value: '10 cm' }]
+        dimensions: [{ label: 'Höhe', value: '60 cm' }, { label: 'Breite', value: '120 cm' }, { label: 'Tiefe', value: '10 cm' }]
       },
       {
         title: 'Design-Heizkoerper vertikal',
@@ -368,7 +360,7 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
         quantity: '2 Stk.',
         condition: 'sehr gut',
         location: 'Mittersteig 25, 1050 Wien',
-        dimensions: [{ label: 'Hoehe', value: '180 cm' }, { label: 'Breite', value: '45 cm' }, { label: 'Tiefe', value: '8 cm' }]
+        dimensions: [{ label: 'Höhe', value: '180 cm' }, { label: 'Breite', value: '45 cm' }, { label: 'Tiefe', value: '8 cm' }]
       }
     ]
   },
@@ -378,12 +370,12 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
     theme: { background: '#F6F6F7', surface: '#DBDCDF', accent: '#7F838B', accentSoft: '#B0B4BB', ink: '#404349' },
     listings: [
       {
-        title: 'Kupferrohre weich geglueht',
+        title: 'Kupferrohre',
         price: '95 EUR / Ring',
         quantity: '4 Ringe',
         condition: 'neu',
         location: 'Bessemerstrasse 6, 1210 Wien',
-        dimensions: [{ label: 'Laenge', value: '25 m' }, { label: 'Durchmesser', value: '18 mm' }, { label: 'Wandstaerke', value: '1 mm' }]
+        dimensions: [{ label: 'Länge', value: '25 m' }, { label: 'Durchmesser', value: '18 mm' }, { label: 'Wandstaerke', value: '1 mm' }]
       },
       {
         title: 'KG-Rohrpaket DN160',
@@ -391,7 +383,7 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
         quantity: '1 Paket',
         condition: 'gut',
         location: 'Haidfeldstrasse 17, 4060 Leonding',
-        dimensions: [{ label: 'Laenge', value: '200 cm' }, { label: 'Durchmesser', value: '160 mm' }, { label: 'Muffen', value: '6 Stk.' }]
+        dimensions: [{ label: 'Länge', value: '200 cm' }, { label: 'Durchmesser', value: '160 mm' }, { label: 'Muffen', value: '6 Stk.' }]
       }
     ]
   },
@@ -406,7 +398,7 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
         quantity: '3 Ringe',
         condition: 'neu',
         location: 'Troststrasse 65, 1100 Wien',
-        dimensions: [{ label: 'Laenge', value: '100 m' }, { label: 'Adern', value: '3' }, { label: 'Querschnitt', value: '1.5 mm2' }]
+        dimensions: [{ label: 'Länge', value: '100 m' }, { label: 'Adern', value: '3' }, { label: 'Querschnitt', value: '1.5 mm2' }]
       },
       {
         title: 'Datenkabel Cat7 geschirmt',
@@ -414,7 +406,7 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
         quantity: '2 Trommeln',
         condition: 'neu',
         location: 'Liechtensteinstrasse 87, 1090 Wien',
-        dimensions: [{ label: 'Laenge', value: '305 m' }, { label: 'Kategorie', value: 'Cat7' }, { label: 'Schirmung', value: 'S/FTP' }]
+        dimensions: [{ label: 'Länge', value: '305 m' }, { label: 'Kategorie', value: 'Cat7' }, { label: 'Schirmung', value: 'S/FTP' }]
       }
     ]
   },
@@ -429,7 +421,7 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
         quantity: '1 Stk.',
         condition: 'gut',
         location: 'Perfektastrasse 89, 1230 Wien',
-        dimensions: [{ label: 'Laenge', value: '180 cm' }, { label: 'Breite', value: '70 cm' }, { label: 'Hoehe', value: '92 cm' }]
+        dimensions: [{ label: 'Länge', value: '180 cm' }, { label: 'Breite', value: '70 cm' }, { label: 'Höhe', value: '92 cm' }]
       },
       {
         title: 'Regalsystem verzinkt',
@@ -437,7 +429,7 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
         quantity: '1 Set',
         condition: 'sehr gut',
         location: 'Hollandstrasse 2, 1020 Wien',
-        dimensions: [{ label: 'Laenge', value: '240 cm' }, { label: 'Breite', value: '60 cm' }, { label: 'Hoehe', value: '220 cm' }]
+        dimensions: [{ label: 'Länge', value: '240 cm' }, { label: 'Breite', value: '60 cm' }, { label: 'Höhe', value: '220 cm' }]
       }
     ]
   }
