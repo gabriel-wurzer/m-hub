@@ -1,0 +1,88 @@
+<div class="dialog-container">
+  <div>
+    <h1 class="header">Marktangebot hinzufügen</h1>
+    <mat-divider />
+  </div>
+
+  <div mat-dialog-content class="content-wrapper">
+    <div class="listing-info-wrapper">
+      <div class="name-wrapper">
+        <h2>Name</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Name</mat-label>
+          <input matInput [(ngModel)]="name" [required]="true" #nameCtrl="ngModel" />
+          <mat-error *ngIf="nameCtrl.invalid || getNameError()">{{ getNameError() }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="description-wrapper">
+        <h2>Beschreibung</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Beschreibung</mat-label>
+          <textarea matInput rows="3" [(ngModel)]="description"></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="price-wrapper">
+        <h2>Preis</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Preis</mat-label>
+          <input
+            matInput
+            type="number"
+            min="0"
+            step="0.01"
+            [(ngModel)]="price"
+            [required]="true"
+            #priceCtrl="ngModel"
+          />
+          <mat-error *ngIf="priceCtrl.invalid || getPriceError()">{{ getPriceError() }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="status-wrapper">
+        <h2>Status</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Status</mat-label>
+          <mat-select [(ngModel)]="status" [required]="true" #statusCtrl="ngModel">
+            <mat-option [value]="null" disabled>-- Status auswählen --</mat-option>
+            <mat-option *ngFor="let option of statusOptions" [value]="option">
+              {{ option }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="statusCtrl.invalid || getStatusError()">{{ getStatusError() }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="potential-wrapper">
+        <h2>Potential</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Potential</mat-label>
+          <mat-select [(ngModel)]="potential" [required]="true" #potentialCtrl="ngModel">
+            <mat-option [value]="null" disabled>-- Potential auswählen --</mat-option>
+            <mat-option *ngFor="let option of potentialOptions" [value]="option">
+              {{ formatPotentialLabel(option) }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="potentialCtrl.invalid || getPotentialError()">{{ getPotentialError() }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="contact-wrapper">
+        <h2>Kontakt</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Kontakt</mat-label>
+          <input matInput [(ngModel)]="contact" [required]="true" #contactCtrl="ngModel" />
+          <mat-error *ngIf="contactCtrl.invalid || getContactError()">{{ getContactError() }}</mat-error>
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+
+  <div mat-dialog-actions class="actions">
+    <button mat-button (click)="close()">Abbruch</button>
+    <button mat-button color="primary" (click)="confirmAddListing()" [disabled]="!isFormValid()">
+      Hinzufügen
+    </button>
+  </div>
+</div>

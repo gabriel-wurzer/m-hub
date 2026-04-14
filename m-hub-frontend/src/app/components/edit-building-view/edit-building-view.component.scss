@@ -104,7 +104,7 @@ h3 {
   overflow: hidden;
   min-width: 300px;
 
-  --actions-width: 154px;
+  --actions-width: 190px;
 }
 
 .custom-list.scroll-list {
@@ -243,6 +243,12 @@ h3 {
     mat-icon {
       font-size: 20px;
     }
+  }
+
+  .material-symbols-outlined {
+    font-size: 20px;
+    line-height: 20px;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
 }
 

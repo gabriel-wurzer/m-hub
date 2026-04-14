@@ -48,6 +48,7 @@ import { AddObjectDialogComponent, AddObjectDialogResult } from '../dialogs/add-
 import { EditObjectDialogComponent, EditObjectDialogData, EditObjectDialogResult } from '../dialogs/edit-object-dialog/edit-object-dialog.component';
 import { AddDocumentDialogComponent, AddDocumentDialogData, AddDocumentDialogResult } from '../dialogs/add-document-dialog/add-document-dialog.component';
 import { EditDocumentDialogComponent, EditDocumentDialogData, EditDocumentDialogResult } from '../dialogs/edit-document-dialog/edit-document-dialog.component';
+import { AddListingDialogComponent, AddListingDialogData, AddListingDialogResult } from '../dialogs/add-listing-dialog/add-listing-dialog.component';
 import { EntityInfoDialogComponent } from '../dialogs/entity-info-dialog/entity-info-dialog.component';
 import { finalize } from 'rxjs';
 import { BuildingComponentCategory } from '../../enums/component-category';
@@ -708,6 +709,34 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
         entity,
         structure: this.structure
       }
+    });
+  }
+
+  openAddMarketListingDialog(component: Bauteil | Objekt): void {
+    const dialogRef = this.dialog.open<AddListingDialogComponent, AddListingDialogData, AddListingDialogResult>(
+      AddListingDialogComponent,
+      {
+        panelClass: 'custom-dialog',
+        disableClose: true,
+        autoFocus: false,
+        data: {
+          component
+        }
+      }
+    );
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
+
+      console.log('Market listing dialog result:', {
+        component,
+        listing: result
+      });
+
+      this.snackBar.open('Marktangebot erfasst. Speicherung noch nicht implementiert.', 'OK', {
+        duration: 3000,
+        verticalPosition: 'top'
+      });
     });
   }
 
