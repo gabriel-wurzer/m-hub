@@ -5,49 +5,137 @@
         <header class="user-data-header">
             <h1>Gebäudeliste</h1>
         </header>
-        
+
         <mat-divider class="horizontal-divider"/>
 
         <div *ngIf="isLoading" class="spinner-container">
           <mat-spinner [diameter]="100" [strokeWidth]="6" class="loading-spinner" />
         </div>
-        
+
         <div class="user-data-content">
           <div class="card-container" *ngIf="!isLoading && userBuildings.length > 0; else noBuildings">
-            
-            <mat-card class="building-card" *ngFor="let building of userBuildings" (click)="selectBuilding(building)" [class.selected]="isSelected(building)">
-              
-              <div class="card-header">
-                <div class="card-header-text">
-                  <img 
-                    src="assets/images/house_icon.svg" 
-                    alt="House Icon" 
-                    class="house-icon"
-                    loading="eager"
+            <mat-card
+              class="building-card"
+              *ngFor="let building of userBuildings"
+              tabindex="0"
+              role="button"
+              (click)="selectBuilding(building)"
+              (keydown.enter)="selectBuilding(building)"
+              (keydown.space)="selectBuilding(building); $event.preventDefault()"
+              [class.selected]="isSelected(building)">
+
+              <mat-card-content class="card-content">
+                <div class="card-header-row" #cardHeader [attr.data-building-id]="building.id">
+                  <div class="icon-shell">
+                    <img
+                      src="assets/images/house_icon.svg"
+                      alt="House Icon"
+                      class="house-icon"
+                      loading="eager"
                     />
-                  <h2>{{ building.name.trim() || 'Gebäude ' + building.building_id }}</h2>
+                  </div>
+
+                  <div class="card-title-block">
+                    <h2>{{ getBuildingDisplayName(building) }}</h2>
+                    <span class="card-title-measure" aria-hidden="true">{{ getBuildingDisplayName(building) }}</span>
+                    <span class="card-tag">ID {{ building.building_id }}</span>
+                  </div>
+
+                  <div *ngIf="isSelected(building) && !shouldUseCompactMenu(building)" class="card-actions">
+                    <button
+                      mat-icon-button
+                      color="primary"
+                      matTooltip="Informationen"
+                      aria-label="Struktur anzeigen"
+                      (click)="showBuildingInfo(building); $event.stopPropagation()">
+                      <mat-icon>info_outline</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      color="primary"
+                      matTooltip="Bearbeiten"
+                      aria-label="Gebäude bearbeiten"
+                      (click)="editBuilding(building); $event.stopPropagation()">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      color="warn"
+                      matTooltip="Löschen"
+                      aria-label="Gebäude entfernen"
+                      (click)="deleteBuilding(building); $event.stopPropagation()">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  </div>
+
+                  <button
+                    *ngIf="isSelected(building) && shouldUseCompactMenu(building)"
+                    class="card-menu-trigger"
+                    mat-icon-button
+                    [matMenuTriggerFor]="cardActionMenu"
+                    aria-label="Aktionen öffnen"
+                    (click)="$event.stopPropagation()">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+
+                  <mat-menu #cardActionMenu="matMenu">
+                    <button mat-menu-item (click)="showBuildingInfo(building); $event.stopPropagation()">
+                      <mat-icon>info_outline</mat-icon>
+                      <span>Informationen</span>
+                    </button>
+                    <button mat-menu-item (click)="editBuilding(building); $event.stopPropagation()">
+                      <mat-icon>edit</mat-icon>
+                      <span>Bearbeiten</span>
+                    </button>
+                    <button mat-menu-item (click)="deleteBuilding(building); $event.stopPropagation()">
+                      <mat-icon>delete_outline</mat-icon>
+                      <span>Löschen</span>
+                    </button>
+                  </mat-menu>
                 </div>
-                <button class="menu-icon" *ngIf="isSelected(building)" mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
-                  <mat-icon>more_vert</mat-icon>
-                </button>
-                <mat-menu #menu="matMenu">
-                  <button class="menu-button" mat-menu-item (click)="showBuildingInfo(building)"> <mat-icon>info_outline</mat-icon> Gebäudeinformationen</button>
-                  <button class="menu-button" mat-menu-item (click)="editBuilding(building)"> <mat-icon>edit</mat-icon> Gebäude bearbeiten</button>
-                  <button class="menu-button" mat-menu-item (click)="deleteBuilding(building); $event.stopPropagation()"> <mat-icon>delete_outline</mat-icon> Gebäude entfernen</button>
-                </mat-menu>
-              </div>
 
-              <mat-divider></mat-divider>
+                <div class="card-info">
+                  <div class="info-grid" *ngIf="getStructureSegments(building) as structureSegments">
+                    <section class="info-panel">
+                      <div class="info-panel-header">
+                        <span class="info-icon-shell">
+                          <mat-icon>location_on</mat-icon>
+                        </span>
+                        <span>Adresse</span>
+                      </div>
 
-              <div class="card-info">
-                <div class="info-text">
-                  <p>Gebäude ID: {{ building.building_id }}</p>
-                  <p *ngIf="building && building.name">Name: {{ building.name }}</p>
-                  <p *ngIf="building && building.address">Adresse: {{ building.address }}</p>
+                      <p class="info-panel-value" [class.empty]="!building?.address">
+                        {{ building?.address || emptyValue }}
+                      </p>
+                    </section>
+
+                    <section class="info-panel info-panel-structure">
+                      <div class="info-panel-header">
+                        <span class="info-icon-shell structure-icon-shell">
+                          <mat-icon>account_tree</mat-icon>
+                        </span>
+                        <span>Gebäudestruktur</span>
+                      </div>
+
+                      <div class="structure-list" *ngIf="structureSegments.length > 0; else noStructureValue">
+                        <div class="structure-chip" *ngFor="let seg of structureSegments">
+                          <span class="structure-chip-main">{{ seg.main }}</span>
+                          <span *ngIf="seg.note" class="structure-chip-note">{{ seg.note }}</span>
+                        </div>
+                      </div>
+
+                      <ng-template #noStructureValue>
+                        <p class="info-panel-value empty">{{ emptyValue }}</p>
+                      </ng-template>
+                    </section>
+                  </div>
                 </div>
-              </div>
 
-            </mat-card> 
+                <span *ngIf="isSelected(building)" class="card-state active">
+                  Ausgewählt
+                </span>
+              </mat-card-content>
+            </mat-card>
           </div>
 
           <ng-template #noBuildings>
@@ -55,40 +143,11 @@
           </ng-template>
         </div>
 
-        <!-- <div class="user-data-content"> 
-          <div class="list-container">
-
-            <mat-list *ngIf="!isLoading && buildings.length > 0; else noBuildings">
-                <mat-list-item *ngFor="let building of buildings"
-                  (click)="selectBuilding(building)"
-                  [class.selected]="isSelected(building)">
-                  <span class="list-text" *ngIf="building.name?.trim(); else fallback">
-                    {{ building.name }} (Gebäude {{ building.bw_geb_id }})
-                  </span>
-                  <ng-template #fallback>
-                    <span class="list-text">Gebäude {{ building.bw_geb_id }}</span>
-                  </ng-template>
-                  
-                  <button *ngIf="isSelected(building)"
-                    mat-icon-button 
-                    color="warn" 
-                    (click)="deleteBuilding(building.bw_geb_id); $event.stopPropagation()">
-                    <mat-icon>delete</mat-icon>
-                  </button>                  
-
-                </mat-list-item>
-            </mat-list>
-            <ng-template #noBuildings>
-              <p *ngIf="!isLoading" class="no-data">Keine Gebäude gespeichert</p>
-            </ng-template>
-          </div>
-        </div> -->
-
       </div>
     </div>
 
     <app-structure-view
-      *ngIf="isStructureViewVisible" 
+      *ngIf="isStructureViewVisible"
       [entityContext]="structureContext"
       (closeStructureView)="hideStructureView()" />
 
@@ -97,5 +156,5 @@
       [userBuilding]="editingBuilding"
       (buildingUpdated)="onBuildingUpdated($event)"
       (closeEditView)="hideEditBuildingView()" />
-  
+
   </main>
