@@ -1,4 +1,4 @@
-export enum MarketUnit {
+export enum MarketListingUnit {
   St = 'Stück',               // Stückanzahl
   m3 = 'Kubikmeter',          // Kubikmeter für Volumen
   m2 = 'Quadratmeter',        // Quadratmeter für Fläche
