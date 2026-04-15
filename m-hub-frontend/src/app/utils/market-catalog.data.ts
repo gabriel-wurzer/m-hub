@@ -1,4 +1,4 @@
-import { MaterialGroup } from '../enums/material-group.enum';
+import { MdabMaterialGroup } from '../enums/mdab-material-group.enum';
 import { ObjectType } from '../enums/object-type';
 import { MarketCategory, MarketCategoryKind, MarketListing, MarketListingDimension } from '../models/market.models';
 
@@ -46,8 +46,8 @@ interface CategorySeed {
   listings: ListingSeed[];
 }
 
-const materialSeeds: Record<MaterialGroup, CategorySeed> = {
-  [MaterialGroup.mg_1]: {
+const materialSeeds: Record<MdabMaterialGroup, CategorySeed> = {
+  [MdabMaterialGroup.mg_1]: {
     description: 'Angebote für tragende und ausgleichende Bauteile aus Beton oder Estrich.',
     motif: 'concrete',
     theme: { background: '#F7F5F1', surface: '#E5E0D6', accent: '#B3AEA5', accentSoft: '#D5D0C6', ink: '#5A5956' },
@@ -70,7 +70,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
       }
     ]
   },
-  [MaterialGroup.mg_2]: {
+  [MdabMaterialGroup.mg_2]: {
     description: 'Wiederverwendbare Ziegel für Ausbau, Sanierung und Gartenprojekte.',
     motif: 'brick',
     theme: { background: '#FBF1EB', surface: '#F2D2BF', accent: '#C47152', accentSoft: '#E7B9A0', ink: '#7B3D24' },
@@ -93,7 +93,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
       }
     ]
   },
-  [MaterialGroup.mg_3]: {
+  [MdabMaterialGroup.mg_3]: {
     description: 'Holzbauteile fuer Innenausbau, Tragwerk und kreative Upcycling-Projekte.',
     motif: 'planks',
     theme: { background: '#F8F2E7', surface: '#E7D3B0', accent: '#B9824A', accentSoft: '#D7B07C', ink: '#654322' },
@@ -116,7 +116,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
       }
     ]
   },
-  [MaterialGroup.mg_4]: {
+  [MdabMaterialGroup.mg_4]: {
     description: 'Stahlbauteile fuer Hallenbau, Unterkonstruktionen und Sonderanfertigungen.',
     motif: 'steel',
     theme: { background: '#F3F6F8', surface: '#D3DEE5', accent: '#6A8797', accentSoft: '#A7BCC8', ink: '#2F4956' },
@@ -139,7 +139,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
       }
     ]
   },
-  [MaterialGroup.mg_5]: {
+  [MdabMaterialGroup.mg_5]: {
     description: 'Verglasungen fuer Innenraeume, Fassadenelemente und Sonderlösungen.',
     motif: 'glass',
     theme: { background: '#EEF8FA', surface: '#D1EBF0', accent: '#78B9C9', accentSoft: '#A4D5DF', ink: '#2B6674' },
@@ -162,7 +162,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
       }
     ]
   },
-  [MaterialGroup.mg_6]: {
+  [MdabMaterialGroup.mg_6]: {
     description: 'Mineralwolldämmung für technische Räume, Wandsysteme und Decken.',
     motif: 'wool',
     theme: { background: '#F8F7EF', surface: '#E6E0BE', accent: '#B3A35F', accentSoft: '#D6CC9B', ink: '#6A6032' },
@@ -177,7 +177,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
       }
     ]
   },
-  [MaterialGroup.mg_7]: {
+  [MdabMaterialGroup.mg_7]: {
     description: 'Leichte Dämmsysteme fuer thermische Sanierung und Neubau.',
     motif: 'foam',
     theme: { background: '#F7F8FB', surface: '#DDE4F4', accent: '#8FA7D7', accentSoft: '#BBC8E8', ink: '#4F628D' },
@@ -200,7 +200,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
       }
     ]
   },
-  [MaterialGroup.mg_8]: {
+  [MdabMaterialGroup.mg_8]: {
     description: 'Plattenwerkstoffe fuer Wände, Vorsatzschalen und Deckenbekleidungen.',
     motif: 'gypsum',
     theme: { background: '#FAF7F7', surface: '#E8D8DB', accent: '#C59AA4', accentSoft: '#DDBBC2', ink: '#7D4A56' },
@@ -223,7 +223,7 @@ const materialSeeds: Record<MaterialGroup, CategorySeed> = {
       }
     ]
   },
-  [MaterialGroup.mg_9]: {
+  [MdabMaterialGroup.mg_9]: {
     description: 'Lose oder palettierte mineralische Baustoffe für Garten und Landschaft.',
     motif: 'aggregate',
     theme: { background: '#F8F5EF', surface: '#E7DECC', accent: '#B19463', accentSoft: '#D2BF9C', ink: '#6D5732' },
@@ -435,7 +435,7 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
   }
 };
 
-export const MATERIAL_GROUP_CATEGORIES: MarketCategory[] = (Object.values(MaterialGroup) as MaterialGroup[])
+export const MATERIAL_GROUP_CATEGORIES: MarketCategory[] = (Object.values(MdabMaterialGroup) as MdabMaterialGroup[])
   .map(group => createCategory('material', group, materialSeeds[group]));
 
 export const OBJECT_TYPE_CATEGORIES: MarketCategory[] = (Object.values(ObjectType) as ObjectType[])
