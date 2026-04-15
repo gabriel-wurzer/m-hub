@@ -5,7 +5,7 @@
         <div class="header-actions">
             <span
               *ngIf="selectedTabIndex === 1"
-              [matTooltip]="!isFormValid() ? 'Gültige Struktur eingeben' : (!hasUnsavedChanges() ? 'Keine Änderungen vorgenommen' : 'Struktur speichern')"
+              [matTooltip]="getStructureSaveTooltip()"
               matTooltipPosition="left"
               matTooltipShowDelay="100"
               matTooltipHideDelay="100"
@@ -228,7 +228,8 @@
                         <h3>Adresse</h3>
                         <mat-form-field appearance="outline" class="full-width">
                             <mat-label>Adresse</mat-label>
-                            <input matInput [(ngModel)]="address" />
+                            <input matInput [(ngModel)]="address" [required]="true" #addressCtrl="ngModel" />
+                            <mat-error *ngIf="addressCtrl.invalid">{{ getAddressError() }}</mat-error>
                         </mat-form-field>
                     </div>
                 </div>

@@ -57,7 +57,7 @@ import { MarketListingService } from '../../services/market-listing/market-listi
 
 export type EditBuildingPayload = {
   name: string;
-  address?: string;
+  address: string;
   structure: Floor[];
 };
 
@@ -911,21 +911,37 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
   }
 
   getNameError(): string | null {
-    if (this.name.trim().length === 0) {
+    if (!this.hasRequiredValue(this.name)) {
       return 'Bitte Namen für das Gebäude angeben';
     }
     return null;
   }
 
-  private normalizeOptionalInput(input: string): string | undefined {
-    const trimmed = input.trim();
-    return trimmed.length === 0 ? undefined : trimmed;
+  getAddressError(): string | null {
+    if (!this.hasRequiredValue(this.address)) {
+      return 'Bitte Adresse für das Gebäude angeben';
+    }
+    return null;
+  }
+
+  getStructureSaveTooltip(): string {
+    return this.getNameError()
+      ?? this.getAddressError()
+      ?? (!this.isStructureValid
+        ? 'Gültige Struktur eingeben'
+        : (!this.hasUnsavedChanges() ? 'Keine Änderungen vorgenommen' : 'Gebäude speichern'));
+  }
+
+  private hasRequiredValue(input: string): boolean {
+    return input.trim().length > 0;
+  }
+
+  private normalizeRequiredInput(input: string): string {
+    return input.trim();
   }
 
   isFormValid(): boolean {
-    const isNameValid = !!this.name && this.name.trim().length > 0;
-
-    return isNameValid && this.isStructureValid;
+    return !this.getNameError() && !this.getAddressError() && this.isStructureValid;
   }
 
   formatPublicBoolean(value: unknown): string {
@@ -947,7 +963,7 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
   saveUpdatedBuilding(): void {
     if (!this.isFormValid()) return;
 
-    const trimmedAddress = this.normalizeOptionalInput(this.address);
+    const trimmedAddress = this.normalizeRequiredInput(this.address);
 
     if (!this.userBuilding?.id) return;
 

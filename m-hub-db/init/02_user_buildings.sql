@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS user_buildings (
     user_id UUID NOT NULL,
     building_id TEXT NOT NULL,
     structure JSONB NOT NULL,
-    name TEXT,
-    address TEXT,
+    name TEXT NOT NULL,
+    address TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     structure_updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -43,7 +43,7 @@ VALUES
     {"type": "Kellergeschoss", "count": 1, "height": 270, "area": 430}
  ]',
  'ÖBB Zentrale',
- NULL
+ 'Praterstern 4, 1020 Wien'
 ),
 
 ('c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, '5363852',
@@ -53,7 +53,7 @@ VALUES
     {"type": "Kellergeschoss", "count": 1, "height": 240, "area": 1020}
  ]',
  'Bahnhof Praterstern',
- 'Praterstern 6'
+ 'Praterstern 1, 1020 Wien'
 ),
 
 ('e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, '5363852',
@@ -63,7 +63,7 @@ VALUES
     {"type": "Kellergeschoss", "count": 1, "height": 240, "area": 1020}
  ]',
  'BHF Praterstern',
- 'Praterstern 6'
+ 'Praterstern 1, 1020 Wien'
 );
 
 -- ===============================================

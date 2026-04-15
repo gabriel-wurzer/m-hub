@@ -123,28 +123,36 @@ export class AddBuildingDialogComponent {
       : [];
   }
 
+  private hasRequiredValue(input: string): boolean {
+    return input.trim().length > 0;
+  }
+
   getNameError(): string | null {
-    if (this.name.trim().length === 0) {
+    if (!this.hasRequiredValue(this.name)) {
       return 'Bitte Namen für das Gebäude angeben';
     }
     return null;
   }
 
-  private normalizeOptionalInput(input: string): string | null {
-    const trimmed = input.trim();
-    return trimmed.length === 0 ? null : trimmed;
+  getAddressError(): string | null {
+    if (!this.hasRequiredValue(this.address)) {
+      return 'Bitte Adresse für das Gebäude angeben';
+    }
+    return null;
+  }
+
+  private normalizeRequiredInput(input: string): string {
+    return input.trim();
   }
 
   isFormValid(): boolean {
-    const isNameValid = !!this.name && this.name.trim().length > 0;
-    
-    return isNameValid && this.isStructureValid;
+    return !this.getNameError() && !this.getAddressError() && this.isStructureValid;
   }
 
   confirmAddBuilding(): void {
     if (!this.isFormValid()) return;
 
-    const trimmedAddress = this.normalizeOptionalInput(this.address);
+    const trimmedAddress = this.normalizeRequiredInput(this.address);
     
     this.dialogRef.close({
       name: this.name.trim(),
