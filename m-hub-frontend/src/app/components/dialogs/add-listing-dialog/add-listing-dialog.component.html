@@ -1,11 +1,15 @@
 <div class="dialog-container">
   <div>
-    <h1 class="header">Marktangebot hinzufügen</h1>
-    <mat-divider />
+    <h1 class="header">Inserat erstellen</h1>
+    <mat-divider></mat-divider>
   </div>
 
   <div mat-dialog-content class="content-wrapper">
     <div class="listing-info-wrapper">
+      <div class="source-hint" *ngIf="isPart">
+        Ausgangs-Bauteil: {{ data?.component?.name }}
+      </div>
+
       <div class="name-wrapper">
         <h2>Name</h2>
         <mat-form-field appearance="outline" class="full-width">
@@ -24,9 +28,9 @@
       </div>
 
       <div class="price-wrapper">
-        <h2>Preis</h2>
+        <h2>Gesamtpreis</h2>
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Preis</mat-label>
+          <mat-label>Preis (€)</mat-label>
           <input
             matInput
             type="number"
@@ -40,17 +44,53 @@
         </mat-form-field>
       </div>
 
-      <div class="status-wrapper">
-        <h2>Status</h2>
+      <div class="amount-wrapper">
+        <h2>Anzahl/Menge</h2>
+        <div class="amount-fields">
+          <mat-form-field appearance="outline" class="quantity-field full-width">
+            <mat-label>{{ isObject ? 'Anzahl (Stück)' : 'Anzahl/Menge' }}</mat-label>
+            <input
+              matInput
+              type="number"
+              min="0.01"
+              [attr.step]="isObject ? 'any' : '0.01'"
+              [(ngModel)]="quantity"
+              [required]="true"
+              #quantityCtrl="ngModel"
+            />
+            <mat-error *ngIf="quantityCtrl.invalid || getQuantityError()">{{ getQuantityError() }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="unit-field" *ngIf="isPart">
+            <mat-label>Einheit</mat-label>
+            <mat-select [(ngModel)]="unit" [required]="true" #unitCtrl="ngModel">
+              <mat-option [value]="null" disabled>-- Einheit auswählen --</mat-option>
+              <mat-option *ngFor="let option of unitOptions" [value]="option">
+                {{ option }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="unitCtrl.invalid || getUnitError()">{{ getUnitError() }}</mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="material-wrapper" *ngIf="isPart">
+        <h2>Material</h2>
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Status</mat-label>
-          <mat-select [(ngModel)]="status" [required]="true" #statusCtrl="ngModel">
-            <mat-option [value]="null" disabled>-- Status auswählen --</mat-option>
-            <mat-option *ngFor="let option of statusOptions" [value]="option">
+          <mat-label>Material</mat-label>
+          <mat-select
+            [(ngModel)]="material"
+            [required]="availableMaterials.length > 0"
+            [disabled]="availableMaterials.length === 0"
+            #materialCtrl="ngModel"
+          >
+            <mat-option [value]="null" disabled *ngIf="availableMaterials.length > 0">-- Material auswählen --</mat-option>
+            <mat-option *ngFor="let option of availableMaterials" [value]="option">
               {{ option }}
             </mat-option>
           </mat-select>
-          <mat-error *ngIf="statusCtrl.invalid || getStatusError()">{{ getStatusError() }}</mat-error>
+          <mat-hint *ngIf="availableMaterials.length === 0">Keine Materialwerte aus dem Bauteil verfügbar</mat-hint>
+          <mat-error *ngIf="materialCtrl.invalid || getMaterialError()">{{ getMaterialError() }}</mat-error>
         </mat-form-field>
       </div>
 
@@ -68,13 +108,97 @@
         </mat-form-field>
       </div>
 
-      <div class="contact-wrapper">
-        <h2>Kontakt</h2>
+      <div class="status-wrapper">
+        <h2>Status</h2>
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Kontakt</mat-label>
+          <mat-label>Status</mat-label>
+          <mat-select [(ngModel)]="status" [required]="true" #statusCtrl="ngModel">
+            <mat-option [value]="null" disabled>-- Status auswählen --</mat-option>
+            <mat-option *ngFor="let option of statusOptions" [value]="option">
+              {{ option }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="statusCtrl.invalid || getStatusError()">{{ getStatusError() }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="available-from-wrapper">
+        <h2>Verfügbar ab</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Datum</mat-label>
+          <input
+            matInput
+            [matDatepicker]="availableFromPicker"
+            [(ngModel)]="availableFrom"
+            [required]="true"
+            #availableFromCtrl="ngModel"
+          />
+          <mat-datepicker-toggle matIconSuffix [for]="availableFromPicker"></mat-datepicker-toggle>
+          <mat-datepicker #availableFromPicker></mat-datepicker>
+          <mat-error *ngIf="availableFromCtrl.invalid || getAvailableFromError()">{{ getAvailableFromError() }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="contact-wrapper full-row">
+        <h2>Kontaktmöglichkeit</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>E-Mail-Adresse</mat-label>
           <input matInput [(ngModel)]="contact" [required]="true" #contactCtrl="ngModel" />
           <mat-error *ngIf="contactCtrl.invalid || getContactError()">{{ getContactError() }}</mat-error>
         </mat-form-field>
+      </div>
+
+      <div class="image-upload-wrapper full-row">
+        <input #imageInput type="file" accept="image/*" multiple (change)="onImageFileSelected($event)" hidden />
+
+        <div
+          class="drop-zone"
+          [class.drag-active]="isDragActive"
+          tabindex="0"
+          role="button"
+          aria-label="Bilder hochladen"
+          (click)="imageInput.click()"
+          (keydown.enter)="imageInput.click()"
+          (keydown.space)="imageInput.click(); $event.preventDefault()"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+        >
+          <div class="drop-zone-inner">
+            <mat-icon class="drop-zone-icon">add_photo_alternate</mat-icon>
+            <p class="drop-zone-text">
+              Drag &amp; drop oder
+              <button type="button" class="choose-link" (click)="imageInput.click(); $event.stopPropagation()">
+                Dateien auswählen
+              </button>
+            </p>
+          </div>
+        </div>
+
+        <div class="file-hints">
+          <span>Erlaubte Dateitypen: PNG, JPG, JPEG, WEBP</span>
+          <span>max. Dateigröße: 10MB/Bild</span>
+        </div>
+
+        <div class="image-meta-row" *ngIf="selectedImages.length > 0 || imageError">
+          <div class="image-meta" *ngIf="selectedImages.length > 0">
+            {{ selectedImages.length }} Bild{{ selectedImages.length === 1 ? '' : 'er' }} ausgewählt
+          </div>
+          <div class="image-error" *ngIf="imageError">{{ imageError }}</div>
+        </div>
+
+        <div class="image-preview-grid" *ngIf="selectedImages.length > 0">
+          <div class="image-preview-card" *ngFor="let image of selectedImages; let i = index; trackBy: trackBySelectedImage">
+            <img [src]="image.previewUrl" [alt]="'Bildvorschau ' + (i + 1)" class="image-preview" />
+
+            <div class="image-preview-actions">
+              <div class="image-name">{{ image.fileName }}</div>
+              <button mat-button type="button" color="warn" (click)="removeSelectedImage(i)">
+                Entfernen
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -82,7 +206,7 @@
   <div mat-dialog-actions class="actions">
     <button mat-button (click)="close()">Abbruch</button>
     <button mat-button color="primary" (click)="confirmAddListing()" [disabled]="!isFormValid()">
-      Hinzufügen
+      Erstellen
     </button>
   </div>
 </div>

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
 
 import { AddListingDialogComponent } from './add-listing-dialog.component';
 
@@ -8,7 +9,8 @@ describe('AddListingDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AddListingDialogComponent]
+      imports: [AddListingDialogComponent],
+      providers: [provideHttpClient()]
     })
     .compileComponents();
 
