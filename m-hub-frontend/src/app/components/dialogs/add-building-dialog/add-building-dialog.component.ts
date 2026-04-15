@@ -141,9 +141,6 @@ export class AddBuildingDialogComponent {
     return null;
   }
 
-  private normalizeRequiredInput(input: string): string {
-    return input.trim();
-  }
 
   isFormValid(): boolean {
     return !this.getNameError() && !this.getAddressError() && this.isStructureValid;
@@ -152,11 +149,9 @@ export class AddBuildingDialogComponent {
   confirmAddBuilding(): void {
     if (!this.isFormValid()) return;
 
-    const trimmedAddress = this.normalizeRequiredInput(this.address);
-    
     this.dialogRef.close({
       name: this.name.trim(),
-      address: trimmedAddress,
+      address: this.address.trim(),
       structure: this.structure
     });
   }
