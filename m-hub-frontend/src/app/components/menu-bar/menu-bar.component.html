@@ -25,7 +25,7 @@
       <button 
         mat-icon-button 
         [disableRipple]="!(user$ | async)"
-        [matTooltip]="(user$ | async) ? 'Gebäudeliste' : 'Gebäudeliste: \nAnmeldung erforderlich'"
+        [matTooltip]="(user$ | async) ? 'Bestandsverwaltung' : 'Bestandsverwaltung: \nAnmeldung erforderlich'"
         matTooltipClass="multiline-tooltip"
         matTooltipPosition="after" 
         matTooltipShowDelay="500" 
@@ -34,7 +34,8 @@
           'active': currentRoute.includes('/data'), 
           'disabled-state': !(user$ | async)
         }">
-        <mat-icon>grid_view</mat-icon>
+        <!-- <mat-icon>grid_view</mat-icon> -->
+        <mat-icon>domain</mat-icon>
       </button>
     </div>
 
