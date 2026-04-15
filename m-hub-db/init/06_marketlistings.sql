@@ -86,6 +86,22 @@ CREATE TABLE IF NOT EXISTS market_listings (
     )
 );
 
+-- Multiple images per listing are stored in a dedicated child table instead of
+-- duplicating image columns on market_listings.
+CREATE TABLE IF NOT EXISTS market_listing_images (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    market_listing_id UUID NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0 CHECK (sort_order >= 0),
+    image_path TEXT NOT NULL,
+    image_mime_type TEXT,
+    image_original_name TEXT,
+    image_size_bytes BIGINT CHECK (image_size_bytes IS NULL OR image_size_bytes >= 0),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT market_listing_images_path_not_blank CHECK (btrim(image_path) <> ''),
+    CONSTRAINT market_listing_images_listing_sort_order_unique UNIQUE (market_listing_id, sort_order)
+);
+
 -- ===============================================
 --  FOREIGN KEYS
 -- ===============================================
@@ -93,6 +109,12 @@ ALTER TABLE market_listings
   ADD CONSTRAINT fk_market_listings_user_building
   FOREIGN KEY (user_building_id)
   REFERENCES user_buildings(id)
+  ON DELETE CASCADE;
+
+ALTER TABLE market_listing_images
+  ADD CONSTRAINT fk_market_listing_images_listing
+  FOREIGN KEY (market_listing_id)
+  REFERENCES market_listings(id)
   ON DELETE CASCADE;
 
 -- component_id intentionally has no direct foreign key because a listing can
@@ -110,8 +132,22 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION update_market_listing_images_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE TRIGGER trg_market_listings_set_updated_at
 BEFORE UPDATE ON market_listings
 FOR EACH ROW
 WHEN (NEW IS DISTINCT FROM OLD)
 EXECUTE FUNCTION update_market_listings_updated_at();
+
+CREATE TRIGGER trg_market_listing_images_set_updated_at
+BEFORE UPDATE ON market_listing_images
+FOR EACH ROW
+WHEN (NEW IS DISTINCT FROM OLD)
+EXECUTE FUNCTION update_market_listing_images_updated_at();

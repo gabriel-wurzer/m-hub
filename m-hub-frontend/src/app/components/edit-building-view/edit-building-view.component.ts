@@ -52,6 +52,8 @@ import { AddListingDialogComponent, AddListingDialogData, AddListingDialogResult
 import { EntityInfoDialogComponent } from '../dialogs/entity-info-dialog/entity-info-dialog.component';
 import { finalize } from 'rxjs';
 import { BuildingComponentCategory } from '../../enums/component-category';
+import { CreateMarketListing } from '../../models/market-listing';
+import { MarketListingService } from '../../services/market-listing/market-listing.service';
 
 export type EditBuildingPayload = {
   name: string;
@@ -132,6 +134,7 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
     private documentService: DocumentService,
     private buildingPartService: BuildingPartService,
     private buildingObjectService: BuildingObjectService,
+    private marketListingService: MarketListingService,
     private userService: UserService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
@@ -713,6 +716,9 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
   }
 
   openAddMarketListingDialog(component: Bauteil | Objekt): void {
+    if (!this.userBuilding) return;
+
+    const userBuilding = this.userBuilding;
     const dialogRef = this.dialog.open<AddListingDialogComponent, AddListingDialogData, AddListingDialogResult>(
       AddListingDialogComponent,
       {
@@ -728,14 +734,57 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
     dialogRef.afterClosed().subscribe(result => {
       if (!result) return;
 
-      console.log('Market listing dialog result:', {
-        component,
-        listing: result
-      });
+      const objectComponent = component.category === BuildingComponentCategory.Objekt
+        ? component as Objekt
+        : null;
 
-      this.snackBar.open('Marktangebot erfasst. Speicherung noch nicht implementiert.', 'OK', {
-        duration: 3000,
-        verticalPosition: 'top'
+      const payload: CreateMarketListing = {
+        component_id: component.id,
+        building_id: userBuilding.building_id,
+        user_building_id: userBuilding.id,
+        owner_id: userBuilding.user_id,
+        location: component.location,
+        component_category: component.category,
+        material: component.category === BuildingComponentCategory.Bauteil ? (result.material ?? undefined) : undefined,
+        object_type: objectComponent?.object_type,
+        object_count: objectComponent?.count,
+        name: result.name,
+        description: result.description ?? undefined,
+        price: result.price,
+        potential: result.potential,
+        quantity: result.quantity,
+        unit: result.unit,
+        status: result.status,
+        available_from: result.availableFrom,
+        contact: result.contact,
+        images: result.images.length > 0
+          ? result.images.map((image, index) => ({
+              image_data_url: image.previewUrl,
+              image_mime_type: image.file.type || undefined,
+              image_original_name: image.fileName || image.file.name || undefined,
+              sort_order: index
+            }))
+          : undefined
+      };
+
+      this.marketListingService.addMarketListing(payload).subscribe({
+        next: createdListing => {
+          console.log('Market listing created:', createdListing);
+        },
+        complete: () => {
+          this.snackBar.open('Marktangebot erfolgreich inseriert.', 'OK', {
+            duration: 3000,
+            verticalPosition: 'top'
+          });
+        },
+        error: error => {
+          console.error('Error creating market listing:', error);
+          this.snackBar.open('Fehler beim Inserieren des Marktangebots!', 'OK', {
+            duration: 10000,
+            verticalPosition: 'top',
+            panelClass: 'snackbar-warn'
+          });
+        }
       });
     });
   }
