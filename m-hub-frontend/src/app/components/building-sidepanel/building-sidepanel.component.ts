@@ -11,7 +11,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { EChartsOption } from 'echarts';
 import { NgxEchartsModule } from 'ngx-echarts';
-import { MaterialGroup } from '../../enums/material-group.enum';
+import { MdabMaterialGroup } from '../../enums/mdab-material-group.enum';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DocumentListComponent } from "../document-list/document-list.component";
 import { BreakpointObserver } from '@angular/cdk/layout';
@@ -191,15 +191,15 @@ export class BuildingSidepanelComponent implements OnInit, OnChanges, OnDestroy 
     if (!this.building) return;
 
     const materialsData = [
-      { value: this.building.bmg1, name: MaterialGroup.mg_1 },
-      { value: this.building.bmg2, name: MaterialGroup.mg_2 },
-      { value: this.building.bmg3, name: MaterialGroup.mg_3 },
-      { value: this.building.bmg4, name: MaterialGroup.mg_4 },
-      { value: this.building.bmg5, name: MaterialGroup.mg_5 },
-      { value: this.building.bmg6, name: MaterialGroup.mg_6 },
-      { value: this.building.bmg7, name: MaterialGroup.mg_7 },
-      { value: this.building.bmg8, name: MaterialGroup.mg_8 },
-      { value: this.building.bmg9, name: MaterialGroup.mg_9 }
+      { value: this.building.bmg1, name: MdabMaterialGroup.mg_1 },
+      { value: this.building.bmg2, name: MdabMaterialGroup.mg_2 },
+      { value: this.building.bmg3, name: MdabMaterialGroup.mg_3 },
+      { value: this.building.bmg4, name: MdabMaterialGroup.mg_4 },
+      { value: this.building.bmg5, name: MdabMaterialGroup.mg_5 },
+      { value: this.building.bmg6, name: MdabMaterialGroup.mg_6 },
+      { value: this.building.bmg7, name: MdabMaterialGroup.mg_7 },
+      { value: this.building.bmg8, name: MdabMaterialGroup.mg_8 },
+      { value: this.building.bmg9, name: MdabMaterialGroup.mg_9 }
     ].filter(entry => entry.value > 0);
 
     this.materialsPieChartOptions = {
