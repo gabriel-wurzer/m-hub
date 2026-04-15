@@ -14,40 +14,7 @@ CREATE TABLE IF NOT EXISTS market_listings (
     component_id UUID NOT NULL,
     location TEXT NOT NULL,
     component_category TEXT NOT NULL CHECK (component_category IN ('Bauteil', 'Objekt')),
-    material TEXT CHECK (
-        material IS NULL OR material IN (
-            'Ziegel',
-            U&'M\00F6rtel',
-            'Beton',
-            U&'Bl\00E4hbeton',
-            'Estrich',
-            'Putz',
-            'Stahl',
-            'Heraklith',
-            'Fliesen',
-            'Fliesenkleber',
-            'Rigips',
-            'Holz',
-            'Keramik',
-            'Bitumen',
-            'Glas',
-            'Mineralwolle',
-            'Styropor',
-            'PVC',
-            'Kupfer',
-            'Aluminium',
-            'Eternit',
-            'Schlacke',
-            'Blei',
-            'Diverse Kunststoffe',
-            'Stroh',
-            'Naturstein',
-            'Papier',
-            'Messing',
-            'Steinzeug',
-            'Linoleum'
-        )
-    ),
+    material TEXT,
     object_type TEXT CHECK (
         object_type IS NULL OR object_type IN (
             U&'Abh\00E4ngung',
@@ -60,7 +27,6 @@ CREATE TABLE IF NOT EXISTS market_listings (
             'Sonstige'
         )
     ),
-    object_count INTEGER CHECK (object_count IS NULL OR object_count > 0),
     name TEXT NOT NULL,
     description TEXT,
     price NUMERIC(12, 2) NOT NULL CHECK (price >= 0),
@@ -80,7 +46,7 @@ CREATE TABLE IF NOT EXISTS market_listings (
     CONSTRAINT market_listings_location_not_blank CHECK (btrim(location) <> ''),
     CONSTRAINT market_listings_contact_not_blank CHECK (btrim(contact) <> ''),
     CONSTRAINT market_listings_component_snapshot_check CHECK (
-        (component_category = 'Bauteil' AND object_type IS NULL AND object_count IS NULL)
+        (component_category = 'Bauteil' AND object_type IS NULL)
         OR
         (component_category = 'Objekt' AND material IS NULL)
     )
@@ -105,6 +71,53 @@ CREATE TABLE IF NOT EXISTS market_listing_images (
 -- ===============================================
 --  FOREIGN KEYS
 -- ===============================================
+ALTER TABLE market_listings
+  DROP CONSTRAINT IF EXISTS market_listings_material_check;
+
+ALTER TABLE market_listings
+  ADD CONSTRAINT market_listings_material_check CHECK (
+    material IS NULL OR material IN (
+        'Aluminium',
+        'Asphalt',
+        'Beton',
+        'Bitumen',
+        U&'Bl\00E4hbeton',
+        'Eternit',
+        'Blei',
+        'Diverse Kunststoffe',
+        'Estrich',
+        'Fliesen',
+        'Fliesenkleber',
+        'Glas',
+        'Heraklith',
+        'Holz',
+        'Kautschuk',
+        'Keramik',
+        'Kupfer',
+        'Laminat',
+        'Linol',
+        'Messing',
+        'Mineralfaser',
+        'Mineralwolle',
+        U&'M\00F6rtel',
+        'Naturstein',
+        'Papier',
+        'Putz',
+        'PVC',
+        'Rigips',
+        'Schlacke',
+        U&'Sch\00FCttung',
+        'Stahl',
+        'Steinzeug',
+        'Stroh',
+        'Styropor',
+        'Teppich',
+        'Terrazzo',
+        'Ytong',
+        'Ziegel'
+    )
+  );
+
 ALTER TABLE market_listings
   ADD CONSTRAINT fk_market_listings_user_building
   FOREIGN KEY (user_building_id)

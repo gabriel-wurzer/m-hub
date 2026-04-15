@@ -1,9 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { forkJoin, map, Observable, of } from 'rxjs';
 import { CreateMarketListing, MarketListing } from '../../models/market-listing';
 import { MaterialType } from '../../enums/material-type.enum';
 import { ObjectType } from '../../enums/object-type';
+import { getMaterialTypesForGroup, MaterialGroup } from '../../enums/material-group';
 
 export type MarketListingCategoryFilter =
   | { kind: 'material'; value: MaterialType }
@@ -38,7 +39,41 @@ export class MarketListingService {
     return this.http.get<MarketListing[]>(this.apiUrl, { params });
   }
 
+  getMarketListingsByMaterialGroup(group: MaterialGroup): Observable<MarketListing[]> {
+    const materials = getMaterialTypesForGroup(group);
+
+    if (!materials.length) {
+      return of([]);
+    }
+
+    return forkJoin(
+      materials.map(material => this.getMarketListingsByCategory({ kind: 'material', value: material }))
+    ).pipe(
+      map(resultSets => this.sortAndDedupeListings(resultSets.flat()))
+    );
+  }
+
+  getMarketListingsByObjectType(objectType: ObjectType): Observable<MarketListing[]> {
+    return this.getMarketListingsByCategory({ kind: 'object', value: objectType }).pipe(
+      map(listings => this.sortAndDedupeListings(listings))
+    );
+  }
+
   addMarketListing(payload: CreateMarketListing): Observable<MarketListing> {
     return this.http.post<MarketListing>(this.apiUrl, payload);
+  }
+
+  private sortAndDedupeListings(listings: MarketListing[]): MarketListing[] {
+    const uniqueById = new Map<string, MarketListing>();
+
+    for (const listing of listings) {
+      uniqueById.set(listing.id, listing);
+    }
+
+    return Array.from(uniqueById.values()).sort((left, right) => {
+      const leftTime = Date.parse(left.created_at ?? '') || 0;
+      const rightTime = Date.parse(right.created_at ?? '') || 0;
+      return rightTime - leftTime;
+    });
   }
 }

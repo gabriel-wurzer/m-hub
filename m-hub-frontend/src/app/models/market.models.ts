@@ -10,9 +10,15 @@ export interface MarketListing {
   title: string;
   price: string;
   quantity: string;
-  condition: string;
-  dimensions: MarketListingDimension[];
+  quantityLabel?: string;
+  material?: string | null;
+  potential?: string | null;
+  status?: string | null;
+  availableFrom?: string | null;
+  dimensions?: MarketListingDimension[];
   location: string;
+  address?: string | null;
+  condition?: string;
   imageSrc: string;
   imageAlt: string;
 }

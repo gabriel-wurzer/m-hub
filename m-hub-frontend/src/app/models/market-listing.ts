@@ -20,7 +20,6 @@ export class MarketListing {
   material?: MaterialType;
   // Objekt-specific snapshot
   object_type?: ObjectType;
-  object_count?: number;
 
   // marketplace data
   name!: string;
@@ -67,7 +66,6 @@ export type CreateMarketListing = {
   component_category: BuildingComponentCategory;   // Bauteil | Objekt
   material?: MaterialType;
   object_type?: ObjectType;
-  object_count?: number;
   name: string;
   description?: string;
   price: number;

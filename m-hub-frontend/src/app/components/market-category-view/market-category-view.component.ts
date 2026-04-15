@@ -18,6 +18,8 @@ export class MarketCategoryViewComponent {
   @Input() category: MarketCategory | null = null;
   @Input() materialCategories: MarketCategory[] = [];
   @Input() objectCategories: MarketCategory[] = [];
+  @Input() loading = false;
+  @Input() loadError: string | null = null;
   @Output() back = new EventEmitter<void>();
   @Output() categorySelect = new EventEmitter<MarketCategory>();
 

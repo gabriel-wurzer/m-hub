@@ -747,7 +747,6 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
         component_category: component.category,
         material: component.category === BuildingComponentCategory.Bauteil ? (result.material ?? undefined) : undefined,
         object_type: objectComponent?.object_type,
-        object_count: objectComponent?.count,
         name: result.name,
         description: result.description ?? undefined,
         price: result.price,

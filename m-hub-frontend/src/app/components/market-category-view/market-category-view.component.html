@@ -9,7 +9,9 @@
       <div class="market-category-heading">
         <div class="market-category-title-row">
           <h1>Kategorie: {{ currentCategory.title }}</h1>
-          <span class="listing-count-chip">{{ currentCategory.listings.length }} Anzeigen</span>
+          <span class="listing-count-chip">
+            {{ loading ? 'Lade Anzeigen...' : currentCategory.listings.length + ' Anzeigen' }}
+          </span>
         </div>
         <p>{{ currentCategory.description }}</p>
       </div>
@@ -20,7 +22,7 @@
     <div class="market-category-content">
       <aside class="category-sidebar" aria-label="Kategorienavigation">
         <section class="category-nav-block">
-          <h3>Materialien</h3>
+          <h3>Materialgruppen</h3>
 
           <button
             class="category-nav-link"
@@ -29,7 +31,7 @@
             [class.active]="item.id === currentCategory.id"
             (click)="selectCategory(item)">
             <span>{{ item.title }}</span>
-            <span class="category-count" *ngIf="item.id === currentCategory.id">{{ item.listings.length }}</span>
+            <span class="category-count" *ngIf="item.id === currentCategory.id">{{ currentCategory.listings.length }}</span>
           </button>
         </section>
 
@@ -43,7 +45,7 @@
             [class.active]="item.id === currentCategory.id"
             (click)="selectCategory(item)">
             <span>{{ item.title }}</span>
-            <span class="category-count" *ngIf="item.id === currentCategory.id">{{ item.listings.length }}</span>
+            <span class="category-count" *ngIf="item.id === currentCategory.id">{{ currentCategory.listings.length }}</span>
           </button>
         </section>
       </aside>
@@ -52,8 +54,19 @@
       <mat-divider class="category-content-divider-mobile"></mat-divider>
 
       <section class="listing-panel">
+        <div class="listing-panel-state" *ngIf="loading">
+          Anzeigen werden geladen.
+        </div>
 
-        <div class="listing-stack">
+        <div class="listing-panel-state error" *ngIf="!loading && loadError">
+          {{ loadError }}
+        </div>
+
+        <div class="listing-panel-state" *ngIf="!loading && !loadError && currentCategory.listings.length === 0">
+          Für diese Kategorie wurden noch keine Marktangebote inseriert.
+        </div>
+
+        <div class="listing-stack" *ngIf="!loading && !loadError && currentCategory.listings.length > 0">
           <mat-card
             class="listing-card"
             *ngFor="let item of currentCategory.listings; trackBy: trackByListingId">
@@ -71,18 +84,18 @@
               <div class="listing-specs">
                 <div class="spec-column">
                   <p>Preis: {{ item.price }}</p>
-                  <p>Menge: {{ item.quantity }}</p>
-                  <p>Zustand: {{ item.condition }}</p>
+                  <p>{{ item.quantityLabel || 'Menge' }}: {{ item.quantity }}</p>
+                  <p class="listing-location">Verortung: {{ item.location }}</p>
+                  <p class="listing-address">Adresse: </p>
                 </div>
 
                 <div class="spec-column">
-                  <p *ngFor="let dimension of item.dimensions">
-                    {{ dimension.label }}: {{ dimension.value }}
-                  </p>
+                  <p *ngIf="item.material">Material: {{ item.material }}</p>
+                  <p *ngIf="item.potential">Potenzial: {{ item.potential }}</p>
+                  <p *ngIf="item.status">Status: {{ item.status }}</p>
+                  <p *ngIf="item.availableFrom">Verfügbar ab: {{ item.availableFrom }}</p>
                 </div>
               </div>
-
-              <p class="listing-location">Standort: {{ item.location }}</p>
             </div>
           </mat-card>
         </div>
