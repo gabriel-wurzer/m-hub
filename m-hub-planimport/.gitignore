@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.angular/
+backend/data/uploads/
+backend/data/plans/
+backend/data/raster/
+backend/data/oekobaudat-cache.json
+*.log
+.DS_Store
+Thumbs.db

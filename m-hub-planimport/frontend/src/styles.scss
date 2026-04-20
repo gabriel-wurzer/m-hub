@@ -1,0 +1,41 @@
+@use '@angular/material' as mat;
+@use 'theme-setup' as vars;
+
+@include mat.core();
+
+$my-theme: mat.define-light-theme((
+  color: (
+    primary: vars.$my-primary,
+    accent: vars.$my-secondary,
+    complementary: vars.$my-complementary,
+    warn: vars.$my-warn
+  )
+));
+
+@include mat.all-component-themes($my-theme);
+
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+// Setup dialog needs to fill most of the viewport.
+.setup-dialog-panel .mat-mdc-dialog-container .mdc-dialog__surface {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+// Colors for wall classifications in the plan viewer.
+:root {
+  --seg-raw: #90a4ae;
+  --seg-wall: #179bde;
+  --seg-excluded: #c62828;
+  --seg-hover: #0e6aa8;
+  --seg-selected: #ffab00;
+  --polygon-fill: rgba(23, 155, 222, 0.12);
+  --polygon-stroke: #107bbc;
+}
