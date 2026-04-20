@@ -28,7 +28,10 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: mhubdb
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      # -h 127.0.0.1 forces a TCP probe, so dependents (gdal, backend, postgis-api)
+      # only start once Postgres is accepting real network connections, not just
+      # the local unix socket.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -50,8 +53,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     command: >
       sh -c "
+        set -e;
         echo 'Importing buildings data...';
-        ogr2ogr -f PostgreSQL \"PG:host=$$POSTGRES_HOST user=$$POSTGRES_USER dbname=$$POSTGRES_DB password=$$POSTGRES_PASSWORD\" /data/mhub_wien.gpkg buildings_details -nln buildings_details -nlt PROMOTE_TO_MULTI -progress &&
+        ogr2ogr -f PostgreSQL \"PG:host=$$POSTGRES_HOST user=$$POSTGRES_USER dbname=$$POSTGRES_DB password=$$POSTGRES_PASSWORD\" /data/mhub_wien.gpkg buildings_details -nln buildings_details -nlt PROMOTE_TO_MULTI -progress;
         echo 'Importing building blocks data...';
         ogr2ogr -f PostgreSQL \"PG:host=$$POSTGRES_HOST user=$$POSTGRES_USER dbname=$$POSTGRES_DB password=$$POSTGRES_PASSWORD\" /data/mhub_wien.gpkg buildingblocks -nln buildingblocks -nlt PROMOTE_TO_MULTI -progress;
         echo 'Data import completed.'
