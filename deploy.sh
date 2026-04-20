@@ -23,6 +23,19 @@ if ! docker info >/dev/null 2>&1; then
   exit 1
 fi
 
+# -------- Compose CLI detection --------
+# Prefer the Compose v2 plugin ('docker compose'); fall back to the
+# legacy standalone 'docker-compose' binary if that's all that's installed.
+if docker compose version >/dev/null 2>&1; then
+  DC="docker compose"
+elif command -v docker-compose >/dev/null 2>&1; then
+  DC="docker-compose"
+  echo "[INFO] Using legacy 'docker-compose' binary. Consider upgrading to the Compose v2 plugin."
+else
+  echo "[ERROR] Neither 'docker compose' (v2 plugin) nor 'docker-compose' (legacy) found." >&2
+  exit 1
+fi
+
 # -------- Angular environment.ts bootstrap --------
 ENV_TS="m-hub-frontend/src/environments/environment.ts"
 ENV_TEMPLATE="m-hub-frontend/src/environments/environment.template.ts"
@@ -41,35 +54,35 @@ fi
 
 # -------- Build --------
 echo "[BUILD] Building all Docker images..."
-docker compose build
+$DC build
 
 # -------- Teardown existing stack --------
 echo "[CLEANUP] Removing old containers and volumes..."
-docker compose down -v --remove-orphans
+$DC down -v --remove-orphans
 
 # -------- DB first --------
 echo "[START] Postgres..."
-docker compose up -d m-hub-db
+$DC up -d m-hub-db
 
 echo "[WAIT] For Postgres to be ready..."
-docker compose exec -T m-hub-db \
+$DC exec -T m-hub-db \
   sh -c 'until pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do sleep 2; done'
 echo "[OK] Postgres accepting connections."
 
 # -------- GeoPackage import --------
 echo "[IMPORT] GeoPackage into Postgres..."
-if ! docker compose run --rm gdal; then
+if ! $DC run --rm gdal; then
   echo "[ERROR] GeoPackage import failed. Check ./data/mhub_wien.gpkg exists." >&2
-  docker compose logs --tail 200 m-hub-db >&2 || true
+  $DC logs --tail 200 m-hub-db >&2 || true
   exit 1
 fi
 echo "[OK] GeoPackage import finished."
 
 # -------- Remaining services --------
 echo "[START] Backend, Frontend, Postgis-API and SeaweedFS..."
-docker compose up -d seaweed-filer m-hub-postgis-api m-hub-backend m-hub-frontend
+$DC up -d seaweed-filer m-hub-postgis-api m-hub-backend m-hub-frontend
 
 echo
 echo "[OK] Stack deployed."
 echo "     Frontend: http://localhost/"
-echo "     Logs:     docker compose logs -f"
+echo "     Logs:     ${DC} logs -f"
