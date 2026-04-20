@@ -7,13 +7,11 @@ IF NOT EXIST .env (
 )
 
 REM -------- Platform detection (arm64) --------
-FOR /F "tokens=2 delims==" %%i IN ('wmic os get osarchitecture /value ^| find "="') DO SET ARCH=%%i
-
-IF "%ARCH%"=="64-bit" (
-    REM Most likely amd64, leave DOCKER_PLATFORM unset
-) ELSE (
-    echo [INFO] ARM64 Windows detected – forcing DOCKER_PLATFORM=linux/amd64 for PostGIS image
+IF /I "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
+    echo [INFO] ARM64 Windows detected - forcing DOCKER_PLATFORM=linux/amd64 for PostGIS image
     SET DOCKER_PLATFORM=linux/amd64
+) ELSE (
+    REM amd64 / x86: leave DOCKER_PLATFORM unset
 )
 
 docker 1>NUL 2>NUL
@@ -36,12 +34,53 @@ del ng.ver /f /q
 if "%err%" GTR "0" echo [FEHLER] ng ist derzeit nicht installiert. hint: npm install -g @angular/cli & GOTO ENDSCRIPT
 echo [OK] ng gefunden
 echo.
-echo [INSTALL] Backend... 
-cmd /c "cd m-hub-backend/data & npm install --legacy-peer-deps 2>&1" 
+echo [INSTALL] Backend...
+pushd m-hub-backend\data
+call npm install --legacy-peer-deps
+set RC=%ERRORLEVEL%
+popd
+if not "%RC%"=="0" (
+  echo [FEHLER] npm install fehlgeschlagen im Backend - exit code %RC%
+  goto ENDSCRIPT
+)
 
-echo [INSTALL] Frontend... 
-cmd /c "cd m-hub-frontend & npm install 2>&1" 
-cmd /c "cd m-hub-frontend & ng build 2>&1"
+echo [INSTALL] Frontend...
+pushd m-hub-frontend
+call npm install
+set RC=%ERRORLEVEL%
+popd
+if not "%RC%"=="0" (
+  echo [FEHLER] npm install fehlgeschlagen im Frontend - exit code %RC%
+  goto ENDSCRIPT
+)
+
+IF NOT EXIST "m-hub-frontend\src\environments\environment.ts" (
+  IF EXIST "m-hub-frontend\src\environments\environment.template.ts" (
+    echo [INIT] environment.ts fehlt - kopiere aus environment.template.ts
+    copy /Y "m-hub-frontend\src\environments\environment.template.ts" "m-hub-frontend\src\environments\environment.ts" >NUL
+    echo [HINWEIS] Passe m-hub-frontend\src\environments\environment.ts an ^(z.B. mapboxToken^) und starte danach neu.
+  ) ELSE (
+    echo [FEHLER] Weder environment.ts noch environment.template.ts vorhanden in m-hub-frontend\src\environments.
+    GOTO ENDSCRIPT
+  )
+)
+
+echo [BUILD] Frontend - ng build...
+pushd m-hub-frontend
+call npm run build
+set RC=%ERRORLEVEL%
+popd
+if not "%RC%"=="0" (
+  echo [FEHLER] ng build fehlgeschlagen im Frontend - exit code %RC%
+  goto ENDSCRIPT
+)
+
+IF NOT EXIST "m-hub-frontend\dist\m-hub-frontend\browser" (
+  echo [FEHLER] Build-Ausgabe nicht gefunden: m-hub-frontend\dist\m-hub-frontend\browser
+  echo         Docker compose erwartet dieses Verzeichnis (siehe m-hub-frontend\Dockerfile).
+  GOTO ENDSCRIPT
+)
+echo [OK] Frontend build output vorhanden.
 
 echo [CLEANUP] Remove old containers and volumes...
 docker compose down -v --remove-orphans

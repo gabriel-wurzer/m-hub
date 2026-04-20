@@ -1,0 +1,8 @@
+# Force LF for files read inside Linux containers or by Linux tooling.
+# Without this, git on Windows (core.autocrlf=true) converts LF->CRLF on
+# checkout, which breaks busybox httpd, nginx, shell scripts, and similar.
+Dockerfile      text eol=lf
+*.sh            text eol=lf
+*.conf          text eol=lf
+httpd.conf      text eol=lf
+nginx.conf      text eol=lf
