@@ -45,6 +45,14 @@ if [ ! -f "$ENV_TS" ] && [ -f "$ENV_TEMPLATE" ]; then
   cp "$ENV_TEMPLATE" "$ENV_TS"
 fi
 
+# -------- Host-side perms for bind-mounted node-red data --------
+# The node-red container runs as UID 1000 and bind-mounts ./m-hub-backend/data.
+# Ensure those files are readable+writable by that UID regardless of the host's
+# umask (Photon OS defaults can produce 0600 files the container can't open).
+if [ -d m-hub-backend/data ]; then
+  chmod -R a+rwX m-hub-backend/data
+fi
+
 # -------- Platform hint for PostGIS on ARM --------
 ARCH=$(uname -m 2>/dev/null || echo "")
 if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
