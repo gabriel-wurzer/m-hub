@@ -65,8 +65,16 @@ echo "[START] Postgres..."
 $DC up -d m-hub-db
 
 echo "[WAIT] For Postgres to be ready..."
-$DC exec -T m-hub-db \
-  sh -c 'until pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do sleep 2; done'
+DEADLINE=$((SECONDS + 60))
+until $DC exec -T m-hub-db \
+        sh -c 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"' >/dev/null 2>&1; do
+  if [ "$SECONDS" -gt "$DEADLINE" ]; then
+    echo "[ERROR] Postgres did not become ready within 60s. Recent logs:" >&2
+    $DC logs --tail 100 m-hub-db >&2 || true
+    exit 1
+  fi
+  sleep 2
+done
 echo "[OK] Postgres accepting connections."
 
 # -------- GeoPackage import --------
