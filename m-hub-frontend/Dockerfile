@@ -2,6 +2,11 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
+# git is required to resolve the 'gitlab:jkuebart/Leaflet.VectorTileLayer'
+# dependency in package.json. Rewrite SSH->HTTPS so no SSH key is needed.
+RUN apk add --no-cache git \
+ && git config --global url."https://gitlab.com/".insteadOf "ssh://git@gitlab.com/"
+
 COPY package.json package-lock.json ./
 RUN npm ci
 
