@@ -127,10 +127,6 @@ services:
     # Expose port 8080 from the container to the host port 80
     ports:
       - "80:8080"
-    # Mount host directories to container directories as volumes
-    volumes:
-      - ./m-hub-frontend/dist/m-hub-frontend/browser:/home/static
-      - ./m-hub-frontend/httpd.conf:/home/static/httpd.conf:ro
     depends_on:
       m-hub-backend:
         condition: service_healthy

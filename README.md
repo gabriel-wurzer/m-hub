@@ -37,25 +37,27 @@ Follow these steps to set up the project environment and import the building dat
     Then set the appropriate values for POSTGRES_PASSWORD and JWT_SECRET in the `.env` file.<br>
     For generating the JWT_SECRET something like `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` can be used.<br>
 
-    Note: If you are on an ARM64 platform, the run script should detect it and set DOCKER_PLATFORM=linux/amd64 in `.env`.
+    You will also need a mapbox token: Go to mapbox.com, create an account, and follow the following procedure: [Setting up a mapbox token](https://docs.mapbox.com/help/dive-deeper/access-tokens/#creating-public-tokens). The created token is pasted into your .env file as MAPBOX_TOKEN.
 
-2. **Build and run the project**
+    Note: If you are on an ARM host, `deploy.sh` detects it and sets `DOCKER_PLATFORM=linux/amd64` for the PostGIS image.
 
-    From the project root directory, run the appropriate script depending on your platform.
-    These scripts will build the frontend and backend, start the database, and import the building data.
+2. **Pull latest sources**
 
-    ### Windows
     ```bash
-    .\run.bat
+    ./pull.sh
     ```
 
-    ### Mac / Linux
+    On Windows, run the same command from Git Bash.
+
+3. **Build and deploy**
+
     ```bash
-    chmod +x run.sh
-   ./run.sh
+    ./deploy.sh
     ```
 
-3. **Rerun the project**
+    This builds all Docker images (including the Angular frontend inside Docker), starts Postgres, imports the GeoPackage, and brings up the rest of the stack.
+
+4. **Rerun the project**
     ```bash
     docker compose up -d --build seaweed-filer m-hub-db m-hub-postgis-api m-hub-backend m-hub-frontend
     ```
