@@ -126,7 +126,7 @@ services:
     tty: true
     # Expose port 8080 from the container to the host port 80
     ports:
-      - "80:8080"
+      - "8910:8080"
     depends_on:
       m-hub-backend:
         condition: service_healthy
