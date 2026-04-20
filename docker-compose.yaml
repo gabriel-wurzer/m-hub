@@ -99,6 +99,8 @@ services:
       - SEAWEED_FILER_INTERNAL_URL=${SEAWEED_FILER_INTERNAL_URL:-http://seaweed-filer:8888}
       - SEAWEED_PUBLIC_BASE_URL=${SEAWEED_PUBLIC_BASE_URL:-http://localhost:8888}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+      # Baked into the image by the backend Dockerfile; see comment there.
+      - NODE_PATH=/opt/data-deps/node_modules
     # Mount host directories to container directories as volumes
     volumes:
       - ./m-hub-backend/data:/data
