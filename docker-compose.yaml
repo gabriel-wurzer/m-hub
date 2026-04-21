@@ -126,6 +126,8 @@ services:
     image: m-hub-frontend
     build:
       context: ./m-hub-frontend
+      args:
+        MAPBOX_TOKEN: ${MAPBOX_TOKEN:-}
     # docker run -i
     stdin_open: true
     # docker run -t

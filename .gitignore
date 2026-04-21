@@ -29,7 +29,7 @@ yarn-error.log
 #!.vscode/extensions.json
 #.history/*
 
-# Environments
+# Angular Environments
 m-hub-frontend/src/environments/environment.ts
 
 # Miscellaneous
