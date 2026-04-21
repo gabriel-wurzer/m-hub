@@ -130,7 +130,7 @@ services:
     stdin_open: true
     # docker run -t
     tty: true
-    # Expose port 8080 from the container to the host port 80
+    # Expose port 8080 from the container to the host port 8910
     ports:
       - "8910:8080"
     depends_on:
