@@ -55,4 +55,4 @@ Follow these steps to set up the project environment and import the building dat
     ./deploy.sh
     ```
 
-    This builds all Docker images (including the Angular frontend inside Docker), starts Postgres, imports the GeoPackage, and brings up the rest of the stack.
+    This builds all Docker images, starts Postgres database, imports the GeoPackage, and brings up the rest of the stack.
