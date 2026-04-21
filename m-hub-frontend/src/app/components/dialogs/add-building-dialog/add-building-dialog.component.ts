@@ -106,8 +106,8 @@ export class AddBuildingDialogComponent {
   name: string = '';
   address: string = '';
 
-  floorSvgUrl = 'assets/images/geschoss.svg';
-  roofSvgUrl = 'assets/images/dach.svg';
+  floorSvgUrl = '/assets/images/geschoss.svg';
+  roofSvgUrl = '/assets/images/dach.svg';
 
   matcher = new FloorSelectMatcher();
 

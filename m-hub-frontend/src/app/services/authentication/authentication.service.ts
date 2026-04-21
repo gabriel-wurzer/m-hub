@@ -13,7 +13,7 @@ interface LoginResp {
 })
 export class AuthenticationService {
 
-  private apiUrl = 'http://localhost:1880/api/auth'; // Node-RED endpoint (development)
+  private apiUrl = '/api/auth';
 
   private authTokenKey = 'auth_token';
   private user$ = new BehaviorSubject<LoginResp['user'] | null>(null);

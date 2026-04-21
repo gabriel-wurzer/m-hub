@@ -15,7 +15,7 @@ export type MarketListingCategoryFilter =
 })
 export class MarketListingService {
 
-  private readonly apiUrl = 'http://localhost:1880/api/market-listings';  // Node-RED route for Market Listings
+  private readonly apiUrl = '/api/market-listings';
 
   constructor(private http: HttpClient) { }
 

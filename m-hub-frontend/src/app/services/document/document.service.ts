@@ -7,7 +7,7 @@ import { CreateDocumentPayload, Document, DocumentSummaryDto, UpdateDocumentPayl
   providedIn: 'root'
 })
 export class DocumentService {
-  private apiUrl = 'http://localhost:1880/api/documents'; // Node-RED endpoint for documents
+  private apiUrl = '/api/documents';
 
   constructor(private http: HttpClient) {}
 

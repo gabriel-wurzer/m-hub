@@ -8,7 +8,7 @@ import { UserBuilding } from '../../models/building';
 })
 export class UserService {
 
-  private apiUrl = 'http://localhost:1880/api/users'; // Node-RED endpoint (development)
+  private apiUrl = '/api/users';
 
   constructor(private http: HttpClient) { }
 
@@ -50,6 +50,5 @@ export class UserService {
   }
 
 }
-
 
 

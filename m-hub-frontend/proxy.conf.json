@@ -8,11 +8,22 @@
     }
   },
   "/nominatim" : {
-    "target": "https://nominatim.openstreetmap.org",
-    "secure": true,
+    "target": "http://localhost:1880",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {}
+  },
+  "/api": {
+    "target": "http://localhost:1880",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/postgis/v1": {
+    "target": "http://localhost:3002",
+    "secure": false,
     "changeOrigin": true,
     "pathRewrite": {
-      "^/nominatim": ""
+      "^/postgis": ""
     }
   }
 }

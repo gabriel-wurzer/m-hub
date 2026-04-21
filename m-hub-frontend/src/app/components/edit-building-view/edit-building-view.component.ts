@@ -118,8 +118,8 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
   buildingObjects: Objekt[] = [];
   documents: Document[] = [];
 
-  floorSvgUrl = 'assets/images/geschoss.svg';
-  roofSvgUrl = 'assets/images/dach.svg';
+  floorSvgUrl = '/assets/images/geschoss.svg';
+  roofSvgUrl = '/assets/images/dach.svg';
 
   animationsDisabled = true;
   suppressStructureAnimations = false;

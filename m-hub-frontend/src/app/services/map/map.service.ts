@@ -10,9 +10,8 @@ import { Building } from '../../models/building';
 })
 export class MapService {
 
-  // private readonly postGisBaseUrl = 'http://128.131.21.198:3002/v1';
-  // private readonly postGisBaseUrl = 'http://m-hub-postgis-api:3000/v1';
-  private readonly postGisBaseUrl = 'http://localhost:3002/v1'; 
+  private readonly postGisBaseUrl = '/postgis/v1';
+  private readonly nominatimUrl = '/nominatim';
   
   constructor(private http: HttpClient) {}
 
@@ -91,7 +90,7 @@ export class MapService {
     //   .set('q', `${query}, Vienna`)
     //   .set('countrycodes', 'AT')
 
-    const url = `http://localhost:1880/nominatim?q=${encodeURIComponent(query)}`;
+    const url = `${this.nominatimUrl}?q=${encodeURIComponent(query)}`;
 
     // return this.http.get<any[]>(url, { params }).pipe(
     return this.http.get<any[]>(url).pipe(
