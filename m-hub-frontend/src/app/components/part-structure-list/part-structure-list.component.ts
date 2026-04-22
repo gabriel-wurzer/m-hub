@@ -364,6 +364,20 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
     return this.isInvalidLayerNumber(layer.thickness);
   }
 
+  showPositiveThicknessRequirementError(): boolean {
+    if (!this.structureType || this.layers.length === 0) {
+      return false;
+    }
+
+    const hasIncompleteLayerData = this.layers.some((layer) => {
+      const hasMaterial = !this.isMaterialMissing(layer.material);
+      const hasValidThickness = !this.isLayerThicknessInvalid(layer);
+      return !hasMaterial || !hasValidThickness;
+    });
+
+    return !hasIncompleteLayerData && !this.hasPositiveThicknessLayer(this.layers);
+  }
+
   getStructureVisualTileTooltip(tile: StructureVisualTile): string {
     return tile.isOverflow && tile.hiddenCount
       ? `${tile.hiddenCount} weitere Schichten ausgeblendet`
@@ -571,7 +585,13 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
       const hasMaterial = !this.isMaterialMissing(layer.material);
       const hasThickness = !this.isLayerThicknessInvalid(layer);
       return hasMaterial && hasThickness;
-    });
+    }) && this.hasPositiveThicknessLayer(structure.layers);
+  }
+
+  private hasPositiveThicknessLayer(
+    layers: Array<{ material: Layer['material']; thickness: number | null }>
+  ): boolean {
+    return layers.some((layer) => !this.requiresFixedZeroThickness(layer.material) && !this.isInvalidLayerNumber(layer.thickness));
   }
 
   private enforceLayerThicknessRules(): void {

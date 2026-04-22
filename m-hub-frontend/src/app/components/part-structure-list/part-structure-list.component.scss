@@ -294,6 +294,12 @@
   color: rgba(0, 0, 0, 0.64);
 }
 
+.structure-error {
+  margin: 0;
+  font-size: 14px;
+  color: mat.get-color-from-palette(vars.$my-warn, 600);
+}
+
 mat-hint {
   font-size: 14px;
 }
