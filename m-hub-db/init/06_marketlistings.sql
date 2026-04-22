@@ -27,6 +27,9 @@ CREATE TABLE IF NOT EXISTS market_listings (
             'Sonstige'
         )
     ),
+    length DOUBLE PRECISION CHECK (length IS NULL OR length > 0),
+    width DOUBLE PRECISION CHECK (width IS NULL OR width > 0),
+    height DOUBLE PRECISION CHECK (height IS NULL OR height > 0),
     name TEXT NOT NULL,
     description TEXT,
     price NUMERIC(12, 2) NOT NULL CHECK (price >= 0),
@@ -67,6 +70,15 @@ CREATE TABLE IF NOT EXISTS market_listing_images (
     CONSTRAINT market_listing_images_path_not_blank CHECK (btrim(image_path) <> ''),
     CONSTRAINT market_listing_images_listing_sort_order_unique UNIQUE (market_listing_id, sort_order)
 );
+
+ALTER TABLE market_listings
+  ADD COLUMN IF NOT EXISTS length DOUBLE PRECISION;
+
+ALTER TABLE market_listings
+  ADD COLUMN IF NOT EXISTS width DOUBLE PRECISION;
+
+ALTER TABLE market_listings
+  ADD COLUMN IF NOT EXISTS height DOUBLE PRECISION;
 
 -- ===============================================
 --  FOREIGN KEYS

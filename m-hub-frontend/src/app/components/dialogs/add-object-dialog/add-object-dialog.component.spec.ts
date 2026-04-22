@@ -46,6 +46,16 @@ describe('AddObjectDialogComponent', () => {
     expect(component.isFormValid()).toBeTrue();
   });
 
+  it('should show a number error and invalidate the form for bad measurement input', () => {
+    component.name = 'Fenster';
+    component.objectType = ObjectType.Fenster;
+    component.number = 1;
+    component.length = '123asd' as any;
+
+    expect(component.getLengthError()).toBe('Länge muss eine Zahl sein');
+    expect(component.isFormValid()).toBeFalse();
+  });
+
   it('should include measurements in the dialog result', () => {
     component.name = 'Fenster';
     component.objectType = ObjectType.Fenster;

@@ -46,6 +46,8 @@ type LocationOptionVm = {
   note?: string;
 };
 
+type MeasurementInput = number | string | null;
+
 @Component({
   selector: 'app-add-object-dialog',
   standalone: true,
@@ -78,9 +80,9 @@ export class AddObjectDialogComponent {
   description: string = '';
   selectedLocations: string[] = [];
   number: number = 1;
-  length: number | null = null;
-  width: number | null = null;
-  height: number | null = null;
+  length: MeasurementInput = null;
+  width: MeasurementInput = null;
+  height: MeasurementInput = null;
   objectType: ObjectType | null = null;
   isPublic: boolean = true;
   isHazardous: boolean = false;
@@ -96,6 +98,7 @@ export class AddObjectDialogComponent {
   selectedImageFile: File | null = null;
   selectedImageFileName: string = '';
   selectedImagePreviewUrl: string | null = null;
+  readonly positiveMeasurementPattern = '^(?:[1-9]\\d*(?:[.,]\\d+)?|0[.,]\\d*[1-9]\\d*)$';
 
   constructor(
     @Optional() public dialogRef: MatDialogRef<AddObjectDialogComponent> | null,
@@ -291,24 +294,52 @@ export class AddObjectDialogComponent {
     return trimmed.length === 0 ? null : trimmed;
   }
 
-  private getMeasurementError(label: string, value: number | null): string | null {
-    if (value === null || value === undefined) {
+  private getMeasurementError(label: string, value: MeasurementInput): string | null {
+    const parsedValue = this.parseMeasurementInput(value);
+
+    if (parsedValue === null) {
       return null;
     }
 
-    if (!Number.isFinite(value) || value <= 0) {
+    if (!Number.isFinite(parsedValue)) {
+      return `${label} muss eine Zahl sein`;
+    }
+
+    if (parsedValue <= 0) {
       return `${label} muss größer 0 sein`;
     }
 
     return null;
   }
 
-  private isOptionalMeasurementValid(value: number | null | undefined): boolean {
-    return value === null || value === undefined || (Number.isFinite(value) && value > 0);
+  private isOptionalMeasurementValid(value: MeasurementInput): boolean {
+    const parsedValue = this.parseMeasurementInput(value);
+    return parsedValue === null || (Number.isFinite(parsedValue) && parsedValue > 0);
   }
 
-  private normalizeOptionalMeasurement(value: number | null | undefined): number | null {
-    return this.isOptionalMeasurementValid(value) ? value ?? null : null;
+  private normalizeOptionalMeasurement(value: MeasurementInput): number | null {
+    const parsedValue = this.parseMeasurementInput(value);
+    return parsedValue !== null && Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
+  }
+
+  private parseMeasurementInput(value: MeasurementInput): number | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    if (typeof value === 'number') {
+      return value;
+    }
+
+    const trimmed = value.trim();
+    if (trimmed.length === 0) {
+      return null;
+    }
+
+    const normalized = trimmed.replace(',', '.');
+    const parsedValue = Number(normalized);
+
+    return Number.isFinite(parsedValue) ? parsedValue : Number.NaN;
   }
 
   private buildFloorOptions(structure: Floor[]): FloorOption[] {

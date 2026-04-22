@@ -59,6 +59,13 @@ describe('EditObjectDialogComponent', () => {
     expect(component.height).toBe(135);
   });
 
+  it('should show a number error and invalidate the form for bad measurement input', () => {
+    component.height = 'asdf' as any;
+
+    expect(component.getHeightError()).toBe('Höhe muss eine Zahl sein');
+    expect(component.isFormValid()).toBeFalse();
+  });
+
   it('should include measurements in the edit result', () => {
     component.confirmEditObject();
 
