@@ -210,6 +210,18 @@
         <div class="value">{{ getValue(['count']) }}</div>
       </div>
       <div class="info-row">
+        <div class="label">Länge</div>
+        <div class="value">{{ getMeasurementValue(['length']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Breite</div>
+        <div class="value">{{ getMeasurementValue(['width']) }}</div>
+      </div>
+      <div class="info-row">
+        <div class="label">Höhe</div>
+        <div class="value">{{ getMeasurementValue(['height']) }}</div>
+      </div>
+      <div class="info-row">
         <div class="label">Sichtbarkeit</div>
         <div class="value">{{ getVisibilityValue(['is_public', 'isPublic']) }}</div>
       </div>

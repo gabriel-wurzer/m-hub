@@ -16,6 +16,9 @@ CREATE TABLE IF NOT EXISTS building_objects (
     location TEXT,
     object_type TEXT,
     count INTEGER NOT NULL DEFAULT 1,
+    length DOUBLE PRECISION,
+    width DOUBLE PRECISION,
+    height DOUBLE PRECISION,
     is_public BOOLEAN NOT NULL DEFAULT TRUE,
     is_hazardous BOOLEAN NOT NULL DEFAULT FALSE,
     image_path TEXT,
@@ -25,6 +28,15 @@ CREATE TABLE IF NOT EXISTS building_objects (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE building_objects
+  ADD COLUMN IF NOT EXISTS length DOUBLE PRECISION;
+
+ALTER TABLE building_objects
+  ADD COLUMN IF NOT EXISTS width DOUBLE PRECISION;
+
+ALTER TABLE building_objects
+  ADD COLUMN IF NOT EXISTS height DOUBLE PRECISION;
 
 -- ===============================================
 --  FOREIGN KEYS
@@ -48,6 +60,9 @@ INSERT INTO building_objects (
     location,
     object_type,
     count,
+    length,
+    width,
+    height,
     is_public,
     is_hazardous
 )
@@ -61,18 +76,21 @@ SELECT
     src.location,
     src.object_type,
     src.count,
+    src.length,
+    src.width,
+    src.height,
     src.is_public,
     src.is_hazardous
 FROM (
     VALUES
-    -- building_id, owner_id, category, location, name, description, object_type, count, is_public, is_hazardous
-    ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Objekt', 'Individuell' , 'Eingangstüre', 'Haupteingangstüre des Gebäudes. Befindet sich im Eingangsbereich des EG.', 'Tür', 1, TRUE, FALSE),
-    ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Objekt', 'Dach', 'Dachfenster', NULL, 'Fenster', 8, FALSE, FALSE),
-    ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Objekt', 'Kellergeschoss 1', 'Heizkessel', 'Hauptheizkessel des Gebäudes', 'Sonstige', 1, FALSE, TRUE),
-    ('5312213', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Objekt', 'Regelgeschoss 1', 'Antenne', 'Antennenanlage auf dem Dach', 'Sonstige', 1, TRUE, FALSE),
-    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Objekt', 'Kellergeschoss 2', 'Heizkessel', 'Hauptheizkessel des Gebäudes', 'Sonstige', 1, FALSE, TRUE),
-    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Objekt', 'Regelgeschoss 2', 'Waschbecken', 'Waschbecken aus Keramik. Befindet sich in allen Geschossen des Regelgeschoss 2', 'Sonstige', 3, TRUE, FALSE)
-) AS src(building_id, owner_id, category, location, name, description, object_type, count, is_public, is_hazardous)
+    -- building_id, owner_id, category, location, name, description, object_type, count, length, width, height, is_public, is_hazardous
+    ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Objekt', 'Individuell' , 'Eingangstüre', 'Haupteingangstüre des Gebäudes. Befindet sich im Eingangsbereich des EG.', 'Tür', 1, 210, 100, 20, TRUE, FALSE),
+    ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Objekt', 'Dach', 'Dachfenster', NULL, 'Fenster', 8, 120, 120, 10, FALSE, FALSE),
+    ('5363852', 'e2f64296-77ce-4cf9-9436-29f6d3a7d9ea'::uuid, 'Objekt', 'Kellergeschoss 1', 'Heizkessel', 'Hauptheizkessel des Gebäudes', 'Sonstige', 1, 80, 120, 150, FALSE, TRUE),
+    ('5312213', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Objekt', 'Regelgeschoss 1', 'Antenne', 'Antennenanlage auf dem Dach', 'Sonstige', 1, 25, 25, 160, TRUE, FALSE),
+    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Objekt', 'Kellergeschoss 2', 'Heizkessel', 'Hauptheizkessel des Gebäudes', 'Sonstige', 1, 80, 120, 150, FALSE, TRUE),
+    ('5397325', 'c3e5b0fc-cc48-4a6f-8e27-135b6d3a1b71'::uuid, 'Objekt', 'Regelgeschoss 2', 'Waschbecken', 'Waschbecken aus Keramik. Befindet sich in allen Geschossen des Regelgeschoss 2', 'Sonstige', 3, 70, 130, 110, TRUE, FALSE)
+) AS src(building_id, owner_id, category, location, name, description, object_type, count, length, width, height, is_public, is_hazardous)
 JOIN user_buildings ub 
   ON ub.building_id = src.building_id 
   AND ub.user_id = src.owner_id;

@@ -179,6 +179,9 @@
                 </ng-container>
               </p>
               <p>Anzahl: {{ getObjectCountValue() }}</p>
+              <p>Länge: {{ getObjectMeasurementValue('length') }}</p>
+              <p>Breite: {{ getObjectMeasurementValue('width') }}</p>
+              <p>Höhe: {{ getObjectMeasurementValue('height') }}</p>
             </div>
             <p>Schadstoffe: {{ getHazardousValue(buildingComponent.is_hazardous) }}</p>
 

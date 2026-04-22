@@ -103,6 +103,16 @@ mat-form-field {
   flex-basis: 100%;
 }
 
+.measurements-wrapper {
+  flex-basis: 100%;
+}
+
+.measurements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.5rem 1rem;
+}
+
 .checkbox-wrapper {
   h2 {
     margin-bottom: 0;

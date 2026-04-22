@@ -27,6 +27,9 @@ export type AddObjectDialogResult = {
   description: string | null;
   location: string;
   number: number;
+  length: number | null;
+  width: number | null;
+  height: number | null;
   imageFile: File | null;
   imageFileName: string;
   imagePreviewUrl: string | null;
@@ -75,6 +78,9 @@ export class AddObjectDialogComponent {
   description: string = '';
   selectedLocations: string[] = [];
   number: number = 1;
+  length: number | null = null;
+  width: number | null = null;
+  height: number | null = null;
   objectType: ObjectType | null = null;
   isPublic: boolean = true;
   isHazardous: boolean = false;
@@ -165,6 +171,18 @@ export class AddObjectDialogComponent {
     return null;
   }
 
+  getLengthError(): string | null {
+    return this.getMeasurementError('Länge', this.length);
+  }
+
+  getWidthError(): string | null {
+    return this.getMeasurementError('Breite', this.width);
+  }
+
+  getHeightError(): string | null {
+    return this.getMeasurementError('Höhe', this.height);
+  }
+
   // getLocationError(): string | null {
   //   if (this.selectedLocations.length === 0) {
   //     return 'Geschoss erforderlich';
@@ -178,7 +196,12 @@ export class AddObjectDialogComponent {
     // const isLocationValid = this.selectedLocations.length > 0;
     const parsedNumber = Number(this.number);
     const isNumberValid = Number.isInteger(parsedNumber) && parsedNumber >= 1;
-    return isNameValid && isObjectTypeValid && isNumberValid;
+    const areMeasurementsValid = [
+      this.isOptionalMeasurementValid(this.length),
+      this.isOptionalMeasurementValid(this.width),
+      this.isOptionalMeasurementValid(this.height)
+    ].every(Boolean);
+    return isNameValid && isObjectTypeValid && isNumberValid && areMeasurementsValid;
   }
 
   onLocationsChange(selectedLocations: string[]): void {
@@ -268,6 +291,26 @@ export class AddObjectDialogComponent {
     return trimmed.length === 0 ? null : trimmed;
   }
 
+  private getMeasurementError(label: string, value: number | null): string | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    if (!Number.isFinite(value) || value <= 0) {
+      return `${label} muss größer 0 sein`;
+    }
+
+    return null;
+  }
+
+  private isOptionalMeasurementValid(value: number | null | undefined): boolean {
+    return value === null || value === undefined || (Number.isFinite(value) && value > 0);
+  }
+
+  private normalizeOptionalMeasurement(value: number | null | undefined): number | null {
+    return this.isOptionalMeasurementValid(value) ? value ?? null : null;
+  }
+
   private buildFloorOptions(structure: Floor[]): FloorOption[] {
     const floorTypeIndex = {
       [FloorType.KG]: 0,
@@ -312,6 +355,9 @@ export class AddObjectDialogComponent {
       description: this.normalizeOptionalInput(this.description),
       location: this.formatLocationForPayload(),
       number: Number(this.number),
+      length: this.normalizeOptionalMeasurement(this.length),
+      width: this.normalizeOptionalMeasurement(this.width),
+      height: this.normalizeOptionalMeasurement(this.height),
       imageFile: this.selectedImageFile,
       imageFileName: this.selectedImageFileName,
       imagePreviewUrl: this.selectedImagePreviewUrl

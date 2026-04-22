@@ -473,6 +473,9 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
         description: result.description ?? undefined,
         object_type: result.objectType,
         count,
+        length: this.normalizeOptionalPositiveNumber(result.length),
+        width: this.normalizeOptionalPositiveNumber(result.width),
+        height: this.normalizeOptionalPositiveNumber(result.height),
         location: result.location,
         is_public: result.isPublic ?? true,
         is_hazardous: result.isHazardous ?? false
@@ -539,6 +542,9 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
         description: result.description ?? undefined,
         object_type: result.objectType,
         count,
+        length: this.normalizeOptionalPositiveNumber(result.length),
+        width: this.normalizeOptionalPositiveNumber(result.width),
+        height: this.normalizeOptionalPositiveNumber(result.height),
         location: result.location,
         is_public: result.isPublic ?? true,
         is_hazardous: result.isHazardous ?? false
@@ -937,6 +943,10 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
 
   private normalizeRequiredInput(input: string): string {
     return input.trim();
+  }
+
+  private normalizeOptionalPositiveNumber(value: number | null | undefined): number | null {
+    return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
   }
 
   isFormValid(): boolean {

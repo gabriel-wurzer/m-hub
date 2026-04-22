@@ -242,6 +242,17 @@ export class EntityInfoDialogComponent {
     return null;
   }
 
+  getMeasurementValue(keys: string[]): string {
+    const rawValue = this.readField(this.entity, keys);
+    const parsedValue = typeof rawValue === 'string' ? Number(rawValue) : rawValue;
+
+    if (typeof parsedValue !== 'number' || !Number.isFinite(parsedValue) || parsedValue <= 0) {
+      return '—';
+    }
+
+    return `${this.formatNumber(parsedValue)} cm`;
+  }
+
   getDocumentUrl(): string | null {
     if (!this.isDocument()) return null;
 
