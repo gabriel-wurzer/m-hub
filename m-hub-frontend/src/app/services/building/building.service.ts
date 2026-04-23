@@ -11,7 +11,7 @@ import { Floor } from '../../models/floor';
 })
 export class BuildingService {
 
-  private readonly buildingsUrl = 'http://localhost:1880/api/buildings'; // Node-RED endpoint (development)
+  private readonly buildingsUrl = '/api/buildings'; // Node-RED endpoint (development)
 
   constructor(private http: HttpClient) { }
 

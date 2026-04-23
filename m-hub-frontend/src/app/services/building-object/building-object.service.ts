@@ -8,7 +8,7 @@ import { BuildingComponentService } from '../building-component/building-compone
 })
 export class BuildingObjectService extends BuildingComponentService<Objekt, CreateObjektPayload, UpdateObjektPayload> {
 
-  protected override apiUrl = 'http://localhost:1880/api/objects';  // Node-RED route for Objekte
+  protected override apiUrl = '/api/objects';  // Node-RED route for Objekte
 
   constructor(protected override http: HttpClient) {
     super(http);

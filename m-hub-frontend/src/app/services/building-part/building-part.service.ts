@@ -8,7 +8,7 @@ import { BuildingComponentService } from '../building-component/building-compone
 })
 export class BuildingPartService extends BuildingComponentService<Bauteil, CreateBauteilPayload, UpdateBauteilPayload> {
 
-  protected override apiUrl = 'http://localhost:1880/api/parts';  // Node-RED route for Bauteile
+  protected override apiUrl = '/api/parts';  // Node-RED route for Bauteile
 
   constructor(protected override http: HttpClient) {
     super(http);
