@@ -19,4 +19,8 @@ FROM nginx:alpine
 COPY --from=build /app/dist/m-hub-frontend/browser /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Angular's build output can end up with umask-dependent modes the nginx
+# worker user cannot read. Normalize: everyone can read files, traverse dirs.
+RUN chmod -R a+rX /usr/share/nginx/html
+
 EXPOSE 8080
