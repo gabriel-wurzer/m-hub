@@ -40,9 +40,14 @@ export type AddListingDialogResult = {
   material: MaterialType | null;
   quantity: number;
   unit: MarketListingUnit;
+  length: number | null;
+  width: number | null;
+  height: number | null;
   contact: string;
   images: AddListingDialogImage[];
 };
+
+type MeasurementInput = number | string | null;
 
 @Component({
   selector: 'app-add-listing-dialog',
@@ -83,11 +88,15 @@ export class AddListingDialogComponent {
   material: MaterialType | null = null;
   quantity: number | null = null;
   unit: MarketListingUnit | null = null;
+  length: MeasurementInput = null;
+  width: MeasurementInput = null;
+  height: MeasurementInput = null;
   contact = '';
   availableMaterials: MaterialType[] = [];
   isDragActive = false;
   imageError = '';
   selectedImages: AddListingDialogImage[] = [];
+  readonly positiveMeasurementPattern = '^(?:[1-9]\\d*(?:[.,]\\d+)?|0[.,]\\d*[1-9]\\d*)$';
 
   constructor(
     @Optional() public dialogRef: MatDialogRef<AddListingDialogComponent> | null,
@@ -97,8 +106,12 @@ export class AddListingDialogComponent {
     const component = data?.component ?? null;
 
     if (component?.category === BuildingComponentCategory.Objekt) {
+      const object = component as Objekt;
       this.name = component.name?.trim() ?? '';
       this.description = component.description?.trim() ?? '';
+      this.length = this.normalizeIncomingMeasurement(object.length);
+      this.width = this.normalizeIncomingMeasurement(object.width);
+      this.height = this.normalizeIncomingMeasurement(object.height);
     }
 
     this.availableMaterials = this.extractAvailableMaterials(component);
@@ -182,6 +195,18 @@ export class AddListingDialogComponent {
     return null;
   }
 
+  getLengthError(): string | null {
+    return this.getMeasurementError('Länge', this.length);
+  }
+
+  getWidthError(): string | null {
+    return this.getMeasurementError('Breite', this.width);
+  }
+
+  getHeightError(): string | null {
+    return this.getMeasurementError('Höhe', this.height);
+  }
+
   getUnitError(): string | null {
     if (this.isObject) {
       return null;
@@ -227,6 +252,11 @@ export class AddListingDialogComponent {
     const isMaterialValid = !this.isPart || this.availableMaterials.length === 0 || !!this.material;
     const isQuantityValid = this.getQuantityError() === null;
     const isUnitValid = this.isObject || !!this.unit;
+    const areMeasurementsValid = [
+      this.isOptionalMeasurementValid(this.length),
+      this.isOptionalMeasurementValid(this.width),
+      this.isOptionalMeasurementValid(this.height)
+    ].every(Boolean);
     const isContactValid = this.contact.trim().length > 0;
 
     return isNameValid
@@ -237,6 +267,7 @@ export class AddListingDialogComponent {
       && isMaterialValid
       && isQuantityValid
       && isUnitValid
+      && areMeasurementsValid
       && isContactValid;
   }
 
@@ -257,6 +288,9 @@ export class AddListingDialogComponent {
       material: this.isPart ? this.material : null,
       quantity: Number(this.quantity),
       unit: resolvedUnit,
+      length: this.normalizeOptionalMeasurement(this.length),
+      width: this.normalizeOptionalMeasurement(this.width),
+      height: this.normalizeOptionalMeasurement(this.height),
       contact: this.contact.trim(),
       images: [...this.selectedImages]
     };
@@ -375,6 +409,63 @@ export class AddListingDialogComponent {
     }
 
     return Number(Number(value).toFixed(2));
+  }
+
+  private normalizeIncomingMeasurement(value: unknown): number | null {
+    if (typeof value !== 'number' && typeof value !== 'string') {
+      return null;
+    }
+
+    const parsedValue = this.parseMeasurementInput(value);
+    return parsedValue !== null && Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
+  }
+
+  private getMeasurementError(label: string, value: MeasurementInput): string | null {
+    const parsedValue = this.parseMeasurementInput(value);
+
+    if (parsedValue === null) {
+      return null;
+    }
+
+    if (!Number.isFinite(parsedValue)) {
+      return `${label} muss eine Zahl sein`;
+    }
+
+    if (parsedValue <= 0) {
+      return `${label} muss größer 0 sein`;
+    }
+
+    return null;
+  }
+
+  private isOptionalMeasurementValid(value: MeasurementInput): boolean {
+    const parsedValue = this.parseMeasurementInput(value);
+    return parsedValue === null || (Number.isFinite(parsedValue) && parsedValue > 0);
+  }
+
+  private normalizeOptionalMeasurement(value: MeasurementInput): number | null {
+    const parsedValue = this.parseMeasurementInput(value);
+    return parsedValue !== null && Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
+  }
+
+  private parseMeasurementInput(value: MeasurementInput): number | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    if (typeof value === 'number') {
+      return value;
+    }
+
+    const trimmed = value.trim();
+    if (trimmed.length === 0) {
+      return null;
+    }
+
+    const normalized = trimmed.replace(',', '.');
+    const parsedValue = Number(normalized);
+
+    return Number.isFinite(parsedValue) ? parsedValue : Number.NaN;
   }
 
   private hasAtMostTwoDecimalPlaces(value: number): boolean {

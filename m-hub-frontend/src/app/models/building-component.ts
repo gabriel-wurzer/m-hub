@@ -54,7 +54,10 @@ export type UpdateBauteilPayload = {
 
 export class Objekt extends BuildingComponent {
     object_type!: ObjectType;
-    count!: number;   
+    count!: number;
+    length?: number | null;
+    width?: number | null;
+    height?: number | null;
     location!: string;
     image_path?: string;
     image_mime_type?: string;
@@ -74,6 +77,9 @@ export type CreateObjektPayload = {
     is_hazardous: boolean; 
     object_type: ObjectType;
     count: number;
+    length?: number | null;
+    width?: number | null;
+    height?: number | null;
     location: string;
     image_data_url?: string;
     image_mime_type?: string;
@@ -88,6 +94,9 @@ export type UpdateObjektPayload = {
     is_hazardous: boolean;
     object_type: ObjectType;
     count: number;
+    length?: number | null;
+    width?: number | null;
+    height?: number | null;
     location: string;
     image_data_url?: string;
     image_mime_type?: string;

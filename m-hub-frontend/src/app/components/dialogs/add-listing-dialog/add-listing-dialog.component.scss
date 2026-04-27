@@ -87,10 +87,20 @@ mat-form-field {
   min-width: 320px;
 }
 
+.measurements-wrapper {
+  flex: 1 1 100%;
+}
+
 .amount-fields {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+.measurements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.5rem 1rem;
 }
 
 .quantity-field,

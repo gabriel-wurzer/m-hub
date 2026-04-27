@@ -70,7 +70,7 @@ services:
     environment:
       POSTGRES_CONNECTION: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@m-hub-db:5432/mhubdb
       TABLES: '["buildings_details","buildingblocks"]'
-      PORT: 3002
+      PORT: 3000
     depends_on:
       m-hub-db:
         condition: service_healthy
@@ -126,6 +126,8 @@ services:
     image: m-hub-frontend
     build:
       context: ./m-hub-frontend
+      args:
+        MAPBOX_TOKEN: ${MAPBOX_TOKEN:-}
     # docker run -i
     stdin_open: true
     # docker run -t

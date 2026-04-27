@@ -43,29 +43,25 @@ describe('AddPartDialogComponent', () => {
   });
 
   it('should filter roof part types for Flachdach', () => {
-    component.selectedLocations = [FloorType.D];
-    component.onLocationsChange();
+    component.onLocationsChange([FloorType.D]);
 
-    expect(component.availablePartTypes).toEqual([PartType.Attika, PartType.Dachaufbau]);
+    expect(component.availablePartTypes).toEqual([PartType.A, PartType.DA]);
   });
 
   it('should exclude Dachaufbau for Kellergeschoss', () => {
-    component.selectedLocations = [`${FloorType.KG} 1`];
-    component.onLocationsChange();
+    component.onLocationsChange([`${FloorType.KG} 1`]);
 
-    expect(component.availablePartTypes).toContain(PartType.Boden);
-    expect(component.availablePartTypes).not.toContain(PartType.Dachaufbau);
-    expect(component.availablePartTypes).not.toContain(PartType.Kniestock);
-    expect(component.availablePartTypes).not.toContain(PartType.Attika);
+    expect(component.availablePartTypes).toContain(PartType.BA);
+    expect(component.availablePartTypes).not.toContain(PartType.DA);
+    expect(component.availablePartTypes).not.toContain(PartType.KS);
+    expect(component.availablePartTypes).not.toContain(PartType.A);
   });
 
   it('should reset selected part type when location change makes it invalid', () => {
-    component.selectedLocations = [FloorType.D];
-    component.onLocationsChange();
-    component.partType = PartType.Attika;
+    component.onLocationsChange([FloorType.D]);
+    component.partType = PartType.A;
 
-    component.selectedLocations = [`${FloorType.KG} 1`];
-    component.onLocationsChange();
+    component.onLocationsChange([`${FloorType.KG} 1`]);
 
     expect(component.partType).toBeNull();
   });

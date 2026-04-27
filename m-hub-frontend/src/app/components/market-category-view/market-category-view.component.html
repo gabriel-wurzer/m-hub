@@ -91,6 +91,7 @@
 
                 <div class="spec-column">
                   <p *ngIf="item.material">Material: {{ item.material }}</p>
+                  <p *ngFor="let dimension of item.dimensions">{{ dimension.label }}: {{ dimension.value }}</p>
                   <p *ngIf="item.potential">Potenzial: {{ item.potential }}</p>
                   <p *ngIf="item.status">Status: {{ item.status }}</p>
                   <p *ngIf="item.availableFrom">Verfügbar ab: {{ item.availableFrom }}</p>

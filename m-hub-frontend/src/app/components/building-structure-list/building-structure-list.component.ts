@@ -84,10 +84,10 @@ export class BuildingStructureListComponent implements OnInit {
   RoofType = RoofType;
   roofTypes = Object.values(RoofType);
   
-  rgFloorSvgUrl = 'assets/images/geschoss_rg.svg';
-  kgFloorSvgUrl = 'assets/images/geschoss_kg.svg';
+  rgFloorSvgUrl = '/assets/images/geschoss_rg.svg';
+  kgFloorSvgUrl = '/assets/images/geschoss_kg.svg';
   // roofSvgUrl = 'assets/images/dach.svg';
-  roofSvgUrl = 'assets/images/dach_v2.svg';
+  roofSvgUrl = '/assets/images/dach_v2.svg';
   animationsDisabled = true;
 
   ngOnInit(): void {

@@ -118,8 +118,8 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
   buildingObjects: Objekt[] = [];
   documents: Document[] = [];
 
-  floorSvgUrl = 'assets/images/geschoss.svg';
-  roofSvgUrl = 'assets/images/dach.svg';
+  floorSvgUrl = '/assets/images/geschoss.svg';
+  roofSvgUrl = '/assets/images/dach.svg';
 
   animationsDisabled = true;
   suppressStructureAnimations = false;
@@ -473,6 +473,9 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
         description: result.description ?? undefined,
         object_type: result.objectType,
         count,
+        length: this.normalizeOptionalPositiveNumber(result.length),
+        width: this.normalizeOptionalPositiveNumber(result.width),
+        height: this.normalizeOptionalPositiveNumber(result.height),
         location: result.location,
         is_public: result.isPublic ?? true,
         is_hazardous: result.isHazardous ?? false
@@ -539,6 +542,9 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
         description: result.description ?? undefined,
         object_type: result.objectType,
         count,
+        length: this.normalizeOptionalPositiveNumber(result.length),
+        width: this.normalizeOptionalPositiveNumber(result.width),
+        height: this.normalizeOptionalPositiveNumber(result.height),
         location: result.location,
         is_public: result.isPublic ?? true,
         is_hazardous: result.isHazardous ?? false
@@ -747,6 +753,9 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
         component_category: component.category,
         material: component.category === BuildingComponentCategory.Bauteil ? (result.material ?? undefined) : undefined,
         object_type: objectComponent?.object_type,
+        length: component.category === BuildingComponentCategory.Objekt ? this.normalizeOptionalPositiveNumber(result.length) : undefined,
+        width: component.category === BuildingComponentCategory.Objekt ? this.normalizeOptionalPositiveNumber(result.width) : undefined,
+        height: component.category === BuildingComponentCategory.Objekt ? this.normalizeOptionalPositiveNumber(result.height) : undefined,
         name: result.name,
         description: result.description ?? undefined,
         price: result.price,
@@ -937,6 +946,10 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
 
   private normalizeRequiredInput(input: string): string {
     return input.trim();
+  }
+
+  private normalizeOptionalPositiveNumber(value: number | null | undefined): number | null {
+    return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
   }
 
   isFormValid(): boolean {

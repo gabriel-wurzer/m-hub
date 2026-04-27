@@ -10,8 +10,8 @@ import { Building } from '../../models/building';
 })
 export class MapService {
 
-  // Same-origin: busybox httpd proxies /postgis/ to m-hub-postgis-api:3000
   private readonly postGisBaseUrl = '/postgis/v1';
+  private readonly nominatimUrl = '/nominatim';
   
   constructor(private http: HttpClient) {}
 
@@ -90,7 +90,7 @@ export class MapService {
     //   .set('q', `${query}, Vienna`)
     //   .set('countrycodes', 'AT')
 
-    const url = `/nominatim?q=${encodeURIComponent(query)}`;
+    const url = `${this.nominatimUrl}?q=${encodeURIComponent(query)}`;
 
     // return this.http.get<any[]>(url, { params }).pipe(
     return this.http.get<any[]>(url).pipe(

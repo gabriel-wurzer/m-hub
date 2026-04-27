@@ -46,6 +46,50 @@
         </mat-form-field>
       </div>
 
+      <div class="measurements-wrapper">
+        <h2>Abmessungen</h2>
+        <div class="measurements-grid">
+          <mat-form-field appearance="outline" class="measurement-field">
+            <mat-label>Länge (cm)</mat-label>
+            <input
+              matInput
+              type="text"
+              inputmode="decimal"
+              [pattern]="positiveMeasurementPattern"
+              [(ngModel)]="length"
+              #lengthCtrl="ngModel"
+            />
+            <mat-error *ngIf="lengthCtrl.invalid || getLengthError()">{{ getLengthError() }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="measurement-field">
+            <mat-label>Breite (cm)</mat-label>
+            <input
+              matInput
+              type="text"
+              inputmode="decimal"
+              [pattern]="positiveMeasurementPattern"
+              [(ngModel)]="width"
+              #widthCtrl="ngModel"
+            />
+            <mat-error *ngIf="widthCtrl.invalid || getWidthError()">{{ getWidthError() }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="measurement-field">
+            <mat-label>Höhe (cm)</mat-label>
+            <input
+              matInput
+              type="text"
+              inputmode="decimal"
+              [pattern]="positiveMeasurementPattern"
+              [(ngModel)]="height"
+              #heightCtrl="ngModel"
+            />
+            <mat-error *ngIf="heightCtrl.invalid || getHeightError()">{{ getHeightError() }}</mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
       <div class="location-wrapper">
         <h2>Verortung</h2>
         <mat-form-field appearance="outline" class="full-width">

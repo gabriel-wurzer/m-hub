@@ -327,6 +327,17 @@ export class StructureDetailsComponent implements OnChanges {
     return this.formatValue(objectType);
   }
 
+  getObjectMeasurementValue(fieldName: 'length' | 'width' | 'height'): string {
+    const rawValue = (this.buildingComponent as Partial<BuildingComponent> & Record<string, unknown>)?.[fieldName];
+    const parsedValue = typeof rawValue === 'string' ? Number(rawValue) : rawValue;
+
+    if (typeof parsedValue !== 'number' || !Number.isFinite(parsedValue) || parsedValue <= 0) {
+      return '—';
+    }
+
+    return `${this.formatNumber(parsedValue)} cm`;
+  }
+
   getObjectImageUrl(): string | null {
     const explicitUrl = (this.buildingComponent as Partial<BuildingComponent> & { image_url?: unknown })?.image_url;
     if (typeof explicitUrl === 'string' && explicitUrl.trim().length > 0) {

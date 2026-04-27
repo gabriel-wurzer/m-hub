@@ -37,7 +37,7 @@ Follow these steps to set up the project environment and import the building dat
     Then set the appropriate values for POSTGRES_PASSWORD and JWT_SECRET in the `.env` file.<br>
     For generating the JWT_SECRET something like `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` can be used.<br>
 
-    You will also need a mapbox token: Go to mapbox.com, create an account, and follow the following procedure: [Setting up a mapbox token](https://docs.mapbox.com/help/dive-deeper/access-tokens/#creating-public-tokens). The created token is pasted into your .env file as MAPBOX_TOKEN.
+    You will also need a mapbox token: Go to mapbox.com, create an account, and follow the following procedure: [Setting up a mapbox token](https://docs.mapbox.com/help/dive-deeper/access-tokens/#creating-public-tokens). Paste the created token into your .env file as MAPBOX_TOKEN.
 
     Note: If you are on an ARM host, `deploy.sh` detects it and sets `DOCKER_PLATFORM=linux/amd64` for the PostGIS image.
 
@@ -55,9 +55,4 @@ Follow these steps to set up the project environment and import the building dat
     ./deploy.sh
     ```
 
-    This builds all Docker images (including the Angular frontend inside Docker), starts Postgres, imports the GeoPackage, and brings up the rest of the stack.
-
-4. **Rerun the project**
-    ```bash
-    docker compose up -d --build seaweed-filer m-hub-db m-hub-postgis-api m-hub-backend m-hub-frontend
-    ```
+    This builds all Docker images, starts Postgres database, imports the GeoPackage, and brings up the rest of the stack.

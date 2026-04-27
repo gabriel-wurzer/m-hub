@@ -1,3 +1,4 @@
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PartStructureListComponent } from './part-structure-list.component';
@@ -12,7 +13,7 @@ describe('PartStructureListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PartStructureListComponent]
+      imports: [NoopAnimationsModule, PartStructureListComponent]
     })
     .compileComponents();
 
@@ -83,7 +84,7 @@ describe('PartStructureListComponent', () => {
     expect(lastValidity).toBeFalse();
   });
 
-  it('should force thickness to 0 for connection type materials', () => {
+  it('should force thickness to 0 for connection type materials and keep the structure invalid on its own', () => {
     let lastValidity: boolean | undefined;
     let emittedStructure: any;
     component.validityChange.subscribe((value) => {
@@ -103,10 +104,10 @@ describe('PartStructureListComponent', () => {
 
     expect(component.layers[0].thickness).toBe(0);
     expect(emittedStructure?.layers?.[0]?.thickness).toBe(0);
-    expect(lastValidity).toBeTrue();
+    expect(lastValidity).toBeFalse();
   });
 
-  it('should force thickness to 0 for unknown material', () => {
+  it('should force thickness to 0 for unknown material and keep the structure invalid on its own', () => {
     let lastValidity: boolean | undefined;
     let emittedStructure: any;
     component.validityChange.subscribe((value) => {
@@ -126,6 +127,33 @@ describe('PartStructureListComponent', () => {
 
     expect(component.layers[0].thickness).toBe(0);
     expect(emittedStructure?.layers?.[0]?.thickness).toBe(0);
+    expect(lastValidity).toBeFalse();
+  });
+
+  it('should report valid when at least one layer has a thickness greater than 0', () => {
+    let lastValidity: boolean | undefined;
+    let emittedStructure: any;
+    component.validityChange.subscribe((value) => {
+      lastValidity = value;
+    });
+    component.structureChange.subscribe((value) => {
+      emittedStructure = value;
+    });
+
+    component.partType = PartType.AW;
+    fixture.detectChanges();
+    component.addLayer();
+
+    component.layers[0].material = ConnectionType.conn_1;
+    component.layers[0].thickness = 180;
+    component.layers[1].material = MaterialType.mat_3;
+    component.layers[1].thickness = 240;
+    component.structureMeasure = 12.5;
+    component.emitChanges();
+
+    expect(component.layers[0].thickness).toBe(0);
+    expect(emittedStructure?.layers?.[0]?.thickness).toBe(0);
+    expect(emittedStructure?.layers?.[1]?.thickness).toBe(240);
     expect(lastValidity).toBeTrue();
   });
 

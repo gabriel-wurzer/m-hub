@@ -98,6 +98,7 @@ export class MarketComponent implements OnDestroy {
       potential: this.formatPotential(listing.potential),
       status: this.formatStatus(listing.status),
       availableFrom: listing.available_from ? this.formatDate(listing.available_from) : null,
+      dimensions: this.buildDimensions(listing),
       location: listing.location,
       imageSrc: this.getListingImageSrc(listing, category),
       imageAlt: `Bild zu ${listing.name}`
@@ -125,6 +126,32 @@ export class MarketComponent implements OnDestroy {
     }
 
     return `${quantity} ${this.formatUnit(listing.unit)}`;
+  }
+
+  private buildDimensions(listing: ApiMarketListing) {
+    if (listing.component_category !== BuildingComponentCategory.Objekt) {
+      return undefined;
+    }
+
+    const dimensions = [
+      { label: 'Länge', rawValue: listing.length },
+      { label: 'Breite', rawValue: listing.width },
+      { label: 'Höhe', rawValue: listing.height }
+    ]
+      .map((dimension) => {
+        const rawValue = typeof dimension.rawValue === 'string' ? Number(dimension.rawValue) : dimension.rawValue;
+        if (typeof rawValue !== 'number' || !Number.isFinite(rawValue) || rawValue <= 0) {
+          return null;
+        }
+
+        return {
+          label: dimension.label,
+          value: `${this.formatNumber(rawValue)} cm`
+        };
+      })
+      .filter((dimension): dimension is { label: string; value: string } => dimension !== null);
+
+    return dimensions.length > 0 ? dimensions : undefined;
   }
 
   private formatNumber(value: number): string {
