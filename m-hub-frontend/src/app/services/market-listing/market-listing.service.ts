@@ -1,13 +1,14 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { forkJoin, map, Observable, of } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { CreateMarketListing, MarketListing } from '../../models/market-listing';
 import { MaterialType } from '../../enums/material-type.enum';
 import { ObjectType } from '../../enums/object-type';
-import { getMaterialTypesForGroup, MaterialGroup } from '../../enums/material-group';
+import { MaterialGroup } from '../../enums/material-group';
 
 export type MarketListingCategoryFilter =
   | { kind: 'material'; value: MaterialType }
+  | { kind: 'materialGroup'; value: MaterialGroup }
   | { kind: 'object'; value: ObjectType };
 
 export type MarketListingCategoryCount = {
@@ -42,6 +43,8 @@ export class MarketListingService {
 
     if (filter.kind === 'material') {
       params = params.set('material', filter.value);
+    } else if (filter.kind === 'materialGroup') {
+      params = params.set('material_group', filter.value);
     } else {
       params = params.set('object_type', filter.value);
     }
@@ -50,16 +53,8 @@ export class MarketListingService {
   }
 
   getMarketListingsByMaterialGroup(group: MaterialGroup): Observable<MarketListing[]> {
-    const materials = getMaterialTypesForGroup(group);
-
-    if (!materials.length) {
-      return of([]);
-    }
-
-    return forkJoin(
-      materials.map(material => this.getMarketListingsByCategory({ kind: 'material', value: material }))
-    ).pipe(
-      map(resultSets => this.sortAndDedupeListings(resultSets.flat()))
+    return this.getMarketListingsByCategory({ kind: 'materialGroup', value: group }).pipe(
+      map(listings => this.sortAndDedupeListings(listings))
     );
   }
 

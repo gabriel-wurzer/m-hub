@@ -4,13 +4,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { MarketCategory, MarketListing } from '../../models/market.models';
 
 @Component({
   selector: 'app-market-category-view',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatCardModule, MatDividerModule, MatIconModule],
+  imports: [CommonModule, MatButtonModule, MatCardModule, MatDividerModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './market-category-view.component.html',
   styleUrl: './market-category-view.component.scss'
 })

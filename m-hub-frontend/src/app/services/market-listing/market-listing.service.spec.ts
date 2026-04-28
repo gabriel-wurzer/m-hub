@@ -33,4 +33,19 @@ describe('MarketListingService', () => {
     expect(request.request.method).toBe('GET');
     request.flush([{ kind: 'material', value: 'Mineralik', count: 2 }]);
   });
+
+  it('requests material group listings with one material_group request', () => {
+    service.getMarketListingsByMaterialGroup(MaterialGroup.Mineralik).subscribe(listings => {
+      expect(listings).toEqual([]);
+    });
+
+    const requests = httpMock.match(request => request.url === '/api/market-listings');
+
+    expect(requests.length).toBe(1);
+    expect(requests[0].request.method).toBe('GET');
+    expect(requests[0].request.params.get('material_group')).toBe(MaterialGroup.Mineralik);
+    expect(requests[0].request.params.has('material')).toBeFalse();
+
+    requests[0].flush([]);
+  });
 });

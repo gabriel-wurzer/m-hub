@@ -9,8 +9,8 @@
       <div class="market-category-heading">
         <div class="market-category-title-row">
           <h1>Kategorie: {{ currentCategory.title }}</h1>
-          <span class="listing-count-chip">
-            {{ loading ? 'Lade Anzeigen...' : currentCategory.listings.length + ' Anzeigen' }}
+          <span class="listing-count-chip" *ngIf="!loading && !loadError">
+            {{ currentCategory.listings.length }} Anzeigen
           </span>
         </div>
         <p>{{ currentCategory.description }}</p>
@@ -31,7 +31,7 @@
             [class.active]="item.id === currentCategory.id"
             (click)="selectCategory(item)">
             <span>{{ item.title }}</span>
-            <span class="category-count" *ngIf="item.id === currentCategory.id">{{ currentCategory.listings.length }}</span>
+            <span class="category-count" *ngIf="item.id === currentCategory.id && !loading && !loadError">{{ currentCategory.listings.length }}</span>
           </button>
         </section>
 
@@ -45,7 +45,7 @@
             [class.active]="item.id === currentCategory.id"
             (click)="selectCategory(item)">
             <span>{{ item.title }}</span>
-            <span class="category-count" *ngIf="item.id === currentCategory.id">{{ currentCategory.listings.length }}</span>
+            <span class="category-count" *ngIf="item.id === currentCategory.id && !loading && !loadError">{{ currentCategory.listings.length }}</span>
           </button>
         </section>
       </aside>
@@ -54,10 +54,6 @@
       <mat-divider class="category-content-divider-mobile"></mat-divider>
 
       <section class="listing-panel">
-        <div class="listing-panel-state" *ngIf="loading">
-          Anzeigen werden geladen.
-        </div>
-
         <div class="listing-panel-state error" *ngIf="!loading && loadError">
           {{ loadError }}
         </div>
@@ -66,57 +62,66 @@
           Für diese Kategorie wurden noch keine Marktangebote inseriert.
         </div>
 
-        <div class="listing-stack" *ngIf="!loading && !loadError && currentCategory.listings.length > 0">
-          <mat-card
-            class="listing-card"
-            *ngFor="let item of currentCategory.listings; trackBy: trackByListingId">
-            <div class="listing-image-shell">
-              <img
-                [src]="item.imageSrc"
-                [alt]="item.imageAlt"
-                class="listing-image"
-                [class.listing-image--placeholder]="isPlaceholderImage(item.imageSrc)"
-                loading="lazy" />
-            </div>
+        <div
+          class="listing-stack"
+          [class.listing-stack--loading]="loading"
+          *ngIf="loading || (!loadError && currentCategory.listings.length > 0)">
+          <div class="spinner-container" *ngIf="loading">
+            <mat-spinner [diameter]="100" [strokeWidth]="6" class="loading-spinner" />
+          </div>
 
-            <div class="listing-copy">
-              <h2>{{ item.title }}</h2>
-
-              <div class="listing-specs material-specs" *ngIf="currentCategory.kind === 'material'; else objectListingSpecs">
-                <p class="spec-field spec-price">Preis: {{ item.price }}</p>
-                <p class="spec-field spec-material">Material: {{ item.material || '-' }}</p>
-                <p class="spec-field spec-length">L&auml;nge: {{ getDimensionValue(item, 0) }}</p>
-
-                <p class="spec-field spec-quantity">{{ item.quantityLabel || 'Menge' }}: {{ item.quantity }}</p>
-                <p class="spec-field spec-potential">Potenzial: {{ item.potential || '-' }}</p>
-                <p class="spec-field spec-width">Breite: {{ getDimensionValue(item, 1) }}</p>
-
-                <p class="spec-field spec-status">Status: {{ item.status || '-' }}</p>
-                <p class="spec-field spec-height">H&ouml;he: {{ getDimensionValue(item, 2) }}</p>
-
-                <p class="spec-field spec-address">Adresse: {{ item.address || '-' }}</p>
-                <p class="spec-field spec-available">Verf&uuml;gbar ab: {{ item.availableFrom || '-' }}</p>
+          <ng-container *ngIf="!loading && !loadError">
+            <mat-card
+              class="listing-card"
+              *ngFor="let item of currentCategory.listings; trackBy: trackByListingId">
+              <div class="listing-image-shell">
+                <img
+                  [src]="item.imageSrc"
+                  [alt]="item.imageAlt"
+                  class="listing-image"
+                  [class.listing-image--placeholder]="isPlaceholderImage(item.imageSrc)"
+                  loading="lazy" />
               </div>
 
-              <ng-template #objectListingSpecs>
-                <div class="listing-specs object-specs">
+              <div class="listing-copy">
+                <h2>{{ item.title }}</h2>
+
+                <div class="listing-specs material-specs" *ngIf="currentCategory.kind === 'material'; else objectListingSpecs">
                   <p class="spec-field spec-price">Preis: {{ item.price }}</p>
-                  <p class="spec-field spec-status">Status: {{ item.status || '-' }}</p>
+                  <p class="spec-field spec-material">Material: {{ item.material || '-' }}</p>
                   <p class="spec-field spec-length">L&auml;nge: {{ getDimensionValue(item, 0) }}</p>
 
-                  <p class="spec-field spec-quantity">{{ item.quantityLabel || 'Anzahl' }}: {{ item.quantity }}</p>
+                  <p class="spec-field spec-quantity">{{ item.quantityLabel || 'Menge' }}: {{ item.quantity }}</p>
                   <p class="spec-field spec-potential">Potenzial: {{ item.potential || '-' }}</p>
                   <p class="spec-field spec-width">Breite: {{ getDimensionValue(item, 1) }}</p>
 
+                  <p class="spec-field spec-status">Status: {{ item.status || '-' }}</p>
                   <p class="spec-field spec-height">H&ouml;he: {{ getDimensionValue(item, 2) }}</p>
 
                   <p class="spec-field spec-address">Adresse: {{ item.address || '-' }}</p>
                   <p class="spec-field spec-available">Verf&uuml;gbar ab: {{ item.availableFrom || '-' }}</p>
                 </div>
-              </ng-template>
 
-            </div>
-          </mat-card>
+                <ng-template #objectListingSpecs>
+                  <div class="listing-specs object-specs">
+                    <p class="spec-field spec-price">Preis: {{ item.price }}</p>
+                    <p class="spec-field spec-status">Status: {{ item.status || '-' }}</p>
+                    <p class="spec-field spec-length">L&auml;nge: {{ getDimensionValue(item, 0) }}</p>
+
+                    <p class="spec-field spec-quantity">{{ item.quantityLabel || 'Anzahl' }}: {{ item.quantity }}</p>
+                    <p class="spec-field spec-potential">Potenzial: {{ item.potential || '-' }}</p>
+                    <p class="spec-field spec-width">Breite: {{ getDimensionValue(item, 1) }}</p>
+
+                    <p class="spec-field spec-height">H&ouml;he: {{ getDimensionValue(item, 2) }}</p>
+
+                    <p class="spec-field spec-address">Adresse: {{ item.address || '-' }}</p>
+                    <p class="spec-field spec-available">Verf&uuml;gbar ab: {{ item.availableFrom || '-' }}</p>
+                  </div>
+                </ng-template>
+
+              </div>
+            </mat-card>
+          </ng-container>
         </div>
       </section>
     </div>

@@ -61,6 +61,8 @@
   background-color: rgba(132, 90, 38, 0.12);
   color: mat.get-color-from-palette(vars.$my-secondary, 700);
   font-weight: 600;
+  animation: count-tag-appear 220ms ease-out both;
+  transform-origin: center left;
 }
 
 .market-category-content {
@@ -143,6 +145,20 @@
   background-color: rgba(0, 0, 0, 0.06);
   font-size: 0.78rem;
   text-align: center;
+  animation: count-tag-appear 220ms ease-out both;
+  transform-origin: center right;
+}
+
+@keyframes count-tag-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .listing-panel {
@@ -197,6 +213,21 @@
   min-height: 0;
   overflow-y: auto;
   padding-right: 8px;
+}
+
+.listing-stack--loading {
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  padding-right: 0;
+}
+
+.spinner-container {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .listing-card {
