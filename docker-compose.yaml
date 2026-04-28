@@ -51,13 +51,17 @@ services:
       POSTGRES_DB: mhubdb
       POSTGRES_PORT: 5432
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    # -overwrite makes the import idempotent: re-running drops + re-creates
+    # the buildings_details / buildingblocks tables instead of appending.
+    # User-owned tables (created by /docker-entrypoint-initdb.d/*.sql on first
+    # init) are untouched.
     command: >
       sh -c "
         set -e;
         echo 'Importing buildings data...';
-        ogr2ogr -f PostgreSQL \"PG:host=$$POSTGRES_HOST user=$$POSTGRES_USER dbname=$$POSTGRES_DB password=$$POSTGRES_PASSWORD\" /data/mhub_wien.gpkg buildings_details -nln buildings_details -nlt PROMOTE_TO_MULTI -progress;
+        ogr2ogr -overwrite -f PostgreSQL \"PG:host=$$POSTGRES_HOST user=$$POSTGRES_USER dbname=$$POSTGRES_DB password=$$POSTGRES_PASSWORD\" /data/mhub_wien.gpkg buildings_details -nln buildings_details -nlt PROMOTE_TO_MULTI -progress;
         echo 'Importing building blocks data...';
-        ogr2ogr -f PostgreSQL \"PG:host=$$POSTGRES_HOST user=$$POSTGRES_USER dbname=$$POSTGRES_DB password=$$POSTGRES_PASSWORD\" /data/mhub_wien.gpkg buildingblocks -nln buildingblocks -nlt PROMOTE_TO_MULTI -progress;
+        ogr2ogr -overwrite -f PostgreSQL \"PG:host=$$POSTGRES_HOST user=$$POSTGRES_USER dbname=$$POSTGRES_DB password=$$POSTGRES_PASSWORD\" /data/mhub_wien.gpkg buildingblocks -nln buildingblocks -nlt PROMOTE_TO_MULTI -progress;
         echo 'Data import completed.'
       "
 

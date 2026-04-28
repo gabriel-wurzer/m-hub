@@ -3,9 +3,27 @@
 # Build and deploy the m-hub stack with Docker.
 # Works on Linux and on Windows under Git Bash.
 #
+# By default this preserves user data (Postgres + SeaweedFS + node-red flows).
+# Pass --reset to wipe ALL named volumes and start with a clean slate
+# (useful for the very first deploy or for full recovery).
+#
 set -euo pipefail
 
 cd "$(dirname "$0")"
+
+RESET=0
+for arg in "$@"; do
+  case "$arg" in
+    --reset|-r) RESET=1 ;;
+    -h|--help)
+      echo "Usage: $0 [--reset]"
+      echo "  --reset, -r   Wipe all named volumes (pgdata, seaweed_data, backend deps)."
+      echo "                Without this flag, user data is preserved across deploys."
+      exit 0
+      ;;
+    *) echo "[WARN] Unknown argument: $arg (use --help)" >&2 ;;
+  esac
+done
 
 # -------- Preflight --------
 if [ ! -f .env ]; then
@@ -65,8 +83,18 @@ echo "[BUILD] Building all Docker images..."
 $DC build
 
 # -------- Teardown existing stack --------
-echo "[CLEANUP] Removing old containers and volumes..."
-$DC down -v --remove-orphans
+# Default: keep data volumes (pgdata, seaweed_data) so user content survives.
+# Always refresh the backend deps volume so package.json updates propagate
+# from the freshly built image (named volumes are only initialised once).
+if [ "$RESET" -eq 1 ]; then
+  echo "[CLEANUP] --reset: removing old containers AND ALL volumes (data loss!)..."
+  $DC down -v --remove-orphans
+else
+  echo "[CLEANUP] Removing old containers (data volumes preserved)..."
+  $DC down --remove-orphans
+  echo "[CLEANUP] Refreshing backend deps volume so new package.json takes effect..."
+  docker volume rm m-hub_m-hub-backend-deps >/dev/null 2>&1 || true
+fi
 
 # -------- DB first --------
 echo "[START] Postgres..."
