@@ -135,6 +135,10 @@ export class AddListingDialogComponent {
     return this.data?.component?.category === BuildingComponentCategory.Objekt;
   }
 
+  get hasMeasurementFields(): boolean {
+    return this.isObject || this.isPart;
+  }
+
   getNameError(): string | null {
     if (this.name.trim().length === 0) {
       return 'Name erforderlich';

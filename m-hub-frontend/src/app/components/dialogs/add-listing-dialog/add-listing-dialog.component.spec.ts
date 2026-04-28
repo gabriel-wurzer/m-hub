@@ -8,7 +8,9 @@ import { AddListingDialogComponent } from './add-listing-dialog.component';
 import { BuildingComponentCategory } from '../../../enums/component-category';
 import { MarketListingStatus } from '../../../enums/market-listing-status';
 import { MarketPotential } from '../../../enums/market-potential.enum';
+import { MarketListingUnit } from '../../../enums/market-listing-unit.enum';
 import { ObjectType } from '../../../enums/object-type';
+import { PartType } from '../../../enums/part-type.enum';
 import { AuthenticationService } from '../../../services/authentication/authentication.service';
 
 describe('AddListingDialogComponent', () => {
@@ -92,6 +94,50 @@ describe('AddListingDialogComponent', () => {
       length: 140,
       width: 85,
       height: 120
+    }));
+  });
+
+  it('shows empty measurement fields for source parts and returns null values when unset', () => {
+    const partDialogRefSpy = jasmine.createSpyObj<MatDialogRef<AddListingDialogComponent>>('MatDialogRef', ['close']);
+    const partComponent = new AddListingDialogComponent(
+      partDialogRefSpy,
+      {
+        component: {
+          id: 'part-1',
+          category: BuildingComponentCategory.Bauteil,
+          name: 'Innenwand',
+          description: 'Bestandswand',
+          part_type: PartType.IW,
+          part_structure: {
+            type: 'wall',
+            length: 12,
+            layers: []
+          },
+          location: 'EG'
+        } as any
+      },
+      { getUser$: () => of({ email: 'user@example.com' }) } as any
+    );
+
+    expect(partComponent.hasMeasurementFields).toBeTrue();
+    expect(partComponent.length).toBeNull();
+    expect(partComponent.width).toBeNull();
+    expect(partComponent.height).toBeNull();
+
+    partComponent.name = 'Innenwand';
+    partComponent.price = 100;
+    partComponent.status = MarketListingStatus.eingelagert;
+    partComponent.availableFrom = new Date('2026-04-22');
+    partComponent.potential = MarketPotential.reuse;
+    partComponent.quantity = 12;
+    partComponent.unit = MarketListingUnit.m;
+
+    partComponent.confirmAddListing();
+
+    expect(partDialogRefSpy.close).toHaveBeenCalledWith(jasmine.objectContaining({
+      length: null,
+      width: null,
+      height: null
     }));
   });
 });

@@ -91,6 +91,27 @@ mat-form-field {
   flex: 1 1 100%;
 }
 
+.status-date-row {
+  display: flex;
+  flex: 1 1 520px;
+  gap: 0.5rem 2rem;
+  min-width: min(100%, 520px);
+}
+
+@media (max-width: 670px) {
+  .status-date-row {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    min-width: 100%;
+  }
+
+  .status-date-row .status-wrapper,
+  .status-date-row .available-from-wrapper {
+    flex-basis: 100%;
+    min-width: 0;
+  }
+}
+
 .amount-fields {
   display: flex;
   gap: 1rem;
