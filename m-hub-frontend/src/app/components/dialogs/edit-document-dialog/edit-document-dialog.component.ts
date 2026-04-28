@@ -62,7 +62,7 @@ type ComponentOptionVm = {
   styleUrl: './edit-document-dialog.component.scss'
 })
 export class EditDocumentDialogComponent {
-  private readonly maxFileSizeInBytes = 1000 * 1024 * 1024; // 1 GB
+  private readonly maxFileSizeInBytes = 100 * 1024 * 1024; // 100 MB Upload limit
   private readonly imageFileTypes = new Set<FileType>([
     FileType.JPG,
     FileType.PNG,
@@ -338,7 +338,7 @@ export class EditDocumentDialogComponent {
     this.selectedPreviewImageUrl = null;
 
     if (file.size > this.maxFileSizeInBytes) {
-      this.fileError = 'Datei ist zu gross. Maximal 1GB erlaubt.';
+      this.fileError = 'Datei ist zu gross. Maximal 100MB erlaubt.';
       return;
     }
 
