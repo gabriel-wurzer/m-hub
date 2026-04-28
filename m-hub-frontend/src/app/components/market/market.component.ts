@@ -122,17 +122,13 @@ export class MarketComponent implements OnDestroy {
     const quantity = this.formatNumber(listing.quantity);
 
     if (listing.component_category === BuildingComponentCategory.Objekt) {
-      return quantity;
+      return `${quantity} Stück`;
     }
 
     return `${quantity} ${this.formatUnit(listing.unit)}`;
   }
 
   private buildDimensions(listing: ApiMarketListing) {
-    if (listing.component_category !== BuildingComponentCategory.Objekt) {
-      return undefined;
-    }
-
     const dimensions = [
       { label: 'Länge', rawValue: listing.length },
       { label: 'Breite', rawValue: listing.width },
@@ -141,17 +137,19 @@ export class MarketComponent implements OnDestroy {
       .map((dimension) => {
         const rawValue = typeof dimension.rawValue === 'string' ? Number(dimension.rawValue) : dimension.rawValue;
         if (typeof rawValue !== 'number' || !Number.isFinite(rawValue) || rawValue <= 0) {
-          return null;
+          return {
+            label: dimension.label,
+            value: '-'
+          };
         }
 
         return {
           label: dimension.label,
           value: `${this.formatNumber(rawValue)} cm`
         };
-      })
-      .filter((dimension): dimension is { label: string; value: string } => dimension !== null);
+      });
 
-    return dimensions.length > 0 ? dimensions : undefined;
+    return dimensions;
   }
 
   private formatNumber(value: number): string {
@@ -205,10 +203,13 @@ export class MarketComponent implements OnDestroy {
       case 'Stueck':
       case 'Stück':
       case 'StÃ¼ck':
-        return 'Stueck';
+        return 'Stück';
       case 'Quadratmeter':
+        return 'm²';
       case 'Kubikmeter':
+        return 'm³';
       case 'Meter':
+        return 'm';
       case 'Kilogramm':
         return unit;
       default:

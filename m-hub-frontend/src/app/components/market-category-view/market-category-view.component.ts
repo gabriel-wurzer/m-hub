@@ -34,4 +34,8 @@ export class MarketCategoryViewComponent {
   trackByListingId(_: number, item: MarketListing): string {
     return item.id;
   }
+
+  getDimensionValue(item: MarketListing, index: number): string {
+    return item.dimensions?.[index]?.value ?? '-';
+  }
 }

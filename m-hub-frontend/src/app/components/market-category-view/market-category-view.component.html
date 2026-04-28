@@ -81,22 +81,39 @@
             <div class="listing-copy">
               <h2>{{ item.title }}</h2>
 
-              <div class="listing-specs">
-                <div class="spec-column">
-                  <p>Preis: {{ item.price }}</p>
-                  <p>{{ item.quantityLabel || 'Menge' }}: {{ item.quantity }}</p>
-                  <p class="listing-location">Verortung: {{ item.location }}</p>
-                  <p class="listing-address">Adresse: </p>
-                </div>
+              <div class="listing-specs material-specs" *ngIf="currentCategory.kind === 'material'; else objectListingSpecs">
+                <p class="spec-field spec-price">Preis: {{ item.price }}</p>
+                <p class="spec-field spec-material">Material: {{ item.material || '-' }}</p>
+                <p class="spec-field spec-length">L&auml;nge: {{ getDimensionValue(item, 0) }}</p>
 
-                <div class="spec-column">
-                  <p *ngIf="item.material">Material: {{ item.material }}</p>
-                  <p *ngFor="let dimension of item.dimensions">{{ dimension.label }}: {{ dimension.value }}</p>
-                  <p *ngIf="item.potential">Potenzial: {{ item.potential }}</p>
-                  <p *ngIf="item.status">Status: {{ item.status }}</p>
-                  <p *ngIf="item.availableFrom">Verfügbar ab: {{ item.availableFrom }}</p>
-                </div>
+                <p class="spec-field spec-quantity">{{ item.quantityLabel || 'Menge' }}: {{ item.quantity }}</p>
+                <p class="spec-field spec-potential">Potenzial: {{ item.potential || '-' }}</p>
+                <p class="spec-field spec-width">Breite: {{ getDimensionValue(item, 1) }}</p>
+
+                <p class="spec-field spec-status">Status: {{ item.status || '-' }}</p>
+                <p class="spec-field spec-height">H&ouml;he: {{ getDimensionValue(item, 2) }}</p>
+
+                <p class="spec-field spec-address">Adresse: {{ item.address || '-' }}</p>
+                <p class="spec-field spec-available">Verf&uuml;gbar ab: {{ item.availableFrom || '-' }}</p>
               </div>
+
+              <ng-template #objectListingSpecs>
+                <div class="listing-specs object-specs">
+                  <p class="spec-field spec-price">Preis: {{ item.price }}</p>
+                  <p class="spec-field spec-status">Status: {{ item.status || '-' }}</p>
+                  <p class="spec-field spec-length">L&auml;nge: {{ getDimensionValue(item, 0) }}</p>
+
+                  <p class="spec-field spec-quantity">{{ item.quantityLabel || 'Anzahl' }}: {{ item.quantity }}</p>
+                  <p class="spec-field spec-potential">Potenzial: {{ item.potential || '-' }}</p>
+                  <p class="spec-field spec-width">Breite: {{ getDimensionValue(item, 1) }}</p>
+
+                  <p class="spec-field spec-height">H&ouml;he: {{ getDimensionValue(item, 2) }}</p>
+
+                  <p class="spec-field spec-address">Adresse: {{ item.address || '-' }}</p>
+                  <p class="spec-field spec-available">Verf&uuml;gbar ab: {{ item.availableFrom || '-' }}</p>
+                </div>
+              </ng-template>
+
             </div>
           </mat-card>
         </div>
