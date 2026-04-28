@@ -77,7 +77,8 @@ export class AddListingDialogComponent {
   readonly objectUnit = MarketListingUnit.St;
   private readonly materialTypeValues = new Set<MaterialType>(Object.values(MaterialType));
   readonly allowedImageMimeTypes: string[] = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-  readonly maxImageSizeInBytes = 10 * 1024 * 1024;
+  readonly maxImageSizeInBytes = 10 * 1024 * 1024;        // 10 MB Upload limit per image
+  readonly maxTotalImageSizeInBytes = 100 * 1024 * 1024;  // 100 MB total Upload limit
 
   name = '';
   description = '';
@@ -345,6 +346,7 @@ export class AddListingDialogComponent {
   }
 
   removeSelectedImage(imageIndex: number): void {
+    this.imageError = '';
     this.selectedImages = this.selectedImages.filter((_, index) => index !== imageIndex);
   }
 
@@ -476,9 +478,17 @@ export class AddListingDialogComponent {
   private async processImageFiles(files: File[]): Promise<void> {
     const nextImages: AddListingDialogImage[] = [];
     const errors: string[] = [];
+    const selectedImagesSize = this.getSelectedImagesSize();
+    let nextImagesSize = 0;
 
     for (const file of files) {
       const validationError = this.validateImageFile(file);
+
+      if (selectedImagesSize + nextImagesSize + file.size > this.maxTotalImageSizeInBytes) {
+        errors.push(`Bilder dürfen insgesamt maximal 100MB haben.`);
+        continue;
+      }
+
       if (validationError) {
         errors.push(`${file.name}: ${validationError}`);
         continue;
@@ -489,6 +499,8 @@ export class AddListingDialogComponent {
         continue;
       }
 
+
+
       try {
         const previewUrl = await this.readFileAsDataUrl(file);
         nextImages.push({
@@ -496,6 +508,7 @@ export class AddListingDialogComponent {
           fileName: file.name,
           previewUrl
         });
+        nextImagesSize += file.size;
       } catch {
         errors.push(`${file.name}: Vorschau konnte nicht geladen werden.`);
       }
@@ -514,10 +527,14 @@ export class AddListingDialogComponent {
     }
 
     if (file.size > this.maxImageSizeInBytes) {
-      return 'Datei ist zu groß. Maximal 10MB erlaubt.';
+      return 'Datei ist zu groß. Maximal 20MB erlaubt.';
     }
 
     return null;
+  }
+
+  private getSelectedImagesSize(): number {
+    return this.selectedImages.reduce((total, image) => total + image.file.size, 0);
   }
 
   private isImageAlreadySelected(file: File): boolean {
