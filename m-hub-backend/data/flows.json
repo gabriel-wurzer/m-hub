@@ -5844,6 +5844,166 @@
         "wires": []
     },
     {
+        "id": "62b0e0c76c7031a1",
+        "type": "comment",
+        "z": "3733b7c3a45e7d1f",
+        "name": "http://localhost:1880/api/market-listings/counts",
+        "info": "",
+        "x": 420,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "6b844e68dd86af0a",
+        "type": "http in",
+        "z": "3733b7c3a45e7d1f",
+        "name": "GET market-listing counts",
+        "url": "/api/market-listings/counts",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 350,
+        "y": 140,
+        "wires": [
+            [
+                "ee1ef126e9f8e4fd"
+            ]
+        ]
+    },
+    {
+        "id": "ee1ef126e9f8e4fd",
+        "type": "function",
+        "z": "3733b7c3a45e7d1f",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET');\n\nif (!secret) {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Server misconfigured: JWT_SECRET missing' };\n    return [null, msg];\n}\n\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.user = null;\n    return [msg, null];\n}\n\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.user = null;\n    return [msg, null];\n}\n\nconst token = parts[1];\n\ntry {\n    const decoded = jwt.verify(token, secret);\n    msg.user = decoded;\n} catch (err) {\n    msg.user = null;\n}\n\nreturn [msg, null];\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 240,
+        "wires": [
+            [
+                "d54c1a1bde5a9247"
+            ],
+            [
+                "d6de4bf648aa5e17"
+            ]
+        ]
+    },
+    {
+        "id": "d54c1a1bde5a9247",
+        "type": "function",
+        "z": "3733b7c3a45e7d1f",
+        "name": "build SQL query",
+        "func": "const user_id = msg.user?.sub || null;\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (user_id && !uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Invalid user ID format' };\n    return [null, msg];\n}\n\nmsg.query = `\n  WITH category_counts AS (\n    SELECT 'material' AS kind, 'Mineralik' AS value, 1 AS sort_order, COUNT(*)::integer AS count\n    FROM market_listings\n    WHERE component_category = 'Bauteil'\n      AND material IN ('Ziegel', 'Beton', 'Asphalt', 'Bl\\u00e4hbeton', 'Eternit', 'Estrich', 'Fliesen', 'Keramik', 'Fliesenkleber', 'Glas', 'Mineralfaser', 'M\\u00f6rtel', 'Putz', 'Sch\\u00fcttung', 'Ytong', 'Rigips', 'Steinzeug')\n    UNION ALL\n    SELECT 'material', 'Metalle', 2, COUNT(*)::integer\n    FROM market_listings\n    WHERE component_category = 'Bauteil'\n      AND material IN ('Aluminium', 'Blei', 'Kupfer', 'Stahl', 'Messing')\n    UNION ALL\n    SELECT 'material', 'Biomasse', 3, COUNT(*)::integer\n    FROM market_listings\n    WHERE component_category = 'Bauteil'\n      AND material IN ('Holz', 'Heraklith', 'Laminat', 'Papier', 'Stroh', 'Linol')\n    UNION ALL\n    SELECT 'material', 'Kunststoffe', 4, COUNT(*)::integer\n    FROM market_listings\n    WHERE component_category = 'Bauteil'\n      AND material IN ('Diverse Kunststoffe', 'PVC', 'Styropor')\n    UNION ALL\n    SELECT 'object', 'Abh\\u00e4ngung', 101, COUNT(*)::integer\n    FROM market_listings\n    WHERE component_category = 'Objekt' AND object_type = 'Abh\\u00e4ngung'\n    UNION ALL\n    SELECT 'object', 'T\\u00fcr', 102, COUNT(*)::integer\n    FROM market_listings\n    WHERE component_category = 'Objekt' AND object_type = 'T\\u00fcr'\n    UNION ALL\n    SELECT 'object', 'Zarge', 103, COUNT(*)::integer\n    FROM market_listings\n    WHERE component_category = 'Objekt' AND object_type = 'Zarge'\n    UNION ALL\n    SELECT 'object', 'Fenster', 104, COUNT(*)::integer\n    FROM market_listings\n    WHERE component_category = 'Objekt' AND object_type = 'Fenster'\n    UNION ALL\n    SELECT 'object', 'Heizk\\u00f6rper', 105, COUNT(*)::integer\n    FROM market_listings\n    WHERE component_category = 'Objekt' AND object_type = 'Heizk\\u00f6rper'\n    UNION ALL\n    SELECT 'object', 'Rohre', 106, COUNT(*)::integer\n    FROM market_listings\n    WHERE component_category = 'Objekt' AND object_type = 'Rohre'\n    UNION ALL\n    SELECT 'object', 'Kabel', 107, COUNT(*)::integer\n    FROM market_listings\n    WHERE component_category = 'Objekt' AND object_type = 'Kabel'\n    UNION ALL\n    SELECT 'object', 'Sonstige', 108, COUNT(*)::integer\n    FROM market_listings\n    WHERE component_category = 'Objekt' AND object_type = 'Sonstige'\n  )\n  SELECT kind, value, count\n  FROM category_counts\n  ORDER BY sort_order\n`;\nmsg.params = [];\n\nreturn [msg, null];\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 380,
+        "wires": [
+            [
+                "f7a0eeaa39982d9c"
+            ],
+            [
+                "d6de4bf648aa5e17"
+            ]
+        ]
+    },
+    {
+        "id": "f7a0eeaa39982d9c",
+        "type": "postgresql",
+        "z": "3733b7c3a45e7d1f",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 580,
+        "y": 500,
+        "wires": [
+            [
+                "701b4635819d7e48"
+            ]
+        ]
+    },
+    {
+        "id": "701b4635819d7e48",
+        "type": "function",
+        "z": "3733b7c3a45e7d1f",
+        "name": "format result",
+        "func": "const rows = msg.payload;\n\nif (!Array.isArray(rows)) {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Database query failed' };\n    return msg;\n}\n\nmsg.statusCode = 200;\nmsg.payload = rows.map((row) => ({\n    kind: row.kind,\n    value: row.value,\n    count: Number(row.count) || 0\n}));\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 790,
+        "y": 500,
+        "wires": [
+            [
+                "d6de4bf648aa5e17"
+            ]
+        ]
+    },
+    {
+        "id": "abc403ef9d50b0c1",
+        "type": "catch",
+        "z": "3733b7c3a45e7d1f",
+        "name": "",
+        "scope": [
+            "f7a0eeaa39982d9c"
+        ],
+        "uncaught": false,
+        "x": 800,
+        "y": 300,
+        "wires": [
+            [
+                "1868b5416049c4f0"
+            ]
+        ]
+    },
+    {
+        "id": "1868b5416049c4f0",
+        "type": "function",
+        "z": "3733b7c3a45e7d1f",
+        "name": "handle db errors",
+        "func": "const errMsg = msg.error && msg.error.message ? msg.error.message : '';\n\nmsg.statusCode = 500; // Internal Server Error\nmsg.payload = { error: 'Database error', details: errMsg };\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 300,
+        "wires": [
+            [
+                "d6de4bf648aa5e17"
+            ]
+        ]
+    },
+    {
+        "id": "d6de4bf648aa5e17",
+        "type": "http response",
+        "z": "3733b7c3a45e7d1f",
+        "name": "market-listing counts response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1130,
+        "y": 460,
+        "wires": []
+    },
+    {
         "id": "187f56ed08f35985",
         "type": "function",
         "z": "cd2a82c3ad69ca34",

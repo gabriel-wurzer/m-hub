@@ -1,6 +1,6 @@
 import { MaterialGroup } from '../enums/material-group';
 import { ObjectType } from '../enums/object-type';
-import { MarketCategory, MarketCategoryKind, MarketListing, MarketListingDimension } from '../models/market.models';
+import { MarketCategory, MarketCategoryKind } from '../models/market.models';
 
 type MarketPreviewMotif =
   | 'mineralik'
@@ -24,147 +24,32 @@ interface MarketPreviewTheme {
   ink: string;
 }
 
-interface ListingSeed {
-  title: string;
-  price: string;
-  quantity: string;
-  condition: string;
-  location: string;
-  dimensions: MarketListingDimension[];
-  motif?: MarketPreviewMotif;
-}
-
 interface CategorySeed {
   description: string;
   motif: MarketPreviewMotif;
   theme: MarketPreviewTheme;
-  listings: ListingSeed[];
 }
 
 const materialSeeds: Record<MaterialGroup, CategorySeed> = {
   [MaterialGroup.Mineralik]: {
     description: 'Ziegel, Beton, Estrich, Fliesen, Glas und weitere mineralische Baustoffe',
     motif: 'mineralik',
-    theme: { background: '#F7F4EF', surface: '#E6DDD0', accent: '#B9A88D', accentSoft: '#D8CCBC', ink: '#5F5447' },
-    listings: [
-      {
-        title: 'Recycling-Vollziegel',
-        price: '1.40 EUR / Stk.',
-        quantity: '420 Stk.',
-        condition: 'gut',
-        location: 'Gudrunstrasse 102, 1100 Wien',
-        dimensions: [{ label: 'Laenge', value: '25 cm' }, { label: 'Breite', value: '12 cm' }, { label: 'Hoehe', value: '6.5 cm' }]
-      },
-      {
-        title: 'Betonplatten 120 x 60',
-        price: '18 EUR / Stk.',
-        quantity: '24 Stk.',
-        condition: 'gut',
-        location: 'Leopoldauer Strasse 87, 1210 Wien',
-        dimensions: [{ label: 'Laenge', value: '120 cm' }, { label: 'Breite', value: '60 cm' }, { label: 'Hoehe', value: '8 cm' }]
-      },
-      {
-        title: 'Keramikfliesen Restposten',
-        price: '22 EUR / m2',
-        quantity: '31 m2',
-        condition: 'sehr gut',
-        location: 'Hernalser Hauptstrasse 195, 1170 Wien',
-        dimensions: [{ label: 'Format', value: '60 x 60 cm' }, { label: 'Staerke', value: '9 mm' }, { label: 'Farbe', value: 'sandgrau' }]
-      }
-    ]
+    theme: { background: '#F7F4EF', surface: '#E6DDD0', accent: '#B9A88D', accentSoft: '#D8CCBC', ink: '#5F5447' }
   },
   [MaterialGroup.Metalle]: {
     description: 'Aluminium, Blei, Kupfer, Stahl und Messing',
     motif: 'metals',
-    theme: { background: '#F2F6F8', surface: '#D6E0E6', accent: '#6C8795', accentSoft: '#A7BBC6', ink: '#324752' },
-    listings: [
-      {
-        title: 'HEA-Traeger 180',
-        price: '165 EUR / Stk.',
-        quantity: '8 Stk.',
-        condition: 'gut',
-        location: 'Laxenburger Strasse 210, 1230 Wien',
-        dimensions: [{ label: 'Laenge', value: '360 cm' }, { label: 'Breite', value: '18 cm' }, { label: 'Hoehe', value: '17 cm' }]
-      },
-      {
-        title: 'Aluminiumbleche eloxiert',
-        price: '48 EUR / Platte',
-        quantity: '12 Platten',
-        condition: 'sehr gut',
-        location: 'Triester Strasse 14, 2351 Wiener Neudorf',
-        dimensions: [{ label: 'Laenge', value: '250 cm' }, { label: 'Breite', value: '125 cm' }, { label: 'Staerke', value: '3 mm' }]
-      },
-      {
-        title: 'Kupferblech Zuschnitt',
-        price: '32 EUR / Platte',
-        quantity: '18 Platten',
-        condition: 'gut',
-        location: 'Bessemerstrasse 6, 1210 Wien',
-        dimensions: [{ label: 'Laenge', value: '200 cm' }, { label: 'Breite', value: '100 cm' }, { label: 'Staerke', value: '1 mm' }]
-      }
-    ]
+    theme: { background: '#F2F6F8', surface: '#D6E0E6', accent: '#6C8795', accentSoft: '#A7BBC6', ink: '#324752' }
   },
   [MaterialGroup.Biomasse]: {
     description: 'Holz, Heraklith, Laminat, Papier, Stroh und Linol',
     motif: 'biomass',
-    theme: { background: '#F7F1E7', surface: '#E7D2AF', accent: '#B7864F', accentSoft: '#D8B783', ink: '#614225' },
-    listings: [
-      {
-        title: 'Eichenholzdielen',
-        price: '45 EUR / Stk.',
-        quantity: '6 Stk.',
-        condition: 'gut',
-        location: 'Muehlgasse 12, 1040 Wien',
-        dimensions: [{ label: 'Laenge', value: '210 cm' }, { label: 'Breite', value: '45 cm' }, { label: 'Hoehe', value: '5 cm' }]
-      },
-      {
-        title: 'Holzbalken (Fichte)',
-        price: '337 EUR / ges.',
-        quantity: '4 Stk.',
-        condition: 'neuwertig',
-        location: 'Reinlgasse 23, 1120 Wien',
-        dimensions: [{ label: 'Laenge', value: '200 cm' }, { label: 'Breite', value: '50 cm' }, { label: 'Hoehe', value: '20 cm' }]
-      },
-      {
-        title: 'Papierdaemmung Zellulose',
-        price: '6 EUR / m2',
-        quantity: '48 m2',
-        condition: 'neu',
-        location: 'Siemensstrasse 120, 1210 Wien',
-        dimensions: [{ label: 'Gebinde', value: '12.5 kg' }, { label: 'Einsatz', value: 'Dachschraege' }, { label: 'Material', value: 'Zellulose' }]
-      }
-    ]
+    theme: { background: '#F7F1E7', surface: '#E7D2AF', accent: '#B7864F', accentSoft: '#D8B783', ink: '#614225' }
   },
   [MaterialGroup.Kunststoffe]: {
     description: 'PVC, Styropor und diverse Kunststoffe',
     motif: 'plastics',
-    theme: { background: '#F5F7FB', surface: '#DFE5F3', accent: '#8498CF', accentSoft: '#B9C6E7', ink: '#45567F' },
-    listings: [
-      {
-        title: 'EPS-Daemmplatten WDV',
-        price: '4.50 EUR / m2',
-        quantity: '74 m2',
-        condition: 'neu',
-        location: 'Liesinger Flur Gasse 18, 1230 Wien',
-        dimensions: [{ label: 'Laenge', value: '100 cm' }, { label: 'Breite', value: '50 cm' }, { label: 'Staerke', value: '14 cm' }]
-      },
-      {
-        title: 'PVC-Bodenbelag Bahnenware',
-        price: '12 EUR / m2',
-        quantity: '85 m2',
-        condition: 'sehr gut',
-        location: 'Wagramer Strasse 310, 1220 Wien',
-        dimensions: [{ label: 'Breite', value: '200 cm' }, { label: 'Staerke', value: '2.5 mm' }, { label: 'Dekor', value: 'grau' }]
-      },
-      {
-        title: 'XPS-Sockelplatten',
-        price: '7 EUR / m2',
-        quantity: '32 m2',
-        condition: 'neu',
-        location: 'Wagramer Strasse 310, 1220 Wien',
-        dimensions: [{ label: 'Laenge', value: '125 cm' }, { label: 'Breite', value: '60 cm' }, { label: 'Staerke', value: '10 cm' }]
-      }
-    ]
+    theme: { background: '#F5F7FB', surface: '#DFE5F3', accent: '#8498CF', accentSoft: '#B9C6E7', ink: '#45567F' }
   }
 };
 
@@ -172,186 +57,42 @@ const objectSeeds: Record<ObjectType, CategorySeed> = {
   [ObjectType['Abh\u00e4ngung']]: {
     description: 'Abhängesysteme, Rasterdecken und Unterkonstruktionen',
     motif: 'ceiling',
-    theme: { background: '#F6F8FA', surface: '#DBE3EA', accent: '#8EA3B4', accentSoft: '#B8C6D1', ink: '#435A69' },
-    listings: [
-      {
-        title: 'Rasterdecken-Set 60 x 60',
-        price: '14 EUR / m2',
-        quantity: '52 m2',
-        condition: 'gut',
-        location: 'Donau-City-Strasse 3, 1220 Wien',
-        dimensions: [{ label: 'Raster', value: '60 x 60 cm' }, { label: 'Abhaengung', value: '35 cm' }, { label: 'Profile', value: 'T24' }]
-      },
-      {
-        title: 'Metall-Unterkonstruktion Decke',
-        price: '220 EUR / Set',
-        quantity: '1 Set',
-        condition: 'sehr gut',
-        location: 'Arbeiterstrandbadstrasse 128, 1220 Wien',
-        dimensions: [{ label: 'Laenge', value: '480 cm' }, { label: 'Breite', value: '300 cm' }, { label: 'Systemhoehe', value: '18 cm' }]
-      }
-    ]
+    theme: { background: '#F6F8FA', surface: '#DBE3EA', accent: '#8EA3B4', accentSoft: '#B8C6D1', ink: '#435A69' }
   },
   [ObjectType['T\u00fcr']]: {
     description: 'Innen-, Außen- und Spezialtüren',
     motif: 'door',
-    theme: { background: '#FAF4EB', surface: '#E9D8C2', accent: '#B58753', accentSoft: '#D8B88F', ink: '#6B4720' },
-    listings: [
-      {
-        title: 'Vollholztuer Eiche',
-        price: '190 EUR / Stk.',
-        quantity: '3 Stk.',
-        condition: 'sehr gut',
-        location: 'Puchsbaumgasse 8, 1100 Wien',
-        dimensions: [{ label: 'Hoehe', value: '205 cm' }, { label: 'Breite', value: '90 cm' }, { label: 'Staerke', value: '4 cm' }]
-      },
-      {
-        title: 'Brandschutztuer EI30',
-        price: '420 EUR / Stk.',
-        quantity: '2 Stk.',
-        condition: 'gut',
-        location: 'Franzosengraben 12, 1030 Wien',
-        dimensions: [{ label: 'Hoehe', value: '210 cm' }, { label: 'Breite', value: '100 cm' }, { label: 'Staerke', value: '6 cm' }]
-      }
-    ]
+    theme: { background: '#FAF4EB', surface: '#E9D8C2', accent: '#B58753', accentSoft: '#D8B88F', ink: '#6B4720' }
   },
   [ObjectType.Zarge]: {
     description: 'Stahl- und Holzzargen',
     motif: 'frame',
-    theme: { background: '#F5F6F7', surface: '#D8DDE3', accent: '#8B97A2', accentSoft: '#BBC4CD', ink: '#46515A' },
-    listings: [
-      {
-        title: 'Stahlzarge weiss lackiert',
-        price: '95 EUR / Stk.',
-        quantity: '5 Stk.',
-        condition: 'sehr gut',
-        location: 'Wiedner Guertel 18, 1040 Wien',
-        dimensions: [{ label: 'Hoehe', value: '205 cm' }, { label: 'Breite', value: '88 cm' }, { label: 'Wandstaerke', value: '12 cm' }]
-      },
-      {
-        title: 'Holzzarge Buche',
-        price: '78 EUR / Stk.',
-        quantity: '4 Stk.',
-        condition: 'gut',
-        location: 'Antonigasse 71, 1180 Wien',
-        dimensions: [{ label: 'Hoehe', value: '200 cm' }, { label: 'Breite', value: '80 cm' }, { label: 'Wandstaerke', value: '10 cm' }]
-      }
-    ]
+    theme: { background: '#F5F6F7', surface: '#D8DDE3', accent: '#8B97A2', accentSoft: '#BBC4CD', ink: '#46515A' }
   },
   [ObjectType.Fenster]: {
     description: 'Fensterelemente',
     motif: 'window',
-    theme: { background: '#EFF7FA', surface: '#D2E7EE', accent: '#74AFC4', accentSoft: '#A8D0DB', ink: '#2D6172' },
-    listings: [
-      {
-        title: 'Kunststofffenster 2-fluegelig',
-        price: '240 EUR / Stk.',
-        quantity: '6 Stk.',
-        condition: 'sehr gut',
-        location: 'Erdberger Laende 34, 1030 Wien',
-        dimensions: [{ label: 'Hoehe', value: '140 cm' }, { label: 'Breite', value: '160 cm' }, { label: 'Uw', value: '1.1 W/m2K' }]
-      },
-      {
-        title: 'Dachfenster mit Eindeckrahmen',
-        price: '315 EUR / Stk.',
-        quantity: '2 Stk.',
-        condition: 'gut',
-        location: 'Schanzstrasse 31, 1140 Wien',
-        dimensions: [{ label: 'Hoehe', value: '118 cm' }, { label: 'Breite', value: '78 cm' }, { label: 'Einbauart', value: 'Schraeg' }]
-      }
-    ]
+    theme: { background: '#EFF7FA', surface: '#D2E7EE', accent: '#74AFC4', accentSoft: '#A8D0DB', ink: '#2D6172' }
   },
   [ObjectType['Heizk\u00f6rper']]: {
     description: 'Heizkörper',
     motif: 'radiator',
-    theme: { background: '#FBF7F2', surface: '#E7DCCF', accent: '#C49C72', accentSoft: '#DEC4A7', ink: '#77522D' },
-    listings: [
-      {
-        title: 'Flachheizkoerper Typ 22',
-        price: '85 EUR / Stk.',
-        quantity: '7 Stk.',
-        condition: 'gut',
-        location: 'Rudolfsplatz 9, 1010 Wien',
-        dimensions: [{ label: 'Hoehe', value: '60 cm' }, { label: 'Breite', value: '120 cm' }, { label: 'Tiefe', value: '10 cm' }]
-      },
-      {
-        title: 'Design-Heizkoerper vertikal',
-        price: '180 EUR / Stk.',
-        quantity: '2 Stk.',
-        condition: 'sehr gut',
-        location: 'Mittersteig 25, 1050 Wien',
-        dimensions: [{ label: 'Hoehe', value: '180 cm' }, { label: 'Breite', value: '45 cm' }, { label: 'Tiefe', value: '8 cm' }]
-      }
-    ]
+    theme: { background: '#FBF7F2', surface: '#E7DCCF', accent: '#C49C72', accentSoft: '#DEC4A7', ink: '#77522D' }
   },
   [ObjectType.Rohre]: {
     description: 'Installationsrohre aus Kupfer, PVC und Mischsystemen',
     motif: 'pipes',
-    theme: { background: '#F6F6F7', surface: '#DBDCDF', accent: '#7F838B', accentSoft: '#B0B4BB', ink: '#404349' },
-    listings: [
-      {
-        title: 'Kupferrohre',
-        price: '95 EUR / Ring',
-        quantity: '4 Ringe',
-        condition: 'neu',
-        location: 'Bessemerstrasse 6, 1210 Wien',
-        dimensions: [{ label: 'Laenge', value: '25 m' }, { label: 'Durchmesser', value: '18 mm' }, { label: 'Wandstaerke', value: '1 mm' }]
-      },
-      {
-        title: 'KG-Rohrpaket DN160',
-        price: '140 EUR / ges.',
-        quantity: '1 Paket',
-        condition: 'gut',
-        location: 'Haidfeldstrasse 17, 4060 Leonding',
-        dimensions: [{ label: 'Laenge', value: '200 cm' }, { label: 'Durchmesser', value: '160 mm' }, { label: 'Muffen', value: '6 Stk.' }]
-      }
-    ]
+    theme: { background: '#F6F6F7', surface: '#DBDCDF', accent: '#7F838B', accentSoft: '#B0B4BB', ink: '#404349' }
   },
   [ObjectType.Kabel]: {
     description: 'Energie-, Steuer- und Datenkabel',
     motif: 'cables',
-    theme: { background: '#F6F8FB', surface: '#DCE3F2', accent: '#7D92C9', accentSoft: '#B0C0E5', ink: '#364978' },
-    listings: [
-      {
-        title: 'NYM-J Leitungen 3 x 1.5',
-        price: '68 EUR / Ring',
-        quantity: '3 Ringe',
-        condition: 'neu',
-        location: 'Troststrasse 65, 1100 Wien',
-        dimensions: [{ label: 'Laenge', value: '100 m' }, { label: 'Adern', value: '3' }, { label: 'Querschnitt', value: '1.5 mm2' }]
-      },
-      {
-        title: 'Datenkabel Cat7 geschirmt',
-        price: '82 EUR / Trommel',
-        quantity: '2 Trommeln',
-        condition: 'neu',
-        location: 'Liechtensteinstrasse 87, 1090 Wien',
-        dimensions: [{ label: 'Laenge', value: '305 m' }, { label: 'Kategorie', value: 'Cat7' }, { label: 'Schirmung', value: 'S/FTP' }]
-      }
-    ]
+    theme: { background: '#F6F8FB', surface: '#DCE3F2', accent: '#7D92C9', accentSoft: '#B0C0E5', ink: '#364978' }
   },
   [ObjectType.Sonstige]: {
     description: 'Sonderteile, Module und sonstige Objekte',
     motif: 'misc',
-    theme: { background: '#F7F6F3', surface: '#E4DFD5', accent: '#9A8F74', accentSoft: '#C9BEA7', ink: '#5A523E' },
-    listings: [
-      {
-        title: 'Werkbankmodul auf Rollen',
-        price: '260 EUR / Stk.',
-        quantity: '1 Stk.',
-        condition: 'gut',
-        location: 'Perfektastrasse 89, 1230 Wien',
-        dimensions: [{ label: 'Laenge', value: '180 cm' }, { label: 'Breite', value: '70 cm' }, { label: 'Hoehe', value: '92 cm' }]
-      },
-      {
-        title: 'Regalsystem verzinkt',
-        price: '140 EUR / Set',
-        quantity: '1 Set',
-        condition: 'sehr gut',
-        location: 'Hollandstrasse 2, 1020 Wien',
-        dimensions: [{ label: 'Laenge', value: '240 cm' }, { label: 'Breite', value: '60 cm' }, { label: 'Hoehe', value: '220 cm' }]
-      }
-    ]
+    theme: { background: '#F7F6F3', surface: '#E4DFD5', accent: '#9A8F74', accentSoft: '#C9BEA7', ink: '#5A523E' }
   }
 };
 
@@ -370,28 +111,7 @@ function createCategory(kind: MarketCategoryKind, title: string, seed: CategoryS
     description: seed.description,
     imageSrc: createPreviewImage(seed.theme, seed.motif),
     imageAlt: `Vorschau fuer ${title}`,
-    listings: seed.listings.map((listing, index) => createListing(kind, title, listing, seed.theme, seed.motif, index))
-  };
-}
-
-function createListing(
-  kind: MarketCategoryKind,
-  categoryTitle: string,
-  listing: ListingSeed,
-  theme: MarketPreviewTheme,
-  fallbackMotif: MarketPreviewMotif,
-  index: number
-): MarketListing {
-  return {
-    id: `${kind}-${toSlug(categoryTitle)}-${index + 1}`,
-    title: listing.title,
-    price: listing.price,
-    quantity: listing.quantity,
-    condition: listing.condition,
-    location: listing.location,
-    dimensions: listing.dimensions,
-    imageSrc: createPreviewImage(theme, listing.motif ?? fallbackMotif),
-    imageAlt: `Visualisierung fuer ${listing.title}`
+    listings: []
   };
 }
 

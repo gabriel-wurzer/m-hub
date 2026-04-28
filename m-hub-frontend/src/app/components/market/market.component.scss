@@ -191,6 +191,20 @@ main {
   font-size: 0.76rem;
   font-weight: 600;
   letter-spacing: 0.01em;
+  animation: card-tag-appear 220ms ease-out both;
+  transform-origin: center right;
+}
+
+@keyframes card-tag-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @media (max-width: 1450px) {

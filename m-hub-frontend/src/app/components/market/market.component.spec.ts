@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of, Subject } from 'rxjs';
 
 import { MarketComponent } from './market.component';
 import { BuildingComponentCategory } from '../../enums/component-category';
@@ -6,19 +7,26 @@ import { MarketListingStatus } from '../../enums/market-listing-status';
 import { MarketPotential } from '../../enums/market-potential.enum';
 import { MarketListingUnit } from '../../enums/market-listing-unit.enum';
 import { MaterialType } from '../../enums/material-type.enum';
-import { MarketListingService } from '../../services/market-listing/market-listing.service';
+import { MarketListingCategoryCount, MarketListingService } from '../../services/market-listing/market-listing.service';
+import { MaterialGroup } from '../../enums/material-group';
 
 describe('MarketComponent', () => {
   let component: MarketComponent;
   let fixture: ComponentFixture<MarketComponent>;
+  let marketListingService: jasmine.SpyObj<MarketListingService>;
 
   beforeEach(async () => {
+    marketListingService = jasmine.createSpyObj<MarketListingService>('MarketListingService', [
+      'getMarketListingCategoryCounts'
+    ]);
+    marketListingService.getMarketListingCategoryCounts.and.returnValue(of([]));
+
     await TestBed.configureTestingModule({
       imports: [MarketComponent],
       providers: [
         {
           provide: MarketListingService,
-          useValue: {}
+          useValue: marketListingService
         }
       ]
     })
@@ -31,6 +39,35 @@ describe('MarketComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('loads real market listing counts for overview category cards', () => {
+    marketListingService.getMarketListingCategoryCounts.and.returnValue(of([
+      { kind: 'material', value: MaterialGroup.Mineralik, count: 4 }
+    ]));
+
+    component.ngOnInit();
+
+    expect(component.formatCategoryListingCount(component.materialGroups[0])).toBe('4 Inserate');
+  });
+
+  it('shows category count tags only after counts are loaded', () => {
+    const counts$ = new Subject<MarketListingCategoryCount[]>();
+    const localFixture = TestBed.createComponent(MarketComponent);
+    const localComponent = localFixture.componentInstance;
+
+    marketListingService.getMarketListingCategoryCounts.and.returnValue(counts$);
+    localFixture.detectChanges();
+
+    expect(localComponent.categoryCountsLoaded).toBeFalse();
+    expect(localFixture.nativeElement.querySelector('.card-tag')).toBeNull();
+
+    counts$.next([{ kind: 'material', value: MaterialGroup.Mineralik, count: 4 }]);
+    counts$.complete();
+    localFixture.detectChanges();
+
+    expect(localComponent.categoryCountsLoaded).toBeTrue();
+    expect(localFixture.nativeElement.querySelector('.card-tag')?.textContent.trim()).toBe('4 Inserate');
   });
 
   it('formats material listing quantity units for cards', () => {
@@ -47,6 +84,7 @@ describe('MarketComponent', () => {
     expect(formatListingQuantity({ unit: MarketListingUnit.m })).toBe('3 m');
     expect(formatListingQuantity({ unit: MarketListingUnit.m2 })).toBe('3 m²');
     expect(formatListingQuantity({ unit: MarketListingUnit.m3 })).toBe('3 m³');
+    expect(formatListingQuantity({ unit: MarketListingUnit.kg })).toBe('3 kg');
   });
 
   it('appends Stück to object listing quantities for cards', () => {

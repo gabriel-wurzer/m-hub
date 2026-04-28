@@ -10,6 +10,12 @@ export type MarketListingCategoryFilter =
   | { kind: 'material'; value: MaterialType }
   | { kind: 'object'; value: ObjectType };
 
+export type MarketListingCategoryCount = {
+  kind: 'material' | 'object';
+  value: MaterialGroup | ObjectType;
+  count: number;
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -21,6 +27,10 @@ export class MarketListingService {
 
   getMarketListingById(marketListingId: string): Observable<MarketListing> {
     return this.http.get<MarketListing>(`${this.apiUrl}/${marketListingId}`);
+  }
+
+  getMarketListingCategoryCounts(): Observable<MarketListingCategoryCount[]> {
+    return this.http.get<MarketListingCategoryCount[]>(`${this.apiUrl}/counts`);
   }
 
   // getMarketListingByCategory(marketListingCategory: string): Observable<MarketListing> {

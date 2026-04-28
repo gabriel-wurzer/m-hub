@@ -37,7 +37,7 @@
                 <mat-card-content class="card-content">
                   <div class="card-header-row">
                     <h3>{{ item.title }}</h3>
-                    <span class="card-tag">{{ item.listings.length }} Inserate</span>
+                    <span *ngIf="categoryCountsLoaded" class="card-tag">{{ formatCategoryListingCount(item) }}</span>
                   </div>
                   <p class="card-description">{{ item.description }}</p>
                 </mat-card-content>
@@ -73,7 +73,7 @@
                 <mat-card-content class="card-content">
                   <div class="card-header-row">
                     <h3>{{ item.title }}</h3>
-                    <span class="card-tag">{{ item.listings.length }} Inserate</span>
+                    <span *ngIf="categoryCountsLoaded" class="card-tag">{{ formatCategoryListingCount(item) }}</span>
                   </div>
                   <p class="card-description">{{ item.description }}</p>
                 </mat-card-content>

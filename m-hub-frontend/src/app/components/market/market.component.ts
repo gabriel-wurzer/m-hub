@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { Observable, Subscription } from 'rxjs';
@@ -8,7 +8,7 @@ import { MATERIAL_GROUP_CATEGORIES, OBJECT_TYPE_CATEGORIES } from '../../utils/m
 import { MarketCategoryViewComponent } from '../market-category-view/market-category-view.component';
 import { MarketCategory, MarketListing as MarketCategoryListing } from '../../models/market.models';
 import { MarketListing as ApiMarketListing } from '../../models/market-listing';
-import { MarketListingService } from '../../services/market-listing/market-listing.service';
+import { MarketListingCategoryCount, MarketListingService } from '../../services/market-listing/market-listing.service';
 import { MaterialGroup } from '../../enums/material-group';
 import { ObjectType } from '../../enums/object-type';
 import { BuildingComponentCategory } from '../../enums/component-category';
@@ -20,17 +20,25 @@ import { BuildingComponentCategory } from '../../enums/component-category';
   templateUrl: './market.component.html',
   styleUrl: './market.component.scss'
 })
-export class MarketComponent implements OnDestroy {
+export class MarketComponent implements OnInit, OnDestroy {
   readonly materialGroups = MATERIAL_GROUP_CATEGORIES;
   readonly objectTypes = OBJECT_TYPE_CATEGORIES;
 
   selectedCategory: MarketCategory | null = null;
   isCategoryLoading = false;
   categoryLoadError: string | null = null;
+  isCategoryCountLoading = false;
+  categoryCountsLoaded = false;
 
   private categoryLoadSubscription?: Subscription;
+  private categoryCountSubscription?: Subscription;
+  private readonly categoryCounts = new Map<string, number>();
 
   constructor(private marketListingService: MarketListingService) {}
+
+  ngOnInit(): void {
+    this.loadCategoryCounts();
+  }
 
   openCategory(category: MarketCategory): void {
     this.categoryLoadSubscription?.unsubscribe();
@@ -48,6 +56,7 @@ export class MarketComponent implements OnDestroy {
 
     this.categoryLoadSubscription = request.subscribe({
       next: listings => {
+        this.categoryCounts.set(this.getCategoryCountKey(category), listings.length);
         this.selectedCategory = {
           ...category,
           listings: listings.map(listing => this.mapApiListingToCategoryListing(listing, category))
@@ -71,10 +80,51 @@ export class MarketComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.categoryLoadSubscription?.unsubscribe();
+    this.categoryCountSubscription?.unsubscribe();
   }
 
   trackByCategoryId(_: number, item: MarketCategory): string {
     return item.id;
+  }
+
+  formatCategoryListingCount(category: MarketCategory): string {
+    const count = this.categoryCounts.get(this.getCategoryCountKey(category));
+
+    const safeCount = count ?? 0;
+    return `${safeCount} ${safeCount === 1 ? 'Inserat' : 'Inserate'}`;
+  }
+
+  private loadCategoryCounts(): void {
+    this.categoryCountSubscription?.unsubscribe();
+    this.isCategoryCountLoading = true;
+    this.categoryCountsLoaded = false;
+
+    this.categoryCountSubscription = this.marketListingService.getMarketListingCategoryCounts().subscribe({
+      next: counts => {
+        this.categoryCounts.clear();
+
+        for (const count of counts) {
+          this.categoryCounts.set(this.getCategoryCountKeyFromCount(count), Number(count.count) || 0);
+        }
+
+        this.isCategoryCountLoading = false;
+        this.categoryCountsLoaded = true;
+      },
+      error: error => {
+        console.error('Error loading market listing category counts:', error);
+        this.categoryCounts.clear();
+        this.isCategoryCountLoading = false;
+        this.categoryCountsLoaded = false;
+      }
+    });
+  }
+
+  private getCategoryCountKey(category: MarketCategory): string {
+    return `${category.kind}:${category.title}`;
+  }
+
+  private getCategoryCountKeyFromCount(count: MarketListingCategoryCount): string {
+    return `${count.kind}:${count.value}`;
   }
 
   private getListingsForCategory(category: MarketCategory): Observable<ApiMarketListing[]> | null {
@@ -212,7 +262,7 @@ export class MarketComponent implements OnDestroy {
       case 'Meter':
         return 'm';
       case 'Kilogramm':
-        return unit;
+        return 'kg';
       default:
         return unit;
     }

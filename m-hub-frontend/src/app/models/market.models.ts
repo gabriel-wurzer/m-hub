@@ -18,7 +18,6 @@ export interface MarketListing {
   dimensions?: MarketListingDimension[];
   location: string;
   address?: string | null;
-  condition?: string;
   imageSrc: string;
   imageAlt: string;
 }
