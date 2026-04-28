@@ -224,7 +224,6 @@
   max-height: 100%;
   border-radius: 14px;
   overflow: hidden;
-  background: linear-gradient(180deg, #ffffff 0%, #fbfaf7 100%);
 }
 
 .listing-image {
@@ -233,6 +232,10 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
+
+  &.listing-image--placeholder {
+    object-fit: fill;
+  }
 }
 
 .listing-copy {

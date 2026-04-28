@@ -26,6 +26,7 @@ export class MarketListing {
 
   // marketplace data
   name!: string;
+  address!: string;
   description?: string;
   price!: number;
   status!: MarketListingStatus;

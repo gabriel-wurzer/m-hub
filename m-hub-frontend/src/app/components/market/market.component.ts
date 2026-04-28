@@ -100,6 +100,7 @@ export class MarketComponent implements OnDestroy {
       availableFrom: listing.available_from ? this.formatDate(listing.available_from) : null,
       dimensions: this.buildDimensions(listing),
       location: listing.location,
+      address: listing.address,
       imageSrc: this.getListingImageSrc(listing, category),
       imageAlt: `Bild zu ${listing.name}`
     };

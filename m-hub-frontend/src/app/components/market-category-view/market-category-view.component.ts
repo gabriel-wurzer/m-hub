@@ -38,4 +38,8 @@ export class MarketCategoryViewComponent {
   getDimensionValue(item: MarketListing, index: number): string {
     return item.dimensions?.[index]?.value ?? '-';
   }
+
+  isPlaceholderImage(imageSrc: string | null | undefined): boolean {
+    return imageSrc?.trim().toLowerCase().startsWith('data:image/svg+xml') ?? false;
+  }
 }

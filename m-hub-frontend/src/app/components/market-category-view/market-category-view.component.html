@@ -75,6 +75,7 @@
                 [src]="item.imageSrc"
                 [alt]="item.imageAlt"
                 class="listing-image"
+                [class.listing-image--placeholder]="isPlaceholderImage(item.imageSrc)"
                 loading="lazy" />
             </div>
 

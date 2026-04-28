@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS market_listings (
     width DOUBLE PRECISION CHECK (width IS NULL OR width > 0),
     height DOUBLE PRECISION CHECK (height IS NULL OR height > 0),
     name TEXT NOT NULL,
+    address TEXT NOT NULL,
     description TEXT,
     price NUMERIC(12, 2) NOT NULL CHECK (price >= 0),
     status TEXT NOT NULL CHECK (
@@ -46,6 +47,7 @@ CREATE TABLE IF NOT EXISTS market_listings (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT market_listings_name_not_blank CHECK (btrim(name) <> ''),
+    CONSTRAINT market_listings_address_not_blank CHECK (btrim(address) <> ''),
     CONSTRAINT market_listings_location_not_blank CHECK (btrim(location) <> ''),
     CONSTRAINT market_listings_contact_not_blank CHECK (btrim(contact) <> ''),
     CONSTRAINT market_listings_component_snapshot_check CHECK (
@@ -79,6 +81,24 @@ ALTER TABLE market_listings
 
 ALTER TABLE market_listings
   ADD COLUMN IF NOT EXISTS height DOUBLE PRECISION;
+
+ALTER TABLE market_listings
+  ADD COLUMN IF NOT EXISTS address TEXT;
+
+UPDATE market_listings listing
+SET address = user_building.address
+FROM user_buildings user_building
+WHERE listing.user_building_id = user_building.id
+  AND (listing.address IS NULL OR btrim(listing.address) = '');
+
+ALTER TABLE market_listings
+  ALTER COLUMN address SET NOT NULL;
+
+ALTER TABLE market_listings
+  DROP CONSTRAINT IF EXISTS market_listings_address_not_blank;
+
+ALTER TABLE market_listings
+  ADD CONSTRAINT market_listings_address_not_blank CHECK (btrim(address) <> '');
 
 -- ===============================================
 --  FOREIGN KEYS
@@ -149,6 +169,28 @@ ALTER TABLE market_listing_images
 -- ===============================================
 --  UPDATE TRIGGER LOGIC
 -- ===============================================
+CREATE OR REPLACE FUNCTION set_market_listing_address_from_user_building()
+RETURNS TRIGGER AS $$
+DECLARE
+    resolved_address TEXT;
+BEGIN
+    SELECT address
+    INTO resolved_address
+    FROM user_buildings
+    WHERE id = NEW.user_building_id
+      AND user_id = NEW.owner_id
+      AND building_id = NEW.building_id;
+
+    IF resolved_address IS NULL OR btrim(resolved_address) = '' THEN
+        RAISE EXCEPTION 'Cannot resolve address for market listing user_building_id %', NEW.user_building_id
+            USING ERRCODE = 'foreign_key_violation';
+    END IF;
+
+    NEW.address = resolved_address;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION update_market_listings_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -164,6 +206,13 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_market_listings_set_address ON market_listings;
+
+CREATE TRIGGER trg_market_listings_set_address
+BEFORE INSERT ON market_listings
+FOR EACH ROW
+EXECUTE FUNCTION set_market_listing_address_from_user_building();
 
 CREATE TRIGGER trg_market_listings_set_updated_at
 BEFORE UPDATE ON market_listings
