@@ -99,11 +99,14 @@ services:
       - SEAWEED_FILER_INTERNAL_URL=${SEAWEED_FILER_INTERNAL_URL:-http://seaweed-filer:8888}
       - SEAWEED_PUBLIC_BASE_URL=${SEAWEED_PUBLIC_BASE_URL:-http://localhost:8888}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
-      # Baked into the image by the backend Dockerfile; see comment there.
-      - NODE_PATH=/opt/data-deps/node_modules
-    # Mount host directories to container directories as volumes
+    # Mount host directories to container directories as volumes.
+    # The named volume on /data/node_modules sits ON TOP of the bind mount and
+    # gets initialised from the image's /data/node_modules on first start, so
+    # node-red palette nodes (node-red-contrib-postgresql etc.) survive the
+    # bind-mount shadowing. See m-hub-backend/Dockerfile.
     volumes:
       - ./m-hub-backend/data:/data
+      - m-hub-backend-deps:/data/node_modules
     depends_on:
       m-hub-postgis-api:
         condition: service_healthy
@@ -142,3 +145,4 @@ volumes:
   # declare named value
   pgdata:
   seaweed_data:
+  m-hub-backend-deps:
