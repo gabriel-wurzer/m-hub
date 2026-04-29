@@ -1,5 +1,5 @@
 <main>
-  <div class="market-container">
+  <div class="market-container" [hidden]="isUserListingsViewVisible">
     <div id="market" [class.category-active]="selectedCategory">
       <ng-container *ngIf="!selectedCategory; else categoryView">
         <header class="market-header">
@@ -96,8 +96,13 @@
           [loading]="isCategoryLoading"
           [loadError]="categoryLoadError"
           (categorySelect)="openCategory($event)"
+          (myListings)="openMyListings()"
           (back)="closeCategory()"></app-market-category-view>
       </ng-template>
     </div>
   </div>
+
+  <app-user-market-listings-view
+    *ngIf="isUserListingsViewVisible"
+    (closeUserListingsView)="closeMyListings()" />
 </main>

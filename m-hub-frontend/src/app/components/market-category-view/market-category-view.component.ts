@@ -23,6 +23,7 @@ export class MarketCategoryViewComponent {
   @Input() loadError: string | null = null;
   @Output() back = new EventEmitter<void>();
   @Output() categorySelect = new EventEmitter<MarketCategory>();
+  @Output() myListings = new EventEmitter<void>();
 
   selectCategory(category: MarketCategory): void {
     this.categorySelect.emit(category);
@@ -45,6 +46,6 @@ export class MarketCategoryViewComponent {
   }
 
   openMyListings(): void {
-    console.log('Open my listings - not implemented yet');
+    this.myListings.emit();
   }  
 }

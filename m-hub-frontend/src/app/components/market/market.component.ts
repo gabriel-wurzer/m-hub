@@ -14,11 +14,20 @@ import { ObjectType } from '../../enums/object-type';
 import { BuildingComponentCategory } from '../../enums/component-category';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { UserMarketListingsViewComponent } from '../../user-market-listings-view/user-market-listings-view.component';
 
 @Component({
   selector: 'app-market',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatDividerModule, MatButtonModule, MatIconModule, MarketCategoryViewComponent],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatDividerModule,
+    MatButtonModule,
+    MatIconModule,
+    MarketCategoryViewComponent,
+    UserMarketListingsViewComponent
+  ],
   templateUrl: './market.component.html',
   styleUrl: './market.component.scss'
 })
@@ -31,6 +40,7 @@ export class MarketComponent implements OnInit, OnDestroy {
   categoryLoadError: string | null = null;
   isCategoryCountLoading = false;
   categoryCountsLoaded = false;
+  isUserListingsViewVisible = false;
 
   private categoryLoadSubscription?: Subscription;
   private categoryCountSubscription?: Subscription;
@@ -279,7 +289,11 @@ export class MarketComponent implements OnInit, OnDestroy {
   }
 
   openMyListings(): void {
-    console.log('Open my listings - not implemented yet');
+    this.isUserListingsViewVisible = true;
+  }
+
+  closeMyListings(): void {
+    this.isUserListingsViewVisible = false;
   }
   
 }
