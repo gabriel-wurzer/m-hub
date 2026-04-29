@@ -73,18 +73,6 @@ CREATE TABLE IF NOT EXISTS market_listing_images (
     CONSTRAINT market_listing_images_listing_sort_order_unique UNIQUE (market_listing_id, sort_order)
 );
 
-ALTER TABLE market_listings
-  ADD COLUMN IF NOT EXISTS length DOUBLE PRECISION;
-
-ALTER TABLE market_listings
-  ADD COLUMN IF NOT EXISTS width DOUBLE PRECISION;
-
-ALTER TABLE market_listings
-  ADD COLUMN IF NOT EXISTS height DOUBLE PRECISION;
-
-ALTER TABLE market_listings
-  ADD COLUMN IF NOT EXISTS address TEXT;
-
 UPDATE market_listings listing
 SET address = user_building.address
 FROM user_buildings user_building
