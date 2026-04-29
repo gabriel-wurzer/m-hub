@@ -84,3 +84,21 @@ export type CreateMarketListing = {
   contact: string;
   images?: CreateMarketListingImagePayload[];
 };
+
+export type UpdateMarketListing = {
+  material?: MaterialType;
+  object_type?: ObjectType;
+  length?: number | null;
+  width?: number | null;
+  height?: number | null;
+  name: string;
+  description?: string;
+  price: number;
+  potential: MarketPotential;
+  quantity: number;
+  unit: MarketListingUnit;
+  status: MarketListingStatus;
+  available_from: string;   // ISO date, not dd.mm.yy
+  contact: string;
+  images?: CreateMarketListingImagePayload[];
+};
