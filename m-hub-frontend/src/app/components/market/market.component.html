@@ -3,9 +3,14 @@
     <div id="market" [class.category-active]="selectedCategory">
       <ng-container *ngIf="!selectedCategory; else categoryView">
         <header class="market-header">
-          <div class="headline-copy">
+          <div class="headline">
             <h1>M-Hub Markt</h1>
           </div>
+
+          <button mat-stroked-button class="my-listings-button" type="button" aria-label="Meine Inserate" (click)="openMyListings()">
+            <mat-icon>inventory_2</mat-icon>
+            Meine Inserate
+          </button>
         </header>
 
         <mat-divider class="horizontal-divider"></mat-divider>

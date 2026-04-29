@@ -43,7 +43,6 @@ main {
 
 .market-header {
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
 
   h1 {
@@ -58,6 +57,12 @@ main {
     max-width: 720px;
     color: rgba(0, 0, 0, 0.64);
   }
+
+  .my-listings-button {
+    border-color: mat.get-color-from-palette(vars.$my-secondary, 300);
+    color: mat.get-color-from-palette(vars.$my-secondary, 700);
+  }
+
 }
 
 .market-content {
@@ -178,6 +183,7 @@ main {
   line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -245,3 +251,18 @@ main {
     margin: 8px 8px 0;
   }
 }
+
+@media (max-width: 520px) {
+  .market-header {
+    align-items: center;
+  }
+}
+
+@media (max-width: 450px) {
+  .market-header {
+    flex-direction: column;
+    align-items: start;
+    padding-bottom: 12px;
+  }
+}
+

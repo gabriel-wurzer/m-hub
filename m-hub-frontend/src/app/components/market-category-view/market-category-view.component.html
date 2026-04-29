@@ -1,10 +1,19 @@
 <ng-container *ngIf="category as currentCategory">
   <div class="market-category-view">
     <header class="market-category-header">
-      <button mat-stroked-button class="back-button" type="button" (click)="back.emit()">
-        <mat-icon>arrow_back</mat-icon>
-        Zur Übersicht
-      </button>
+      
+      <div class="market-header-actions">
+        <button mat-stroked-button class="back-button" type="button" (click)="back.emit()">
+          <mat-icon>arrow_back</mat-icon>
+          Zur Übersicht
+        </button>
+
+        <button mat-stroked-button class="my-listings-button" type="button" aria-label="Meine Inserate" (click)="openMyListings()">
+          <mat-icon>inventory_2</mat-icon>
+          Meine Inserate
+        </button>
+      </div>
+      
 
       <div class="market-category-heading">
         <div class="market-category-title-row">

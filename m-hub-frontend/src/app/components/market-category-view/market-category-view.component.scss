@@ -12,7 +12,7 @@
   flex: 1;
   flex-direction: column;
   min-height: 0;
-  padding: 16px;
+  // padding: 16px;
 }
 
 .market-category-header {
@@ -21,8 +21,14 @@
   gap: 12px;
 }
 
-.back-button {
-  align-self: flex-start;
+.market-header-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.back-button, .my-listings-button {
   border-color: mat.get-color-from-palette(vars.$my-secondary, 300);
   color: mat.get-color-from-palette(vars.$my-secondary, 700);
 }

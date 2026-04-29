@@ -43,4 +43,8 @@ export class MarketCategoryViewComponent {
   isPlaceholderImage(imageSrc: string | null | undefined): boolean {
     return imageSrc?.trim().toLowerCase().startsWith('data:image/svg+xml') ?? false;
   }
+
+  openMyListings(): void {
+    console.log('Open my listings - not implemented yet');
+  }  
 }

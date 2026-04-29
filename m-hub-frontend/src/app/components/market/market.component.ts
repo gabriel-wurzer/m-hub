@@ -12,11 +12,13 @@ import { MarketListingCategoryCount, MarketListingService } from '../../services
 import { MaterialGroup } from '../../enums/material-group';
 import { ObjectType } from '../../enums/object-type';
 import { BuildingComponentCategory } from '../../enums/component-category';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-market',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatDividerModule, MarketCategoryViewComponent],
+  imports: [CommonModule, MatCardModule, MatDividerModule, MatButtonModule, MatIconModule, MarketCategoryViewComponent],
   templateUrl: './market.component.html',
   styleUrl: './market.component.scss'
 })
@@ -275,4 +277,9 @@ export class MarketComponent implements OnInit, OnDestroy {
   private asObjectType(title: string): ObjectType | null {
     return (Object.values(ObjectType) as string[]).includes(title) ? title as ObjectType : null;
   }
+
+  openMyListings(): void {
+    console.log('Open my listings - not implemented yet');
+  }
+  
 }
