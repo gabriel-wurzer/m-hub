@@ -23,14 +23,25 @@
 
 .market-header-actions {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.back-button, .my-listings-button {
-  border-color: mat.get-color-from-palette(vars.$my-secondary, 300);
-  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+.back-button,
+.my-listings-button {
+  flex: 0 0 auto;
+}
+
+.market-header-actions .back-button,
+.market-header-actions .my-listings-button {
+  --mdc-outlined-button-label-text-color: #{mat.get-color-from-palette(vars.$my-secondary, 700)};
+  --mdc-outlined-button-outline-color: #{mat.get-color-from-palette(vars.$my-secondary, 300)};
+  color: var(--mdc-outlined-button-label-text-color);
+}
+
+.my-listings-button {
+  margin-left: auto;
 }
 
 .market-category-heading {

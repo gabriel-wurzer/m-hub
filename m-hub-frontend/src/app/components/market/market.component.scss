@@ -59,8 +59,9 @@ main {
   }
 
   .my-listings-button {
-    border-color: mat.get-color-from-palette(vars.$my-secondary, 300);
-    color: mat.get-color-from-palette(vars.$my-secondary, 700);
+    --mdc-outlined-button-label-text-color: #{mat.get-color-from-palette(vars.$my-secondary, 700)};
+    --mdc-outlined-button-outline-color: #{mat.get-color-from-palette(vars.$my-secondary, 300)};
+    color: var(--mdc-outlined-button-label-text-color);
   }
 
 }
@@ -262,7 +263,10 @@ main {
   .market-header {
     flex-direction: column;
     align-items: start;
+    
+  }
+
+  .my-listings-button {
     padding-bottom: 12px;
   }
 }
-

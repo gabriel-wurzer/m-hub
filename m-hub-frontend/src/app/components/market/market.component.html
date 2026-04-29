@@ -7,7 +7,13 @@
             <h1>M-Hub Markt</h1>
           </div>
 
-          <button mat-stroked-button class="my-listings-button" type="button" aria-label="Meine Inserate" (click)="openMyListings()">
+          <button
+            *ngIf="isLoggedIn$ | async"
+            mat-stroked-button
+            class="my-listings-button"
+            type="button"
+            aria-label="Meine Inserate"
+            (click)="openMyListings()">
             <mat-icon>inventory_2</mat-icon>
             Meine Inserate
           </button>
@@ -95,6 +101,7 @@
           [objectCategories]="objectTypes"
           [loading]="isCategoryLoading"
           [loadError]="categoryLoadError"
+          [isLoggedIn]="(isLoggedIn$ | async) ?? false"
           (categorySelect)="openCategory($event)"
           (myListings)="openMyListings()"
           (back)="closeCategory()"></app-market-category-view>

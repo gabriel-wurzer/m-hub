@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
-import { Observable, Subscription } from 'rxjs';
+import { map, Observable, Subscription } from 'rxjs';
 
 import { MATERIAL_GROUP_CATEGORIES, OBJECT_TYPE_CATEGORIES } from '../../utils/market-catalog';
 import { MarketCategoryViewComponent } from '../market-category-view/market-category-view.component';
@@ -14,7 +14,8 @@ import { ObjectType } from '../../enums/object-type';
 import { BuildingComponentCategory } from '../../enums/component-category';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { UserMarketListingsViewComponent } from '../../user-market-listings-view/user-market-listings-view.component';
+import { UserMarketListingsViewComponent } from '../user-market-listings-view/user-market-listings-view.component';
+import { AuthenticationService } from '../../services/authentication/authentication.service';
 
 @Component({
   selector: 'app-market',
@@ -34,6 +35,7 @@ import { UserMarketListingsViewComponent } from '../../user-market-listings-view
 export class MarketComponent implements OnInit, OnDestroy {
   readonly materialGroups = MATERIAL_GROUP_CATEGORIES;
   readonly objectTypes = OBJECT_TYPE_CATEGORIES;
+  readonly isLoggedIn$: Observable<boolean>;
 
   selectedCategory: MarketCategory | null = null;
   isCategoryLoading = false;
@@ -46,7 +48,14 @@ export class MarketComponent implements OnInit, OnDestroy {
   private categoryCountSubscription?: Subscription;
   private readonly categoryCounts = new Map<string, number>();
 
-  constructor(private marketListingService: MarketListingService) {}
+  constructor(
+    private marketListingService: MarketListingService,
+    private authService: AuthenticationService
+  ) {
+    this.isLoggedIn$ = this.authService.getUser$().pipe(
+      map(user => !!user)
+    );
+  }
 
   ngOnInit(): void {
     this.loadCategoryCounts();

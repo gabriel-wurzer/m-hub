@@ -1,5 +1,5 @@
 @use '@angular/material' as mat;
-@use '../../theme-setup' as vars;
+@use '../../../theme-setup' as vars;
 
 :host {
   display: flex;
@@ -13,7 +13,7 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  padding: 8px 12px 12px;
+  padding: 16px;
   gap: 1rem;
   box-sizing: border-box;
   position: relative;

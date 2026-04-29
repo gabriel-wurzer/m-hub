@@ -21,6 +21,7 @@ export class MarketCategoryViewComponent {
   @Input() objectCategories: MarketCategory[] = [];
   @Input() loading = false;
   @Input() loadError: string | null = null;
+  @Input() isLoggedIn = false;
   @Output() back = new EventEmitter<void>();
   @Output() categorySelect = new EventEmitter<MarketCategory>();
   @Output() myListings = new EventEmitter<void>();
