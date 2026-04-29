@@ -19,6 +19,12 @@ type AddObjectDialogData = {
   structure?: Floor[];
 };
 
+export type AddObjectDialogImage = {
+  file: File;
+  fileName: string;
+  previewUrl: string;
+};
+
 export type AddObjectDialogResult = {
   name: string;
   objectType: ObjectType;
@@ -30,9 +36,7 @@ export type AddObjectDialogResult = {
   length: number | null;
   width: number | null;
   height: number | null;
-  imageFile: File | null;
-  imageFileName: string;
-  imagePreviewUrl: string | null;
+  images: AddObjectDialogImage[];
 };
 
 type FloorOption = {
@@ -69,7 +73,8 @@ type MeasurementInput = number | string | null;
   styleUrl: './add-object-dialog.component.scss'
 })
 export class AddObjectDialogComponent {
-  private readonly maxImageSizeInBytes = 10 * 1024 * 1024; //10 MB Upload limit
+  private readonly maxImageSizeInBytes = 10 * 1024 * 1024; // 10 MB upload limit per image
+  private readonly maxTotalImageSizeInBytes = 100 * 1024 * 1024;
   private readonly allowedImageMimeTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
   readonly specialLocationOptions: string[] = ['Individuell (Verortung in Beschreibung angeben)'];
   private readonly specialLocationOptionValue = 'Individuell';
@@ -95,9 +100,7 @@ export class AddObjectDialogComponent {
   isDragActive: boolean = false;
   imageError: string = '';
 
-  selectedImageFile: File | null = null;
-  selectedImageFileName: string = '';
-  selectedImagePreviewUrl: string | null = null;
+  selectedImages: AddObjectDialogImage[] = [];
   readonly positiveMeasurementPattern = '^(?:[1-9]\\d*(?:[.,]\\d+)?|0[.,]\\d*[1-9]\\d*)$';
 
   constructor(
@@ -230,11 +233,12 @@ export class AddObjectDialogComponent {
 
   onImageFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const files = Array.from(input.files ?? []);
 
-    if (!file) return;
+    if (files.length === 0) return;
 
-    this.processImageFile(file);
+    void this.processImageFiles(files);
+    input.value = '';
   }
 
   onDragOver(event: DragEvent): void {
@@ -251,42 +255,109 @@ export class AddObjectDialogComponent {
     event.preventDefault();
     this.isDragActive = false;
 
-    const file = event.dataTransfer?.files?.[0];
-    if (!file) return;
+    const files = Array.from(event.dataTransfer?.files ?? []);
+    if (files.length === 0) return;
 
-    this.processImageFile(file);
+    void this.processImageFiles(files);
   }
 
-  removeSelectedImage(): void {
-    this.imageError = '';
-    this.selectedImageFile = null;
-    this.selectedImageFileName = '';
-    this.selectedImagePreviewUrl = null;
-  }
-
-  private processImageFile(file: File): void {
+  removeSelectedImage(imageIndex?: number): void {
     this.imageError = '';
 
-    if (!this.allowedImageMimeTypes.includes(file.type)) {
-      this.removeSelectedImage();
-      this.imageError = 'Nur PNG, JPG, JPEG oder WEBP sind erlaubt.';
+    if (typeof imageIndex === 'number') {
+      this.selectedImages = this.selectedImages.filter((_, index) => index !== imageIndex);
       return;
+    }
+
+    this.selectedImages = [];
+  }
+
+  trackBySelectedImage(index: number, image: AddObjectDialogImage): string {
+    return `${image.fileName}:${image.file.size}:${image.file.lastModified}:${index}`;
+  }
+
+  private async processImageFiles(files: File[]): Promise<void> {
+    const nextImages: AddObjectDialogImage[] = [];
+    const errors: string[] = [];
+    const selectedImagesSize = this.getSelectedImagesSize();
+    let nextImagesSize = 0;
+
+    for (const file of files) {
+      const validationError = this.validateImageFile(file);
+
+      if (selectedImagesSize + nextImagesSize + file.size > this.maxTotalImageSizeInBytes) {
+        errors.push(`${file.name}: Bilder dürfen insgesamt maximal 100MB haben.`);
+        continue;
+      }
+
+      if (validationError) {
+        errors.push(`${file.name}: ${validationError}`);
+        continue;
+      }
+
+      if (this.isImageAlreadySelected(file) || nextImages.some((image) => this.isSameFile(image.file, file))) {
+        errors.push(`${file.name}: Datei bereits ausgewählt.`);
+        continue;
+      }
+
+      try {
+        const previewUrl = await this.readFileAsDataUrl(file);
+        nextImages.push({
+          file,
+          fileName: file.name,
+          previewUrl
+        });
+        nextImagesSize += file.size;
+      } catch {
+        errors.push(`${file.name}: Vorschau konnte nicht geladen werden.`);
+      }
+    }
+
+    if (nextImages.length > 0) {
+      this.selectedImages = [...this.selectedImages, ...nextImages];
+    }
+
+    this.imageError = errors.join(' | ');
+  }
+
+  private validateImageFile(file: File): string | null {
+    if (!this.allowedImageMimeTypes.includes(file.type)) {
+      return 'Nur PNG, JPG, JPEG oder WEBP sind erlaubt.';
     }
 
     if (file.size > this.maxImageSizeInBytes) {
-      this.removeSelectedImage();
-      this.imageError = 'Datei ist zu groß. Maximal 10MB erlaubt.';
-      return;
+      return 'Datei ist zu groß. Maximal 10MB erlaubt.';
     }
 
-    this.selectedImageFile = file;
-    this.selectedImageFileName = file.name;
+    return null;
+  }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.selectedImagePreviewUrl = typeof reader.result === 'string' ? reader.result : null;
-    };
-    reader.readAsDataURL(file);
+  private getSelectedImagesSize(): number {
+    return this.selectedImages.reduce((total, image) => total + image.file.size, 0);
+  }
+
+  private isImageAlreadySelected(file: File): boolean {
+    return this.selectedImages.some((image) => this.isSameFile(image.file, file));
+  }
+
+  private isSameFile(left: File, right: File): boolean {
+    return left.name === right.name && left.size === right.size && left.lastModified === right.lastModified;
+  }
+
+  private readFileAsDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result);
+          return;
+        }
+
+        reject(new Error('Invalid preview result'));
+      };
+      reader.onerror = () => reject(reader.error ?? new Error('Preview read failed'));
+      reader.readAsDataURL(file);
+    });
   }
 
   private normalizeOptionalInput(input: string): string | null {
@@ -389,9 +460,7 @@ export class AddObjectDialogComponent {
       length: this.normalizeOptionalMeasurement(this.length),
       width: this.normalizeOptionalMeasurement(this.width),
       height: this.normalizeOptionalMeasurement(this.height),
-      imageFile: this.selectedImageFile,
-      imageFileName: this.selectedImageFileName,
-      imagePreviewUrl: this.selectedImagePreviewUrl
+      images: [...this.selectedImages]
     };
 
     this.dialogRef?.close(result);

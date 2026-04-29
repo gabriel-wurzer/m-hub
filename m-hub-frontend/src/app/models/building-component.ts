@@ -59,12 +59,26 @@ export class Objekt extends BuildingComponent {
     width?: number | null;
     height?: number | null;
     location!: string;
-    image_path?: string;
+    images?: BuildingObjectImage[];
+}
+
+export class BuildingObjectImage {
+    id!: string;
+    building_object_id!: string;
+    sort_order!: number;
+    image_path!: string;
     image_mime_type?: string;
     image_original_name?: string;
     image_size_bytes?: number;
     image_url?: string;
 }
+
+export type CreateObjektImagePayload = {
+    image_data_url: string;
+    image_mime_type?: string;
+    image_original_name?: string;
+    sort_order?: number;
+};
 
 export type CreateObjektPayload = {
     building_id: string;
@@ -81,9 +95,7 @@ export type CreateObjektPayload = {
     width?: number | null;
     height?: number | null;
     location: string;
-    image_data_url?: string;
-    image_mime_type?: string;
-    image_original_name?: string;
+    images?: CreateObjektImagePayload[];
 };
 
 export type UpdateObjektPayload = {
@@ -98,9 +110,7 @@ export type UpdateObjektPayload = {
     width?: number | null;
     height?: number | null;
     location: string;
-    image_data_url?: string;
-    image_mime_type?: string;
-    image_original_name?: string;
-    remove_image?: boolean;
-    removeExistingImage?: boolean;
+    images?: CreateObjektImagePayload[];
+    existing_image_ids?: string[];
+    remove_images?: boolean;
 };

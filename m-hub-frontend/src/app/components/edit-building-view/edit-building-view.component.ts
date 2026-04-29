@@ -481,10 +481,13 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
         is_hazardous: result.isHazardous ?? false
       };
 
-      if (result.imagePreviewUrl && result.imageFile) {
-        payload.image_data_url = result.imagePreviewUrl;
-        payload.image_mime_type = result.imageFile.type || undefined;
-        payload.image_original_name = result.imageFileName || result.imageFile.name || undefined;
+      if (result.images.length > 0) {
+        payload.images = result.images.map((image, index) => ({
+          image_data_url: image.previewUrl,
+          image_mime_type: image.file.type || undefined,
+          image_original_name: image.fileName || image.file.name || undefined,
+          sort_order: index
+        }));
       }
 
       this.isLoadingObjects = true;
@@ -550,14 +553,25 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
         is_hazardous: result.isHazardous ?? false
       };
 
-      if (result.imagePreviewUrl && result.imageFile) {
-        payload.image_data_url = result.imagePreviewUrl;
-        payload.image_mime_type = result.imageFile.type || undefined;
-        payload.image_original_name = result.imageFileName || result.imageFile.name || undefined;
-      }
+      if (result.imagesChanged || result.images.length > 0) {
+        payload.existing_image_ids = result.existingImageIds;
 
-      if (result.removeExistingImage) {
-        payload.remove_image = true;
+        if (result.images.length > 0) {
+          payload.images = result.images.map((image, index) => ({
+            image_data_url: image.previewUrl,
+            image_mime_type: image.file.type || undefined,
+            image_original_name: image.fileName || image.file.name || undefined,
+            sort_order: result.existingImageIds.length + index
+          }));
+        }
+
+        if (
+          result.imagesChanged
+          && result.existingImageIds.length === 0
+          && result.images.length === 0
+        ) {
+          payload.remove_images = true;
+        }
       }
 
       this.isLoadingObjects = true;

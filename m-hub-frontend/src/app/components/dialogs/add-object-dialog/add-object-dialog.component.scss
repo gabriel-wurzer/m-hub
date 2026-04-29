@@ -212,14 +212,41 @@ mat-form-field {
   color: mat.get-color-from-palette(vars.$my-warn, 700);
 }
 
+.image-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.image-preview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .image-preview {
   width: 100%;
-  max-width: 420px;
-  max-height: 260px;
+  height: 180px;
   border-radius: 6px;
   border: 1px solid #d8dee8;
   object-fit: contain;
   background: #fff;
+}
+
+.image-preview-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.image-name {
+  min-width: 0;
+  color: #4d4d4d;
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .actions {

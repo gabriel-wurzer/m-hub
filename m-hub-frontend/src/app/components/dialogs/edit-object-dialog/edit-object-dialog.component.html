@@ -153,14 +153,14 @@
 
     <!-- <h2>Bild</h2> -->
     <div class="image-upload-wrapper">
-      <input #imageInput type="file" accept="image/*" (change)="onImageFileSelected($event)" hidden />
+      <input #imageInput type="file" accept="image/*" multiple (change)="onImageFileSelected($event)" hidden />
 
       <div
         class="drop-zone"
         [class.drag-active]="isDragActive"
         tabindex="0"
         role="button"
-        aria-label="Bild hochladen"
+        aria-label="Bilder hochladen"
         (click)="imageInput.click()"
         (keydown.enter)="imageInput.click()"
         (keydown.space)="imageInput.click(); $event.preventDefault()"
@@ -173,31 +173,46 @@
           <mat-icon class="drop-zone-icon">add_photo_alternate</mat-icon>
           <p class="drop-zone-text">
             Drag & drop oder
-            <button type="button" class="choose-link" (click)="imageInput.click(); $event.stopPropagation()">Datei auswählen</button>
+            <button type="button" class="choose-link" (click)="imageInput.click(); $event.stopPropagation()">Dateien auswählen</button>
           </p>
         </div>
       </div>
 
       <div class="file-hints">
         <span>Erlaubte Dateitypen: PNG, JPG, JPEG, WEBP.</span>
-        <span>Max. Dateigröße: 10MB</span>
+        <span>Max. 10MB/Bild, 100MB gesamt</span>
       </div>
 
-      <div class="image-meta-row" *ngIf="selectedImageFileName || imageError || selectedImagePreviewUrl">
-        <div class="image-meta" *ngIf="selectedImageFileName">{{ selectedImageFileName }}</div>
+      <div class="image-meta-row" *ngIf="existingImages.length > 0 || selectedImages.length > 0 || imageError">
+        <div class="image-meta" *ngIf="existingImages.length > 0 || selectedImages.length > 0">
+          {{ existingImages.length + selectedImages.length }} Bild{{ existingImages.length + selectedImages.length === 1 ? '' : 'er' }} ausgewählt
+        </div>
         <div class="image-error" *ngIf="imageError">{{ imageError }}</div>
-        <button
-          mat-button
-          type="button"
-          color="warn"
-          (click)="removeSelectedImage()"
-          [disabled]="!selectedImageFile && !selectedImagePreviewUrl"
-        >
-          Entfernen
-        </button>
       </div>
 
-      <img *ngIf="selectedImagePreviewUrl" [src]="selectedImagePreviewUrl" alt="Bildvorschau" class="image-preview" />
+      <div class="image-preview-grid" *ngIf="existingImages.length > 0 || selectedImages.length > 0">
+        <div class="image-preview-card" *ngFor="let image of existingImages; let i = index; trackBy: trackByExistingImage">
+          <img [src]="image.previewUrl" [alt]="'Bestehendes Objektbild ' + (i + 1)" class="image-preview" />
+
+          <div class="image-preview-actions">
+            <div class="image-name">{{ image.fileName }}</div>
+            <button mat-button type="button" color="warn" (click)="removeExistingImageAt(i)">
+              Entfernen
+            </button>
+          </div>
+        </div>
+
+        <div class="image-preview-card" *ngFor="let image of selectedImages; let i = index; trackBy: trackBySelectedImage">
+          <img [src]="image.previewUrl" [alt]="'Neue Bildvorschau ' + (i + 1)" class="image-preview" />
+
+          <div class="image-preview-actions">
+            <div class="image-name">{{ image.fileName }}</div>
+            <button mat-button type="button" color="warn" (click)="removeSelectedImage(i)">
+              Entfernen
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

@@ -14,7 +14,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { FloorType } from '../../../enums/floor-type.enum';
 import { ObjectType } from '../../../enums/object-type';
-import { Objekt } from '../../../models/building-component';
+import { BuildingObjectImage, Objekt } from '../../../models/building-component';
 import { Floor } from '../../../models/floor';
 
 export type EditObjectDialogData = {
@@ -33,10 +33,23 @@ export type EditObjectDialogResult = {
   length: number | null;
   width: number | null;
   height: number | null;
-  imageFile: File | null;
-  imageFileName: string;
-  imagePreviewUrl: string | null;
-  removeExistingImage: boolean;
+  images: EditObjectDialogImage[];
+  existingImageIds: string[];
+  imagesChanged: boolean;
+};
+
+export type EditObjectDialogImage = {
+  file: File;
+  fileName: string;
+  previewUrl: string;
+};
+
+type ExistingObjectDialogImage = {
+  id: string | null;
+  fileName: string;
+  previewUrl: string;
+  sortOrder: number;
+  sizeBytes: number;
 };
 
 type FloorOption = {
@@ -74,14 +87,15 @@ type MeasurementInput = number | string | null;
 })
 export class EditObjectDialogComponent {
   private readonly maxImageSizeInBytes = 10 * 1024 * 1024;
+  private readonly maxTotalImageSizeInBytes = 100 * 1024 * 1024;
   private readonly allowedImageMimeTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
   readonly specialLocationOptions: string[] = ['Individuell (Verortung in Beschreibung angeben)'];
   private readonly specialLocationOptionValue = 'Individuell';
   private readonly floorDescriptionByLocationLabel = new Map<string, string>();
   private previousSelectedLocations: string[] = [];
 
-  private initialImagePreviewUrl: string | null = null;
-  private initialImageFileName: string = '';
+  private initialExistingImageIds = new Set<string>();
+  private imageChangesTouched = false;
 
   name: string = '';
   description: string = '';
@@ -102,10 +116,8 @@ export class EditObjectDialogComponent {
   isDragActive: boolean = false;
   imageError: string = '';
 
-  selectedImageFile: File | null = null;
-  selectedImageFileName: string = '';
-  selectedImagePreviewUrl: string | null = null;
-  removeExistingImage: boolean = false;
+  existingImages: ExistingObjectDialogImage[] = [];
+  selectedImages: EditObjectDialogImage[] = [];
   readonly positiveMeasurementPattern = '^(?:[1-9]\\d*(?:[.,]\\d+)?|0[.,]\\d*[1-9]\\d*)$';
 
   constructor(
@@ -144,13 +156,12 @@ export class EditObjectDialogComponent {
     this.selectedLocations = parsedLocations;
     this.previousSelectedLocations = [...this.selectedLocations];
 
-    const imageUrl = this.resolveInitialImageUrl(object);
-    if (imageUrl) {
-      this.initialImagePreviewUrl = imageUrl;
-      this.initialImageFileName = this.resolveInitialImageName(object, imageUrl);
-      this.selectedImagePreviewUrl = imageUrl;
-      this.selectedImageFileName = this.initialImageFileName;
-    }
+    this.existingImages = this.resolveInitialImages(object);
+    this.initialExistingImageIds = new Set(
+      this.existingImages
+        .map((image) => image.id)
+        .filter((id): id is string => typeof id === 'string' && id.length > 0)
+    );
   }
 
   private parseLocations(location: string | undefined): string[] {
@@ -184,23 +195,50 @@ export class EditObjectDialogComponent {
     return fallback;
   }
 
-  private resolveInitialImageUrl(object: Objekt): string | null {
-    if (typeof object.image_url === 'string' && object.image_url.trim().length > 0) {
-      return object.image_url.trim();
+  private resolveInitialImages(object: Objekt): ExistingObjectDialogImage[] {
+    const objectImages = Array.isArray(object.images) ? object.images : [];
+    const normalizedImages = objectImages
+      .map((image, index) => this.toExistingImageVm(image, index))
+      .filter((image): image is ExistingObjectDialogImage => image !== null)
+      .sort((left, right) => left.sortOrder - right.sortOrder);
+
+    return normalizedImages;
+  }
+
+  private toExistingImageVm(image: BuildingObjectImage, fallbackSortOrder: number): ExistingObjectDialogImage | null {
+    const previewUrl = this.resolveImageRecordUrl(image);
+    if (!previewUrl) return null;
+
+    return {
+      id: typeof image.id === 'string' && image.id.trim().length > 0 ? image.id.trim() : null,
+      fileName: this.resolveImageRecordName(image, previewUrl),
+      previewUrl,
+      sortOrder: Number.isInteger(Number(image.sort_order)) ? Number(image.sort_order) : fallbackSortOrder,
+      sizeBytes: this.normalizeImageSize(image.image_size_bytes)
+    };
+  }
+
+  private resolveImageRecordUrl(image: BuildingObjectImage): string | null {
+    if (typeof image.image_url === 'string' && image.image_url.trim().length > 0) {
+      return image.image_url.trim();
     }
 
-    if (typeof object.image_path === 'string' && /^https?:\/\//i.test(object.image_path.trim())) {
-      return object.image_path.trim();
+    if (typeof image.image_path === 'string' && /^https?:\/\//i.test(image.image_path.trim())) {
+      return image.image_path.trim();
     }
 
     return null;
   }
 
-  private resolveInitialImageName(object: Objekt, imageUrl: string): string {
-    if (typeof object.image_original_name === 'string' && object.image_original_name.trim().length > 0) {
-      return object.image_original_name.trim();
+  private resolveImageRecordName(image: BuildingObjectImage, imageUrl: string): string {
+    if (typeof image.image_original_name === 'string' && image.image_original_name.trim().length > 0) {
+      return image.image_original_name.trim();
     }
 
+    return this.resolveFileNameFromUrl(imageUrl);
+  }
+
+  private resolveFileNameFromUrl(imageUrl: string): string {
     try {
       const parsed = new URL(imageUrl);
       const fileName = parsed.pathname.split('/').pop();
@@ -215,6 +253,11 @@ export class EditObjectDialogComponent {
     }
 
     return '';
+  }
+
+  private normalizeImageSize(value: unknown): number {
+    const parsedValue = Number(value);
+    return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : 0;
   }
 
   private toLocationOptionVm(value: string): LocationOptionVm {
@@ -328,11 +371,12 @@ export class EditObjectDialogComponent {
 
   onImageFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const files = Array.from(input.files ?? []);
 
-    if (!file) return;
+    if (files.length === 0) return;
 
-    this.processImageFile(file);
+    void this.processImageFiles(files);
+    input.value = '';
   }
 
   onDragOver(event: DragEvent): void {
@@ -349,67 +393,120 @@ export class EditObjectDialogComponent {
     event.preventDefault();
     this.isDragActive = false;
 
-    const file = event.dataTransfer?.files?.[0];
-    if (!file) return;
+    const files = Array.from(event.dataTransfer?.files ?? []);
+    if (files.length === 0) return;
 
-    this.processImageFile(file);
+    void this.processImageFiles(files);
   }
 
-  removeSelectedImage(): void {
+  removeSelectedImage(imageIndex: number): void {
     this.imageError = '';
+    this.selectedImages = this.selectedImages.filter((_, index) => index !== imageIndex);
+    this.imageChangesTouched = true;
+  }
 
-    if (this.selectedImageFile) {
-      this.selectedImageFile = null;
+  removeExistingImageAt(imageIndex: number): void {
+    this.imageError = '';
+    this.existingImages = this.existingImages.filter((_, index) => index !== imageIndex);
+    this.imageChangesTouched = true;
+  }
 
-      if (this.initialImagePreviewUrl && !this.removeExistingImage) {
-        this.selectedImagePreviewUrl = this.initialImagePreviewUrl;
-        this.selectedImageFileName = this.initialImageFileName;
-      } else {
-        this.selectedImagePreviewUrl = null;
-        this.selectedImageFileName = '';
+  trackByExistingImage(index: number, image: ExistingObjectDialogImage): string {
+    return `${image.id ?? image.previewUrl}:${index}`;
+  }
+
+  trackBySelectedImage(index: number, image: EditObjectDialogImage): string {
+    return `${image.fileName}:${image.file.size}:${image.file.lastModified}:${index}`;
+  }
+
+  private async processImageFiles(files: File[]): Promise<void> {
+    const nextImages: EditObjectDialogImage[] = [];
+    const errors: string[] = [];
+    const existingImagesSize = this.getExistingImagesSize();
+    const selectedImagesSize = this.getSelectedImagesSize();
+    let nextImagesSize = 0;
+
+    for (const file of files) {
+      const validationError = this.validateImageFile(file);
+
+      if (existingImagesSize + selectedImagesSize + nextImagesSize + file.size > this.maxTotalImageSizeInBytes) {
+        errors.push(`${file.name}: Bilder dürfen insgesamt maximal 100MB haben.`);
+        continue;
       }
-      return;
+
+      if (validationError) {
+        errors.push(`${file.name}: ${validationError}`);
+        continue;
+      }
+
+      if (this.isImageAlreadySelected(file) || nextImages.some((image) => this.isSameFile(image.file, file))) {
+        errors.push(`${file.name}: Datei bereits ausgewählt.`);
+        continue;
+      }
+
+      try {
+        const previewUrl = await this.readFileAsDataUrl(file);
+        nextImages.push({
+          file,
+          fileName: file.name,
+          previewUrl
+        });
+        nextImagesSize += file.size;
+      } catch {
+        errors.push(`${file.name}: Vorschau konnte nicht geladen werden.`);
+      }
     }
 
-    if (this.selectedImagePreviewUrl && this.initialImagePreviewUrl) {
-      this.selectedImagePreviewUrl = null;
-      this.selectedImageFileName = '';
-      this.removeExistingImage = true;
-      return;
+    if (nextImages.length > 0) {
+      this.selectedImages = [...this.selectedImages, ...nextImages];
+      this.imageChangesTouched = true;
     }
 
-    this.selectedImagePreviewUrl = null;
-    this.selectedImageFileName = '';
+    this.imageError = errors.join(' | ');
   }
 
-  private processImageFile(file: File): void {
-    this.imageError = '';
-
+  private validateImageFile(file: File): string | null {
     if (!this.allowedImageMimeTypes.includes(file.type)) {
-      this.selectedImageFile = null;
-      this.selectedImageFileName = '';
-      this.selectedImagePreviewUrl = this.initialImagePreviewUrl;
-      this.imageError = 'Nur PNG, JPG, JPEG oder WEBP sind erlaubt.';
-      return;
+      return 'Nur PNG, JPG, JPEG oder WEBP sind erlaubt.';
     }
 
     if (file.size > this.maxImageSizeInBytes) {
-      this.selectedImageFile = null;
-      this.selectedImageFileName = '';
-      this.selectedImagePreviewUrl = this.initialImagePreviewUrl;
-      this.imageError = 'Datei ist zu groß. Maximal 10MB erlaubt.';
-      return;
+      return 'Datei ist zu groß. Maximal 10MB erlaubt.';
     }
 
-    this.removeExistingImage = false;
-    this.selectedImageFile = file;
-    this.selectedImageFileName = file.name;
+    return null;
+  }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.selectedImagePreviewUrl = typeof reader.result === 'string' ? reader.result : null;
-    };
-    reader.readAsDataURL(file);
+  private getExistingImagesSize(): number {
+    return this.existingImages.reduce((total, image) => total + image.sizeBytes, 0);
+  }
+
+  private getSelectedImagesSize(): number {
+    return this.selectedImages.reduce((total, image) => total + image.file.size, 0);
+  }
+
+  private isImageAlreadySelected(file: File): boolean {
+    return this.selectedImages.some((image) => this.isSameFile(image.file, file));
+  }
+
+  private isSameFile(left: File, right: File): boolean {
+    return left.name === right.name && left.size === right.size && left.lastModified === right.lastModified;
+  }
+
+  private readFileAsDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result);
+          return;
+        }
+
+        reject(new Error('Invalid preview result'));
+      };
+      reader.onerror = () => reject(reader.error ?? new Error('Preview read failed'));
+      reader.readAsDataURL(file);
+    });
   }
 
   private normalizeOptionalInput(input: string): string | null {
@@ -510,6 +607,10 @@ export class EditObjectDialogComponent {
     if (!this.isFormValid()) return;
     if (!this.objectType) return;
 
+    const existingImageIds = this.existingImages
+      .map((image) => image.id)
+      .filter((id): id is string => typeof id === 'string' && id.length > 0);
+
     const result: EditObjectDialogResult = {
       name: this.name.trim(),
       objectType: this.objectType,
@@ -521,10 +622,9 @@ export class EditObjectDialogComponent {
       length: this.normalizeOptionalMeasurement(this.length),
       width: this.normalizeOptionalMeasurement(this.width),
       height: this.normalizeOptionalMeasurement(this.height),
-      imageFile: this.selectedImageFile,
-      imageFileName: this.selectedImageFileName,
-      imagePreviewUrl: this.selectedImagePreviewUrl,
-      removeExistingImage: this.removeExistingImage
+      images: [...this.selectedImages],
+      existingImageIds,
+      imagesChanged: this.imageChangesTouched
     };
 
     this.dialogRef?.close(result);

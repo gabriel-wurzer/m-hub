@@ -110,7 +110,15 @@ describe('StructureDetailsComponent', () => {
       is_hazardous: false,
       count: 3,
       location: 'RG 1',
-      image_url: 'https://example.com/object-image.jpg'
+      images: [
+        {
+          id: 'image-1',
+          building_object_id: 'object-1',
+          sort_order: 0,
+          image_path: '/mhub/objects/object-1/image.jpg',
+          image_url: 'https://example.com/object-image.jpg'
+        }
+      ]
     } as any;
 
     component.ngOnChanges({

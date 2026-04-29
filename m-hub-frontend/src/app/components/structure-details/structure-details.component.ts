@@ -339,16 +339,19 @@ export class StructureDetailsComponent implements OnChanges {
   }
 
   getObjectImageUrl(): string | null {
-    const explicitUrl = (this.buildingComponent as Partial<BuildingComponent> & { image_url?: unknown })?.image_url;
-    if (typeof explicitUrl === 'string' && explicitUrl.trim().length > 0) {
-      return explicitUrl.trim();
-    }
+    const images = (this.buildingComponent as Partial<BuildingComponent> & { images?: unknown })?.images;
+    if (!Array.isArray(images)) return null;
 
-    const imagePath = (this.buildingComponent as Partial<BuildingComponent> & { image_path?: unknown })?.image_path;
-    if (typeof imagePath === 'string' && imagePath.trim().length > 0) {
-      const normalizedPath = imagePath.trim();
-      if (/^https?:\/\//i.test(normalizedPath)) {
-        return normalizedPath;
+    for (const image of images) {
+      if (!image || typeof image !== 'object') continue;
+
+      const imageRecord = image as { image_url?: unknown; image_path?: unknown };
+      if (typeof imageRecord.image_url === 'string' && imageRecord.image_url.trim().length > 0) {
+        return imageRecord.image_url.trim();
+      }
+
+      if (typeof imageRecord.image_path === 'string' && /^https?:\/\//i.test(imageRecord.image_path.trim())) {
+        return imageRecord.image_path.trim();
       }
     }
 

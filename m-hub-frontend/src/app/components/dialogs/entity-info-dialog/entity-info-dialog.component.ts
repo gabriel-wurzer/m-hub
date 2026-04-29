@@ -226,16 +226,21 @@ export class EntityInfoDialogComponent {
   getObjectImageUrl(): string | null {
     if (!this.isObjekt()) return null;
 
-    const explicitUrl = this.readField(this.entity, ['image_url', 'imageUrl']);
-    if (typeof explicitUrl === 'string' && explicitUrl.trim().length > 0) {
-      return explicitUrl.trim();
-    }
+    const images = this.readField(this.entity, ['images']);
+    if (!Array.isArray(images)) return null;
 
-    const imagePath = this.readField(this.entity, ['image_path', 'imagePath']);
-    if (typeof imagePath === 'string' && imagePath.trim().length > 0) {
-      const normalizedPath = imagePath.trim();
-      if (/^https?:\/\//i.test(normalizedPath)) {
-        return normalizedPath;
+    for (const image of images) {
+      if (!image || typeof image !== 'object') continue;
+
+      const imageRecord = image as { image_url?: unknown; imageUrl?: unknown; image_path?: unknown; imagePath?: unknown };
+      const explicitUrl = imageRecord.image_url ?? imageRecord.imageUrl;
+      if (typeof explicitUrl === 'string' && explicitUrl.trim().length > 0) {
+        return explicitUrl.trim();
+      }
+
+      const imagePath = imageRecord.image_path ?? imageRecord.imagePath;
+      if (typeof imagePath === 'string' && /^https?:\/\//i.test(imagePath.trim())) {
+        return imagePath.trim();
       }
     }
 
