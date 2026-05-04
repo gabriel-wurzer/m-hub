@@ -1,26 +1,106 @@
 <div class="user-listings-view-panel">
-    
-     <header class="user-listings--header">
-        <div class="market-category-heading">
-            <div class="market-category-title-row">
-                <h1>Meine Marktinserate</h1>
-                <!-- <span class="listing-count-chip" *ngIf="!loading && !loadError">
-                    {{ listings.length }} Anzeigen
-                </span> -->
-            </div>
-            <p>Hier findest du deine eigenen Marktangebote.</p>
+  <header class="user-listings--header">
+    <div class="market-category-heading">
+      <div class="market-category-title-row">
+        <h1>Meine Marktinserate</h1>
+        <span class="listing-count-chip" *ngIf="!loading && !loadError">
+          {{ listings.length }} {{ listings.length === 1 ? 'Anzeige' : 'Anzeigen' }}
+        </span>
+      </div>
+      <p>Hier findest du deine eigenen Marktangebote.</p>
+    </div>
+
+    <div class="header-actions">
+      <button mat-icon-button class="close-button" type="button" aria-label="Meine Inserate schliessen" (click)="close()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </header>
+
+  <mat-divider></mat-divider>
+
+  <div class="user-listings-content">
+    <div class="spinner-container" *ngIf="loading">
+      <mat-spinner [diameter]="100" [strokeWidth]="6" class="loading-spinner" />
+    </div>
+
+    <p class="panel-state error" *ngIf="!loading && loadError">{{ loadError }}</p>
+
+    <p class="panel-state" *ngIf="!loading && !loadError && listings.length === 0">
+      Du hast noch keine Marktinserate erstellt.
+    </p>
+
+    <div class="listing-stack" *ngIf="!loading && !loadError && listings.length > 0">
+      <mat-card
+        class="listing-card"
+        *ngFor="let listing of listings; trackBy: trackByListingId">
+        <div class="listing-image-shell">
+          <img
+            [src]="getListingImageSrc(listing)"
+            [alt]="'Bild zu ' + listing.name"
+            class="listing-image"
+            loading="lazy" />
         </div>
 
-        <button mat-icon-button class="close-button" type="button" aria-label="Meine Inserate schließen" (click)="close()">
-            <mat-icon>close</mat-icon>
-        </button>
-    </header>
+        <div class="listing-copy">
+          <div class="listing-title-row">
+            <div class="listing-title-block">
+              <h2>{{ listing.name }}</h2>
+              <div class="listing-tags">
+                <span class="listing-tag">{{ listing.component_category }}</span>
+                <span class="listing-tag status-tag">{{ formatStatus(listing.status) }}</span>
+              </div>
+            </div>
 
-    <mat-divider></mat-divider>
-    
-    <div class="user-listings-content">
-        <p class="empty-state">Noch keine eigenen Marktinserate geladen.</p>
+            <div class="listing-actions" aria-label="Inserat Aktionen">
+              <button
+                mat-icon-button
+                color="primary"
+                matTooltip="Bearbeiten"
+                aria-label="Marktinserat bearbeiten"
+                (click)="onEditListing(listing)">
+                <mat-icon>edit</mat-icon>
+              </button>
+
+              <button
+                mat-icon-button
+                color="warn"
+                matTooltip="L&ouml;schen"
+                aria-label="Marktinserat loeschen"
+                (click)="onDeleteListing(listing)">
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="listing-specs">
+            <p class="spec-field spec-price">
+              <span>Preis</span>
+              {{ formatPrice(listing.price) }}
+            </p>
+
+            <p class="spec-field spec-available">
+              <span>Verf&uuml;gbar ab</span>
+              {{ formatDate(listing.available_from) }}
+            </p>
+
+            <p class="spec-field spec-quantity">
+              <span>{{ getQuantityLabel(listing) }}</span>
+              {{ getQuantityValue(listing) }}
+            </p>
+
+            <p class="spec-field spec-type">
+              <span>{{ getListingTypeLabel(listing) }}</span>
+              {{ getListingType(listing) }}
+            </p>
+
+            <p class="spec-field spec-address">
+              <span>Adresse</span>
+              {{ listing.address || '-' }}
+            </p>
+          </div>
+        </div>
+      </mat-card>
     </div>
-    
-    
+  </div>
 </div>

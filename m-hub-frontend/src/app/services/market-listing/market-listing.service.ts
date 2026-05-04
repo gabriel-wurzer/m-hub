@@ -64,6 +64,14 @@ export class MarketListingService {
     );
   }
 
+  getMarketListingsByOwnerId(ownerId: string): Observable<MarketListing[]> {
+    const params = new HttpParams().set('owner_id', ownerId);
+
+    return this.http.get<MarketListing[]>(this.apiUrl, { params }).pipe(
+      map(listings => this.sortAndDedupeListings(listings))
+    );
+  }
+
   addMarketListing(payload: CreateMarketListing): Observable<MarketListing> {
     return this.http.post<MarketListing>(this.apiUrl, payload);
   }

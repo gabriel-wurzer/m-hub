@@ -48,4 +48,16 @@ describe('MarketListingService', () => {
 
     requests[0].flush([]);
   });
+
+  it('requests market listings by owner id', () => {
+    service.getMarketListingsByOwnerId('user-1').subscribe(listings => {
+      expect(listings).toEqual([]);
+    });
+
+    const request = httpMock.expectOne(req => req.url === '/api/market-listings');
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.get('owner_id')).toBe('user-1');
+
+    request.flush([]);
+  });
 });
