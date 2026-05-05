@@ -163,12 +163,17 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
+
+  &.listing-image--placeholder {
+    object-fit: fill;
+  }
 }
 
 .listing-copy {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  // gap: 14px;
+  gap: 6px;
   min-width: 0;
   min-height: 0;
   height: 100%;

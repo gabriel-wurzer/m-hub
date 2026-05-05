@@ -76,6 +76,10 @@ export class MarketListingService {
     return this.http.post<MarketListing>(this.apiUrl, payload);
   }
 
+  deleteMarketListing(marketListingId: string): Observable<MarketListing> {
+    return this.http.delete<MarketListing>(`${this.apiUrl}/${marketListingId}`);
+  }
+
   private sortAndDedupeListings(listings: MarketListing[]): MarketListing[] {
     const uniqueById = new Map<string, MarketListing>();
 

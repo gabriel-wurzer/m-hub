@@ -39,6 +39,7 @@
             [src]="getListingImageSrc(listing)"
             [alt]="'Bild zu ' + listing.name"
             class="listing-image"
+            [class.listing-image--placeholder]="isPlaceholderImage(getListingImageSrc(listing))"
             loading="lazy" />
         </div>
 
@@ -67,6 +68,7 @@
                 color="warn"
                 matTooltip="L&ouml;schen"
                 aria-label="Marktinserat loeschen"
+                [disabled]="isDeletingListing(listing)"
                 (click)="onDeleteListing(listing)">
                 <mat-icon>delete_outline</mat-icon>
               </button>

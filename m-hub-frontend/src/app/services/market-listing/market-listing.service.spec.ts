@@ -60,4 +60,15 @@ describe('MarketListingService', () => {
 
     request.flush([]);
   });
+
+  it('deletes market listings by id', () => {
+    service.deleteMarketListing('listing-1').subscribe(listing => {
+      expect(listing.id).toBe('listing-1');
+    });
+
+    const request = httpMock.expectOne('/api/market-listings/listing-1');
+    expect(request.request.method).toBe('DELETE');
+
+    request.flush({ id: 'listing-1' });
+  });
 });

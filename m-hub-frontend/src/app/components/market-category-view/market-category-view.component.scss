@@ -289,7 +289,7 @@
 .listing-copy {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
   min-width: 0;
   align-self: stretch;
 
@@ -430,10 +430,6 @@
 }
 
 @media (max-width: 800px) {
-  .market-category-view {
-    padding: 12px;
-  }
-
   .market-category-title-row h1 {
     font-size: 1.6rem;
   }

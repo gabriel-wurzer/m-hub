@@ -304,5 +304,25 @@ export class MarketComponent implements OnInit, OnDestroy {
   closeMyListings(): void {
     this.isUserListingsViewVisible = false;
   }
+
+  onUserListingDeleted(deletedListing: ApiMarketListing): void {
+    this.loadCategoryCounts();
+
+    if (!this.selectedCategory) {
+      return;
+    }
+
+    const listings = this.selectedCategory.listings.filter(listing => listing.id !== deletedListing.id);
+
+    if (listings.length === this.selectedCategory.listings.length) {
+      return;
+    }
+
+    this.selectedCategory = {
+      ...this.selectedCategory,
+      listings
+    };
+    this.categoryCounts.set(this.getCategoryCountKey(this.selectedCategory), listings.length);
+  }
   
 }
