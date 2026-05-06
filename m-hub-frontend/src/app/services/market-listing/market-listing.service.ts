@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
-import { CreateMarketListing, MarketListing } from '../../models/market-listing';
+import { CreateMarketListing, MarketListing, UpdateMarketListing } from '../../models/market-listing';
 import { MaterialType } from '../../enums/material-type.enum';
 import { ObjectType } from '../../enums/object-type';
 import { MaterialGroup } from '../../enums/material-group';
@@ -31,7 +31,7 @@ export class MarketListingService {
   }
 
   getMarketListingCategoryCounts(): Observable<MarketListingCategoryCount[]> {
-    return this.http.get<MarketListingCategoryCount[]>(`${this.apiUrl}/counts`);
+    return this.http.get<MarketListingCategoryCount[]>('/api/market-listing/categories/counts');
   }
 
   // getMarketListingByCategory(marketListingCategory: string): Observable<MarketListing> {
@@ -74,6 +74,10 @@ export class MarketListingService {
 
   addMarketListing(payload: CreateMarketListing): Observable<MarketListing> {
     return this.http.post<MarketListing>(this.apiUrl, payload);
+  }
+
+  updateMarketListing(marketListingId: string, payload: UpdateMarketListing): Observable<MarketListing> {
+    return this.http.put<MarketListing>(`${this.apiUrl}/${marketListingId}`, payload);
   }
 
   deleteMarketListing(marketListingId: string): Observable<MarketListing> {

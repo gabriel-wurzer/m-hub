@@ -112,5 +112,6 @@
   <app-user-market-listings-view
     *ngIf="isUserListingsViewVisible"
     (closeUserListingsView)="closeMyListings()"
-    (listingDeleted)="onUserListingDeleted($event)" />
+    (listingDeleted)="onUserListingDeleted($event)"
+    (listingUpdated)="onUserListingUpdated()" />
 </main>

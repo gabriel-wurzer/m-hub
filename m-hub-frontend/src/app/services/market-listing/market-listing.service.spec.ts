@@ -29,7 +29,7 @@ describe('MarketListingService', () => {
       expect(counts).toEqual([{ kind: 'material', value: MaterialGroup.Mineralik, count: 2 }]);
     });
 
-    const request = httpMock.expectOne('/api/market-listings/counts');
+    const request = httpMock.expectOne('/api/market-listing/categories/counts');
     expect(request.request.method).toBe('GET');
     request.flush([{ kind: 'material', value: 'Mineralik', count: 2 }]);
   });
@@ -68,6 +68,33 @@ describe('MarketListingService', () => {
 
     const request = httpMock.expectOne('/api/market-listings/listing-1');
     expect(request.request.method).toBe('DELETE');
+
+    request.flush({ id: 'listing-1' });
+  });
+
+  it('updates market listings by id', () => {
+    const payload = {
+      name: 'Updated listing',
+      description: 'Updated description',
+      price: 120,
+      potential: 'reuse' as any,
+      quantity: 2,
+      unit: 'StÃ¼ck' as any,
+      status: 'eingelagert' as any,
+      available_from: '2026-05-05',
+      contact: 'user@example.com',
+      length: null,
+      width: null,
+      height: null
+    };
+
+    service.updateMarketListing('listing-1', payload).subscribe(listing => {
+      expect(listing.id).toBe('listing-1');
+    });
+
+    const request = httpMock.expectOne('/api/market-listings/listing-1');
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual(payload);
 
     request.flush({ id: 'listing-1' });
   });

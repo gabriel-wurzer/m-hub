@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { finalize, Subscription } from 'rxjs';
+import { catchError, finalize, of, Subscription, switchMap } from 'rxjs';
 
 import { BuildingComponentCategory } from '../../enums/component-category';
 import { getMaterialGroupForType } from '../../enums/material-group';
@@ -17,6 +17,7 @@ import { AuthenticationService } from '../../services/authentication/authenticat
 import { MarketListingService } from '../../services/market-listing/market-listing.service';
 import { MATERIAL_GROUP_CATEGORIES, OBJECT_TYPE_CATEGORIES } from '../../utils/market-catalog';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../dialogs/confirm-dialog/confirm-dialog.component';
+import { EditListingDialogComponent, EditListingDialogData, EditListingDialogResult } from '../dialogs/edit-listing-dialog/edit-listing-dialog.component';
 
 @Component({
   selector: 'app-user-market-listings-view',
@@ -40,16 +41,19 @@ export class UserMarketListingsViewComponent implements OnInit, OnDestroy {
   @Output() editListing = new EventEmitter<MarketListing>();
   @Output() deleteListing = new EventEmitter<MarketListing>();
   @Output() listingDeleted = new EventEmitter<MarketListing>();
+  @Output() listingUpdated = new EventEmitter<MarketListing>();
 
   listings: MarketListing[] = [];
   loading = false;
   loadError: string | null = null;
   currentUserId: string | null | undefined = undefined;
   deletingListingIds = new Set<string>();
+  updatingListingIds = new Set<string>();
 
   private authSubscription?: Subscription;
   private listingsSubscription?: Subscription;
   private readonly deleteSubscriptions = new Subscription();
+  private readonly updateSubscriptions = new Subscription();
 
   constructor(
     private authService: AuthenticationService,
@@ -75,6 +79,7 @@ export class UserMarketListingsViewComponent implements OnInit, OnDestroy {
     this.authSubscription?.unsubscribe();
     this.listingsSubscription?.unsubscribe();
     this.deleteSubscriptions.unsubscribe();
+    this.updateSubscriptions.unsubscribe();
   }
 
   close(): void {
@@ -90,7 +95,27 @@ export class UserMarketListingsViewComponent implements OnInit, OnDestroy {
   }
 
   onEditListing(listing: MarketListing): void {
-    this.editListing.emit(listing);
+    if (this.updatingListingIds.has(listing.id) || this.deletingListingIds.has(listing.id)) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open<EditListingDialogComponent, EditListingDialogData, EditListingDialogResult>(
+      EditListingDialogComponent,
+      {
+        panelClass: 'custom-dialog',
+        disableClose: true,
+        autoFocus: false,
+        data: {
+          listing
+        }
+      }
+    );
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.executeUpdateListing(listing, result);
+      }
+    });
   }
 
   onDeleteListing(listing: MarketListing): void {
@@ -123,6 +148,10 @@ export class UserMarketListingsViewComponent implements OnInit, OnDestroy {
 
   isDeletingListing(listing: MarketListing): boolean {
     return this.deletingListingIds.has(listing.id);
+  }
+
+  isUpdatingListing(listing: MarketListing): boolean {
+    return this.updatingListingIds.has(listing.id);
   }
 
   getListingImageSrc(listing: MarketListing): string {
@@ -271,6 +300,48 @@ export class UserMarketListingsViewComponent implements OnInit, OnDestroy {
       });
 
     this.deleteSubscriptions.add(subscription);
+  }
+
+  private executeUpdateListing(listing: MarketListing, payload: EditListingDialogResult): void {
+    this.updatingListingIds.add(listing.id);
+
+    const subscription = this.marketListingService.updateMarketListing(listing.id, payload)
+      .pipe(
+        switchMap(updatedListing =>
+          this.marketListingService.getMarketListingById(updatedListing.id).pipe(
+            catchError(error => {
+              console.error('Failed to reload updated market listing:', error);
+              return of(updatedListing);
+            })
+          )
+        ),
+        finalize(() => this.updatingListingIds.delete(listing.id))
+      )
+      .subscribe({
+        next: updatedListing => {
+          this.listings = this.listings.map(current =>
+            current.id === updatedListing.id ? updatedListing : current
+          );
+          this.editListing.emit(updatedListing);
+          this.listingUpdated.emit(updatedListing);
+        },
+        complete: () => {
+          this.snackBar.open('Marktinserat wurde aktualisiert.', 'OK', {
+            duration: 3000,
+            verticalPosition: 'top'
+          });
+        },
+        error: error => {
+          console.error('Failed to update market listing:', error);
+          this.snackBar.open('Marktinserat konnte nicht aktualisiert werden.', 'OK', {
+            duration: 10000,
+            verticalPosition: 'top',
+            panelClass: 'snackbar-warn'
+          });
+        }
+      });
+
+    this.updateSubscriptions.add(subscription);
   }
 
   private escapeHtml(value: string): string {

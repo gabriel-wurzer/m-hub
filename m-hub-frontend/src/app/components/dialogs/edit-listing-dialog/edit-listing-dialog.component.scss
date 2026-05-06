@@ -1,0 +1,7 @@
+@use '../add-listing-dialog/add-listing-dialog.component.scss';
+
+.current-images {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

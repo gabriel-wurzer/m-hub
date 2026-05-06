@@ -59,6 +59,7 @@
                 color="primary"
                 matTooltip="Bearbeiten"
                 aria-label="Marktinserat bearbeiten"
+                [disabled]="isUpdatingListing(listing) || isDeletingListing(listing)"
                 (click)="onEditListing(listing)">
                 <mat-icon>edit</mat-icon>
               </button>
@@ -68,7 +69,7 @@
                 color="warn"
                 matTooltip="L&ouml;schen"
                 aria-label="Marktinserat loeschen"
-                [disabled]="isDeletingListing(listing)"
+                [disabled]="isDeletingListing(listing) || isUpdatingListing(listing)"
                 (click)="onDeleteListing(listing)">
                 <mat-icon>delete_outline</mat-icon>
               </button>

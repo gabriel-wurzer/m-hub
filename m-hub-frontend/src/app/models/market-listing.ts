@@ -101,4 +101,6 @@ export type UpdateMarketListing = {
   available_from: string;   // ISO date, not dd.mm.yy
   contact: string;
   images?: CreateMarketListingImagePayload[];
+  existing_image_ids?: string[];
+  remove_images?: boolean;
 };

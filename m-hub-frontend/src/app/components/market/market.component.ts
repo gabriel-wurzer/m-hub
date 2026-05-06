@@ -12,6 +12,7 @@ import { MarketListingCategoryCount, MarketListingService } from '../../services
 import { MaterialGroup } from '../../enums/material-group';
 import { ObjectType } from '../../enums/object-type';
 import { BuildingComponentCategory } from '../../enums/component-category';
+import { MarketListingStatus } from '../../enums/market-listing-status';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserMarketListingsViewComponent } from '../user-market-listings-view/user-market-listings-view.component';
@@ -77,10 +78,12 @@ export class MarketComponent implements OnInit, OnDestroy {
 
     this.categoryLoadSubscription = request.subscribe({
       next: listings => {
-        this.categoryCounts.set(this.getCategoryCountKey(category), listings.length);
+        const visibleListings = this.filterVisibleCategoryListings(listings);
+
+        this.categoryCounts.set(this.getCategoryCountKey(category), visibleListings.length);
         this.selectedCategory = {
           ...category,
-          listings: listings.map(listing => this.mapApiListingToCategoryListing(listing, category))
+          listings: visibleListings.map(listing => this.mapApiListingToCategoryListing(listing, category))
         };
         this.isCategoryLoading = false;
       },
@@ -156,6 +159,10 @@ export class MarketComponent implements OnInit, OnDestroy {
 
     const objectType = this.asObjectType(category.title);
     return objectType ? this.marketListingService.getMarketListingsByObjectType(objectType) : null;
+  }
+
+  private filterVisibleCategoryListings(listings: ApiMarketListing[]): ApiMarketListing[] {
+    return listings.filter(listing => listing.status !== MarketListingStatus.verkauft);
   }
 
   private mapApiListingToCategoryListing(listing: ApiMarketListing, category: MarketCategory): MarketCategoryListing {
@@ -323,6 +330,14 @@ export class MarketComponent implements OnInit, OnDestroy {
       listings
     };
     this.categoryCounts.set(this.getCategoryCountKey(this.selectedCategory), listings.length);
+  }
+
+  onUserListingUpdated(): void {
+    this.loadCategoryCounts();
+
+    if (this.selectedCategory) {
+      this.openCategory(this.selectedCategory);
+    }
   }
   
 }

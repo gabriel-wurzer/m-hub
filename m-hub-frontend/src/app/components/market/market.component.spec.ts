@@ -17,9 +17,13 @@ describe('MarketComponent', () => {
 
   beforeEach(async () => {
     marketListingService = jasmine.createSpyObj<MarketListingService>('MarketListingService', [
-      'getMarketListingCategoryCounts'
+      'getMarketListingCategoryCounts',
+      'getMarketListingsByMaterialGroup',
+      'getMarketListingsByObjectType'
     ]);
     marketListingService.getMarketListingCategoryCounts.and.returnValue(of([]));
+    marketListingService.getMarketListingsByMaterialGroup.and.returnValue(of([]));
+    marketListingService.getMarketListingsByObjectType.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [MarketComponent],
@@ -68,6 +72,66 @@ describe('MarketComponent', () => {
 
     expect(localComponent.categoryCountsLoaded).toBeTrue();
     expect(localFixture.nativeElement.querySelector('.card-tag')?.textContent.trim()).toBe('4 Inserate');
+  });
+
+  it('hides sold listings in the selected market category view', () => {
+    marketListingService.getMarketListingsByMaterialGroup.and.returnValue(of([
+      {
+        id: 'listing-1',
+        component_id: 'part-1',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Visible listing',
+        address: 'Test street 1',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: 12,
+        unit: MarketListingUnit.m,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      },
+      {
+        id: 'listing-2',
+        component_id: 'part-2',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Sold listing',
+        address: 'Test street 1',
+        price: 100,
+        status: MarketListingStatus.verkauft,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: 12,
+        unit: MarketListingUnit.m,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      }
+    ]));
+
+    component.openCategory(component.materialGroups[0]);
+
+    expect(component.selectedCategory?.listings.map(listing => listing.id)).toEqual(['listing-1']);
+    expect(component.formatCategoryListingCount(component.materialGroups[0])).toBe('1 Inserat');
   });
 
   it('formats material listing quantity units for cards', () => {
