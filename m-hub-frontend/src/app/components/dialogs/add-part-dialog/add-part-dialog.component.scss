@@ -68,6 +68,11 @@ mat-form-field {
 .part-structure-wrapper {
   flex: 1 1 100%;
   width: 100%;
+
+  > h2 {
+    color: #25364c;
+    margin-bottom: 10px;
+  }
 }
 
 .checkbox-wrapper {
