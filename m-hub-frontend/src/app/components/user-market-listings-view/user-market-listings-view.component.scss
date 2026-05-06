@@ -228,6 +228,11 @@
   color: #0a6f9f;
 }
 
+.status-tag--inactive {
+  background-color: rgba(92, 101, 113, 0.14);
+  color: #5f6874;
+}
+
 .listing-actions {
   display: flex;
   justify-content: flex-end;
@@ -251,7 +256,7 @@
   grid-template-areas:
     "price available"
     "quantity type"
-    "address address";
+    "address status";
   gap: 10px 24px;
   align-items: start;
   min-width: 0;

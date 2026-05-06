@@ -1,6 +1,6 @@
 export enum MarketListingStatus {
   eingelagert  = 'eingelagert',
   verbaut = 'verbaut',
-  verkauft = 'verkauft',
+  verkauft = 'verkauft'
   // verfügbar = 'verfügbar',
 }

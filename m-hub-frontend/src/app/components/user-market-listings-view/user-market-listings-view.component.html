@@ -49,7 +49,11 @@
               <h2>{{ listing.name }}</h2>
               <div class="listing-tags">
                 <span class="listing-tag">{{ listing.component_category }}</span>
-                <span class="listing-tag status-tag">{{ formatStatus(listing.status) }}</span>
+                <span
+                  class="listing-tag status-tag"
+                  [class.status-tag--inactive]="isInactiveStatus(listing.status)">
+                  {{ getStatusTagValue(listing.status) }}
+                </span>
               </div>
             </div>
 
@@ -101,6 +105,12 @@
               <span>Adresse</span>
               {{ listing.address || '-' }}
             </p>
+
+            <p class="spec-field spec-status">
+              <span>Status</span>
+              {{ formatStatus(listing.status) }}
+            </p>
+
           </div>
         </div>
       </mat-card>

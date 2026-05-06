@@ -12,6 +12,7 @@ import { catchError, finalize, of, Subscription, switchMap } from 'rxjs';
 
 import { BuildingComponentCategory } from '../../enums/component-category';
 import { getMaterialGroupForType } from '../../enums/material-group';
+import { MarketListingStatus } from '../../enums/market-listing-status';
 import { MarketListing } from '../../models/market-listing';
 import { AuthenticationService } from '../../services/authentication/authentication.service';
 import { MarketListingService } from '../../services/market-listing/market-listing.service';
@@ -219,19 +220,29 @@ export class UserMarketListingsViewComponent implements OnInit, OnDestroy {
 
   formatStatus(status: string | null | undefined): string {
     switch (status) {
-      case 'eingelagert':
+      case MarketListingStatus.eingelagert:
         return 'Eingelagert';
-      case 'verbaut':
+      case MarketListingStatus.verbaut:
         return 'Verbaut';
-      case 'verkauft':
+      default:
+        return '-';
+    }
+  }
+
+  getStatusTagValue(status: string | null | undefined): string {
+    switch (status) {
+      case MarketListingStatus.eingelagert:
+      case MarketListingStatus.verbaut:
+        return 'Aktiv';
+      case MarketListingStatus.verkauft:
         return 'Verkauft';
-      case 'verfuegbar':
-      case 'verfÃ¼gbar':
-      case 'verfÃƒÂ¼gbar':
-        return 'Verf\u00fcgbar';
       default:
         return status || '-';
     }
+  }
+
+  isInactiveStatus(status: string | null | undefined): boolean {
+    return status === MarketListingStatus.verkauft;
   }
 
   formatPotential(potential: string | null | undefined): string {
