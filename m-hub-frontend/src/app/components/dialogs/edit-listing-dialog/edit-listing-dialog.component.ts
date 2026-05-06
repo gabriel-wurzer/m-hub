@@ -345,8 +345,8 @@ export class EditListingDialogComponent {
     this.imageChangesTouched = true;
   }
 
-  trackBySelectedImage(index: number, image: AddListingDialogImage): string {
-    return `${image.fileName}:${image.file.size}:${image.file.lastModified}:${index}`;
+  trackBySelectedImage(_: number, image: AddListingDialogImage): string {
+    return image.key ?? `${image.fileName}:${image.file.size}:${image.file.lastModified}`;
   }
 
   removeExistingImageAt(imageIndex: number): void {
@@ -363,9 +363,13 @@ export class EditListingDialogComponent {
     this.imageChangesTouched = true;
   }
 
-  dropImageItem(event: CdkDragDrop<ListingDialogImageItem[]>): void {
-    if (event.previousIndex === event.currentIndex) return;
-    moveItemInArray(this.imageItems, event.previousIndex, event.currentIndex);
+  dropImageItem(event: CdkDragDrop<ListingDialogImageItem[], ListingDialogImageItem[], ListingDialogImageItem>): void {
+    const previousIndex = this.imageItems.indexOf(event.item.data);
+    if (previousIndex < 0) return;
+
+    const currentIndex = this.resolveImageGridDropIndex(event);
+    if (previousIndex === currentIndex) return;
+    moveItemInArray(this.imageItems, previousIndex, currentIndex);
     this.imageChangesTouched = true;
   }
 
@@ -378,6 +382,46 @@ export class EditListingDialogComponent {
 
   trackByImageItem(_: number, image: ListingDialogImageItem): string {
     return image.key;
+  }
+
+  private resolveImageGridDropIndex(event: CdkDragDrop<ListingDialogImageItem[]>): number {
+    const container = event.container.element.nativeElement as HTMLElement;
+    const draggedElement = event.item.element.nativeElement as HTMLElement;
+    const cards = Array.from(container.querySelectorAll<HTMLElement>('.sortable-image-card'))
+      .filter((card) => card !== draggedElement && !card.classList.contains('cdk-drag-placeholder'));
+
+    if (cards.length === 0) return 0;
+
+    const cardRects = cards.map((card, index) => ({ index, rect: card.getBoundingClientRect() }));
+    const rows: Array<{ top: number; bottom: number; items: typeof cardRects }> = [];
+    const rowTolerance = 8;
+
+    for (const item of cardRects) {
+      const lastRow = rows[rows.length - 1];
+      if (!lastRow || Math.abs(item.rect.top - lastRow.top) > rowTolerance) {
+        rows.push({ top: item.rect.top, bottom: item.rect.bottom, items: [item] });
+      } else {
+        lastRow.bottom = Math.max(lastRow.bottom, item.rect.bottom);
+        lastRow.items.push(item);
+      }
+    }
+
+    const dropY = event.dropPoint.y;
+    const targetRow = rows.find((row) => dropY >= row.top && dropY <= row.bottom)
+      ?? rows.reduce((closest, row) => {
+        const closestDistance = Math.abs(dropY - ((closest.top + closest.bottom) / 2));
+        const rowDistance = Math.abs(dropY - ((row.top + row.bottom) / 2));
+        return rowDistance < closestDistance ? row : closest;
+      }, rows[0]);
+
+    const dropX = event.dropPoint.x;
+    for (const item of targetRow.items) {
+      if (dropX < item.rect.left + item.rect.width / 2) {
+        return item.index;
+      }
+    }
+
+    return Math.min(targetRow.items[targetRow.items.length - 1].index + 1, this.imageItems.length - 1);
   }
 
   trackByExistingImage(index: number, image: ExistingListingDialogImage): string {
