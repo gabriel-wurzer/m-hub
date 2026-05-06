@@ -107,66 +107,77 @@ mat-expansion-panel-header {
 .part-structure-summary {
     display: flex;
     flex-direction: column;
-    gap: 10px;
     width: min(100%, 780px);
-    padding: 12px;
     box-sizing: border-box;
-    border: 1px solid rgba(2, 136, 209, 0.2);
-    border-radius: 12px;
-    background:
-        radial-gradient(circle at top left, rgba(2, 136, 209, 0.1), transparent 48%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.98));
+    overflow: hidden;
+    border: 1px solid rgba(31, 41, 55, 0.14);
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
 }
 
 .part-structure-summary-header {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(31, 41, 55, 0.08);
+    background: #f8fafc;
 }
 
 .structure-chip {
     display: inline-flex;
     align-items: center;
-    min-height: 28px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    font-size: 0.82rem;
+    min-height: 26px;
+    padding: 3px 9px;
+    border-radius: 6px;
+    background: #fff;
+    border: 1px solid rgba(31, 41, 55, 0.12);
+    font-size: 0.8rem;
     font-weight: 600;
-    color: rgba(0, 0, 0, 0.72);
+    color: #25364c;
+}
+
+.structure-chip:first-child {
+    border-color: rgba(23, 155, 222, 0.28);
+    background: #eef8fd;
+    color: #0e6aa8;
 }
 
 .structure-layer-list {
     display: grid;
-    gap: 8px;
 }
 
 .structure-layer-item {
     display: grid;
-    grid-template-columns: minmax(88px, 112px) minmax(0, 1fr) auto;
-    gap: 10px;
+    grid-template-columns: minmax(84px, 112px) minmax(0, 1fr) minmax(64px, max-content);
+    gap: 12px;
     align-items: center;
-    padding: 8px 10px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.82);
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 10px 12px;
+    background: #fff;
+}
+
+.structure-layer-item + .structure-layer-item {
+    border-top: 1px solid rgba(31, 41, 55, 0.08);
 }
 
 .structure-layer-index {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     font-weight: 700;
-    color: rgba(0, 0, 0, 0.66);
+    color: rgba(37, 54, 76, 0.72);
 }
 
 .structure-layer-material {
     min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .structure-layer-thickness {
     font-size: 0.88rem;
-    font-weight: 600;
-    color: rgba(0, 0, 0, 0.66);
+    font-weight: 700;
+    color: rgba(37, 54, 76, 0.76);
+    justify-self: end;
+    text-align: right;
     white-space: nowrap;
 }
 
@@ -175,6 +186,7 @@ mat-expansion-panel-header {
 }
 
 .structure-empty-state {
+    padding: 12px;
     font-size: 0.9rem;
     color: rgba(0, 0, 0, 0.58);
 }
@@ -194,9 +206,12 @@ mat-expansion-panel-header {
 @media (max-width: 720px) {
     .structure-layer-item {
         grid-template-columns: 1fr;
+        gap: 4px;
     }
 
     .structure-layer-thickness {
+        justify-self: start;
+        text-align: left;
         white-space: normal;
     }
 }
