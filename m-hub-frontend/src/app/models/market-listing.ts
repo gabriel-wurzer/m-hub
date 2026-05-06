@@ -102,5 +102,6 @@ export type UpdateMarketListing = {
   contact: string;
   images?: CreateMarketListingImagePayload[];
   existing_image_ids?: string[];
+  existing_image_orders?: { id: string; sort_order: number }[];
   remove_images?: boolean;
 };

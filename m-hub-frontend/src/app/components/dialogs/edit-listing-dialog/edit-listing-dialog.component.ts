@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Component, Inject, Optional } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { BuildingComponentCategory } from '../../../enums/component-category';
 import { MarketListingStatus } from '../../../enums/market-listing-status';
@@ -28,12 +30,21 @@ export type EditListingDialogResult = UpdateMarketListing;
 type MeasurementInput = number | string | null;
 
 type ExistingListingDialogImage = {
+  kind: 'existing';
+  key: string;
   id: string | null;
   fileName: string;
   previewUrl: string;
   sortOrder: number;
   sizeBytes: number;
 };
+
+type NewListingDialogImage = AddListingDialogImage & {
+  kind: 'new';
+  key: string;
+};
+
+type ListingDialogImageItem = ExistingListingDialogImage | NewListingDialogImage;
 
 @Component({
   selector: 'app-edit-listing-dialog',
@@ -45,10 +56,12 @@ type ExistingListingDialogImage = {
     MatButtonModule,
     MatDatepickerModule,
     MatDividerModule,
+    DragDropModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    MatTooltipModule
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './edit-listing-dialog.component.html',
@@ -80,10 +93,10 @@ export class EditListingDialogComponent {
   contact = '';
   isDragActive = false;
   imageError = '';
-  existingImages: ExistingListingDialogImage[] = [];
-  selectedImages: AddListingDialogImage[] = [];
+  imageItems: ListingDialogImageItem[] = [];
 
   private imageChangesTouched = false;
+  private nextNewImageKey = 0;
 
   constructor(
     @Optional() public dialogRef: MatDialogRef<EditListingDialogComponent> | null,
@@ -107,7 +120,7 @@ export class EditListingDialogComponent {
     this.width = this.normalizeIncomingMeasurement(listing.width);
     this.height = this.normalizeIncomingMeasurement(listing.height);
     this.contact = listing.contact?.trim() ?? '';
-    this.existingImages = this.resolveInitialImages(listing);
+    this.imageItems = this.resolveInitialImages(listing);
   }
 
   get listing(): MarketListing | null {
@@ -124,6 +137,20 @@ export class EditListingDialogComponent {
 
   get hasMeasurementFields(): boolean {
     return this.isObject || this.isPart;
+  }
+
+  get existingImages(): ExistingListingDialogImage[] {
+    return this.imageItems.filter((image): image is ExistingListingDialogImage => image.kind === 'existing');
+  }
+
+  get selectedImages(): AddListingDialogImage[] {
+    return this.imageItems
+      .filter((image): image is NewListingDialogImage => image.kind === 'new')
+      .map((image) => ({
+        file: image.file,
+        fileName: image.fileName,
+        previewUrl: image.previewUrl
+      }));
   }
 
   getNameError(): string | null {
@@ -232,23 +259,38 @@ export class EditListingDialogComponent {
       contact: this.contact.trim()
     };
 
-    if (this.selectedImages.length > 0) {
-      payload.images = this.selectedImages.map((image, index) => ({
-        image_data_url: image.previewUrl,
-        image_mime_type: image.file.type || undefined,
-        image_original_name: image.fileName || image.file.name || undefined,
-        sort_order: this.existingImages.length + index
-      }));
+    const newImagePayload = this.imageItems
+      .map((image, index) => image.kind === 'new'
+        ? {
+            image_data_url: image.previewUrl,
+            image_mime_type: image.file.type || undefined,
+            image_original_name: image.fileName || image.file.name || undefined,
+            sort_order: index
+          }
+        : null
+      )
+      .filter((image): image is NonNullable<typeof image> => image !== null);
+
+    if (newImagePayload.length > 0) {
+      payload.images = newImagePayload;
     }
 
     if (this.imageChangesTouched) {
-      const existingImageIds = this.existingImages
+      const existingImageIds = this.imageItems
+        .filter((image): image is ExistingListingDialogImage => image.kind === 'existing')
         .map((image) => image.id)
         .filter((id): id is string => typeof id === 'string' && id.length > 0);
+      const existingImageOrders = this.imageItems
+        .map((image, index) => image.kind === 'existing' && image.id
+          ? { id: image.id, sort_order: index }
+          : null
+        )
+        .filter((image): image is NonNullable<typeof image> => image !== null);
 
       payload.existing_image_ids = existingImageIds;
+      payload.existing_image_orders = existingImageOrders;
 
-      if (existingImageIds.length === 0 && this.selectedImages.length === 0) {
+      if (this.imageItems.length === 0) {
         payload.remove_images = true;
       }
     }
@@ -297,7 +339,9 @@ export class EditListingDialogComponent {
 
   removeSelectedImage(imageIndex: number): void {
     this.imageError = '';
-    this.selectedImages = this.selectedImages.filter((_, index) => index !== imageIndex);
+    const target = this.imageItems.filter((image) => image.kind === 'new')[imageIndex];
+    if (!target) return;
+    this.imageItems = this.imageItems.filter((image) => image.key !== target.key);
     this.imageChangesTouched = true;
   }
 
@@ -307,12 +351,37 @@ export class EditListingDialogComponent {
 
   removeExistingImageAt(imageIndex: number): void {
     this.imageError = '';
-    this.existingImages = this.existingImages.filter((_, index) => index !== imageIndex);
+    const target = this.existingImages[imageIndex];
+    if (!target) return;
+    this.imageItems = this.imageItems.filter((image) => image.key !== target.key);
     this.imageChangesTouched = true;
   }
 
+  removeImageItem(imageIndex: number): void {
+    this.imageError = '';
+    this.imageItems = this.imageItems.filter((_, index) => index !== imageIndex);
+    this.imageChangesTouched = true;
+  }
+
+  dropImageItem(event: CdkDragDrop<ListingDialogImageItem[]>): void {
+    if (event.previousIndex === event.currentIndex) return;
+    moveItemInArray(this.imageItems, event.previousIndex, event.currentIndex);
+    this.imageChangesTouched = true;
+  }
+
+  moveImageItem(imageIndex: number, direction: -1 | 1): void {
+    const nextIndex = imageIndex + direction;
+    if (nextIndex < 0 || nextIndex >= this.imageItems.length) return;
+    moveItemInArray(this.imageItems, imageIndex, nextIndex);
+    this.imageChangesTouched = true;
+  }
+
+  trackByImageItem(_: number, image: ListingDialogImageItem): string {
+    return image.key;
+  }
+
   trackByExistingImage(index: number, image: ExistingListingDialogImage): string {
-    return `${image.id ?? image.previewUrl}:${index}`;
+    return image.key || `${image.id ?? image.previewUrl}:${index}`;
   }
 
   private resolveInitialImages(listing: MarketListing): ExistingListingDialogImage[] {
@@ -327,6 +396,8 @@ export class EditListingDialogComponent {
     if (!previewUrl) return null;
 
     return {
+      kind: 'existing',
+      key: `existing:${image.id ?? previewUrl}`,
       id: typeof image.id === 'string' && image.id.trim().length > 0 ? image.id.trim() : null,
       fileName: this.resolveImageRecordName(image, previewUrl),
       previewUrl,
@@ -472,7 +543,10 @@ export class EditListingDialogComponent {
     }
 
     if (nextImages.length > 0) {
-      this.selectedImages = [...this.selectedImages, ...nextImages];
+      this.imageItems = [
+        ...this.imageItems,
+        ...nextImages.map((image) => this.toNewImageItem(image))
+      ];
       this.imageChangesTouched = true;
     }
 
@@ -492,15 +566,27 @@ export class EditListingDialogComponent {
   }
 
   private getSelectedImagesSize(): number {
-    return this.selectedImages.reduce((total, image) => total + image.file.size, 0);
+    return this.imageItems
+      .filter((image): image is NewListingDialogImage => image.kind === 'new')
+      .reduce((total, image) => total + image.file.size, 0);
   }
 
   private getExistingImagesSize(): number {
-    return this.existingImages.reduce((total, image) => total + image.sizeBytes, 0);
+    return this.imageItems
+      .filter((image): image is ExistingListingDialogImage => image.kind === 'existing')
+      .reduce((total, image) => total + image.sizeBytes, 0);
   }
 
   private isImageAlreadySelected(file: File): boolean {
-    return this.selectedImages.some((image) => this.isSameFile(image.file, file));
+    return this.imageItems.some((image) => image.kind === 'new' && this.isSameFile(image.file, file));
+  }
+
+  private toNewImageItem(image: AddListingDialogImage): NewListingDialogImage {
+    return {
+      ...image,
+      kind: 'new',
+      key: `new:${this.nextNewImageKey++}:${image.fileName}:${image.file.size}:${image.file.lastModified}`
+    };
   }
 
   private isSameFile(left: File, right: File): boolean {

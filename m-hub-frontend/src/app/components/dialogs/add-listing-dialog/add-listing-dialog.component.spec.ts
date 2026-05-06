@@ -97,6 +97,27 @@ describe('AddListingDialogComponent', () => {
     }));
   });
 
+  it('keeps the selected image order in the dialog result', () => {
+    const firstFile = new File(['first'], 'first.png', { type: 'image/png', lastModified: 1 });
+    const secondFile = new File(['second'], 'second.png', { type: 'image/png', lastModified: 2 });
+
+    component.selectedImages = [
+      { file: firstFile, fileName: 'first.png', previewUrl: 'data:image/png;base64,first' },
+      { file: secondFile, fileName: 'second.png', previewUrl: 'data:image/png;base64,second' }
+    ];
+    component.price = 100;
+    component.status = MarketListingStatus.eingelagert;
+    component.availableFrom = new Date('2026-04-22');
+    component.potential = MarketPotential.reuse;
+    component.quantity = 3;
+
+    component.moveSelectedImage(1, -1);
+    component.confirmAddListing();
+
+    const result = dialogRefSpy.close.calls.mostRecent().args[0] as any;
+    expect(result.images.map((image: any) => image.fileName)).toEqual(['second.png', 'first.png']);
+  });
+
   it('shows empty measurement fields for source parts and returns null values when unset', () => {
     const partDialogRefSpy = jasmine.createSpyObj<MatDialogRef<AddListingDialogComponent>>('MatDialogRef', ['close']);
     const partComponent = new AddListingDialogComponent(

@@ -86,9 +86,9 @@ describe('EditListingDialogComponent', () => {
 
   it('renders existing images without throwing from trackBy', () => {
     expect(() => fixture.detectChanges()).not.toThrow();
-    expect(component.trackByExistingImage(0, component.existingImages[0])).toBe('image-1:0');
+    expect(component.trackByExistingImage(0, component.existingImages[0])).toBe('existing:image-1');
 
-    const images = fixture.nativeElement.querySelectorAll('.current-images .image-preview-card');
+    const images = fixture.nativeElement.querySelectorAll('.image-preview-card');
     expect(images.length).toBe(2);
   });
 
@@ -98,6 +98,19 @@ describe('EditListingDialogComponent', () => {
 
     expect(dialogRefSpy.close).toHaveBeenCalledWith(jasmine.objectContaining({
       existing_image_ids: ['image-2']
+    }));
+  });
+
+  it('returns explicit existing image order after reordering', () => {
+    component.moveImageItem(0, 1);
+    component.confirmEditListing();
+
+    expect(dialogRefSpy.close).toHaveBeenCalledWith(jasmine.objectContaining({
+      existing_image_ids: ['image-2', 'image-1'],
+      existing_image_orders: [
+        { id: 'image-2', sort_order: 0 },
+        { id: 'image-1', sort_order: 1 }
+      ]
     }));
   });
 });

@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Component, Inject, Optional } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { take } from 'rxjs';
 import { BuildingComponentCategory } from '../../../enums/component-category';
 import { MarketListingUnit } from '../../../enums/market-listing-unit.enum';
@@ -59,10 +61,12 @@ type MeasurementInput = number | string | null;
     MatButtonModule,
     MatDatepickerModule,
     MatDividerModule,
+    DragDropModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    MatTooltipModule
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './add-listing-dialog.component.html',
@@ -352,6 +356,17 @@ export class AddListingDialogComponent {
   removeSelectedImage(imageIndex: number): void {
     this.imageError = '';
     this.selectedImages = this.selectedImages.filter((_, index) => index !== imageIndex);
+  }
+
+  dropSelectedImage(event: CdkDragDrop<AddListingDialogImage[]>): void {
+    if (event.previousIndex === event.currentIndex) return;
+    moveItemInArray(this.selectedImages, event.previousIndex, event.currentIndex);
+  }
+
+  moveSelectedImage(imageIndex: number, direction: -1 | 1): void {
+    const nextIndex = imageIndex + direction;
+    if (nextIndex < 0 || nextIndex >= this.selectedImages.length) return;
+    moveItemInArray(this.selectedImages, imageIndex, nextIndex);
   }
 
   trackBySelectedImage(index: number, image: AddListingDialogImage): string {
