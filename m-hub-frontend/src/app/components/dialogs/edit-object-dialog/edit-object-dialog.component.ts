@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { CdkDragDrop, CdkDragMove, CdkDragStart, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Component, Inject, Optional } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -35,22 +36,34 @@ export type EditObjectDialogResult = {
   height: number | null;
   images: EditObjectDialogImage[];
   existingImageIds: string[];
+  existingImageOrders: { id: string; sort_order: number }[];
   imagesChanged: boolean;
 };
 
 export type EditObjectDialogImage = {
+  key?: string;
   file: File;
   fileName: string;
   previewUrl: string;
+  sortOrder?: number;
 };
 
 type ExistingObjectDialogImage = {
+  kind: 'existing';
+  key: string;
   id: string | null;
   fileName: string;
   previewUrl: string;
   sortOrder: number;
   sizeBytes: number;
 };
+
+type NewObjectDialogImage = EditObjectDialogImage & {
+  kind: 'new';
+  key: string;
+};
+
+type ObjectDialogImageItem = ExistingObjectDialogImage | NewObjectDialogImage;
 
 type FloorOption = {
   label: string;
@@ -80,7 +93,8 @@ type MeasurementInput = number | string | null;
     MatSnackBarModule,
     MatTooltipModule,
     MatDividerModule,
-    MatIconModule
+    MatIconModule,
+    DragDropModule
   ],
   templateUrl: './edit-object-dialog.component.html',
   styleUrl: './edit-object-dialog.component.scss'
@@ -94,8 +108,9 @@ export class EditObjectDialogComponent {
   private readonly floorDescriptionByLocationLabel = new Map<string, string>();
   private previousSelectedLocations: string[] = [];
 
-  private initialExistingImageIds = new Set<string>();
   private imageChangesTouched = false;
+  private nextNewImageKey = 0;
+  private imageItemDragTargetIndex: number | null = null;
 
   name: string = '';
   description: string = '';
@@ -116,8 +131,7 @@ export class EditObjectDialogComponent {
   isDragActive: boolean = false;
   imageError: string = '';
 
-  existingImages: ExistingObjectDialogImage[] = [];
-  selectedImages: EditObjectDialogImage[] = [];
+  imageItems: ObjectDialogImageItem[] = [];
   readonly positiveMeasurementPattern = '^(?:[1-9]\\d*(?:[.,]\\d+)?|0[.,]\\d*[1-9]\\d*)$';
 
   constructor(
@@ -156,12 +170,15 @@ export class EditObjectDialogComponent {
     this.selectedLocations = parsedLocations;
     this.previousSelectedLocations = [...this.selectedLocations];
 
-    this.existingImages = this.resolveInitialImages(object);
-    this.initialExistingImageIds = new Set(
-      this.existingImages
-        .map((image) => image.id)
-        .filter((id): id is string => typeof id === 'string' && id.length > 0)
-    );
+    this.imageItems = this.resolveInitialImages(object);
+  }
+
+  get existingImages(): ExistingObjectDialogImage[] {
+    return this.imageItems.filter((image): image is ExistingObjectDialogImage => image.kind === 'existing');
+  }
+
+  get selectedImages(): NewObjectDialogImage[] {
+    return this.imageItems.filter((image): image is NewObjectDialogImage => image.kind === 'new');
   }
 
   private parseLocations(location: string | undefined): string[] {
@@ -210,6 +227,8 @@ export class EditObjectDialogComponent {
     if (!previewUrl) return null;
 
     return {
+      kind: 'existing',
+      key: `existing:${image.id ?? previewUrl}`,
       id: typeof image.id === 'string' && image.id.trim().length > 0 ? image.id.trim() : null,
       fileName: this.resolveImageRecordName(image, previewUrl),
       previewUrl,
@@ -401,22 +420,82 @@ export class EditObjectDialogComponent {
 
   removeSelectedImage(imageIndex: number): void {
     this.imageError = '';
-    this.selectedImages = this.selectedImages.filter((_, index) => index !== imageIndex);
+    const target = this.selectedImages[imageIndex];
+    if (!target) return;
+
+    this.imageItems = this.imageItems.filter((image) => image.key !== target.key);
     this.imageChangesTouched = true;
   }
 
   removeExistingImageAt(imageIndex: number): void {
     this.imageError = '';
-    this.existingImages = this.existingImages.filter((_, index) => index !== imageIndex);
+    const target = this.existingImages[imageIndex];
+    if (!target) return;
+
+    this.imageItems = this.imageItems.filter((image) => image.key !== target.key);
     this.imageChangesTouched = true;
   }
 
-  trackByExistingImage(index: number, image: ExistingObjectDialogImage): string {
-    return `${image.id ?? image.previewUrl}:${index}`;
+  removeImageItem(imageIndex: number): void {
+    this.imageError = '';
+    this.imageItems = this.imageItems.filter((_, index) => index !== imageIndex);
+    this.imageChangesTouched = true;
   }
 
-  trackBySelectedImage(index: number, image: EditObjectDialogImage): string {
-    return `${image.fileName}:${image.file.size}:${image.file.lastModified}:${index}`;
+  startImageItemDrag(event: CdkDragStart<ObjectDialogImageItem>): void {
+    const previousIndex = this.imageItems.indexOf(event.source.data);
+    this.imageItemDragTargetIndex = previousIndex >= 0 ? previousIndex : null;
+  }
+
+  sortImageItemPreview(event: CdkDragMove<ObjectDialogImageItem>): void {
+    const previousIndex = this.imageItems.indexOf(event.source.data);
+    if (previousIndex < 0) return;
+
+    const container = event.source.dropContainer.element.nativeElement as HTMLElement;
+    const placeholder = event.source.getPlaceholderElement();
+    const currentIndex = this.resolveImageGridPointerIndex(
+      container,
+      placeholder,
+      event.pointerPosition,
+      this.imageItems.length
+    );
+
+    if (this.imageItemDragTargetIndex === currentIndex) return;
+    this.moveImageGridPlaceholder(container, placeholder, currentIndex);
+    this.imageItemDragTargetIndex = currentIndex;
+  }
+
+  dropImageItem(event: CdkDragDrop<ObjectDialogImageItem[], ObjectDialogImageItem[], ObjectDialogImageItem>): void {
+    const previousIndex = this.imageItems.indexOf(event.item.data);
+    if (previousIndex < 0) {
+      this.imageItemDragTargetIndex = null;
+      return;
+    }
+
+    const currentIndex = this.imageItemDragTargetIndex ?? previousIndex;
+    this.imageItemDragTargetIndex = null;
+    if (previousIndex === currentIndex) return;
+    moveItemInArray(this.imageItems, previousIndex, currentIndex);
+    this.imageChangesTouched = true;
+  }
+
+  moveImageItem(imageIndex: number, direction: -1 | 1): void {
+    const nextIndex = imageIndex + direction;
+    if (nextIndex < 0 || nextIndex >= this.imageItems.length) return;
+    moveItemInArray(this.imageItems, imageIndex, nextIndex);
+    this.imageChangesTouched = true;
+  }
+
+  trackByExistingImage(_: number, image: ExistingObjectDialogImage): string {
+    return image.key;
+  }
+
+  trackBySelectedImage(_: number, image: EditObjectDialogImage): string {
+    return image.key ?? `${image.fileName}:${image.file.size}:${image.file.lastModified}`;
+  }
+
+  trackByImageItem(_: number, image: ObjectDialogImageItem): string {
+    return image.key;
   }
 
   private async processImageFiles(files: File[]): Promise<void> {
@@ -458,7 +537,10 @@ export class EditObjectDialogComponent {
     }
 
     if (nextImages.length > 0) {
-      this.selectedImages = [...this.selectedImages, ...nextImages];
+      this.imageItems = [
+        ...this.imageItems,
+        ...nextImages.map((image) => this.toNewImageItem(image))
+      ];
       this.imageChangesTouched = true;
     }
 
@@ -493,6 +575,14 @@ export class EditObjectDialogComponent {
     return left.name === right.name && left.size === right.size && left.lastModified === right.lastModified;
   }
 
+  private toNewImageItem(image: EditObjectDialogImage): NewObjectDialogImage {
+    return {
+      ...image,
+      kind: 'new',
+      key: `new:${this.nextNewImageKey++}:${image.fileName}:${image.file.size}:${image.file.lastModified}`
+    };
+  }
+
   private readFileAsDataUrl(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -507,6 +597,61 @@ export class EditObjectDialogComponent {
       reader.onerror = () => reject(reader.error ?? new Error('Preview read failed'));
       reader.readAsDataURL(file);
     });
+  }
+
+  private resolveImageGridPointerIndex(
+    container: HTMLElement,
+    placeholder: HTMLElement,
+    pointerPosition: { x: number; y: number },
+    itemCount: number
+  ): number {
+    const cards = Array.from(container.querySelectorAll<HTMLElement>('.sortable-image-card'))
+      .filter((card) => card !== placeholder && !card.classList.contains('cdk-drag-placeholder'));
+
+    if (cards.length === 0) return 0;
+
+    const cardRects = cards.map((card, index) => ({ index, rect: card.getBoundingClientRect() }));
+    const rows: Array<{ top: number; bottom: number; items: typeof cardRects }> = [];
+    const rowTolerance = 8;
+
+    for (const item of cardRects) {
+      const lastRow = rows[rows.length - 1];
+      if (!lastRow || Math.abs(item.rect.top - lastRow.top) > rowTolerance) {
+        rows.push({ top: item.rect.top, bottom: item.rect.bottom, items: [item] });
+      } else {
+        lastRow.bottom = Math.max(lastRow.bottom, item.rect.bottom);
+        lastRow.items.push(item);
+      }
+    }
+
+    const dropY = pointerPosition.y;
+    const targetRow = rows.find((row) => dropY >= row.top && dropY <= row.bottom)
+      ?? rows.reduce((closest, row) => {
+        const closestDistance = Math.abs(dropY - ((closest.top + closest.bottom) / 2));
+        const rowDistance = Math.abs(dropY - ((row.top + row.bottom) / 2));
+        return rowDistance < closestDistance ? row : closest;
+      }, rows[0]);
+
+    const dropX = pointerPosition.x;
+    for (const item of targetRow.items) {
+      if (dropX < item.rect.left + item.rect.width / 2) {
+        return item.index;
+      }
+    }
+
+    return Math.min(targetRow.items[targetRow.items.length - 1].index + 1, itemCount - 1);
+  }
+
+  private moveImageGridPlaceholder(container: HTMLElement, placeholder: HTMLElement, targetIndex: number): void {
+    const cards = Array.from(container.querySelectorAll<HTMLElement>('.sortable-image-card'))
+      .filter((card) => card !== placeholder && !card.classList.contains('cdk-drag-placeholder'));
+    const targetCard = cards[targetIndex] ?? null;
+
+    if (targetCard) {
+      container.insertBefore(placeholder, targetCard);
+    } else {
+      container.appendChild(placeholder);
+    }
   }
 
   private normalizeOptionalInput(input: string): string | null {
@@ -610,6 +755,22 @@ export class EditObjectDialogComponent {
     const existingImageIds = this.existingImages
       .map((image) => image.id)
       .filter((id): id is string => typeof id === 'string' && id.length > 0);
+    const existingImageOrders = this.imageItems
+      .map((image, index) => image.kind === 'existing' && image.id
+        ? { id: image.id, sort_order: index }
+        : null
+      )
+      .filter((image): image is NonNullable<typeof image> => image !== null);
+    const newImages: EditObjectDialogImage[] = this.imageItems.flatMap((image, index) => image.kind === 'new'
+      ? [{
+          file: image.file,
+          fileName: image.fileName,
+          previewUrl: image.previewUrl,
+          key: image.key,
+          sortOrder: index
+        }]
+      : []
+    );
 
     const result: EditObjectDialogResult = {
       name: this.name.trim(),
@@ -622,8 +783,9 @@ export class EditObjectDialogComponent {
       length: this.normalizeOptionalMeasurement(this.length),
       width: this.normalizeOptionalMeasurement(this.width),
       height: this.normalizeOptionalMeasurement(this.height),
-      images: [...this.selectedImages],
+      images: newImages,
       existingImageIds,
+      existingImageOrders,
       imagesChanged: this.imageChangesTouched
     };
 

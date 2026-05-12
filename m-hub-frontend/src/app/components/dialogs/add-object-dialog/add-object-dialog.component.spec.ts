@@ -5,6 +5,31 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { AddObjectDialogComponent } from './add-object-dialog.component';
 import { ObjectType } from '../../../enums/object-type';
 
+function mockImageCard(container: HTMLElement, rect: DOMRect, isPlaceholder = false): HTMLElement {
+  const card = document.createElement('div');
+  card.classList.add('sortable-image-card');
+  if (isPlaceholder) {
+    card.classList.add('cdk-drag-placeholder');
+  }
+  spyOn(card, 'getBoundingClientRect').and.returnValue(rect);
+  container.appendChild(card);
+  return card;
+}
+
+function mockRect(left: number, top: number, width: number, height: number): DOMRect {
+  return {
+    x: left,
+    y: top,
+    left,
+    top,
+    width,
+    height,
+    right: left + width,
+    bottom: top + height,
+    toJSON: () => ({})
+  } as DOMRect;
+}
+
 describe('AddObjectDialogComponent', () => {
   let component: AddObjectDialogComponent;
   let fixture: ComponentFixture<AddObjectDialogComponent>;
@@ -74,5 +99,37 @@ describe('AddObjectDialogComponent', () => {
       width: 90,
       height: 130
     }));
+  });
+
+  it('commits the selected image order from the live drag placeholder position', () => {
+    const firstFile = new File(['first'], 'first.png', { type: 'image/png', lastModified: 1 });
+    const secondFile = new File(['second'], 'second.png', { type: 'image/png', lastModified: 2 });
+    const thirdFile = new File(['third'], 'third.png', { type: 'image/png', lastModified: 3 });
+    const firstImage = { file: firstFile, fileName: 'first.png', previewUrl: 'data:image/png;base64,first' };
+
+    component.selectedImages = [
+      firstImage,
+      { file: secondFile, fileName: 'second.png', previewUrl: 'data:image/png;base64,second' },
+      { file: thirdFile, fileName: 'third.png', previewUrl: 'data:image/png;base64,third' }
+    ];
+
+    const container = document.createElement('div');
+    const placeholder = mockImageCard(container, mockRect(0, 0, 100, 80), true);
+    mockImageCard(container, mockRect(120, 0, 100, 80));
+    mockImageCard(container, mockRect(240, 0, 100, 80));
+
+    component.startSelectedImageDrag({ source: { data: firstImage } } as any);
+    component.sortSelectedImagePreview({
+      source: {
+        data: firstImage,
+        dropContainer: { element: { nativeElement: container } },
+        getPlaceholderElement: () => placeholder
+      },
+      pointerPosition: { x: 380, y: 40 }
+    } as any);
+    component.dropSelectedImage({ item: { data: firstImage } } as any);
+
+    expect(container.lastElementChild).toBe(placeholder);
+    expect(component.selectedImages.map((image) => image.fileName)).toEqual(['second.png', 'third.png', 'first.png']);
   });
 });

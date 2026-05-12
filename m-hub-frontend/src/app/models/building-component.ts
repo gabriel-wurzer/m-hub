@@ -112,5 +112,6 @@ export type UpdateObjektPayload = {
     location: string;
     images?: CreateObjektImagePayload[];
     existing_image_ids?: string[];
+    existing_image_orders?: { id: string; sort_order: number }[];
     remove_images?: boolean;
 };

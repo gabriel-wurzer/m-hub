@@ -169,18 +169,24 @@
         (drop)="onDrop($event)"
       >
         <div class="drop-zone-inner">
-          <!-- <mat-icon class="drop-zone-icon">attach_file</mat-icon> -->
-          <mat-icon class="drop-zone-icon">add_photo_alternate</mat-icon>
-          <p class="drop-zone-text">
-            Drag & drop oder
-            <button type="button" class="choose-link" (click)="imageInput.click(); $event.stopPropagation()">Dateien auswählen</button>
-          </p>
+          <span class="drop-zone-icon-shell">
+            <mat-icon class="drop-zone-icon">add_photo_alternate</mat-icon>
+          </span>
+          <div class="drop-zone-copy">
+            <p class="drop-zone-title">Bilder hochladen</p>
+            <p class="drop-zone-text">
+              Drag &amp; drop oder
+              <button type="button" class="choose-link" (click)="imageInput.click(); $event.stopPropagation()">
+                Dateien auswählen
+              </button>
+            </p>
+          </div>
         </div>
       </div>
 
       <div class="file-hints">
-        <span>Erlaubte Dateitypen: PNG, JPG, JPEG, WEBP.</span>
-        <span>Max. 10MB/Bild, 100MB gesamt</span>
+        <span>Erlaubte Dateitypen: PNG, JPG, JPEG, WEBP</span>
+        <span>max. 10 MB/Bild, 100 MB gesamt</span>
       </div>
 
       <div class="image-meta-row" *ngIf="selectedImages.length > 0 || imageError">
@@ -190,15 +196,47 @@
         <div class="image-error" *ngIf="imageError">{{ imageError }}</div>
       </div>
 
-      <div class="image-preview-grid" *ngIf="selectedImages.length > 0">
-        <div class="image-preview-card" *ngFor="let image of selectedImages; let i = index; trackBy: trackBySelectedImage">
-          <img [src]="image.previewUrl" [alt]="'Bildvorschau ' + (i + 1)" class="image-preview" />
+      <div
+        class="image-preview-grid sortable-image-grid"
+        *ngIf="selectedImages.length > 0"
+        cdkDropList
+        cdkDropListOrientation="horizontal"
+        [cdkDropListSortingDisabled]="true"
+        [cdkDropListData]="selectedImages"
+        (cdkDropListDropped)="dropSelectedImage($event)"
+      >
+        <div
+          class="image-preview-card sortable-image-card"
+          *ngFor="let image of selectedImages; let i = index; trackBy: trackBySelectedImage"
+          cdkDrag
+          [cdkDragData]="image"
+          (cdkDragStarted)="startSelectedImageDrag($event)"
+          (cdkDragMoved)="sortSelectedImagePreview($event)"
+        >
+          <div class="image-preview-frame">
+            <img [src]="image.previewUrl" [alt]="'Bildvorschau ' + (i + 1)" class="image-preview" />
+            <div class="image-card-toolbar">
+              <span class="image-order-index">{{ i + 1 }}</span>
+              <button mat-icon-button type="button" cdkDragHandle matTooltip="Verschieben" aria-label="Bild verschieben">
+                <mat-icon>drag_indicator</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <ng-template cdkDragPreview>
+            <div class="image-drag-preview">
+              <img [src]="image.previewUrl" [alt]="'Bildvorschau ' + (i + 1)" class="image-drag-preview-image" />
+              <span class="image-drag-preview-index">{{ i + 1 }}</span>
+            </div>
+          </ng-template>
 
           <div class="image-preview-actions">
             <div class="image-name">{{ image.fileName }}</div>
-            <button mat-button type="button" color="warn" (click)="removeSelectedImage(i)">
-              Entfernen
-            </button>
+            <div class="image-action-buttons">
+              <button mat-icon-button type="button" color="warn" (click)="removeSelectedImage(i)" matTooltip="Entfernen" aria-label="Bild entfernen">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
           </div>
         </div>
       </div>

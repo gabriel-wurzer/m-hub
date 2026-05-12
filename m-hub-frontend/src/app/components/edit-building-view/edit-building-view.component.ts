@@ -555,13 +555,14 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
 
       if (result.imagesChanged || result.images.length > 0) {
         payload.existing_image_ids = result.existingImageIds;
+        payload.existing_image_orders = result.existingImageOrders;
 
         if (result.images.length > 0) {
           payload.images = result.images.map((image, index) => ({
             image_data_url: image.previewUrl,
             image_mime_type: image.file.type || undefined,
             image_original_name: image.fileName || image.file.name || undefined,
-            sort_order: result.existingImageIds.length + index
+            sort_order: Number.isInteger(Number(image.sortOrder)) ? Number(image.sortOrder) : result.existingImageIds.length + index
           }));
         }
 
