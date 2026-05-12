@@ -170,10 +170,11 @@
         <div class="available-from-wrapper">
         <h2>Verfügbar ab</h2>
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Datum</mat-label>
+          <mat-label>Datum (dd.mm.yyyy)</mat-label>
           <input
             matInput
             [matDatepicker]="availableFromPicker"
+            [min]="minAvailableFromDate"
             [(ngModel)]="availableFrom"
             [required]="true"
             #availableFromCtrl="ngModel"

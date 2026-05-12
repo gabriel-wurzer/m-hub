@@ -3,7 +3,6 @@ import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-
 import { Component, Inject, Optional } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
@@ -21,6 +20,7 @@ import { MaterialType } from '../../../enums/material-type.enum';
 import { Bauteil, Objekt } from '../../../models/building-component';
 import { PartStructure } from '../../../models/part-structure';
 import { AuthenticationService } from '../../../services/authentication/authentication.service';
+import { MHUB_DATE_PROVIDERS } from '../../../utils/mhub-date-adapter';
 
 export type AddListingDialogData = {
   component: Bauteil | Objekt;
@@ -69,7 +69,7 @@ type MeasurementInput = number | string | null;
     MatSelectModule,
     MatTooltipModule
   ],
-  providers: [provideNativeDateAdapter()],
+  providers: MHUB_DATE_PROVIDERS,
   templateUrl: './add-listing-dialog.component.html',
   styleUrl: './add-listing-dialog.component.scss'
 })
@@ -84,6 +84,7 @@ export class AddListingDialogComponent {
   readonly allowedImageMimeTypes: string[] = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
   readonly maxImageSizeInBytes = 10 * 1024 * 1024;        // 10 MB Upload limit per image
   readonly maxTotalImageSizeInBytes = 100 * 1024 * 1024;  // 100 MB total Upload limit
+  readonly minAvailableFromDate = this.createToday();
 
   name = '';
   description = '';
@@ -243,6 +244,14 @@ export class AddListingDialogComponent {
       return 'Datum erforderlich';
     }
 
+    if (!this.isValidDate(this.availableFrom)) {
+      return 'Ungültiges Datum';
+    }
+
+    if (this.compareDateOnly(this.availableFrom, this.minAvailableFromDate) < 0) {
+      return 'Datum liegt in der Vergangenheit';
+    }
+
     return null;
   }
 
@@ -258,7 +267,7 @@ export class AddListingDialogComponent {
     const isNameValid = this.name.trim().length > 0;
     const isPriceValid = this.price !== null && this.price !== undefined && !Number.isNaN(Number(this.price)) && Number(this.price) >= 0;
     const isStatusValid = !!this.status;
-    const isAvailableFromValid = !!this.availableFrom;
+    const isAvailableFromValid = this.getAvailableFromError() === null;
     const isPotentialValid = !!this.potential;
     const isMaterialValid = !this.isPart || this.availableMaterials.length === 0 || !!this.material;
     const isQuantityValid = this.getQuantityError() === null;
@@ -636,11 +645,27 @@ export class AddListingDialogComponent {
   }
 
   private formatDateForPayload(value: Date): string {
-    const year = value.getFullYear();
+    const year = String(value.getFullYear()).padStart(4, '0');
     const month = String(value.getMonth() + 1).padStart(2, '0');
     const day = String(value.getDate()).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
+  }
+
+  private createToday(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }
+
+  private isValidDate(value: Date): boolean {
+    return value instanceof Date && !Number.isNaN(value.getTime());
+  }
+
+  private compareDateOnly(left: Date, right: Date): number {
+    const leftDate = new Date(left.getFullYear(), left.getMonth(), left.getDate()).getTime();
+    const rightDate = new Date(right.getFullYear(), right.getMonth(), right.getDate()).getTime();
+
+    return leftDate - rightDate;
   }
 
   private normalizeOptionalInput(input: string): string | null {

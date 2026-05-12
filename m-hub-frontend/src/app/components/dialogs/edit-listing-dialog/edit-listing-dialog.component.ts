@@ -3,7 +3,6 @@ import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-
 import { Component, Inject, Optional } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
@@ -19,6 +18,7 @@ import { MarketListingUnit } from '../../../enums/market-listing-unit.enum';
 import { MarketPotential } from '../../../enums/market-potential.enum';
 import { MaterialType } from '../../../enums/material-type.enum';
 import { MarketListing, MarketListingImage, UpdateMarketListing } from '../../../models/market-listing';
+import { MHUB_DATE_PROVIDERS } from '../../../utils/mhub-date-adapter';
 import { AddListingDialogImage } from '../add-listing-dialog/add-listing-dialog.component';
 
 export type EditListingDialogData = {
@@ -63,7 +63,7 @@ type ListingDialogImageItem = ExistingListingDialogImage | NewListingDialogImage
     MatSelectModule,
     MatTooltipModule
   ],
-  providers: [provideNativeDateAdapter()],
+  providers: MHUB_DATE_PROVIDERS,
   templateUrl: './edit-listing-dialog.component.html',
   styleUrl: './edit-listing-dialog.component.scss'
 })
@@ -77,6 +77,7 @@ export class EditListingDialogComponent {
   readonly maxImageSizeInBytes = 10 * 1024 * 1024;
   readonly maxTotalImageSizeInBytes = 100 * 1024 * 1024;
   readonly positiveMeasurementPattern = '^(?:[1-9]\\d*(?:[.,]\\d+)?|0[.,]\\d*[1-9]\\d*)$';
+  readonly minAvailableFromDate = this.createToday();
 
   name = '';
   description = '';
@@ -213,7 +214,19 @@ export class EditListingDialogComponent {
   }
 
   getAvailableFromError(): string | null {
-    return this.availableFrom ? null : 'Datum erforderlich';
+    if (!this.availableFrom) {
+      return 'Datum erforderlich';
+    }
+
+    if (!this.isValidDate(this.availableFrom)) {
+      return 'Ungültiges Datum';
+    }
+
+    if (this.compareDateOnly(this.availableFrom, this.minAvailableFromDate) < 0) {
+      return 'Datum liegt in der Vergangenheit';
+    }
+
+    return null;
   }
 
   getContactError(): string | null {
@@ -659,11 +672,27 @@ export class EditListingDialogComponent {
   }
 
   private formatDateForPayload(value: Date): string {
-    const year = value.getFullYear();
+    const year = String(value.getFullYear()).padStart(4, '0');
     const month = String(value.getMonth() + 1).padStart(2, '0');
     const day = String(value.getDate()).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
+  }
+
+  private createToday(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }
+
+  private isValidDate(value: Date): boolean {
+    return value instanceof Date && !Number.isNaN(value.getTime());
+  }
+
+  private compareDateOnly(left: Date, right: Date): number {
+    const leftDate = new Date(left.getFullYear(), left.getMonth(), left.getDate()).getTime();
+    const rightDate = new Date(right.getFullYear(), right.getMonth(), right.getDate()).getTime();
+
+    return leftDate - rightDate;
   }
 
   private normalizeOptionalInput(input: string): string | null {

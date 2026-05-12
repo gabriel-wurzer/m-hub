@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { DateAdapter, MAT_DATE_FORMATS, MatDateFormats } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -35,7 +36,7 @@ describe('EditListingDialogComponent', () => {
       description: 'Beschreibung',
       price: 120,
       status: MarketListingStatus.eingelagert,
-      available_from: '2026-05-05',
+      available_from: '2099-05-05',
       potential: MarketPotential.reuse,
       quantity: 2,
       unit: MarketListingUnit.St,
@@ -112,5 +113,27 @@ describe('EditListingDialogComponent', () => {
         { id: 'image-1', sort_order: 1 }
       ]
     }));
+  });
+
+  it('invalidates available-from dates in the past', () => {
+    component.availableFrom = new Date(component.minAvailableFromDate);
+    component.availableFrom.setDate(component.availableFrom.getDate() - 1);
+
+    expect(component.getAvailableFromError()).toBe('Datum darf nicht in der Vergangenheit liegen');
+    expect(component.isFormValid()).toBeFalse();
+  });
+
+  it('uses dd.mm.yyyy as the Material datepicker input format', () => {
+    const adapter = fixture.debugElement.injector.get(DateAdapter);
+    const formats = fixture.debugElement.injector.get<MatDateFormats>(MAT_DATE_FORMATS);
+
+    expect(adapter.format(new Date(2099, 3, 22), formats.display.dateInput)).toBe('22.04.2099');
+    expect(adapter.parse('22.04.2099', formats.parse.dateInput)).toEqual(new Date(2099, 3, 22));
+  });
+
+  it('formats years below 1000 with four digits for the API payload', () => {
+    const formatDateForPayload = (component as any).formatDateForPayload.bind(component);
+
+    expect(formatDateForPayload(new Date(999, 0, 2))).toBe('0999-01-02');
   });
 });

@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { DateAdapter, MAT_DATE_FORMATS, MatDateFormats } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
@@ -71,7 +72,7 @@ describe('AddListingDialogComponent', () => {
   it('shows a number error and invalidates the form for bad measurement input', () => {
     component.price = 100;
     component.status = MarketListingStatus.eingelagert;
-    component.availableFrom = new Date('2026-04-22');
+    component.availableFrom = new Date('2099-04-22');
     component.potential = MarketPotential.reuse;
     component.quantity = 3;
     component.length = '123asd' as any;
@@ -83,7 +84,7 @@ describe('AddListingDialogComponent', () => {
   it('includes measurements in the dialog result', () => {
     component.price = 100;
     component.status = MarketListingStatus.eingelagert;
-    component.availableFrom = new Date('2026-04-22');
+    component.availableFrom = new Date('2099-04-22');
     component.potential = MarketPotential.reuse;
     component.quantity = 3;
 
@@ -107,7 +108,7 @@ describe('AddListingDialogComponent', () => {
     ];
     component.price = 100;
     component.status = MarketListingStatus.eingelagert;
-    component.availableFrom = new Date('2026-04-22');
+    component.availableFrom = new Date('2099-04-22');
     component.potential = MarketPotential.reuse;
     component.quantity = 3;
 
@@ -148,7 +149,7 @@ describe('AddListingDialogComponent', () => {
     partComponent.name = 'Innenwand';
     partComponent.price = 100;
     partComponent.status = MarketListingStatus.eingelagert;
-    partComponent.availableFrom = new Date('2026-04-22');
+    partComponent.availableFrom = new Date('2099-04-22');
     partComponent.potential = MarketPotential.reuse;
     partComponent.quantity = 12;
     partComponent.unit = MarketListingUnit.m;
@@ -160,5 +161,31 @@ describe('AddListingDialogComponent', () => {
       width: null,
       height: null
     }));
+  });
+
+  it('invalidates available-from dates in the past', () => {
+    component.price = 100;
+    component.status = MarketListingStatus.eingelagert;
+    component.availableFrom = new Date(component.minAvailableFromDate);
+    component.availableFrom.setDate(component.availableFrom.getDate() - 1);
+    component.potential = MarketPotential.reuse;
+    component.quantity = 3;
+
+    expect(component.getAvailableFromError()).toBe('Datum darf nicht in der Vergangenheit liegen');
+    expect(component.isFormValid()).toBeFalse();
+  });
+
+  it('uses dd.mm.yyyy as the Material datepicker input format', () => {
+    const adapter = fixture.debugElement.injector.get(DateAdapter);
+    const formats = fixture.debugElement.injector.get<MatDateFormats>(MAT_DATE_FORMATS);
+
+    expect(adapter.format(new Date(2099, 3, 22), formats.display.dateInput)).toBe('22.04.2099');
+    expect(adapter.parse('22.04.2099', formats.parse.dateInput)).toEqual(new Date(2099, 3, 22));
+  });
+
+  it('formats years below 1000 with four digits for the API payload', () => {
+    const formatDateForPayload = (component as any).formatDateForPayload.bind(component);
+
+    expect(formatDateForPayload(new Date(999, 0, 2))).toBe('0999-01-02');
   });
 });
