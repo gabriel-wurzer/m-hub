@@ -11,6 +11,31 @@ import { ObjectType } from '../../../enums/object-type';
 import { MarketListing } from '../../../models/market-listing';
 import { EditListingDialogComponent } from './edit-listing-dialog.component';
 
+function mockImageCard(container: HTMLElement, rect: DOMRect, isPlaceholder = false): HTMLElement {
+  const card = document.createElement('div');
+  card.classList.add('sortable-image-card');
+  if (isPlaceholder) {
+    card.classList.add('cdk-drag-placeholder');
+  }
+  spyOn(card, 'getBoundingClientRect').and.returnValue(rect);
+  container.appendChild(card);
+  return card;
+}
+
+function mockRect(left: number, top: number, width: number, height: number): DOMRect {
+  return {
+    x: left,
+    y: top,
+    left,
+    top,
+    width,
+    height,
+    right: left + width,
+    bottom: top + height,
+    toJSON: () => ({})
+  } as DOMRect;
+}
+
 describe('EditListingDialogComponent', () => {
   let component: EditListingDialogComponent;
   let fixture: ComponentFixture<EditListingDialogComponent>;
@@ -112,6 +137,31 @@ describe('EditListingDialogComponent', () => {
         { id: 'image-2', sort_order: 0 },
         { id: 'image-1', sort_order: 1 }
       ]
+    }));
+  });
+
+  it('commits the image order from the live drag placeholder position', () => {
+    const draggedImage = component.imageItems[0];
+    const container = document.createElement('div');
+    const placeholder = mockImageCard(container, mockRect(0, 0, 100, 80), true);
+    mockImageCard(container, mockRect(120, 0, 100, 80));
+
+    component.startImageItemDrag({ source: { data: draggedImage } } as any);
+    component.sortImageItemPreview({
+      source: {
+        data: draggedImage,
+        dropContainer: { element: { nativeElement: container } },
+        getPlaceholderElement: () => placeholder
+      },
+      pointerPosition: { x: 260, y: 40 }
+    } as any);
+    component.dropImageItem({ item: { data: draggedImage } } as any);
+    component.confirmEditListing();
+
+    expect(container.lastElementChild).toBe(placeholder);
+    expect(component.imageItems.map((image) => image.fileName)).toEqual(['zweit.jpg', 'erst.jpg']);
+    expect(dialogRefSpy.close).toHaveBeenCalledWith(jasmine.objectContaining({
+      existing_image_ids: ['image-2', 'image-1']
     }));
   });
 

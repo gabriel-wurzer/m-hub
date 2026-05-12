@@ -521,7 +521,9 @@ mat-error {
 }
 
 .cdk-drag-placeholder {
-  opacity: 0.25;
+  opacity: 0.35;
+  outline: 2px dashed #2f6f55;
+  outline-offset: -2px;
 }
 
 .cdk-drag-animating {

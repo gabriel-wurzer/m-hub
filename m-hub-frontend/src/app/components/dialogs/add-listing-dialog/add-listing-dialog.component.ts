@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDragMove, CdkDragStart, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Component, Inject, Optional } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -105,6 +105,7 @@ export class AddListingDialogComponent {
   selectedImages: AddListingDialogImage[] = [];
   readonly positiveMeasurementPattern = '^(?:[1-9]\\d*(?:[.,]\\d+)?|0[.,]\\d*[1-9]\\d*)$';
   private nextSelectedImageKey = 0;
+  private selectedImageDragTargetIndex: number | null = null;
 
   constructor(
     @Optional() public dialogRef: MatDialogRef<AddListingDialogComponent> | null,
@@ -369,11 +370,38 @@ export class AddListingDialogComponent {
     this.selectedImages = this.selectedImages.filter((_, index) => index !== imageIndex);
   }
 
-  dropSelectedImage(event: CdkDragDrop<AddListingDialogImage[], AddListingDialogImage[], AddListingDialogImage>): void {
-    const previousIndex = this.selectedImages.indexOf(event.item.data);
+  startSelectedImageDrag(event: CdkDragStart<AddListingDialogImage>): void {
+    const previousIndex = this.selectedImages.indexOf(event.source.data);
+    this.selectedImageDragTargetIndex = previousIndex >= 0 ? previousIndex : null;
+  }
+
+  sortSelectedImagePreview(event: CdkDragMove<AddListingDialogImage>): void {
+    const previousIndex = this.selectedImages.indexOf(event.source.data);
     if (previousIndex < 0) return;
 
-    const currentIndex = this.resolveImageGridDropIndex(event);
+    const container = event.source.dropContainer.element.nativeElement as HTMLElement;
+    const placeholder = event.source.getPlaceholderElement();
+    const currentIndex = this.resolveImageGridPointerIndex(
+      container,
+      placeholder,
+      event.pointerPosition,
+      this.selectedImages.length
+    );
+
+    if (this.selectedImageDragTargetIndex === currentIndex) return;
+    this.moveImageGridPlaceholder(container, placeholder, currentIndex);
+    this.selectedImageDragTargetIndex = currentIndex;
+  }
+
+  dropSelectedImage(event: CdkDragDrop<AddListingDialogImage[], AddListingDialogImage[], AddListingDialogImage>): void {
+    const previousIndex = this.selectedImages.indexOf(event.item.data);
+    if (previousIndex < 0) {
+      this.selectedImageDragTargetIndex = null;
+      return;
+    }
+
+    const currentIndex = this.selectedImageDragTargetIndex ?? previousIndex;
+    this.selectedImageDragTargetIndex = null;
     if (previousIndex === currentIndex) return;
     moveItemInArray(this.selectedImages, previousIndex, currentIndex);
   }
@@ -388,11 +416,14 @@ export class AddListingDialogComponent {
     return image.key ?? `${image.fileName}:${image.file.size}:${image.file.lastModified}`;
   }
 
-  private resolveImageGridDropIndex(event: CdkDragDrop<AddListingDialogImage[]>): number {
-    const container = event.container.element.nativeElement as HTMLElement;
-    const draggedElement = event.item.element.nativeElement as HTMLElement;
+  private resolveImageGridPointerIndex(
+    container: HTMLElement,
+    placeholder: HTMLElement,
+    pointerPosition: { x: number; y: number },
+    itemCount: number
+  ): number {
     const cards = Array.from(container.querySelectorAll<HTMLElement>('.sortable-image-card'))
-      .filter((card) => card !== draggedElement && !card.classList.contains('cdk-drag-placeholder'));
+      .filter((card) => card !== placeholder && !card.classList.contains('cdk-drag-placeholder'));
 
     if (cards.length === 0) return 0;
 
@@ -410,7 +441,7 @@ export class AddListingDialogComponent {
       }
     }
 
-    const dropY = event.dropPoint.y;
+    const dropY = pointerPosition.y;
     const targetRow = rows.find((row) => dropY >= row.top && dropY <= row.bottom)
       ?? rows.reduce((closest, row) => {
         const closestDistance = Math.abs(dropY - ((closest.top + closest.bottom) / 2));
@@ -418,14 +449,26 @@ export class AddListingDialogComponent {
         return rowDistance < closestDistance ? row : closest;
       }, rows[0]);
 
-    const dropX = event.dropPoint.x;
+    const dropX = pointerPosition.x;
     for (const item of targetRow.items) {
       if (dropX < item.rect.left + item.rect.width / 2) {
         return item.index;
       }
     }
 
-    return Math.min(targetRow.items[targetRow.items.length - 1].index + 1, this.selectedImages.length - 1);
+    return Math.min(targetRow.items[targetRow.items.length - 1].index + 1, itemCount - 1);
+  }
+
+  private moveImageGridPlaceholder(container: HTMLElement, placeholder: HTMLElement, targetIndex: number): void {
+    const cards = Array.from(container.querySelectorAll<HTMLElement>('.sortable-image-card'))
+      .filter((card) => card !== placeholder && !card.classList.contains('cdk-drag-placeholder'));
+    const targetCard = cards[targetIndex] ?? null;
+
+    if (targetCard) {
+      container.insertBefore(placeholder, targetCard);
+    } else {
+      container.appendChild(placeholder);
+    }
   }
 
   private initializeQuantityAndUnit(component: Bauteil | Objekt | null): void {

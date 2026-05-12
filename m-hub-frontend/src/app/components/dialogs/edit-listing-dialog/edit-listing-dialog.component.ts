@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDragMove, CdkDragStart, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Component, Inject, Optional } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -98,6 +98,7 @@ export class EditListingDialogComponent {
 
   private imageChangesTouched = false;
   private nextNewImageKey = 0;
+  private imageItemDragTargetIndex: number | null = null;
 
   constructor(
     @Optional() public dialogRef: MatDialogRef<EditListingDialogComponent> | null,
@@ -376,11 +377,38 @@ export class EditListingDialogComponent {
     this.imageChangesTouched = true;
   }
 
-  dropImageItem(event: CdkDragDrop<ListingDialogImageItem[], ListingDialogImageItem[], ListingDialogImageItem>): void {
-    const previousIndex = this.imageItems.indexOf(event.item.data);
+  startImageItemDrag(event: CdkDragStart<ListingDialogImageItem>): void {
+    const previousIndex = this.imageItems.indexOf(event.source.data);
+    this.imageItemDragTargetIndex = previousIndex >= 0 ? previousIndex : null;
+  }
+
+  sortImageItemPreview(event: CdkDragMove<ListingDialogImageItem>): void {
+    const previousIndex = this.imageItems.indexOf(event.source.data);
     if (previousIndex < 0) return;
 
-    const currentIndex = this.resolveImageGridDropIndex(event);
+    const container = event.source.dropContainer.element.nativeElement as HTMLElement;
+    const placeholder = event.source.getPlaceholderElement();
+    const currentIndex = this.resolveImageGridPointerIndex(
+      container,
+      placeholder,
+      event.pointerPosition,
+      this.imageItems.length
+    );
+
+    if (this.imageItemDragTargetIndex === currentIndex) return;
+    this.moveImageGridPlaceholder(container, placeholder, currentIndex);
+    this.imageItemDragTargetIndex = currentIndex;
+  }
+
+  dropImageItem(event: CdkDragDrop<ListingDialogImageItem[], ListingDialogImageItem[], ListingDialogImageItem>): void {
+    const previousIndex = this.imageItems.indexOf(event.item.data);
+    if (previousIndex < 0) {
+      this.imageItemDragTargetIndex = null;
+      return;
+    }
+
+    const currentIndex = this.imageItemDragTargetIndex ?? previousIndex;
+    this.imageItemDragTargetIndex = null;
     if (previousIndex === currentIndex) return;
     moveItemInArray(this.imageItems, previousIndex, currentIndex);
     this.imageChangesTouched = true;
@@ -397,11 +425,14 @@ export class EditListingDialogComponent {
     return image.key;
   }
 
-  private resolveImageGridDropIndex(event: CdkDragDrop<ListingDialogImageItem[]>): number {
-    const container = event.container.element.nativeElement as HTMLElement;
-    const draggedElement = event.item.element.nativeElement as HTMLElement;
+  private resolveImageGridPointerIndex(
+    container: HTMLElement,
+    placeholder: HTMLElement,
+    pointerPosition: { x: number; y: number },
+    itemCount: number
+  ): number {
     const cards = Array.from(container.querySelectorAll<HTMLElement>('.sortable-image-card'))
-      .filter((card) => card !== draggedElement && !card.classList.contains('cdk-drag-placeholder'));
+      .filter((card) => card !== placeholder && !card.classList.contains('cdk-drag-placeholder'));
 
     if (cards.length === 0) return 0;
 
@@ -419,7 +450,7 @@ export class EditListingDialogComponent {
       }
     }
 
-    const dropY = event.dropPoint.y;
+    const dropY = pointerPosition.y;
     const targetRow = rows.find((row) => dropY >= row.top && dropY <= row.bottom)
       ?? rows.reduce((closest, row) => {
         const closestDistance = Math.abs(dropY - ((closest.top + closest.bottom) / 2));
@@ -427,14 +458,26 @@ export class EditListingDialogComponent {
         return rowDistance < closestDistance ? row : closest;
       }, rows[0]);
 
-    const dropX = event.dropPoint.x;
+    const dropX = pointerPosition.x;
     for (const item of targetRow.items) {
       if (dropX < item.rect.left + item.rect.width / 2) {
         return item.index;
       }
     }
 
-    return Math.min(targetRow.items[targetRow.items.length - 1].index + 1, this.imageItems.length - 1);
+    return Math.min(targetRow.items[targetRow.items.length - 1].index + 1, itemCount - 1);
+  }
+
+  private moveImageGridPlaceholder(container: HTMLElement, placeholder: HTMLElement, targetIndex: number): void {
+    const cards = Array.from(container.querySelectorAll<HTMLElement>('.sortable-image-card'))
+      .filter((card) => card !== placeholder && !card.classList.contains('cdk-drag-placeholder'));
+    const targetCard = cards[targetIndex] ?? null;
+
+    if (targetCard) {
+      container.insertBefore(placeholder, targetCard);
+    } else {
+      container.appendChild(placeholder);
+    }
   }
 
   trackByExistingImage(index: number, image: ExistingListingDialogImage): string {

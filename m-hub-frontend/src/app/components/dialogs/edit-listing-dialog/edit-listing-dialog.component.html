@@ -234,7 +234,14 @@
         </div>
 
         <div class="image-preview-grid sortable-image-grid" *ngIf="imageItems.length > 0" cdkDropList cdkDropListOrientation="horizontal" [cdkDropListSortingDisabled]="true" [cdkDropListData]="imageItems" (cdkDropListDropped)="dropImageItem($event)">
-          <div class="image-preview-card sortable-image-card" *ngFor="let image of imageItems; let i = index; trackBy: trackByImageItem" cdkDrag [cdkDragData]="image">
+          <div
+            class="image-preview-card sortable-image-card"
+            *ngFor="let image of imageItems; let i = index; trackBy: trackByImageItem"
+            cdkDrag
+            [cdkDragData]="image"
+            (cdkDragStarted)="startImageItemDrag($event)"
+            (cdkDragMoved)="sortImageItemPreview($event)"
+          >
             <div class="image-preview-frame">
               <img [src]="image.previewUrl" [alt]="'Bildvorschau ' + (i + 1)" class="image-preview" />
               <div class="image-card-toolbar">
