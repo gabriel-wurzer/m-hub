@@ -66,4 +66,41 @@ describe('EntityInfoDialogComponent', () => {
     expect(component.getRenderedLayerThicknessLabel({ layer_index: 3, material: ConnectionType.conn_1, thickness: 15 })).toBe('0 mm');
     expect(component.isLayerThicknessMuted({ layer_index: 3, material: ConnectionType.conn_1, thickness: 15 })).toBeTrue();
   });
+
+  it('renders sorted object images and switches the active image', () => {
+    component.entity = {
+      id: 'object-1',
+      name: 'Waschbecken',
+      object_type: 'sanitary',
+      count: 2,
+      images: [
+        {
+          id: 'image-1',
+          sort_order: 1,
+          image_url: 'https://example.com/object-image.jpg'
+        },
+        {
+          id: 'image-2',
+          sort_order: 0,
+          image_url: 'https://example.com/object-image-front.jpg'
+        }
+      ]
+    };
+    component.objectImages = (component as any).resolveObjectImages();
+    component.activeObjectImageIndex = 0;
+    fixture.detectChanges();
+
+    const nativeElement = fixture.nativeElement as HTMLElement;
+    const activeImage = nativeElement.querySelector('.object-image-active') as HTMLImageElement | null;
+    expect(activeImage?.getAttribute('src')).toBe('https://example.com/object-image-front.jpg');
+    expect(nativeElement.querySelectorAll('.object-image-nav').length).toBe(2);
+    expect(nativeElement.textContent).toContain('1 / 2');
+
+    component.showNextObjectImage();
+    fixture.detectChanges();
+
+    const nextActiveImage = nativeElement.querySelector('.object-image-active') as HTMLImageElement | null;
+    expect(nextActiveImage?.getAttribute('src')).toBe('https://example.com/object-image.jpg');
+    expect(nativeElement.textContent).toContain('2 / 2');
+  });
 });

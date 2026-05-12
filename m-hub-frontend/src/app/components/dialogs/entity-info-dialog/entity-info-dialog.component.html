@@ -242,11 +242,65 @@
         <div class="value mono">{{ getValue(['owner_id']) }}</div>
       </div>
     </div>
-    <div class="image-wrapper" *ngIf="getObjectImageUrl() as objectImageUrl">
-      <img [src]="objectImageUrl" alt="Objektbild" class="object-image" />
-        <a [href]="objectImageUrl" target="_blank" rel="noopener noreferrer" class="document-open-link text-link">
+    <div class="image-wrapper" *ngIf="objectImages.length > 0">
+      <div class="object-image-carousel">
+        <div class="object-image-stage">
+          <img
+            *ngFor="let image of objectImages; let i = index; trackBy: trackByObjectImage"
+            [src]="image.url"
+            [alt]="image.label"
+            class="object-image"
+            [class.object-image-active]="i === activeObjectImageIndex"
+          />
+        </div>
+
+        <button
+          *ngIf="hasMultipleObjectImages()"
+          mat-icon-button
+          [disableRipple]="true"
+          type="button"
+          class="object-image-nav object-image-nav-prev"
+          (click)="showPreviousObjectImage()"
+          matTooltip="Vorheriges Bild"
+          aria-label="Vorheriges Bild"
+        >
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+
+        <button
+          *ngIf="hasMultipleObjectImages()"
+          mat-icon-button
+          [disableRipple]="true"
+          type="button"
+          class="object-image-nav object-image-nav-next"
+          (click)="showNextObjectImage()"
+          matTooltip="Nächstes Bild"
+          aria-label="Nächstes Bild"
+        >
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+
+      <div class="object-image-footer">
+        <span class="object-image-counter" *ngIf="hasMultipleObjectImages()">
+          {{ activeObjectImageIndex + 1 }} / {{ objectImages.length }}
+        </span>
+
+        <div class="object-image-dots" *ngIf="hasMultipleObjectImages()">
+          <button
+            *ngFor="let image of objectImages; let i = index; trackBy: trackByObjectImage"
+            type="button"
+            class="object-image-dot"
+            [class.object-image-dot-active]="i === activeObjectImageIndex"
+            (click)="selectObjectImage(i)"
+            [attr.aria-label]="'Bild ' + (i + 1) + ' anzeigen'"
+          ></button>
+        </div>
+
+        <a *ngIf="currentObjectImage as activeImage" [href]="activeImage.url" target="_blank" rel="noopener noreferrer" class="document-open-link text-link">
           Bild in neuem Tab öffnen
         </a>
+      </div>
     </div>
   </ng-template>
 </mat-dialog-content>

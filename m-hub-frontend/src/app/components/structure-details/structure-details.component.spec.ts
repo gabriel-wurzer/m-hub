@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { StructureDetailsComponent } from './structure-details.component';
 import { BuildingComponentCategory } from '../../enums/component-category';
@@ -12,7 +14,7 @@ describe('StructureDetailsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [StructureDetailsComponent]
+      imports: [HttpClientTestingModule, NoopAnimationsModule, StructureDetailsComponent]
     })
     .compileComponents();
 
@@ -52,7 +54,7 @@ describe('StructureDetailsComponent', () => {
         type: 'wall',
         length: 12.5,
         layers: [
-          { layer_index: 1, material: MaterialType.mat_1, thickness: 120 },
+          { layer_index: 1, material: MaterialType.mat_38, thickness: 120 },
           { layer_index: 2, material: MaterialType.mat_6, thickness: 15 }
         ]
       }
@@ -87,7 +89,7 @@ describe('StructureDetailsComponent', () => {
     expect(nativeElement.textContent).toContain('Ziegel');
   });
 
-  it('renders count, location and image for objekte', () => {
+  it('renders count, location and image carousel for objekte', () => {
     component.structure = [
       {
         type: FloorType.RG,
@@ -114,9 +116,16 @@ describe('StructureDetailsComponent', () => {
         {
           id: 'image-1',
           building_object_id: 'object-1',
-          sort_order: 0,
+          sort_order: 1,
           image_path: '/mhub/objects/object-1/image.jpg',
           image_url: 'https://example.com/object-image.jpg'
+        },
+        {
+          id: 'image-2',
+          building_object_id: 'object-1',
+          sort_order: 0,
+          image_path: '/mhub/objects/object-1/front.jpg',
+          image_url: 'https://example.com/object-image-front.jpg'
         }
       ]
     } as any;
@@ -144,9 +153,18 @@ describe('StructureDetailsComponent', () => {
     expect(nativeElement.textContent).toContain('(Wohngeschoss)');
     expect(nativeElement.textContent).toContain('Anzahl: 3');
 
-    const image = nativeElement.querySelector('.object-image') as HTMLImageElement | null;
-    expect(image).not.toBeNull();
-    expect(image?.getAttribute('src')).toBe('https://example.com/object-image.jpg');
+    const activeImage = nativeElement.querySelector('.object-image-active') as HTMLImageElement | null;
+    expect(activeImage).not.toBeNull();
+    expect(activeImage?.getAttribute('src')).toBe('https://example.com/object-image-front.jpg');
+    expect(nativeElement.querySelectorAll('.object-image-nav').length).toBe(2);
+    expect(nativeElement.textContent).toContain('1 / 2');
+
+    component.showNextObjectImage();
+    fixture.detectChanges();
+
+    const nextActiveImage = nativeElement.querySelector('.object-image-active') as HTMLImageElement | null;
+    expect(nextActiveImage?.getAttribute('src')).toBe('https://example.com/object-image.jpg');
+    expect(nativeElement.textContent).toContain('2 / 2');
   });
 
   it('renders a dash when bauteil and objekt descriptions are empty', () => {

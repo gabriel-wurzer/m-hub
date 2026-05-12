@@ -36,6 +36,13 @@ type LocationSegment = {
   note?: string;
 };
 
+type ObjectImageVm = {
+  key: string;
+  url: string;
+  label: string;
+  sortOrder: number;
+};
+
 @Component({
   selector: 'app-entity-info-dialog',
   standalone: true,
@@ -73,6 +80,8 @@ export class EntityInfoDialogComponent {
 
   entity: Record<string, unknown>;
   readonly partStructure: PartStructure | null;
+  objectImages: ObjectImageVm[] = [];
+  activeObjectImageIndex = 0;
   objectImageLoaded = false;
 
   constructor(
@@ -82,6 +91,7 @@ export class EntityInfoDialogComponent {
     this.entity = data.entity as any as Record<string, unknown>;
     this.rebuildFloorDescriptionByLocationLabel(this.data.structure ?? []);
     this.partStructure = this.resolvePartStructure();
+    this.objectImages = this.resolveObjectImages();
   }
 
   get title(): string {
@@ -224,24 +234,86 @@ export class EntityInfoDialogComponent {
   }
 
   getObjectImageUrl(): string | null {
-    if (!this.isObjekt()) return null;
+    return this.currentObjectImage?.url ?? null;
+  }
+
+  get currentObjectImage(): ObjectImageVm | null {
+    return this.objectImages[this.activeObjectImageIndex] ?? this.objectImages[0] ?? null;
+  }
+
+  hasMultipleObjectImages(): boolean {
+    return this.objectImages.length > 1;
+  }
+
+  showPreviousObjectImage(): void {
+    this.selectObjectImage(this.activeObjectImageIndex - 1);
+  }
+
+  showNextObjectImage(): void {
+    this.selectObjectImage(this.activeObjectImageIndex + 1);
+  }
+
+  selectObjectImage(index: number): void {
+    if (this.objectImages.length === 0) return;
+
+    this.activeObjectImageIndex = (index + this.objectImages.length) % this.objectImages.length;
+  }
+
+  trackByObjectImage(_: number, image: ObjectImageVm): string {
+    return image.key;
+  }
+
+  private resolveObjectImages(): ObjectImageVm[] {
+    if (!this.isObjekt()) return [];
 
     const images = this.readField(this.entity, ['images']);
-    if (!Array.isArray(images)) return null;
+    if (!Array.isArray(images)) return [];
 
-    for (const image of images) {
-      if (!image || typeof image !== 'object') continue;
+    return images
+      .map((image, index) => this.toObjectImageVm(image, index))
+      .filter((image): image is ObjectImageVm => image !== null)
+      .sort((left, right) => left.sortOrder - right.sortOrder);
+  }
 
-      const imageRecord = image as { image_url?: unknown; imageUrl?: unknown; image_path?: unknown; imagePath?: unknown };
-      const explicitUrl = imageRecord.image_url ?? imageRecord.imageUrl;
-      if (typeof explicitUrl === 'string' && explicitUrl.trim().length > 0) {
-        return explicitUrl.trim();
-      }
+  private toObjectImageVm(image: unknown, index: number): ObjectImageVm | null {
+    if (!image || typeof image !== 'object') return null;
 
-      const imagePath = imageRecord.image_path ?? imageRecord.imagePath;
-      if (typeof imagePath === 'string' && /^https?:\/\//i.test(imagePath.trim())) {
-        return imagePath.trim();
-      }
+    const imageRecord = image as {
+      id?: unknown;
+      image_url?: unknown;
+      imageUrl?: unknown;
+      image_path?: unknown;
+      imagePath?: unknown;
+      image_original_name?: unknown;
+      imageOriginalName?: unknown;
+      sort_order?: unknown;
+      sortOrder?: unknown;
+    };
+    const url = this.resolveObjectImageUrl(imageRecord);
+    if (!url) return null;
+
+    const sortOrder = Number(imageRecord.sort_order ?? imageRecord.sortOrder);
+    const label = imageRecord.image_original_name ?? imageRecord.imageOriginalName;
+
+    return {
+      key: typeof imageRecord.id === 'string' && imageRecord.id.trim().length > 0
+        ? imageRecord.id.trim()
+        : `${url}:${index}`,
+      url,
+      label: typeof label === 'string' && label.trim().length > 0 ? label.trim() : `Bild ${index + 1}`,
+      sortOrder: Number.isInteger(sortOrder) ? sortOrder : index
+    };
+  }
+
+  private resolveObjectImageUrl(imageRecord: { image_url?: unknown; imageUrl?: unknown; image_path?: unknown; imagePath?: unknown }): string | null {
+    const explicitUrl = imageRecord.image_url ?? imageRecord.imageUrl;
+    if (typeof explicitUrl === 'string' && explicitUrl.trim().length > 0) {
+      return explicitUrl.trim();
+    }
+
+    const imagePath = imageRecord.image_path ?? imageRecord.imagePath;
+    if (typeof imagePath === 'string' && /^https?:\/\//i.test(imagePath.trim())) {
+      return imagePath.trim();
     }
 
     return null;
@@ -460,6 +532,7 @@ export class EntityInfoDialogComponent {
         const desc = typeof floor.description === 'string' ? floor.description.trim() : '';
         if (desc.length > 0) {
           this.floorDescriptionByLocationLabel.set(`${floor.type} ${regularIndex}`, desc);
+          this.floorDescriptionByLocationLabel.set(`RG ${regularIndex}`, desc);
         }
         continue;
       }
@@ -469,6 +542,7 @@ export class EntityInfoDialogComponent {
         const desc = typeof floor.description === 'string' ? floor.description.trim() : '';
         if (desc.length > 0) {
           this.floorDescriptionByLocationLabel.set(`${floor.type} ${basementIndex}`, desc);
+          this.floorDescriptionByLocationLabel.set(`KG ${basementIndex}`, desc);
         }
         continue;
       }
@@ -477,6 +551,7 @@ export class EntityInfoDialogComponent {
         const desc = typeof floor.description === 'string' ? floor.description.trim() : '';
         if (desc.length > 0) {
           this.floorDescriptionByLocationLabel.set(floor.type, desc);
+          this.floorDescriptionByLocationLabel.set('D', desc);
         }
       }
     }

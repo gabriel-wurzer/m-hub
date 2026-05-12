@@ -30,6 +30,13 @@ type LocationSegment = {
   note?: string;
 };
 
+type ObjectImageVm = {
+  key: string;
+  url: string;
+  label: string;
+  sortOrder: number;
+};
+
 @Component({
   selector: 'app-structure-details',
   standalone: true,
@@ -61,6 +68,8 @@ export class StructureDetailsComponent implements OnChanges {
   materialsPieChartOptions: EChartsOption = {};
 
   isLoading = false;
+  objectImages: ObjectImageVm[] = [];
+  activeObjectImageIndex = 0;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['structure']) {
@@ -81,6 +90,8 @@ export class StructureDetailsComponent implements OnChanges {
       this.isBuilding = true;
       this.building = this.entity;
       this.buildingComponent = null;
+      this.objectImages = [];
+      this.activeObjectImageIndex = 0;
       // console.log("Current building: ", this.building);
 
       this.#updateUsagePieChart();
@@ -91,6 +102,8 @@ export class StructureDetailsComponent implements OnChanges {
       this.isBuilding = false;
       this.building = null;
       this.buildingComponent = this.entity;
+      this.objectImages = this.resolveObjectImages();
+      this.activeObjectImageIndex = 0;
       // console.log("Current building component: ", this.buildingComponent);
 
       // TODO: add Chart options call here
@@ -339,20 +352,84 @@ export class StructureDetailsComponent implements OnChanges {
   }
 
   getObjectImageUrl(): string | null {
+    return this.currentObjectImage?.url ?? null;
+  }
+
+  get currentObjectImage(): ObjectImageVm | null {
+    return this.objectImages[this.activeObjectImageIndex] ?? this.objectImages[0] ?? null;
+  }
+
+  hasMultipleObjectImages(): boolean {
+    return this.objectImages.length > 1;
+  }
+
+  showPreviousObjectImage(): void {
+    this.selectObjectImage(this.activeObjectImageIndex - 1);
+  }
+
+  showNextObjectImage(): void {
+    this.selectObjectImage(this.activeObjectImageIndex + 1);
+  }
+
+  selectObjectImage(index: number): void {
+    if (this.objectImages.length === 0) return;
+
+    this.activeObjectImageIndex = (index + this.objectImages.length) % this.objectImages.length;
+  }
+
+  trackByObjectImage(_: number, image: ObjectImageVm): string {
+    return image.key;
+  }
+
+  private resolveObjectImages(): ObjectImageVm[] {
     const images = (this.buildingComponent as Partial<BuildingComponent> & { images?: unknown })?.images;
-    if (!Array.isArray(images)) return null;
+    if (!Array.isArray(images)) return [];
 
-    for (const image of images) {
-      if (!image || typeof image !== 'object') continue;
+    return images
+      .map((image, index) => this.toObjectImageVm(image, index))
+      .filter((image): image is ObjectImageVm => image !== null)
+      .sort((left, right) => left.sortOrder - right.sortOrder);
+  }
 
-      const imageRecord = image as { image_url?: unknown; image_path?: unknown };
-      if (typeof imageRecord.image_url === 'string' && imageRecord.image_url.trim().length > 0) {
-        return imageRecord.image_url.trim();
-      }
+  private toObjectImageVm(image: unknown, index: number): ObjectImageVm | null {
+    if (!image || typeof image !== 'object') return null;
 
-      if (typeof imageRecord.image_path === 'string' && /^https?:\/\//i.test(imageRecord.image_path.trim())) {
-        return imageRecord.image_path.trim();
-      }
+    const imageRecord = image as {
+      id?: unknown;
+      image_url?: unknown;
+      imageUrl?: unknown;
+      image_path?: unknown;
+      imagePath?: unknown;
+      image_original_name?: unknown;
+      imageOriginalName?: unknown;
+      sort_order?: unknown;
+      sortOrder?: unknown;
+    };
+    const url = this.resolveObjectImageUrl(imageRecord);
+    if (!url) return null;
+
+    const sortOrder = Number(imageRecord.sort_order ?? imageRecord.sortOrder);
+    const label = imageRecord.image_original_name ?? imageRecord.imageOriginalName;
+
+    return {
+      key: typeof imageRecord.id === 'string' && imageRecord.id.trim().length > 0
+        ? imageRecord.id.trim()
+        : `${url}:${index}`,
+      url,
+      label: typeof label === 'string' && label.trim().length > 0 ? label.trim() : `Objektbild ${index + 1}`,
+      sortOrder: Number.isInteger(sortOrder) ? sortOrder : index
+    };
+  }
+
+  private resolveObjectImageUrl(imageRecord: { image_url?: unknown; imageUrl?: unknown; image_path?: unknown; imagePath?: unknown }): string | null {
+    const explicitUrl = imageRecord.image_url ?? imageRecord.imageUrl;
+    if (typeof explicitUrl === 'string' && explicitUrl.trim().length > 0) {
+      return explicitUrl.trim();
+    }
+
+    const imagePath = imageRecord.image_path ?? imageRecord.imagePath;
+    if (typeof imagePath === 'string' && /^https?:\/\//i.test(imagePath.trim())) {
+      return imagePath.trim();
     }
 
     return null;
@@ -550,17 +627,20 @@ export class StructureDetailsComponent implements OnChanges {
       if (floor.type === FloorType.RG) {
         regularIndex += 1;
         this.floorDescriptionByLocationLabel.set(`${floor.type} ${regularIndex}`, description);
+        this.floorDescriptionByLocationLabel.set(`RG ${regularIndex}`, description);
         continue;
       }
 
       if (floor.type === FloorType.KG) {
         basementIndex += 1;
         this.floorDescriptionByLocationLabel.set(`${floor.type} ${basementIndex}`, description);
+        this.floorDescriptionByLocationLabel.set(`KG ${basementIndex}`, description);
         continue;
       }
 
       if (floor.type === FloorType.D) {
         this.floorDescriptionByLocationLabel.set(floor.type, description);
+        this.floorDescriptionByLocationLabel.set('D', description);
       }
     }
   }
