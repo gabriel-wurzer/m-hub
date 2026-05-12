@@ -49,6 +49,12 @@ Follow these steps to set up the project environment and import the building dat
 
     On Windows, run the same command from Git Bash.
 
+    > **Note for existing deploys:** `pull.sh` does not touch your local `.env`. After pulling, diff it against the template to pick up any new or changed variables:
+    > ```bash
+    > diff .env .env.example
+    > ```
+    > Apply any additions/renames manually (e.g. `SEAWEED_PUBLIC_BASE_URL=/files` was introduced and must be set on previously-deployed `.env` files).
+
 3. **Build and deploy**
 
     ```bash
