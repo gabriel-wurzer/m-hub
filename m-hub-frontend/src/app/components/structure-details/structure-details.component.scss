@@ -109,7 +109,7 @@ mat-expansion-panel-header {
     max-height: 340px;
     border-radius: 12px;
     overflow: hidden;
-    background: transparent;
+    background: rgba(248, 250, 252, 0.82);
 }
 
 .object-image {
@@ -122,6 +122,10 @@ mat-expansion-panel-header {
     opacity: 0;
     transition: opacity 220ms ease;
     background: transparent;
+}
+
+.object-image-contained {
+    object-fit: contain;
 }
 
 .object-image-active {

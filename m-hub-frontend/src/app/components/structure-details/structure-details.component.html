@@ -195,6 +195,8 @@
                     [alt]="image.label"
                     class="object-image"
                     [class.object-image-active]="i === activeObjectImageIndex"
+                    [class.object-image-contained]="image.fit === 'contain'"
+                    (load)="onObjectImageLoad(image, $event)"
                   />
                 </div>
 

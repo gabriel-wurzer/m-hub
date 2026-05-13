@@ -41,6 +41,7 @@ type ObjectImageVm = {
   url: string;
   label: string;
   sortOrder: number;
+  fit?: 'cover' | 'contain';
 };
 
 @Component({
@@ -257,6 +258,13 @@ export class EntityInfoDialogComponent {
     if (this.objectImages.length === 0) return;
 
     this.activeObjectImageIndex = (index + this.objectImages.length) % this.objectImages.length;
+  }
+
+  onObjectImageLoad(image: ObjectImageVm, event: Event): void {
+    const target = event.target as HTMLImageElement | null;
+    if (!target || target.naturalWidth <= 0 || target.naturalHeight <= 0) return;
+
+    image.fit = target.naturalHeight > target.naturalWidth * 1.08 ? 'contain' : 'cover';
   }
 
   trackByObjectImage(_: number, image: ObjectImageVm): string {

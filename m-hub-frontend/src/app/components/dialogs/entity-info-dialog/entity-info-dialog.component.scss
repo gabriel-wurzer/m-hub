@@ -226,7 +226,7 @@ mat-dialog-content {
   max-height: 500px;
   border-radius: 8px;
   overflow: hidden;
-  background: transparent;
+  background: rgba(248, 250, 252, 0.82);
 }
 
 .object-image {
@@ -238,6 +238,10 @@ mat-dialog-content {
   border-radius: inherit;
   opacity: 0;
   transition: opacity 220ms ease;
+}
+
+.object-image-contained {
+  object-fit: contain;
 }
 
 .object-image-active {
