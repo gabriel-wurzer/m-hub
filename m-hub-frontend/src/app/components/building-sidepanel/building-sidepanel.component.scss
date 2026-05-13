@@ -27,6 +27,7 @@
         margin: 12px 0 10px;
         font-size: 1.6rem;
         line-height: 1;
+        color: mat.get-color-from-palette(vars.$my-secondary, 700);
     }
 
     button {

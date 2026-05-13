@@ -32,6 +32,7 @@ interface TreeNode {
 })
 export class StructureTreeComponent implements OnInit, OnDestroy {
   @Input() entity!: Building;
+  @Input() selectedNodeId: string | null = null;
   @Output() nodeClicked = new EventEmitter<TreeNode>();
   @Output() loadingChange = new EventEmitter<boolean>();
 
@@ -123,6 +124,10 @@ export class StructureTreeComponent implements OnInit, OnDestroy {
   isBuildingNode = (_: number, node: TreeNode) => node.nodeType === 'building';
 
   hasChild = (_: number, node: TreeNode) => !!node.children && node.children.length > 0;
+
+  isSelected(node: TreeNode): boolean {
+    return !!this.selectedNodeId && String(node.id) === String(this.selectedNodeId);
+  }
 
   toggleNode(node: TreeNode) {
     this.treeControl.isExpanded(node)

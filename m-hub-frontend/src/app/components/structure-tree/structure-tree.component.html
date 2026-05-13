@@ -6,9 +6,12 @@
     matTreeNodePadding 
     class="structure-tree-node"
   >
-    <div class="mat-tree-node clickable">
+    <div
+      class="mat-tree-node structure-tree-row clickable"
+      [class.active]="isSelected(node)"
+      (click)="onNodeClickAllowed(node)">
       <img src="/assets/images/house_icon.svg" alt="House Icon" class="house-icon" loading="eager"/>
-      <span class="building-text" (click)="onNodeClickAllowed(node)">
+      <span class="building-text">
         {{ node.name }}
       </span>
     </div>
@@ -22,11 +25,12 @@
     *matTreeNodeDef="let node" 
     matTreeNodePadding
     [class.private-element]="!node.canRead"
+    [class.active]="isSelected(node)"
     [matTooltip]="(!node.canRead) ? node.name + ' ist nicht öffentlich.' : ''"
     matTooltipShowDelay="300"
     (click)="onNodeClickAllowed(node)"
   >
-    <span>{{ node.name }}</span>
+    <span class="structure-tree-label">{{ node.name }}</span>
 
     <mat-icon *ngIf="!node.canRead" class="lock-icon">lock</mat-icon>
   </mat-tree-node>

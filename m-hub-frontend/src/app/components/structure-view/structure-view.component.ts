@@ -53,6 +53,16 @@ export class StructureViewComponent implements OnInit, OnDestroy{
     private objectService: BuildingObjectService
   ) {}
 
+  get selectedEntityId(): string | null {
+    if (!this.selectedEntity) return null;
+
+    if ('bw_geb_id' in this.selectedEntity) {
+      return String(this.selectedEntity.bw_geb_id);
+    }
+
+    return this.selectedEntity.id ?? null;
+  }
+
   ngOnInit(): void {
 
     if (!this.entityContext) return;

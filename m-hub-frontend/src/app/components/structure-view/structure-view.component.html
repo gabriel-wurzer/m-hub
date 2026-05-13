@@ -8,6 +8,7 @@
         <div class="structure-tree-container">
             <app-structure-tree 
                 [entity]="rootBuilding"
+                [selectedNodeId]="selectedEntityId"
                 (nodeClicked)="onNodeSelected($event)"
                 (loadingChange)="onTreeLoading($event)">
             </app-structure-tree>
