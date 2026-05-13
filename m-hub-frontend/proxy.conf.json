@@ -24,5 +24,13 @@
     "pathRewrite": {
       "^/postgis": ""
     }
+  },
+  "/files": {
+    "target": "http://localhost:8888",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/files": ""
+    }
   }
 }

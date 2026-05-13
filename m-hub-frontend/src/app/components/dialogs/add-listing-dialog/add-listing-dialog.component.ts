@@ -17,7 +17,7 @@ import { MarketListingUnit } from '../../../enums/market-listing-unit.enum';
 import { MarketListingStatus } from '../../../enums/market-listing-status';
 import { MarketPotential } from '../../../enums/market-potential.enum';
 import { MaterialType } from '../../../enums/material-type.enum';
-import { Bauteil, Objekt } from '../../../models/building-component';
+import { Bauteil, BuildingObjectImage, Objekt } from '../../../models/building-component';
 import { PartStructure } from '../../../models/part-structure';
 import { AuthenticationService } from '../../../services/authentication/authentication.service';
 import { MHUB_DATE_PROVIDERS } from '../../../utils/mhub-date-adapter';
@@ -121,6 +121,7 @@ export class AddListingDialogComponent {
       this.length = this.normalizeIncomingMeasurement(object.length);
       this.width = this.normalizeIncomingMeasurement(object.width);
       this.height = this.normalizeIncomingMeasurement(object.height);
+      void this.prefillImagesFromObject(object);
     }
 
     this.availableMaterials = this.extractAvailableMaterials(component);
@@ -645,7 +646,7 @@ export class AddListingDialogComponent {
     }
 
     if (file.size > this.maxImageSizeInBytes) {
-      return 'Datei ist zu groß. Maximal 20MB erlaubt.';
+      return 'Datei ist zu groß. Maximal 10MB erlaubt.';
     }
 
     return null;
@@ -677,6 +678,142 @@ export class AddListingDialogComponent {
       reader.onerror = () => reject(reader.error ?? new Error('Preview read failed'));
       reader.readAsDataURL(file);
     });
+  }
+
+  private async prefillImagesFromObject(object: Objekt): Promise<void> {
+    const objectImages = Array.isArray(object.images) ? object.images : [];
+    if (objectImages.length === 0) return;
+
+    const nextImages: AddListingDialogImage[] = [];
+    const errors: string[] = [];
+    let nextImagesSize = 0;
+
+    const sortedImages = objectImages
+      .map((image, index) => ({ image, index }))
+      .sort((left, right) => {
+        const leftOrder = Number(left.image.sort_order);
+        const rightOrder = Number(right.image.sort_order);
+        const normalizedLeftOrder = Number.isInteger(leftOrder) ? leftOrder : left.index;
+        const normalizedRightOrder = Number.isInteger(rightOrder) ? rightOrder : right.index;
+        return normalizedLeftOrder - normalizedRightOrder;
+      });
+
+    for (const { image, index } of sortedImages) {
+      const sourceUrl = this.resolveObjectImageFetchUrl(image);
+      if (!sourceUrl) continue;
+
+      const fileName = this.resolveObjectImageFileName(image, sourceUrl, index);
+
+      try {
+        const response = await fetch(sourceUrl);
+        if (!response.ok) {
+          errors.push(`${fileName}: Bild konnte nicht geladen werden.`);
+          continue;
+        }
+
+        const blob = await response.blob();
+        const mimeType = this.resolveObjectImageMimeType(image, blob);
+        const file = new File([blob], fileName, {
+          type: mimeType,
+          lastModified: Date.now() + index
+        });
+
+        const validationError = this.validateImageFile(file);
+        if (validationError) {
+          errors.push(`${fileName}: ${validationError}`);
+          continue;
+        }
+
+        if (this.getSelectedImagesSize() + nextImagesSize + file.size > this.maxTotalImageSizeInBytes) {
+          errors.push(`${fileName}: Bilder dürfen insgesamt maximal 100MB haben.`);
+          continue;
+        }
+
+        const previewUrl = await this.readFileAsDataUrl(file);
+        nextImages.push({
+          key: `object:${image.id ?? index}:${file.name}:${file.size}`,
+          file,
+          fileName: file.name,
+          previewUrl
+        });
+        nextImagesSize += file.size;
+      } catch {
+        errors.push(`${fileName}: Bild konnte nicht geladen werden.`);
+      }
+    }
+
+    if (nextImages.length > 0) {
+      this.selectedImages = [...this.selectedImages, ...nextImages];
+    }
+
+    if (errors.length > 0) {
+      this.imageError = errors.join(' | ');
+    }
+  }
+
+  private resolveObjectImageFetchUrl(image: BuildingObjectImage): string | null {
+    const imagePath = typeof image.image_path === 'string' ? image.image_path.trim() : '';
+    if (imagePath.length > 0 && !/^https?:\/\//i.test(imagePath)) {
+      return `/files${imagePath.startsWith('/') ? imagePath : `/${imagePath}`}`;
+    }
+
+    if (imagePath.length > 0) {
+      return imagePath;
+    }
+
+    const imageUrl = typeof image.image_url === 'string' ? image.image_url.trim() : '';
+    return imageUrl.length > 0 ? imageUrl : null;
+  }
+
+  private resolveObjectImageFileName(image: BuildingObjectImage, sourceUrl: string, fallbackIndex: number): string {
+    if (typeof image.image_original_name === 'string' && image.image_original_name.trim().length > 0) {
+      return image.image_original_name.trim();
+    }
+
+    const fileNameFromUrl = this.resolveFileNameFromUrl(sourceUrl);
+    if (fileNameFromUrl.length > 0) {
+      return fileNameFromUrl;
+    }
+
+    return `object-image-${fallbackIndex + 1}.${this.resolveImageExtension(image.image_mime_type)}`;
+  }
+
+  private resolveFileNameFromUrl(imageUrl: string): string {
+    try {
+      const parsed = new URL(imageUrl, window.location.origin);
+      const fileName = parsed.pathname.split('/').pop();
+      return fileName ? decodeURIComponent(fileName) : '';
+    } catch {
+      const fileName = imageUrl.split('?')[0].split('#')[0].split('/').pop();
+      return fileName ? decodeURIComponent(fileName) : '';
+    }
+  }
+
+  private resolveObjectImageMimeType(image: BuildingObjectImage, blob: Blob): string {
+    const imageMimeType = typeof image.image_mime_type === 'string' ? image.image_mime_type.trim().toLowerCase() : '';
+    if (this.allowedImageMimeTypes.includes(imageMimeType)) {
+      return imageMimeType;
+    }
+
+    const blobMimeType = typeof blob.type === 'string' ? blob.type.trim().toLowerCase() : '';
+    if (this.allowedImageMimeTypes.includes(blobMimeType)) {
+      return blobMimeType;
+    }
+
+    return 'image/jpeg';
+  }
+
+  private resolveImageExtension(mimeType: string | undefined): string {
+    switch (mimeType) {
+      case 'image/png':
+        return 'png';
+      case 'image/webp':
+        return 'webp';
+      case 'image/jpeg':
+      case 'image/jpg':
+      default:
+        return 'jpg';
+    }
   }
 
   private resolveSelectedUnit(): MarketListingUnit | null {

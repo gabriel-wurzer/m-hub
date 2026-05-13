@@ -144,6 +144,40 @@ describe('AddListingDialogComponent', () => {
     expect(result.images.map((image: any) => image.fileName)).toEqual(['second.png', 'first.png']);
   });
 
+  it('prefills source object images as selected upload images', async () => {
+    const fetchSpy = spyOn(window, 'fetch').and.callFake((input: RequestInfo | URL) => {
+      const url = String(input);
+      const body = url.includes('front') ? 'front' : 'back';
+      return Promise.resolve(new Response(new Blob([body], { type: 'image/png' }), { status: 200 }));
+    });
+
+    await (component as any).prefillImagesFromObject({
+      images: [
+        {
+          id: 'image-back',
+          sort_order: 1,
+          image_path: '/mhub/objects/object-1/back.png',
+          image_mime_type: 'image/png',
+          image_original_name: 'back.png'
+        },
+        {
+          id: 'image-front',
+          sort_order: 0,
+          image_path: '/mhub/objects/object-1/front.png',
+          image_mime_type: 'image/png',
+          image_original_name: 'front.png'
+        }
+      ]
+    });
+
+    expect(fetchSpy.calls.allArgs().map((args) => args[0])).toEqual([
+      '/files/mhub/objects/object-1/front.png',
+      '/files/mhub/objects/object-1/back.png'
+    ]);
+    expect(component.selectedImages.map((image) => image.fileName)).toEqual(['front.png', 'back.png']);
+    expect(component.selectedImages.every((image) => image.previewUrl.startsWith('data:image/png;base64,'))).toBeTrue();
+  });
+
   it('commits the selected image order from the live drag placeholder position', () => {
     const firstFile = new File(['first'], 'first.png', { type: 'image/png', lastModified: 1 });
     const secondFile = new File(['second'], 'second.png', { type: 'image/png', lastModified: 2 });
@@ -228,7 +262,7 @@ describe('AddListingDialogComponent', () => {
     component.potential = MarketPotential.reuse;
     component.quantity = 3;
 
-    expect(component.getAvailableFromError()).toBe('Datum darf nicht in der Vergangenheit liegen');
+    expect(component.getAvailableFromError()).toBe('Datum liegt in der Vergangenheit');
     expect(component.isFormValid()).toBeFalse();
   });
 
