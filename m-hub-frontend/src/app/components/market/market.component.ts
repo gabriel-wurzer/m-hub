@@ -17,6 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserMarketListingsViewComponent } from '../user-market-listings-view/user-market-listings-view.component';
 import { AuthenticationService } from '../../services/authentication/authentication.service';
+import { MarketListingComponent } from '../market-listing/market-listing.component';
 
 @Component({
   selector: 'app-market',
@@ -28,6 +29,7 @@ import { AuthenticationService } from '../../services/authentication/authenticat
     MatButtonModule,
     MatIconModule,
     MarketCategoryViewComponent,
+    MarketListingComponent,
     UserMarketListingsViewComponent
   ],
   templateUrl: './market.component.html',
@@ -44,9 +46,14 @@ export class MarketComponent implements OnInit, OnDestroy {
   isCategoryCountLoading = false;
   categoryCountsLoaded = false;
   isUserListingsViewVisible = false;
+  activeMarketListing: ApiMarketListing | null = null;
+  isMarketListingViewVisible = false;
+  isMarketListingLoading = false;
+  marketListingLoadError: string | null = null;
 
   private categoryLoadSubscription?: Subscription;
   private categoryCountSubscription?: Subscription;
+  private marketListingLoadSubscription?: Subscription;
   private readonly categoryCounts = new Map<string, number>();
 
   constructor(
@@ -105,6 +112,7 @@ export class MarketComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.categoryLoadSubscription?.unsubscribe();
     this.categoryCountSubscription?.unsubscribe();
+    this.marketListingLoadSubscription?.unsubscribe();
   }
 
   trackByCategoryId(_: number, item: MarketCategory): string {
@@ -312,8 +320,45 @@ export class MarketComponent implements OnInit, OnDestroy {
     this.isUserListingsViewVisible = false;
   }
 
+  openMarketListing(listing: Pick<ApiMarketListing, 'id'>): void {
+    if (!listing?.id) {
+      return;
+    }
+
+    this.marketListingLoadSubscription?.unsubscribe();
+    this.activeMarketListing = null;
+    this.isMarketListingViewVisible = true;
+    this.isMarketListingLoading = true;
+    this.marketListingLoadError = null;
+
+    this.marketListingLoadSubscription = this.marketListingService.getMarketListingById(listing.id).subscribe({
+      next: marketListing => {
+        this.activeMarketListing = marketListing;
+        this.isMarketListingLoading = false;
+      },
+      error: error => {
+        console.error('Error loading market listing:', error);
+        this.activeMarketListing = null;
+        this.isMarketListingLoading = false;
+        this.marketListingLoadError = 'Marktinserat konnte nicht geladen werden.';
+      }
+    });
+  }
+
+  closeMarketListing(): void {
+    this.marketListingLoadSubscription?.unsubscribe();
+    this.activeMarketListing = null;
+    this.isMarketListingViewVisible = false;
+    this.isMarketListingLoading = false;
+    this.marketListingLoadError = null;
+  }
+
   onUserListingDeleted(deletedListing: ApiMarketListing): void {
     this.loadCategoryCounts();
+
+    if (this.activeMarketListing?.id === deletedListing.id) {
+      this.closeMarketListing();
+    }
 
     if (!this.selectedCategory) {
       return;

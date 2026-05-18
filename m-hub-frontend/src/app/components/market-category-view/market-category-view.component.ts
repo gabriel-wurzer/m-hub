@@ -25,6 +25,7 @@ export class MarketCategoryViewComponent {
   @Output() back = new EventEmitter<void>();
   @Output() categorySelect = new EventEmitter<MarketCategory>();
   @Output() myListings = new EventEmitter<void>();
+  @Output() listingSelect = new EventEmitter<MarketListing>();
 
   selectCategory(category: MarketCategory): void {
     this.categorySelect.emit(category);
@@ -36,6 +37,10 @@ export class MarketCategoryViewComponent {
 
   trackByListingId(_: number, item: MarketListing): string {
     return item.id;
+  }
+
+  selectListing(item: MarketListing): void {
+    this.listingSelect.emit(item);
   }
 
   getDimensionValue(item: MarketListing, index: number): string {

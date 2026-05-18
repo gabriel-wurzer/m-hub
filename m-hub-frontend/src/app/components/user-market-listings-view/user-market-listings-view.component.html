@@ -33,7 +33,12 @@
     <div class="listing-stack" *ngIf="!loading && !loadError && listings.length > 0">
       <mat-card
         class="listing-card"
-        *ngFor="let listing of listings; trackBy: trackByListingId">
+        *ngFor="let listing of listings; trackBy: trackByListingId"
+        tabindex="0"
+        role="button"
+        (click)="selectListing(listing)"
+        (keydown.enter)="selectListing(listing)"
+        (keydown.space)="selectListing(listing); $event.preventDefault()">
         <div class="listing-image-shell">
           <img
             [src]="getListingImageSrc(listing)"
@@ -64,7 +69,7 @@
                 matTooltip="Bearbeiten"
                 aria-label="Marktinserat bearbeiten"
                 [disabled]="isUpdatingListing(listing) || isDeletingListing(listing)"
-                (click)="onEditListing(listing)">
+                (click)="onEditListing(listing); $event.stopPropagation()">
                 <mat-icon>edit</mat-icon>
               </button>
 
@@ -74,7 +79,7 @@
                 matTooltip="L&ouml;schen"
                 aria-label="Marktinserat loeschen"
                 [disabled]="isDeletingListing(listing) || isUpdatingListing(listing)"
-                (click)="onDeleteListing(listing)">
+                (click)="onDeleteListing(listing); $event.stopPropagation()">
                 <mat-icon>delete_outline</mat-icon>
               </button>
             </div>

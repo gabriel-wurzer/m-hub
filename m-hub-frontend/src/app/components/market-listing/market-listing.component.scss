@@ -1,0 +1,255 @@
+@use '@angular/material' as mat;
+@use '../../../theme-setup' as vars;
+
+:host {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.market-listing-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 350px;
+  min-height: 420px;
+  padding: 16px;
+  gap: 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 2px solid mat.get-color-from-palette(vars.$my-secondary, 700);
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+}
+
+.market-listing-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.back-button {
+  --mdc-outlined-button-label-text-color: #{mat.get-color-from-palette(vars.$my-secondary, 700)};
+  --mdc-outlined-button-outline-color: #{mat.get-color-from-palette(vars.$my-secondary, 300)};
+  color: var(--mdc-outlined-button-label-text-color);
+}
+
+.market-listing-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex-wrap: wrap;
+
+  h1 {
+    margin: 0;
+    color: mat.get-color-from-palette(vars.$my-secondary, 700);
+    font-size: 2rem;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+  }
+}
+
+.listing-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 11px;
+  border-radius: 999px;
+  background-color: rgba(23, 155, 222, 0.12);
+  color: #0a6f9f;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.spinner-container {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+}
+
+.panel-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  margin: 0;
+  padding: 24px;
+  border: 1px dashed rgba(0, 0, 0, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  color: rgba(0, 0, 0, 0.66);
+  text-align: center;
+
+  &.error {
+    border-style: solid;
+    border-color: rgba(140, 34, 34, 0.22);
+    background: rgba(140, 34, 34, 0.05);
+    color: #7b2a2a;
+  }
+}
+
+.listing-detail {
+  display: grid;
+  grid-template-columns: minmax(280px, 42%) minmax(0, 1fr);
+  gap: 28px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.image-column,
+.detail-column {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.image-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.main-image-shell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f2f4f7;
+}
+
+.main-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.empty-image {
+  color: rgba(0, 0, 0, 0.36);
+
+  mat-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 48px;
+  }
+}
+
+.thumbnail-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+  gap: 8px;
+}
+
+.thumbnail-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.detail-column {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-right: 8px;
+}
+
+.detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  h2 {
+    margin: 0;
+    color: mat.get-color-from-palette(vars.$my-secondary, 700);
+    font-size: 1.24rem;
+    line-height: 1.2;
+  }
+}
+
+.detail-grid,
+.dimension-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dimension-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(23, 27, 31, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.72);
+
+  span {
+    color: rgba(0, 0, 0, 0.5);
+    font-size: 0.73rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: rgba(0, 0, 0, 0.78);
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+.description {
+  margin: 0;
+  color: rgba(0, 0, 0, 0.78);
+  line-height: 1.48;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .market-listing-panel {
+    overflow-y: auto;
+  }
+
+  .listing-detail {
+    display: flex;
+    flex-direction: column;
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .image-column,
+  .detail-column {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 640px) {
+  .market-listing-title h1 {
+    font-size: 1.55rem;
+  }
+
+  .detail-grid,
+  .dimension-grid {
+    grid-template-columns: 1fr;
+  }
+}

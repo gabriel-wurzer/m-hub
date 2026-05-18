@@ -1,0 +1,128 @@
+<div class="market-listing-panel">
+  <header class="market-listing-header">
+    <button mat-stroked-button class="back-button" type="button" (click)="closeMarketListing.emit()">
+      <mat-icon>arrow_back</mat-icon>
+      Zur&uuml;ck
+    </button>
+
+    <div class="market-listing-title" *ngIf="listing">
+      <h1>{{ listing.name }}</h1>
+      <span class="listing-tag">{{ formatStatus(listing.status) }}</span>
+    </div>
+  </header>
+
+  <mat-divider></mat-divider>
+
+  <div class="spinner-container" *ngIf="loading">
+    <mat-spinner [diameter]="100" [strokeWidth]="6" class="loading-spinner" />
+  </div>
+
+  <p class="panel-state error" *ngIf="!loading && loadError">{{ loadError }}</p>
+
+  <ng-container *ngIf="!loading && !loadError && listing as currentListing">
+    <section class="listing-detail">
+      <div class="image-column">
+        <div class="main-image-shell" *ngIf="mainImageUrl; else noImage">
+          <img [src]="mainImageUrl" [alt]="'Bild zu ' + currentListing.name" class="main-image" />
+        </div>
+
+        <ng-template #noImage>
+          <div class="main-image-shell empty-image">
+            <mat-icon>image_not_supported</mat-icon>
+          </div>
+        </ng-template>
+
+        <div class="thumbnail-row" *ngIf="sortedImages.length > 1">
+          <img
+            *ngFor="let image of sortedImages"
+            [src]="image.image_url"
+            [alt]="image.image_original_name || currentListing.name"
+            class="thumbnail-image" />
+        </div>
+      </div>
+
+      <div class="detail-column">
+        <div class="detail-section">
+          <h2>Details</h2>
+
+          <div class="detail-grid">
+            <div class="detail-field">
+              <span>Preis</span>
+              <strong>{{ formatPrice(currentListing.price) }}</strong>
+            </div>
+
+            <div class="detail-field">
+              <span>{{ getQuantityLabel(currentListing) }}</span>
+              <strong>{{ getQuantityValue(currentListing) }}</strong>
+            </div>
+
+            <div class="detail-field">
+              <span>{{ getListingTypeLabel(currentListing) }}</span>
+              <strong>{{ getListingType(currentListing) }}</strong>
+            </div>
+
+            <div class="detail-field">
+              <span>Potenzial</span>
+              <strong>{{ formatPotential(currentListing.potential) }}</strong>
+            </div>
+
+            <div class="detail-field">
+              <span>Status</span>
+              <strong>{{ formatStatus(currentListing.status) }}</strong>
+            </div>
+
+            <div class="detail-field">
+              <span>Verf&uuml;gbar ab</span>
+              <strong>{{ formatDate(currentListing.available_from) }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h2>Abmessungen</h2>
+
+          <div class="dimension-grid">
+            <div class="detail-field">
+              <span>L&auml;nge</span>
+              <strong>{{ getDimensionValue(currentListing.length) }}</strong>
+            </div>
+            <div class="detail-field">
+              <span>Breite</span>
+              <strong>{{ getDimensionValue(currentListing.width) }}</strong>
+            </div>
+            <div class="detail-field">
+              <span>H&ouml;he</span>
+              <strong>{{ getDimensionValue(currentListing.height) }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h2>Standort und Kontakt</h2>
+
+          <div class="detail-grid">
+            <div class="detail-field wide">
+              <span>Adresse</span>
+              <strong>{{ currentListing.address || '-' }}</strong>
+            </div>
+
+            <div class="detail-field">
+              <span>Standort</span>
+              <strong>{{ currentListing.location || '-' }}</strong>
+            </div>
+
+            <div class="detail-field">
+              <span>Kontakt</span>
+              <strong>{{ currentListing.contact || '-' }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section" *ngIf="currentListing.description">
+          <h2>Beschreibung</h2>
+          <p class="description">{{ currentListing.description }}</p>
+        </div>
+      </div>
+    </section>
+  </ng-container>
+</div>

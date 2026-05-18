@@ -88,7 +88,12 @@
           <ng-container *ngIf="!loading && !loadError">
             <mat-card
               class="listing-card"
-              *ngFor="let item of currentCategory.listings; trackBy: trackByListingId">
+              *ngFor="let item of currentCategory.listings; trackBy: trackByListingId"
+              tabindex="0"
+              role="button"
+              (click)="selectListing(item)"
+              (keydown.enter)="selectListing(item)"
+              (keydown.space)="selectListing(item); $event.preventDefault()">
               <div class="listing-image-shell">
                 <img
                   [src]="item.imageSrc"

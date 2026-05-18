@@ -43,6 +43,7 @@ export class UserMarketListingsViewComponent implements OnInit, OnDestroy {
   @Output() deleteListing = new EventEmitter<MarketListing>();
   @Output() listingDeleted = new EventEmitter<MarketListing>();
   @Output() listingUpdated = new EventEmitter<MarketListing>();
+  @Output() listingSelect = new EventEmitter<MarketListing>();
 
   listings: MarketListing[] = [];
   loading = false;
@@ -93,6 +94,14 @@ export class UserMarketListingsViewComponent implements OnInit, OnDestroy {
 
   trackByListingId(_: number, listing: MarketListing): string {
     return listing.id;
+  }
+
+  selectListing(listing: MarketListing): void {
+    if (this.updatingListingIds.has(listing.id) || this.deletingListingIds.has(listing.id)) {
+      return;
+    }
+
+    this.listingSelect.emit(listing);
   }
 
   onEditListing(listing: MarketListing): void {

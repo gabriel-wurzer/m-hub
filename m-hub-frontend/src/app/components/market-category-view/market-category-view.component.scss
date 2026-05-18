@@ -230,6 +230,7 @@
   min-height: 0;
   overflow-y: auto;
   padding-right: 8px;
+  padding-top: 20px;
 }
 
 .listing-stack--loading {
@@ -248,6 +249,7 @@
 }
 
 .listing-card {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
   gap: 22px;
@@ -257,9 +259,25 @@
   height: 220px;
   margin-inline: 0;
   padding: 18px 20px;
-  border: 1px solid rgba(0, 0, 0, 0.14);
+  border: 2px solid rgba(0, 0, 0, 0.08);
   border-radius: 16px;
   box-shadow: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: mat.get-color-from-palette(vars.$my-secondary, 200);
+    background-color: #fafafa;
+    box-shadow: 0 10px 20px rgba(37, 45, 53, 0.08);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(23, 155, 222, 0.3);
+    outline-offset: 3px;
+    border-color: #179bde;
+  }
+
 }
 
 .listing-image-shell {
@@ -468,4 +486,5 @@
     grid-area: auto;
     white-space: normal;
   }
+
 }

@@ -1,6 +1,9 @@
 <main>
-  <div class="market-container" [hidden]="isUserListingsViewVisible">
-    <div id="market" [class.category-active]="selectedCategory">
+  <div class="market-container" [hidden]="isUserListingsViewVisible || isMarketListingViewVisible">
+    <div
+      id="market"
+      [class.category-active]="selectedCategory"
+      [class.detail-active]="isMarketListingViewVisible">
       <ng-container *ngIf="!selectedCategory; else categoryView">
         <header class="market-header">
           <div class="headline">
@@ -103,15 +106,24 @@
           [loadError]="categoryLoadError"
           [isLoggedIn]="(isLoggedIn$ | async) ?? false"
           (categorySelect)="openCategory($event)"
+          (listingSelect)="openMarketListing($event)"
           (myListings)="openMyListings()"
           (back)="closeCategory()"></app-market-category-view>
       </ng-template>
     </div>
   </div>
 
+  <app-market-listing
+    *ngIf="isMarketListingViewVisible"
+    [listing]="activeMarketListing"
+    [loading]="isMarketListingLoading"
+    [loadError]="marketListingLoadError"
+    (closeMarketListing)="closeMarketListing()" />
+
   <app-user-market-listings-view
-    *ngIf="isUserListingsViewVisible"
+    *ngIf="isUserListingsViewVisible && !isMarketListingViewVisible"
     (closeUserListingsView)="closeMyListings()"
+    (listingSelect)="openMarketListing($event)"
     (listingDeleted)="onUserListingDeleted($event)"
     (listingUpdated)="onUserListingUpdated()" />
 </main>

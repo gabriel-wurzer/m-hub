@@ -9,21 +9,27 @@ import { MarketListingUnit } from '../../enums/market-listing-unit.enum';
 import { MaterialType } from '../../enums/material-type.enum';
 import { MarketListingCategoryCount, MarketListingService } from '../../services/market-listing/market-listing.service';
 import { MaterialGroup } from '../../enums/material-group';
+import { AuthenticationService } from '../../services/authentication/authentication.service';
 
 describe('MarketComponent', () => {
   let component: MarketComponent;
   let fixture: ComponentFixture<MarketComponent>;
   let marketListingService: jasmine.SpyObj<MarketListingService>;
+  let authService: jasmine.SpyObj<AuthenticationService>;
 
   beforeEach(async () => {
     marketListingService = jasmine.createSpyObj<MarketListingService>('MarketListingService', [
       'getMarketListingCategoryCounts',
       'getMarketListingsByMaterialGroup',
-      'getMarketListingsByObjectType'
+      'getMarketListingsByObjectType',
+      'getMarketListingById'
     ]);
+    authService = jasmine.createSpyObj<AuthenticationService>('AuthenticationService', ['getUser$']);
     marketListingService.getMarketListingCategoryCounts.and.returnValue(of([]));
     marketListingService.getMarketListingsByMaterialGroup.and.returnValue(of([]));
     marketListingService.getMarketListingsByObjectType.and.returnValue(of([]));
+    marketListingService.getMarketListingById.and.returnValue(of({} as any));
+    authService.getUser$.and.returnValue(of(null));
 
     await TestBed.configureTestingModule({
       imports: [MarketComponent],
@@ -31,6 +37,10 @@ describe('MarketComponent', () => {
         {
           provide: MarketListingService,
           useValue: marketListingService
+        },
+        {
+          provide: AuthenticationService,
+          useValue: authService
         }
       ]
     })
@@ -132,6 +142,21 @@ describe('MarketComponent', () => {
 
     expect(component.selectedCategory?.listings.map(listing => listing.id)).toEqual(['listing-1']);
     expect(component.formatCategoryListingCount(component.materialGroups[0])).toBe('1 Inserat');
+  });
+
+  it('loads a clicked market listing by id and opens the detail view', () => {
+    const listing = {
+      id: 'listing-1',
+      name: 'Selected listing'
+    } as any;
+    marketListingService.getMarketListingById.and.returnValue(of(listing));
+
+    component.openMarketListing({ id: 'listing-1' });
+
+    expect(marketListingService.getMarketListingById).toHaveBeenCalledOnceWith('listing-1');
+    expect(component.activeMarketListing).toBe(listing);
+    expect(component.isMarketListingViewVisible).toBeTrue();
+    expect(component.isMarketListingLoading).toBeFalse();
   });
 
   it('formats material listing quantity units for cards', () => {
