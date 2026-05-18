@@ -16,6 +16,7 @@ import { EditBuildingViewComponent } from '../edit-building-view/edit-building-v
 import { MapService } from '../../services/map/map.service';
 import { Subject } from 'rxjs';
 import { EntityContext } from '../../models/entity-context';
+import { ActivatedRoute } from '@angular/router';
 
 
 L.Icon.Default.mergeOptions({
@@ -64,7 +65,8 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor(
     private filterService: FilterService,
-    private mapService: MapService
+    private mapService: MapService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -82,6 +84,15 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
       )
       .subscribe(({ usages, periods }) => {
         this.applyFilter(usages, periods);
+      });
+
+    this.route.queryParamMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        const buildingId = params.get('buildingId');
+        if (buildingId) {
+          this.selectBuildingById(buildingId);
+        }
       });
   }
 
@@ -445,6 +456,10 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
    * @param buildingId Id of the selected building feature via click event.
    */
   #handleBuildingClick(buildingId: string): void {
+    this.selectBuildingById(buildingId);
+  }
+
+  selectBuildingById(buildingId: string): void {
     const queryColumns = [...this.#defaultColumns, ...this.#additionalColumns];
 
     this.mapService.getBuildingById(this.#buildingsTable, buildingId, queryColumns).subscribe({

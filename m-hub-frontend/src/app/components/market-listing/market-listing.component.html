@@ -7,7 +7,11 @@
 
     <div class="market-listing-title" *ngIf="listing">
       <h1>{{ listing.name }}</h1>
-      <span class="listing-tag">{{ formatStatus(listing.status) }}</span>
+      <span
+        class="listing-tag status-tag"
+        [class.status-tag--inactive]="isInactiveStatus(listing.status)">
+        {{ getStatusTagValue(listing.status) }}
+      </span>
     </div>
   </header>
 
@@ -20,109 +24,188 @@
   <p class="panel-state error" *ngIf="!loading && loadError">{{ loadError }}</p>
 
   <ng-container *ngIf="!loading && !loadError && listing as currentListing">
-    <section class="listing-detail">
-      <div class="image-column">
-        <div class="main-image-shell" *ngIf="mainImageUrl; else noImage">
-          <img [src]="mainImageUrl" [alt]="'Bild zu ' + currentListing.name" class="main-image" />
+    <section class="listing-layout">
+      <div class="listing-info-card">
+        <div class="listing-image-wrapper" *ngIf="listingImages.length > 0; else noImage">
+          <div class="listing-image-carousel">
+            <div class="listing-image-stage">
+              <img
+                *ngFor="let image of listingImages; let i = index; trackBy: trackByListingImage"
+                [src]="image.url"
+                [alt]="image.label"
+                class="listing-image"
+                [class.listing-image-active]="i === activeListingImageIndex"
+                [class.listing-image-contained]="image.fit === 'contain'"
+                (load)="onListingImageLoad(image, $event)"
+              />
+            </div>
+
+            <button
+              *ngIf="hasMultipleListingImages()"
+              mat-icon-button
+              [disableRipple]="true"
+              type="button"
+              class="listing-image-nav listing-image-nav-prev"
+              (click)="showPreviousListingImage()"
+              matTooltip="Vorheriges Bild"
+              aria-label="Vorheriges Bild"
+            >
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+
+            <button
+              *ngIf="hasMultipleListingImages()"
+              mat-icon-button
+              [disableRipple]="true"
+              type="button"
+              class="listing-image-nav listing-image-nav-next"
+              (click)="showNextListingImage()"
+              matTooltip="N&auml;chstes Bild"
+              aria-label="N&auml;chstes Bild"
+            >
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+
+          <div class="listing-image-footer">
+            <span class="listing-image-counter" *ngIf="hasMultipleListingImages()">
+              {{ activeListingImageIndex + 1 }} / {{ listingImages.length }}
+            </span>
+
+            <div class="listing-image-dots" *ngIf="hasMultipleListingImages()">
+              <button
+                *ngFor="let image of listingImages; let i = index; trackBy: trackByListingImage"
+                type="button"
+                class="listing-image-dot"
+                [class.listing-image-dot-active]="i === activeListingImageIndex"
+                (click)="selectListingImage(i)"
+                [attr.aria-label]="'Bild ' + (i + 1) + ' anzeigen'"
+              ></button>
+            </div>
+
+            <a
+              *ngIf="currentListingImage as activeImage"
+              [href]="activeImage.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="listing-image-link"
+            >
+              Bild in neuem Tab &ouml;ffnen
+            </a>
+          </div>
         </div>
 
         <ng-template #noImage>
-          <div class="main-image-shell empty-image">
-            <mat-icon>image_not_supported</mat-icon>
+          <div class="listing-image-wrapper">
+            <div class="listing-image-stage empty-image">
+              <mat-icon>image_not_supported</mat-icon>
+            </div>
           </div>
         </ng-template>
 
-        <div class="thumbnail-row" *ngIf="sortedImages.length > 1">
-          <img
-            *ngFor="let image of sortedImages"
-            [src]="image.image_url"
-            [alt]="image.image_original_name || currentListing.name"
-            class="thumbnail-image" />
+        <div class="listing-detail-column">
+          <section class="detail-section">
+            <h2>Details</h2>
+
+            <div class="detail-grid">
+              <div class="detail-field">
+                <span>Preis</span>
+                <strong>{{ formatPrice(currentListing.price) }}</strong>
+              </div>
+
+              <div class="detail-field">
+                <span>{{ getQuantityLabel(currentListing) }}</span>
+                <strong>{{ getQuantityValue(currentListing) }}</strong>
+              </div>
+
+              <div class="detail-field">
+                <span>Status</span>
+                <strong>{{ formatStatus(currentListing.status) }}</strong>
+              </div>
+
+              <div class="detail-field">
+                <span>{{ getListingTypeLabel(currentListing) }}</span>
+                <strong>{{ getListingType(currentListing) }}</strong>
+              </div>
+
+              <div class="detail-field">
+                <span>Potenzial</span>
+                <strong>{{ formatPotential(currentListing.potential) }}</strong>
+              </div>
+
+              <div class="detail-field">
+                <span>Verf&uuml;gbar ab</span>
+                <strong>{{ formatDate(currentListing.available_from) }}</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="detail-section">
+            <h2>Abmessungen</h2>
+
+            <div class="dimension-grid">
+              <div class="detail-field">
+                <span>L&auml;nge</span>
+                <strong>{{ getDimensionValue(currentListing.length) }}</strong>
+              </div>
+
+              <div class="detail-field">
+                <span>Breite</span>
+                <strong>{{ getDimensionValue(currentListing.width) }}</strong>
+              </div>
+
+              <div class="detail-field">
+                <span>H&ouml;he</span>
+                <strong>{{ getDimensionValue(currentListing.height) }}</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="detail-section">
+            <h2>Standort und Kontakt</h2>
+
+            <div class="detail-grid">
+              <div class="detail-field wide">
+                <span>Adresse</span>
+                <strong>{{ currentListing.address || currentListing.location || '-' }}</strong>
+              </div>
+
+              <div class="detail-field">
+                <span>Geschosse</span>
+                <strong>{{ currentListing.location || '-' }}</strong>
+              </div>
+
+              <div class="detail-field">
+                <span>Kontakt</span>
+                <strong>{{ currentListing.contact || '-' }}</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="detail-section" *ngIf="currentListing.description">
+            <h2>Beschreibung</h2>
+            <p class="description">{{ currentListing.description }}</p>
+          </section>
         </div>
       </div>
 
-      <div class="detail-column">
-        <div class="detail-section">
-          <h2>Details</h2>
+      <aside class="location-panel">
+        <h2>Standort</h2>
 
-          <div class="detail-grid">
-            <div class="detail-field">
-              <span>Preis</span>
-              <strong>{{ formatPrice(currentListing.price) }}</strong>
-            </div>
+        <app-market-listing-map-preview
+          class="map-preview"
+          [buildingId]="currentListing.building_id" />
 
-            <div class="detail-field">
-              <span>{{ getQuantityLabel(currentListing) }}</span>
-              <strong>{{ getQuantityValue(currentListing) }}</strong>
-            </div>
-
-            <div class="detail-field">
-              <span>{{ getListingTypeLabel(currentListing) }}</span>
-              <strong>{{ getListingType(currentListing) }}</strong>
-            </div>
-
-            <div class="detail-field">
-              <span>Potenzial</span>
-              <strong>{{ formatPotential(currentListing.potential) }}</strong>
-            </div>
-
-            <div class="detail-field">
-              <span>Status</span>
-              <strong>{{ formatStatus(currentListing.status) }}</strong>
-            </div>
-
-            <div class="detail-field">
-              <span>Verf&uuml;gbar ab</span>
-              <strong>{{ formatDate(currentListing.available_from) }}</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="detail-section">
-          <h2>Abmessungen</h2>
-
-          <div class="dimension-grid">
-            <div class="detail-field">
-              <span>L&auml;nge</span>
-              <strong>{{ getDimensionValue(currentListing.length) }}</strong>
-            </div>
-            <div class="detail-field">
-              <span>Breite</span>
-              <strong>{{ getDimensionValue(currentListing.width) }}</strong>
-            </div>
-            <div class="detail-field">
-              <span>H&ouml;he</span>
-              <strong>{{ getDimensionValue(currentListing.height) }}</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="detail-section">
-          <h2>Standort und Kontakt</h2>
-
-          <div class="detail-grid">
-            <div class="detail-field wide">
-              <span>Adresse</span>
-              <strong>{{ currentListing.address || '-' }}</strong>
-            </div>
-
-            <div class="detail-field">
-              <span>Standort</span>
-              <strong>{{ currentListing.location || '-' }}</strong>
-            </div>
-
-            <div class="detail-field">
-              <span>Kontakt</span>
-              <strong>{{ currentListing.contact || '-' }}</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="detail-section" *ngIf="currentListing.description">
-          <h2>Beschreibung</h2>
-          <p class="description">{{ currentListing.description }}</p>
-        </div>
-      </div>
+        <button
+          mat-stroked-button
+          class="map-button"
+          type="button"
+          [disabled]="!currentListing.building_id"
+          (click)="openBuildingOnMap()">
+          <mat-icon>map</mat-icon>
+          Auf Karte anzeigen
+        </button>
+      </aside>
     </section>
   </ng-container>
 </div>
