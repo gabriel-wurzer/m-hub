@@ -21,10 +21,16 @@ export class MarketListingMapPreviewComponent implements AfterViewInit, OnChange
   loadError: string | null = null;
 
   private map?: L.Map;
+  private zoomHandler?: () => void;
   private highlightedFeatureLayer: L.GeoJSON | null = null;
   private buildingsLayer: L.Layer | null = null;
+  private buildingBlocksLayer: L.Layer | null = null;
   private readonly buildingsTable = 'buildings_details';
   private readonly geometryColumns = ['fid', 'bw_geb_id', 'ST_AsGeoJSON(geom) as geometry'];
+  private readonly buildingBlocksTable = 'buildingblocks';
+  private readonly buildingBlockColumns = ['blk', 'ST_AsGeoJSON(geom) as geometry'];
+  private readonly buildingZoomThreshold = 15;
+  private readonly previewMaxZoom = 17;
 
   constructor(private mapService: MapService) {}
 
@@ -41,8 +47,10 @@ export class MarketListingMapPreviewComponent implements AfterViewInit, OnChange
 
   ngOnDestroy(): void {
     try {
+      if (this.zoomHandler) this.map?.off('zoomend', this.zoomHandler);
       this.highlightedFeatureLayer?.remove();
       this.buildingsLayer?.remove();
+      this.buildingBlocksLayer?.remove();
       this.map?.off();
       this.map?.remove();
     } catch (error) {
@@ -55,29 +63,75 @@ export class MarketListingMapPreviewComponent implements AfterViewInit, OnChange
     if (!container || this.map) return;
 
     this.map = L.map(container, {
-      minZoom: 12,
-      maxZoom: 22,
+      minZoom: 11,
+      maxZoom: 19,
       zoomControl: true,
       attributionControl: false
     }).setView([48.2082, 16.3738], 16);
 
     L.tileLayer(`https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=${environment.mapboxToken}`, {
-      minZoom: 12,
-      maxZoom: 22,
+      minZoom: 11,
+      maxZoom: 19,
       id: 'simlabtuwien/cm3r2nlew003y01s6g5gtfwtd'
     }).addTo(this.map);
 
-    this.buildingsLayer = vectorTileLayer(
+    this.buildingsLayer = this.createBuildingsLayer();
+    this.buildingBlocksLayer = this.createBuildingBlocksLayer();
+    this.updateVisibleLayer();
+
+    this.zoomHandler = L.Util.throttle(
+      () => this.updateVisibleLayer(),
+      100,
+      this
+    );
+    this.map.on('zoomend', this.zoomHandler);
+
+    setTimeout(() => this.map?.invalidateSize(), 50);
+  }
+
+  private updateVisibleLayer(): void {
+    if (!this.map) return;
+
+    if (this.map.getZoom() >= this.buildingZoomThreshold) {
+      if (this.buildingBlocksLayer && this.map.hasLayer(this.buildingBlocksLayer)) {
+        this.map.removeLayer(this.buildingBlocksLayer);
+      }
+      if (this.buildingsLayer && !this.map.hasLayer(this.buildingsLayer)) {
+        this.map.addLayer(this.buildingsLayer);
+      }
+      return;
+    }
+
+    if (this.buildingsLayer && this.map.hasLayer(this.buildingsLayer)) {
+      this.map.removeLayer(this.buildingsLayer);
+    }
+    if (this.buildingBlocksLayer && !this.map.hasLayer(this.buildingBlocksLayer)) {
+      this.map.addLayer(this.buildingBlocksLayer);
+    }
+  }
+
+  private createBuildingsLayer(): L.Layer {
+    return vectorTileLayer(
       this.mapService.getVectorTileUrl(this.buildingsTable, this.geometryColumns),
       {
-        minZoom: 12,
+        minZoom: this.buildingZoomThreshold,
         maxZoom: 22,
         style: { color: '#3388ff', weight: 1, fill: true, fillOpacity: 0.18 },
         interactive: false
       }
-    ).addTo(this.map);
+    );
+  }
 
-    setTimeout(() => this.map?.invalidateSize(), 50);
+  private createBuildingBlocksLayer(): L.Layer {
+    return vectorTileLayer(
+      this.mapService.getVectorTileUrl(this.buildingBlocksTable, this.buildingBlockColumns),
+      {
+        minZoom: 11,
+        maxZoom: this.buildingZoomThreshold - 1,
+        style: { color: '#446696ff', weight: 1, fill: true, fillOpacity: 0.2 },
+        interactive: false
+      }
+    );
   }
 
   private loadSelectedBuilding(): void {
@@ -133,6 +187,6 @@ export class MarketListingMapPreviewComponent implements AfterViewInit, OnChange
     });
 
     this.highlightedFeatureLayer = layer.addTo(this.map);
-    this.map.fitBounds(layer.getBounds(), { maxZoom: 18, padding: [16, 16] });
+    this.map.fitBounds(layer.getBounds(), { maxZoom: this.previewMaxZoom, padding: [16, 16] });
   }
 }
