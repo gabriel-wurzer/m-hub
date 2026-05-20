@@ -205,6 +205,61 @@
           <mat-icon>map</mat-icon>
           Auf Karte anzeigen
         </button>
+
+        <section class="similar-listings-panel" aria-labelledby="similar-listings-title">
+          <h3 id="similar-listings-title">&Auml;hnliche Inserate</h3>
+
+          <div class="similar-listings-summary">
+            {{ similarListings.length }}
+            <ng-container *ngIf="similarListings.length === 1; else similarListingsPlural">
+              Inserat
+            </ng-container>
+            <ng-template #similarListingsPlural>
+              Inserate
+            </ng-template>
+            im Umkreis von
+          </div>
+
+          <mat-button-toggle-group
+            class="distance-toggle"
+            hideSingleSelectionIndicator
+            [value]="selectedSimilarListingDistance"
+            (valueChange)="selectSimilarListingDistance($event)"
+            aria-label="Suchradius f&uuml;r &auml;hnliche Inserate">
+            <mat-button-toggle
+              *ngFor="let distance of similarListingDistances"
+              [value]="distance"
+              class="distance-toggle-option">
+              <span>{{ getSimilarListingDistanceLabel(distance) }}</span>
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+
+          <div class="similar-listings-list" *ngIf="!similarListingsLoading && !similarListingsError && similarListings.length > 0">
+            <button
+              *ngFor="let similarListing of similarListings; trackBy: trackBySimilarListingId"
+              type="button"
+              class="similar-listing-row"
+              (click)="openSimilarListing(similarListing)">
+              <span class="similar-listing-copy">
+                <strong>{{ similarListing.name }}</strong>
+                <span>{{ getSimilarListingSubtitle(similarListing) }}</span>
+              </span>
+              <span class="similar-listing-price">{{ formatPrice(similarListing.price) }}</span>
+            </button>
+          </div>
+
+          <div class="similar-listings-state" *ngIf="similarListingsLoading">
+            <mat-spinner [diameter]="28" [strokeWidth]="3" />
+          </div>
+
+          <p class="similar-listings-state" *ngIf="!similarListingsLoading && similarListingsError">
+            {{ similarListingsError }}
+          </p>
+
+          <p class="similar-listings-state" *ngIf="!similarListingsLoading && !similarListingsError && similarListings.length === 0">
+            Keine &auml;hnlichen Inserate gefunden.
+          </p>
+        </section>
       </aside>
     </section>
   </ng-container>

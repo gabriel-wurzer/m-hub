@@ -225,6 +225,14 @@
         "env": []
     },
     {
+        "id": "94902d2db457c511",
+        "type": "tab",
+        "label": "GET Listings (similar in radius)",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "3733b7c3a45e7d1f",
         "type": "tab",
         "label": "GET Listing by ID",
@@ -4688,6 +4696,251 @@
         "info": "",
         "x": 250,
         "y": 120,
+        "wires": []
+    },
+    {
+        "id": "2aebc6bc511b6cda",
+        "type": "comment",
+        "z": "94902d2db457c511",
+        "name": "http://localhost:1880/api/similar-market-listings/:id?radius=X",
+        "info": "",
+        "x": 330,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "bb1e37cdfe7fc0fd",
+        "type": "http in",
+        "z": "94902d2db457c511",
+        "name": "GET similar market-listings",
+        "url": "/api/similar-market-listings/:ID",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 160,
+        "wires": [
+            [
+                "df456afa29ee9217",
+                "84da5612ea4011eb"
+            ]
+        ]
+    },
+    {
+        "id": "96e0f66ae54f2066",
+        "type": "catch",
+        "z": "94902d2db457c511",
+        "name": "",
+        "scope": [
+            "955331c2e0637d57"
+        ],
+        "uncaught": false,
+        "x": 670,
+        "y": 340,
+        "wires": [
+            [
+                "821a51c8d4312cbc"
+            ]
+        ]
+    },
+    {
+        "id": "821a51c8d4312cbc",
+        "type": "function",
+        "z": "94902d2db457c511",
+        "name": "handle db errors",
+        "func": "const errMsg = msg.error && msg.error.message ? msg.error.message : '';\n\nmsg.statusCode = 500; // Internal Server Error\nmsg.payload = { error: 'Database error', details: errMsg };\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 880,
+        "y": 340,
+        "wires": [
+            [
+                "9ed2d8e319cec0cc"
+            ]
+        ]
+    },
+    {
+        "id": "df456afa29ee9217",
+        "type": "function",
+        "z": "94902d2db457c511",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET');\n\nif (!secret) {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Server misconfigured: JWT_SECRET missing' };\n    return [null, msg];\n}\n\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.user = null;\n    return [msg, null];\n}\n\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.user = null;\n    return [msg, null];\n}\n\nconst token = parts[1];\n\ntry {\n    const decoded = jwt.verify(token, secret);\n    msg.user = decoded;\n} catch (err) {\n    msg.user = null;\n}\n\nreturn [msg, null];\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 300,
+        "wires": [
+            [
+                "3b74f2dc0b6f6658",
+                "c02b0e10695deb1a"
+            ],
+            [
+                "9ed2d8e319cec0cc"
+            ]
+        ]
+    },
+    {
+        "id": "3b74f2dc0b6f6658",
+        "type": "function",
+        "z": "94902d2db457c511",
+        "name": "build SQL query",
+        "func": "const routeParams = msg.req?.params || {};\nconst queryParams = msg.req?.query || msg.payload || {};\nconst listing_id = String(routeParams.ID || routeParams.id || '').trim();\nconst radius = Number(queryParams.radius);\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i;\nconst allowedRadii = new Set([500, 1000, 2000, 5000]);\n\nif (!listing_id || !uuidRegex.test(listing_id)) {\n  msg.statusCode = 400;\n  msg.payload = { error: 'Invalid listing ID format' };\n  return [null, msg];\n}\n\nif (!allowedRadii.has(radius)) {\n  msg.statusCode = 400;\n  msg.payload = { error: 'Invalid radius. Allowed values: 500, 1000, 2000, 5000' };\n  return [null, msg];\n}\n\nmsg.query = `\n  WITH source AS (\n    SELECT\n      listing.id,\n      listing.component_category,\n      listing.material,\n      listing.object_type,\n      ST_Centroid(source_building.geom) AS source_center\n    FROM market_listings listing\n    JOIN buildings_details source_building\n      ON source_building.bw_geb_id = listing.building_id\n    WHERE listing.id = $1::uuid\n    LIMIT 1\n  )\n  SELECT\n    candidate.id,\n    candidate.name,\n    candidate.address,\n    candidate.price,\n    ST_Distance(\n      candidate_building.geom::geography,\n      source.source_center::geography\n    ) AS distance_m\n  FROM source\n  JOIN market_listings candidate\n    ON candidate.id <> source.id\n  JOIN buildings_details candidate_building\n    ON candidate_building.bw_geb_id = candidate.building_id\n  WHERE ST_DWithin(\n      candidate_building.geom::geography,\n      source.source_center::geography,\n      $2\n    )\n    AND (\n      (\n        source.component_category = 'Objekt'\n        AND candidate.component_category = 'Objekt'\n        AND candidate.object_type = source.object_type\n      )\n      OR\n      (\n        source.component_category = 'Bauteil'\n        AND candidate.component_category = 'Bauteil'\n        AND candidate.material = source.material\n      )\n    )\n  ORDER BY distance_m ASC, candidate.created_at DESC;\n`;\n\nmsg.params = [listing_id, radius];\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 440,
+        "wires": [
+            [
+                "955331c2e0637d57",
+                "142cf15414b4c071"
+            ],
+            [
+                "9ed2d8e319cec0cc",
+                "bfd2757316db1292"
+            ]
+        ]
+    },
+    {
+        "id": "9ed2d8e319cec0cc",
+        "type": "http response",
+        "z": "94902d2db457c511",
+        "name": "market-listing response",
+        "statusCode": "",
+        "headers": {},
+        "x": 990,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "955331c2e0637d57",
+        "type": "postgresql",
+        "z": "94902d2db457c511",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 420,
+        "y": 620,
+        "wires": [
+            [
+                "1385f5e7bf868632"
+            ]
+        ]
+    },
+    {
+        "id": "1385f5e7bf868632",
+        "type": "function",
+        "z": "94902d2db457c511",
+        "name": "format result",
+        "func": "const rows = msg.payload;\nconst publicBaseUrl = (env.get('SEAWEED_PUBLIC_BASE_URL') || 'http://localhost:8888').replace(/\\/+$/, '');\n\nconst normalizeImages = (value) => {\n  let images = value;\n\n  if (typeof images === 'string') {\n    try {\n      images = JSON.parse(images);\n    } catch (err) {\n      images = [];\n    }\n  }\n\n  if (!Array.isArray(images)) {\n    return [];\n  }\n\n  return images.map((image) => {\n    if (!image || typeof image !== 'object') return image;\n\n    const imagePath = image.image_path || null;\n\n    return {\n      ...image,\n      image_url: imagePath ? `${publicBaseUrl}${imagePath}` : null\n    };\n  });\n};\n\nif (!Array.isArray(rows)) {\n  msg.statusCode = 500;\n  msg.payload = { error: 'Database query failed' };\n  return msg;\n}\n\nmsg.statusCode = 200;\nmsg.payload = rows.map((row) => ({\n  ...row,\n  distance_m: row.distance_m === null || row.distance_m === undefined\n    ? null\n    : Math.round(Number(row.distance_m)),\n  images: normalizeImages(row.images)\n}));\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 620,
+        "wires": [
+            [
+                "9ed2d8e319cec0cc",
+                "2fa6e2c77c50614a"
+            ]
+        ]
+    },
+    {
+        "id": "2fa6e2c77c50614a",
+        "type": "debug",
+        "z": "94902d2db457c511",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 780,
+        "y": 800,
+        "wires": []
+    },
+    {
+        "id": "84da5612ea4011eb",
+        "type": "debug",
+        "z": "94902d2db457c511",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 580,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "c02b0e10695deb1a",
+        "type": "debug",
+        "z": "94902d2db457c511",
+        "name": "debug 6",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 560,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "142cf15414b4c071",
+        "type": "debug",
+        "z": "94902d2db457c511",
+        "name": "debug 7",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1560,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "bfd2757316db1292",
+        "type": "debug",
+        "z": "94902d2db457c511",
+        "name": "debug 9",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1400,
+        "y": 480,
         "wires": []
     },
     {

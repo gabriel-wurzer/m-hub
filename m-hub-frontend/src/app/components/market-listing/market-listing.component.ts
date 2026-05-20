@@ -1,16 +1,19 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 import { BuildingComponentCategory } from '../../enums/component-category';
 import { MarketListingStatus } from '../../enums/market-listing-status';
 import { MarketListingUnit } from '../../enums/market-listing-unit.enum';
-import { MarketListing } from '../../models/market-listing';
+import { MarketListing, SimilarMarketListing } from '../../models/market-listing';
+import { MarketListingService, SimilarMarketListingRadius } from '../../services/market-listing/market-listing.service';
 import { MarketListingMapPreviewComponent } from '../market-listing-map-preview/market-listing-map-preview.component';
 
 type ListingImageVm = {
@@ -27,6 +30,7 @@ type ListingImageVm = {
   imports: [
     CommonModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatDividerModule,
     MatIconModule,
     MatProgressSpinnerModule,
@@ -36,22 +40,38 @@ type ListingImageVm = {
   templateUrl: './market-listing.component.html',
   styleUrl: './market-listing.component.scss'
 })
-export class MarketListingComponent implements OnChanges {
+export class MarketListingComponent implements OnChanges, OnDestroy {
   @Input() listing: MarketListing | null = null;
   @Input() loading = false;
   @Input() loadError: string | null = null;
   @Output() closeMarketListing = new EventEmitter<void>();
+  @Output() similarListingSelect = new EventEmitter<Pick<MarketListing, 'id'>>();
 
   listingImages: ListingImageVm[] = [];
   activeListingImageIndex = 0;
+  similarListings: SimilarMarketListing[] = [];
+  selectedSimilarListingDistance: SimilarMarketListingRadius = 500;
+  readonly similarListingDistances: SimilarMarketListingRadius[] = [500, 1000, 2000];
+  similarListingsLoading = false;
+  similarListingsError: string | null = null;
 
-  constructor(private router: Router) {}
+  private similarListingsSubscription?: Subscription;
+
+  constructor(
+    private router: Router,
+    private marketListingService: MarketListingService
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['listing']) {
       this.listingImages = this.resolveListingImages();
       this.activeListingImageIndex = 0;
+      this.loadSimilarListings();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.similarListingsSubscription?.unsubscribe();
   }
 
   get currentListingImage(): ListingImageVm | null {
@@ -93,7 +113,7 @@ export class MarketListingComponent implements OnChanges {
   }
 
   formatPrice(price: number): string {
-    return `${this.formatNumber(price)} EUR`;
+    return `${this.formatNumber(price)} €`;
   }
 
   formatDate(value: string | null | undefined): string {
@@ -162,6 +182,19 @@ export class MarketListingComponent implements OnChanges {
     });
   }
 
+  selectSimilarListingDistance(distance: SimilarMarketListingRadius): void {
+    if (!this.similarListingDistances.includes(distance)) {
+      return;
+    }
+
+    if (this.selectedSimilarListingDistance === distance) {
+      return;
+    }
+
+    this.selectedSimilarListingDistance = distance;
+    this.loadSimilarListings();
+  }
+
   hasMultipleListingImages(): boolean {
     return this.listingImages.length > 1;
   }
@@ -191,6 +224,55 @@ export class MarketListingComponent implements OnChanges {
     return image.key;
   }
 
+  trackBySimilarListingId(_: number, listing: SimilarMarketListing): string {
+    return listing.id;
+  }
+
+  getSimilarListingDistanceLabel(distance: SimilarMarketListingRadius): string {
+    return distance >= 1000 ? `${distance / 1000}km` : `${distance}m`;
+  }
+
+  getSimilarListingSubtitle(listing: SimilarMarketListing): string {
+    return listing.address || listing.location || '-';
+  }
+
+  openSimilarListing(listing: Pick<MarketListing, 'id'>): void {
+    if (!listing?.id || listing.id === this.listing?.id) {
+      return;
+    }
+
+    this.similarListingSelect.emit({ id: listing.id });
+  }
+
+  private loadSimilarListings(): void {
+    this.similarListingsSubscription?.unsubscribe();
+    this.similarListings = [];
+    this.similarListingsError = null;
+
+    if (!this.listing) {
+      this.similarListingsLoading = false;
+      return;
+    }
+
+    const sourceListing = this.listing;
+    this.similarListingsLoading = true;
+
+    this.similarListingsSubscription = this.marketListingService
+      .getSimilarMarketListingsInRadius(sourceListing.id, this.selectedSimilarListingDistance)
+      .subscribe({
+        next: listings => {
+          this.similarListings = listings.filter(similarListing => similarListing.id !== sourceListing.id);
+          this.similarListingsLoading = false;
+        },
+        error: error => {
+          console.error('Failed to load similar market listings:', error);
+          this.similarListings = [];
+          this.similarListingsLoading = false;
+          this.similarListingsError = 'Inserate konnten nicht geladen werden.';
+        }
+      });
+  }
+
   private formatNumber(value: number | string | null | undefined): string {
     const numericValue = typeof value === 'string' ? Number(value) : value;
 
@@ -208,11 +290,11 @@ export class MarketListingComponent implements OnChanges {
   private formatUnit(unit: string): string {
     switch (unit) {
       case MarketListingUnit.St:
-        return 'Stueck';
+        return 'Stück';
       case 'Quadratmeter':
-        return 'm2';
+        return 'm²';
       case 'Kubikmeter':
-        return 'm3';
+        return 'm³';
       case 'Meter':
         return 'm';
       case 'Kilogramm':

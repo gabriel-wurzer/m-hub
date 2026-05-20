@@ -122,6 +122,10 @@ if ! $DC run --rm gdal; then
 fi
 echo "[OK] GeoPackage import finished."
 
+echo "[DB] Creating spatial indexes..."
+$DC exec -T m-hub-db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "CREATE INDEX IF NOT EXISTS idx_buildings_details_geom_geography ON public.buildings_details USING GIST ((geom::geography));"'
+echo "[OK] Spatial indexes ready."
+
 # -------- Remaining services --------
 echo "[START] Backend, Frontend, Postgis-API and SeaweedFS..."
 $DC up -d seaweed-filer m-hub-postgis-api m-hub-backend m-hub-frontend

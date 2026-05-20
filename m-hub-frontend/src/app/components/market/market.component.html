@@ -118,7 +118,8 @@
     [listing]="activeMarketListing"
     [loading]="isMarketListingLoading"
     [loadError]="marketListingLoadError"
-    (closeMarketListing)="closeMarketListing()" />
+    (closeMarketListing)="closeMarketListing()"
+    (similarListingSelect)="openMarketListing($event)" />
 
   <app-user-market-listings-view
     *ngIf="isUserListingsViewVisible && !isMarketListingViewVisible"

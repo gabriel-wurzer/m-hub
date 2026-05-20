@@ -61,6 +61,21 @@ describe('MarketListingService', () => {
     request.flush([]);
   });
 
+  it('requests similar market listings in a radius', () => {
+    service.getSimilarMarketListingsInRadius('listing-1', 2000).subscribe(listings => {
+      expect(listings.map(listing => listing.id)).toEqual(['listing-2']);
+    });
+
+    const request = httpMock.expectOne(req => req.url === '/api/similar-market-listings/listing-1');
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.get('radius')).toBe('2000');
+
+    request.flush([
+      { id: 'listing-2', created_at: '2026-05-01T00:00:00Z' },
+      { id: 'listing-2', created_at: '2026-05-01T00:00:00Z' }
+    ]);
+  });
+
   it('deletes market listings by id', () => {
     service.deleteMarketListing('listing-1').subscribe(listing => {
       expect(listing.id).toBe('listing-1');

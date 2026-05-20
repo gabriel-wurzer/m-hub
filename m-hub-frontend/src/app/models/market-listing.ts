@@ -36,6 +36,7 @@ export class MarketListing {
   unit!: MarketListingUnit;
   contact!: string;
   images?: MarketListingImage[];
+  distance_m?: number;
   created_at!: string;
   updated_at!: string;
 }
@@ -52,6 +53,9 @@ export class MarketListingImage {
   created_at!: string;
   updated_at!: string;
 }
+
+export type SimilarMarketListing = Pick<MarketListing, 'id' | 'name' | 'address' | 'price'> &
+  Partial<Pick<MarketListing, 'location' | 'distance_m'>>;
 
 
 export type CreateMarketListingImagePayload = {

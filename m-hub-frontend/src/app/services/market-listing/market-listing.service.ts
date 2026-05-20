@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
-import { CreateMarketListing, MarketListing, UpdateMarketListing } from '../../models/market-listing';
+import { CreateMarketListing, MarketListing, SimilarMarketListing, UpdateMarketListing } from '../../models/market-listing';
 import { MaterialType } from '../../enums/material-type.enum';
 import { ObjectType } from '../../enums/object-type';
 import { MaterialGroup } from '../../enums/material-group';
@@ -16,6 +16,8 @@ export type MarketListingCategoryCount = {
   value: MaterialGroup | ObjectType;
   count: number;
 };
+
+export type SimilarMarketListingRadius = 500 | 1000 | 2000 | 5000;
 
 @Injectable({
   providedIn: 'root'
@@ -72,6 +74,17 @@ export class MarketListingService {
     );
   }
 
+  getSimilarMarketListingsInRadius(
+    marketListingId: string,
+    radiusMeters: SimilarMarketListingRadius
+  ): Observable<SimilarMarketListing[]> {
+    const params = new HttpParams().set('radius', String(radiusMeters));
+
+    return this.http.get<SimilarMarketListing[]>(`/api/similar-market-listings/${marketListingId}`, { params }).pipe(
+      map(listings => this.dedupeListings(listings))
+    );
+  }
+
   addMarketListing(payload: CreateMarketListing): Observable<MarketListing> {
     return this.http.post<MarketListing>(this.apiUrl, payload);
   }
@@ -82,6 +95,18 @@ export class MarketListingService {
 
   deleteMarketListing(marketListingId: string): Observable<MarketListing> {
     return this.http.delete<MarketListing>(`${this.apiUrl}/${marketListingId}`);
+  }
+
+  private dedupeListings<T extends Pick<MarketListing, 'id'>>(listings: T[]): T[] {
+    const uniqueById = new Map<string, T>();
+
+    for (const listing of listings) {
+      if (!uniqueById.has(listing.id)) {
+        uniqueById.set(listing.id, listing);
+      }
+    }
+
+    return Array.from(uniqueById.values());
   }
 
   private sortAndDedupeListings(listings: MarketListing[]): MarketListing[] {
