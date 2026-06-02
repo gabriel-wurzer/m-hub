@@ -14,7 +14,7 @@ export class MarketListing {
   owner_id!: string;
   user_building_id!: string;
   building_id!: string;
-  location!: string;
+  location!: string | null;
   component_category!: BuildingComponentCategory;   // Bauteil | Objekt
   // Bauteil-specific snapshot
   material?: MaterialType;
@@ -69,8 +69,8 @@ export type CreateMarketListing = {
   component_id: string;
   building_id: string;
   user_building_id: string;
-  owner_id: string;
-  location: string;
+  owner_id?: string;
+  location: string | null;
   component_category: BuildingComponentCategory;   // Bauteil | Objekt
   material?: MaterialType;
   object_type?: ObjectType;

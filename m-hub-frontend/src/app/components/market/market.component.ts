@@ -185,7 +185,7 @@ export class MarketComponent implements OnInit, OnDestroy {
       status: this.formatStatus(listing.status),
       availableFrom: listing.available_from ? this.formatDate(listing.available_from) : null,
       dimensions: this.buildDimensions(listing),
-      location: listing.location,
+      location: listing.location || '-',
       address: listing.address,
       imageSrc: this.getListingImageSrc(listing, category),
       imageAlt: `Bild zu ${listing.name}`

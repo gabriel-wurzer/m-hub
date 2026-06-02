@@ -758,13 +758,22 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
       const objectComponent = component.category === BuildingComponentCategory.Objekt
         ? component as Objekt
         : null;
+      const listingLocation = this.resolveMarketListingLocation(component);
+
+      if (component.category === BuildingComponentCategory.Bauteil && !listingLocation) {
+        this.snackBar.open('Bauteile benötigen eine Verortung, bevor sie inseriert werden können.', 'OK', {
+          duration: 6000,
+          verticalPosition: 'top',
+          panelClass: 'snackbar-warn'
+        });
+        return;
+      }
 
       const payload: CreateMarketListing = {
         component_id: component.id,
         building_id: userBuilding.building_id,
         user_building_id: userBuilding.id,
-        owner_id: userBuilding.user_id,
-        location: component.location,
+        location: listingLocation,
         component_category: component.category,
         material: component.category === BuildingComponentCategory.Bauteil ? (result.material ?? undefined) : undefined,
         object_type: objectComponent?.object_type,
@@ -965,6 +974,10 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
 
   private normalizeOptionalPositiveNumber(value: number | null | undefined): number | null {
     return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
+  }
+
+  private resolveMarketListingLocation(component: Bauteil | Objekt): string | null {
+    return component.location?.trim() || null;
   }
 
   isFormValid(): boolean {

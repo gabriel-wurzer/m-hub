@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS market_listings (
     user_building_id UUID NOT NULL,
     -- generic relation to source component; can reference either building_parts or building_objects
     component_id UUID NOT NULL,
-    location TEXT NOT NULL,
+    location TEXT,
     component_category TEXT NOT NULL CHECK (component_category IN ('Bauteil', 'Objekt')),
     material TEXT,
     object_type TEXT CHECK (
@@ -48,7 +48,8 @@ CREATE TABLE IF NOT EXISTS market_listings (
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT market_listings_name_not_blank CHECK (btrim(name) <> ''),
     CONSTRAINT market_listings_address_not_blank CHECK (btrim(address) <> ''),
-    CONSTRAINT market_listings_location_not_blank CHECK (btrim(location) <> ''),
+    CONSTRAINT market_listings_location_not_blank CHECK (location IS NULL OR btrim(location) <> ''),
+    CONSTRAINT market_listings_location_required_for_parts CHECK (component_category = 'Objekt' OR location IS NOT NULL),
     CONSTRAINT market_listings_contact_not_blank CHECK (btrim(contact) <> ''),
     CONSTRAINT market_listings_component_snapshot_check CHECK (
         (component_category = 'Bauteil' AND object_type IS NULL)
@@ -87,6 +88,27 @@ ALTER TABLE market_listings
 
 ALTER TABLE market_listings
   ADD CONSTRAINT market_listings_address_not_blank CHECK (btrim(address) <> '');
+
+UPDATE market_listings
+SET location = NULL
+WHERE component_category = 'Objekt'
+  AND location IS NOT NULL
+  AND btrim(location) = '';
+
+ALTER TABLE market_listings
+  ALTER COLUMN location DROP NOT NULL;
+
+ALTER TABLE market_listings
+  DROP CONSTRAINT IF EXISTS market_listings_location_not_blank;
+
+ALTER TABLE market_listings
+  ADD CONSTRAINT market_listings_location_not_blank CHECK (location IS NULL OR btrim(location) <> '');
+
+ALTER TABLE market_listings
+  DROP CONSTRAINT IF EXISTS market_listings_location_required_for_parts;
+
+ALTER TABLE market_listings
+  ADD CONSTRAINT market_listings_location_required_for_parts CHECK (component_category = 'Objekt' OR location IS NOT NULL);
 
 -- ===============================================
 --  FOREIGN KEYS
