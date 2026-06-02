@@ -167,7 +167,7 @@
             <div class="detail-grid">
               <div class="detail-field wide">
                 <span>Adresse</span>
-                <strong>{{ currentListing.address || currentListing.location || '-' }}</strong>
+                <strong>{{ currentListing.address || '-' }}</strong>
               </div>
 
               <div class="detail-field">
@@ -210,14 +210,20 @@
           <h3 id="similar-listings-title">&Auml;hnliche Inserate</h3>
 
           <div class="similar-listings-summary">
-            {{ similarListings.length }}
-            <ng-container *ngIf="similarListings.length === 1; else similarListingsPlural">
-              Inserat
+            <ng-container *ngIf="similarListingsLoading; else similarListingsSummaryCount">
+              Lade &auml;hnliche Inserate im Umkreis von
             </ng-container>
-            <ng-template #similarListingsPlural>
-              Inserate
+
+            <ng-template #similarListingsSummaryCount>
+              {{ similarListings.length }}
+              <ng-container *ngIf="similarListings.length === 1; else similarListingsPlural">
+                Inserat
+              </ng-container>
+              <ng-template #similarListingsPlural>
+                Inserate
+              </ng-template>
+              im Umkreis von
             </ng-template>
-            im Umkreis von
           </div>
 
           <mat-button-toggle-group

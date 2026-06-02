@@ -25,7 +25,7 @@
         <div class="market-category-title-row">
           <h1>Kategorie: {{ currentCategory.title }}</h1>
           <span class="listing-count-chip" *ngIf="!loading && !loadError">
-            {{ currentCategory.listings.length }} Anzeigen
+            {{ currentCategory.listings.length }} {{ currentCategory.listings.length === 1 ? 'Anzeige' : 'Anzeigen' }}
           </span>
         </div>
         <p>{{ currentCategory.description }}</p>
