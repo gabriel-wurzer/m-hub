@@ -1,3 +1,6 @@
+@use '@angular/material' as mat;
+@use '../../../theme-setup' as vars;
+
 :host {
     display: flex;
     height: 100%;
@@ -47,6 +50,21 @@
     margin-top: 1rem;
 }
 
+.reset-filter-button {
+    --mdc-outlined-button-label-text-color: #{mat.get-color-from-palette(vars.$my-secondary, 700)};
+    --mdc-outlined-button-outline-color: #{mat.get-color-from-palette(vars.$my-secondary, 300)};
+    color: var(--mdc-outlined-button-label-text-color);
+
+    &:disabled,
+    &.mat-mdc-button-disabled {
+        --mdc-outlined-button-disabled-label-text-color: rgba(0, 0, 0, 0.26);
+        --mdc-outlined-button-disabled-outline-color: rgba(0, 0, 0, 0.12);
+        background-color: rgba(0, 0, 0, 0.03);
+        opacity: 0.55;
+        cursor: default;
+    }
+}
+
 mat-divider {
     margin: 2px 12px 2rem auto;
 }
@@ -64,4 +82,3 @@ mat-form-field {
 button {
     font-size: 14px;
 }
-

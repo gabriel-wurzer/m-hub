@@ -31,8 +31,9 @@
     </mat-form-field>
 
     <div class="filter-menu-footer">
-        <button mat-flat-button color="primary" (click)="resetForm()" [disabled]="isResetDisabled()">
-            Filter zurücksetzen
+        <button mat-stroked-button class="reset-filter-button" type="button" (click)="resetForm()" [disabled]="isResetDisabled()">
+            <mat-icon>restart_alt</mat-icon>
+            Zurücksetzen
         </button>
     </div>
 
