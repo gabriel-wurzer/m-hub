@@ -9,6 +9,19 @@
         </button>
 
         <button
+          mat-stroked-button
+          class="filter-toggle-button"
+          [class.active]="isFilterPanelVisible || activeFilterCount > 0"
+          type="button"
+          aria-controls="market-filter-panel"
+          [attr.aria-expanded]="isFilterPanelVisible"
+          (click)="toggleFilterPanel()">
+          <mat-icon>filter_alt</mat-icon>
+          Filter
+          <span class="filter-count-badge" *ngIf="activeFilterCount > 0">{{ activeFilterCount }}</span>
+        </button>
+
+        <button
           *ngIf="isLoggedIn"
           mat-stroked-button
           class="my-listings-button"
@@ -25,7 +38,7 @@
         <div class="market-category-title-row">
           <h1>Kategorie: {{ currentCategory.title }}</h1>
           <span class="listing-count-chip" *ngIf="!loading && !loadError">
-            {{ currentCategory.listings.length }} {{ currentCategory.listings.length === 1 ? 'Anzeige' : 'Anzeigen' }}
+            {{ getListingCountLabel(currentCategory) }}
           </span>
         </div>
         <p>{{ currentCategory.description }}</p>
@@ -69,12 +82,169 @@
       <mat-divider class="category-content-divider-mobile"></mat-divider>
 
       <section class="listing-panel">
+        <section
+          id="market-filter-panel"
+          class="market-filter-panel"
+          aria-label="Filteroptionen"
+          *ngIf="isFilterPanelVisible">
+          <header class="filter-panel-header">
+            <div>
+              <h2>Filter</h2>
+              <p>{{ currentCategory.title }}</p>
+            </div>
+
+            <button mat-icon-button class="filter-close-button" type="button" aria-label="Filter schließen" (click)="closeFilterPanel()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </header>
+
+          <mat-divider></mat-divider>
+
+          <div class="filter-panel-content">
+            <section class="filter-block filter-block--price">
+              <h3>Preis</h3>
+
+              <p class="range-summary">{{ getPriceRangeLabel() }}</p>
+
+              <mat-slider
+                class="price-range-slider"
+                [min]="0"
+                [max]="priceSliderOptions.length - 1"
+                [step]="1"
+                [disabled]="isPriceSliderDisabled()">
+                <input
+                  matSliderStartThumb
+                  [(ngModel)]="priceSliderMinIndex"
+                  (ngModelChange)="onPriceSliderValueChange()" />
+                <input
+                  matSliderEndThumb
+                  [(ngModel)]="priceSliderMaxIndex"
+                  (ngModelChange)="onPriceSliderValueChange()" />
+              </mat-slider>
+
+              <div class="range-input-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Von</mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    inputmode="decimal"
+                    [disabled]="isPriceSliderDisabled()"
+                    [(ngModel)]="priceMinInput"
+                    (ngModelChange)="onPriceInputChange()" />
+                  <mat-hint class="filter-warning" *ngIf="isPriceMinInputInvalid()">
+                    Bitte gültigen Wert eingeben.
+                  </mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Bis</mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    inputmode="decimal"
+                    [disabled]="isPriceSliderDisabled()"
+                    [(ngModel)]="priceMaxInput"
+                    (ngModelChange)="onPriceInputChange()" />
+                  <mat-hint class="filter-warning" *ngIf="isPriceMaxInputInvalid()">
+                    Bitte gültigen Wert eingeben.
+                  </mat-hint>
+                </mat-form-field>
+              </div>
+            </section>
+
+            <section class="filter-block">
+              <h3>Verfügbar ab</h3>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Datum (dd.mm.yyyy)</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="availableFromPicker"
+                  [(ngModel)]="availableFromDate"
+                  (ngModelChange)="onAvailableFromDateChange($event)" />
+                <mat-datepicker-toggle matIconSuffix [for]="availableFromPicker"></mat-datepicker-toggle>
+                <mat-datepicker #availableFromPicker></mat-datepicker>
+              </mat-form-field>
+            </section>
+
+            <section class="filter-block">
+              <h3>Potenzial</h3>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Potenzial</mat-label>
+                <mat-select
+                  [ngModel]="filterDraft.potentials"
+                  multiple
+                  (ngModelChange)="onPotentialSelectionChange($event)">
+                  <mat-option *ngFor="let option of potentialOptions" [value]="option">
+                    {{ formatPotentialLabel(option) }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </section>
+
+            <section class="filter-block">
+              <h3>Status</h3>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Status</mat-label>
+                <mat-select
+                  [ngModel]="filterDraft.statuses"
+                  multiple
+                  (ngModelChange)="onStatusSelectionChange($event)">
+                  <mat-option *ngFor="let option of statusOptions" [value]="option">
+                    {{ formatStatusLabel(option) }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </section>
+
+            <section class="filter-block filter-block--quantity">
+              <h3>{{ currentCategory.kind === 'material' ? 'Menge' : 'Anzahl' }}</h3>
+
+              <div class="quantity-filter-row" [class.quantity-filter-row--object]="currentCategory.kind === 'object'">
+                <mat-form-field appearance="outline" *ngIf="currentCategory.kind === 'material'">
+                  <mat-label>Einheit</mat-label>
+                  <mat-select
+                    [ngModel]="filterDraft.quantityUnit"
+                    (ngModelChange)="onQuantityUnitSelectionChange($event)">
+                    <mat-option *ngFor="let option of unitOptions" [value]="option">
+                      {{ option }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>{{ currentCategory.kind === 'material' ? 'Menge ab' : 'Stückzahl ab' }}</mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    inputmode="decimal"
+                    [(ngModel)]="quantityInput"
+                    (ngModelChange)="onQuantityInputChange()" />
+                  <mat-hint class="filter-warning" *ngIf="isQuantityInputInvalid()">
+                    Bitte gültigen Wert eingeben.
+                  </mat-hint>
+                </mat-form-field>
+              </div>
+            </section>
+          </div>
+
+          <footer class="filter-panel-footer">
+            <button mat-stroked-button class="reset-filter-button" type="button" [disabled]="isResetDisabled()" (click)="resetFilters()">
+              <mat-icon>restart_alt</mat-icon>
+              Zurücksetzen
+            </button>
+          </footer>
+        </section>
+
         <div class="listing-panel-state error" *ngIf="!loading && loadError">
           {{ loadError }}
         </div>
 
         <div class="listing-panel-state" *ngIf="!loading && !loadError && currentCategory.listings.length === 0">
-          Für diese Kategorie wurden noch keine Marktangebote inseriert.
+          {{ getEmptyStateMessage() }}
         </div>
 
         <div

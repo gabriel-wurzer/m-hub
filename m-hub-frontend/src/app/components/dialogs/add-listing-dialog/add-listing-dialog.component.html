@@ -53,7 +53,7 @@
               matInput
               type="number"
               min="0.01"
-              [attr.step]="isObject ? 'any' : '0.01'"
+              [attr.step]="isObject ? '1.00' : '0.01'"
               [(ngModel)]="quantity"
               [required]="true"
               #quantityCtrl="ngModel"

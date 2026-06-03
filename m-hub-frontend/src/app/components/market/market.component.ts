@@ -6,7 +6,17 @@ import { map, Observable, Subscription } from 'rxjs';
 
 import { MATERIAL_GROUP_CATEGORIES, OBJECT_TYPE_CATEGORIES } from '../../utils/market-catalog';
 import { MarketCategoryViewComponent } from '../market-category-view/market-category-view.component';
-import { MarketCategory, MarketListing as MarketCategoryListing } from '../../models/market.models';
+import {
+  DEFAULT_MARKET_LISTING_FILTER_BOUNDS,
+  MarketCategory,
+  MarketListing as MarketCategoryListing,
+  MarketListingFilter,
+  MarketListingFilterBounds,
+  MARKET_LISTING_PRICE_UNBOUNDED_MAX,
+  createMarketListingFilter,
+  normalizeMarketListingPriceRange,
+  parseMarketListingNumericInput
+} from '../../models/market.models';
 import { MarketListing as ApiMarketListing } from '../../models/market-listing';
 import { MarketListingCategoryCount, MarketListingService } from '../../services/market-listing/market-listing.service';
 import { MaterialGroup } from '../../enums/material-group';
@@ -41,6 +51,8 @@ export class MarketComponent implements OnInit, OnDestroy {
   readonly isLoggedIn$: Observable<boolean>;
 
   selectedCategory: MarketCategory | null = null;
+  categoryFilterBounds: MarketListingFilterBounds = DEFAULT_MARKET_LISTING_FILTER_BOUNDS;
+  categoryFilter: MarketListingFilter = createMarketListingFilter(this.categoryFilterBounds);
   isCategoryLoading = false;
   categoryLoadError: string | null = null;
   isCategoryCountLoading = false;
@@ -55,6 +67,7 @@ export class MarketComponent implements OnInit, OnDestroy {
   private categoryCountSubscription?: Subscription;
   private marketListingLoadSubscription?: Subscription;
   private readonly categoryCounts = new Map<string, number>();
+  private categoryApiListings: ApiMarketListing[] = [];
 
   constructor(
     private marketListingService: MarketListingService,
@@ -72,6 +85,7 @@ export class MarketComponent implements OnInit, OnDestroy {
   openCategory(category: MarketCategory): void {
     this.categoryLoadSubscription?.unsubscribe();
     this.selectedCategory = { ...category, listings: [] };
+    this.resetCategoryFilterState();
     this.isCategoryLoading = true;
     this.categoryLoadError = null;
 
@@ -87,15 +101,16 @@ export class MarketComponent implements OnInit, OnDestroy {
       next: listings => {
         const visibleListings = this.filterVisibleCategoryListings(listings);
 
+        this.categoryApiListings = visibleListings;
+        this.categoryFilterBounds = this.buildCategoryFilterBounds(visibleListings);
+        this.categoryFilter = createMarketListingFilter(this.categoryFilterBounds);
         this.categoryCounts.set(this.getCategoryCountKey(category), visibleListings.length);
-        this.selectedCategory = {
-          ...category,
-          listings: visibleListings.map(listing => this.mapApiListingToCategoryListing(listing, category))
-        };
+        this.renderSelectedCategoryListings(category);
         this.isCategoryLoading = false;
       },
       error: () => {
         this.selectedCategory = { ...category, listings: [] };
+        this.resetCategoryFilterState();
         this.categoryLoadError = 'Marktangebote konnten nicht geladen werden.';
         this.isCategoryLoading = false;
       }
@@ -105,6 +120,7 @@ export class MarketComponent implements OnInit, OnDestroy {
   closeCategory(): void {
     this.categoryLoadSubscription?.unsubscribe();
     this.selectedCategory = null;
+    this.resetCategoryFilterState();
     this.isCategoryLoading = false;
     this.categoryLoadError = null;
   }
@@ -124,6 +140,24 @@ export class MarketComponent implements OnInit, OnDestroy {
 
     const safeCount = count ?? 0;
     return `${safeCount} ${safeCount === 1 ? 'Inserat' : 'Inserate'}`;
+  }
+
+  get currentCategoryTotalListingCount(): number {
+    return this.categoryApiListings.length;
+  }
+
+  get activeCategoryFilterCount(): number {
+    return this.countActiveCategoryFilters(this.categoryFilter, this.categoryFilterBounds);
+  }
+
+  onCategoryFilterChange(filter: MarketListingFilter): void {
+    this.categoryFilter = this.normalizeFilterForBounds(filter, this.categoryFilterBounds);
+
+    if (!this.selectedCategory) {
+      return;
+    }
+
+    this.renderSelectedCategoryListings(this.selectedCategory);
   }
 
   private loadCategoryCounts(): void {
@@ -171,6 +205,149 @@ export class MarketComponent implements OnInit, OnDestroy {
 
   private filterVisibleCategoryListings(listings: ApiMarketListing[]): ApiMarketListing[] {
     return listings.filter(listing => listing.status !== MarketListingStatus.verkauft);
+  }
+
+  private renderSelectedCategoryListings(category: MarketCategory): void {
+    const filteredListings = this.filterCategoryListings(this.categoryApiListings);
+
+    this.selectedCategory = {
+      ...category,
+      listings: filteredListings.map(listing => this.mapApiListingToCategoryListing(listing, category))
+    };
+  }
+
+  private filterCategoryListings(listings: ApiMarketListing[]): ApiMarketListing[] {
+    return listings.filter(listing => this.matchesCategoryFilter(listing, this.categoryFilter));
+  }
+
+  private matchesCategoryFilter(
+    listing: ApiMarketListing,
+    filter: MarketListingFilter
+  ): boolean {
+    if (!this.matchesRequiredNumberRange(listing.price, filter.priceMin, filter.priceMax)) {
+      return false;
+    }
+
+    if (filter.availableFromMin) {
+      const listingDate = this.toDateOnlyTime(listing.available_from);
+      const filterDate = this.toDateOnlyTime(filter.availableFromMin);
+
+      if (listingDate === null || filterDate === null || listingDate < filterDate) {
+        return false;
+      }
+    }
+
+    if (filter.potentials.length > 0 && !filter.potentials.includes(listing.potential)) {
+      return false;
+    }
+
+    if (filter.statuses.length > 0 && !filter.statuses.includes(listing.status)) {
+      return false;
+    }
+
+    if (filter.quantityUnit && listing.unit !== filter.quantityUnit) {
+      return false;
+    }
+
+    if (filter.quantityMin !== null && !this.matchesMinimumNumber(listing.quantity, filter.quantityMin)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private buildCategoryFilterBounds(_listings: ApiMarketListing[]): MarketListingFilterBounds {
+    return {
+      price: { min: 0, max: MARKET_LISTING_PRICE_UNBOUNDED_MAX }
+    };
+  }
+
+  private matchesRequiredNumberRange(value: unknown, min: number, max: number): boolean {
+    const numericValue = this.toFiniteNumber(value);
+    return numericValue !== null && numericValue >= min && numericValue <= max;
+  }
+
+  private normalizeFilterForBounds(
+    filter: MarketListingFilter,
+    _bounds: MarketListingFilterBounds
+  ): MarketListingFilter {
+    const price = normalizeMarketListingPriceRange(filter.priceMin, filter.priceMax);
+
+    return {
+      priceMin: price.min,
+      priceMax: price.max,
+      quantityMin: this.normalizeOptionalPositiveNumber(filter.quantityMin),
+      quantityUnit: filter.quantityUnit,
+      availableFromMin: filter.availableFromMin || null,
+      potentials: [...filter.potentials],
+      statuses: [...filter.statuses],
+    };
+  }
+
+  private matchesMinimumNumber(value: unknown, min: number): boolean {
+    const numericValue = this.toFiniteNumber(value);
+    return numericValue !== null && numericValue >= min;
+  }
+
+  private normalizeOptionalPositiveNumber(value: unknown): number | null {
+    const numericValue = this.toFiniteNumber(value);
+
+    if (numericValue === null || !Number.isFinite(numericValue) || numericValue <= 0) {
+      return null;
+    }
+
+    return numericValue;
+  }
+
+  private toFiniteNumber(value: unknown): number | null {
+    return parseMarketListingNumericInput(value);
+  }
+
+  private toDateOnlyTime(value: string | null | undefined): number | null {
+    if (!value) {
+      return null;
+    }
+
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+    if (!match) {
+      return null;
+    }
+
+    const [, year, month, day] = match;
+    return Date.UTC(Number(year), Number(month) - 1, Number(day));
+  }
+
+  private countActiveCategoryFilters(filter: MarketListingFilter, bounds: MarketListingFilterBounds): number {
+    let count = 0;
+
+    if (filter.priceMin !== bounds.price.min || filter.priceMax !== bounds.price.max) {
+      count++;
+    }
+
+    if (filter.availableFromMin) {
+      count++;
+    }
+
+    if (filter.potentials.length > 0) {
+      count++;
+    }
+
+    if (filter.statuses.length > 0) {
+      count++;
+    }
+
+    if (filter.quantityMin !== null || filter.quantityUnit !== null) {
+      count++;
+    }
+
+    return count;
+  }
+
+  private resetCategoryFilterState(): void {
+    this.categoryApiListings = [];
+    this.categoryFilterBounds = DEFAULT_MARKET_LISTING_FILTER_BOUNDS;
+    this.categoryFilter = createMarketListingFilter(this.categoryFilterBounds);
   }
 
   private mapApiListingToCategoryListing(listing: ApiMarketListing, category: MarketCategory): MarketCategoryListing {
@@ -364,17 +541,17 @@ export class MarketComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const listings = this.selectedCategory.listings.filter(listing => listing.id !== deletedListing.id);
+    const listings = this.categoryApiListings.filter(listing => listing.id !== deletedListing.id);
 
-    if (listings.length === this.selectedCategory.listings.length) {
+    if (listings.length === this.categoryApiListings.length) {
       return;
     }
 
-    this.selectedCategory = {
-      ...this.selectedCategory,
-      listings
-    };
-    this.categoryCounts.set(this.getCategoryCountKey(this.selectedCategory), listings.length);
+    this.categoryApiListings = listings;
+    this.categoryFilterBounds = this.buildCategoryFilterBounds(this.categoryApiListings);
+    this.categoryFilter = this.normalizeFilterForBounds(this.categoryFilter, this.categoryFilterBounds);
+    this.renderSelectedCategoryListings(this.selectedCategory);
+    this.categoryCounts.set(this.getCategoryCountKey(this.selectedCategory), this.categoryApiListings.length);
   }
 
   onUserListingUpdated(): void {

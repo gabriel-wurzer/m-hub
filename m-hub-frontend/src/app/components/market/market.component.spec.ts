@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { of, Subject } from 'rxjs';
 
 import { MarketComponent } from './market.component';
+import { MarketCategoryViewComponent } from '../market-category-view/market-category-view.component';
 import { BuildingComponentCategory } from '../../enums/component-category';
 import { MarketListingStatus } from '../../enums/market-listing-status';
 import { MarketPotential } from '../../enums/market-potential.enum';
@@ -10,6 +12,11 @@ import { MaterialType } from '../../enums/material-type.enum';
 import { MarketListingCategoryCount, MarketListingService } from '../../services/market-listing/market-listing.service';
 import { MaterialGroup } from '../../enums/material-group';
 import { AuthenticationService } from '../../services/authentication/authentication.service';
+import {
+  MARKET_LISTING_PRICE_OPTIONS,
+  MARKET_LISTING_PRICE_UNBOUNDED_MAX,
+  normalizeMarketListingPriceRange
+} from '../../models/market.models';
 
 describe('MarketComponent', () => {
   let component: MarketComponent;
@@ -84,6 +91,90 @@ describe('MarketComponent', () => {
     expect(localFixture.nativeElement.querySelector('.card-tag')?.textContent.trim()).toBe('4 Inserate');
   });
 
+  it('shows the category filter button when the user is logged out', () => {
+    component.openCategory(component.materialGroups[0]);
+    fixture.detectChanges();
+
+    const filterButton = fixture.nativeElement.querySelector('.filter-toggle-button');
+    const myListingsButton = fixture.nativeElement.querySelector('.my-listings-button');
+
+    expect(filterButton).not.toBeNull();
+    expect(filterButton.textContent).toContain('Filter');
+    expect(myListingsButton).toBeNull();
+  });
+
+  it('allows reset when ignored invalid filter text is still visible in inputs', () => {
+    component.openCategory(component.materialGroups[0]);
+    fixture.detectChanges();
+
+    let categoryView = fixture.debugElement.query(By.directive(MarketCategoryViewComponent))
+      .componentInstance as MarketCategoryViewComponent;
+
+    categoryView.priceMinInput = 'abc';
+    categoryView.priceMaxInput = 'def';
+    categoryView.onPriceInputChange();
+    fixture.detectChanges();
+
+    categoryView = fixture.debugElement.query(By.directive(MarketCategoryViewComponent))
+      .componentInstance as MarketCategoryViewComponent;
+    categoryView.quantityInput = 'keine zahl';
+    categoryView.onQuantityInputChange();
+    fixture.detectChanges();
+
+    categoryView = fixture.debugElement.query(By.directive(MarketCategoryViewComponent))
+      .componentInstance as MarketCategoryViewComponent;
+
+    expect(categoryView.priceMinInput).toBe('abc');
+    expect(categoryView.priceMaxInput).toBe('def');
+    expect(categoryView.quantityInput).toBe('keine zahl');
+    expect(categoryView.isPriceMinInputInvalid()).toBeTrue();
+    expect(categoryView.isPriceMaxInputInvalid()).toBeTrue();
+    expect(categoryView.isQuantityInputInvalid()).toBeTrue();
+    expect(categoryView.isResetDisabled()).toBeFalse();
+    expect(component.activeCategoryFilterCount).toBe(0);
+
+    categoryView.resetFilters();
+
+    expect(categoryView.priceMinInput).toBe('0');
+    expect(categoryView.priceMaxInput).toBe('beliebig');
+    expect(categoryView.quantityInput).toBe('');
+    expect(categoryView.isPriceMinInputInvalid()).toBeFalse();
+    expect(categoryView.isPriceMaxInputInvalid()).toBeFalse();
+    expect(categoryView.isQuantityInputInvalid()).toBeFalse();
+  });
+
+  it('uses configured price steps for the slider while keeping manual price input exact', () => {
+    expect(MARKET_LISTING_PRICE_OPTIONS).toContain(0);
+    expect(MARKET_LISTING_PRICE_OPTIONS).toContain(10);
+    expect(MARKET_LISTING_PRICE_OPTIONS).toContain(250);
+    expect(MARKET_LISTING_PRICE_OPTIONS).toContain(300);
+    expect(MARKET_LISTING_PRICE_OPTIONS).toContain(1000);
+    expect(MARKET_LISTING_PRICE_OPTIONS).toContain(1100);
+    expect(MARKET_LISTING_PRICE_OPTIONS).toContain(1500);
+    expect(MARKET_LISTING_PRICE_OPTIONS).toContain(2000);
+    expect(MARKET_LISTING_PRICE_OPTIONS).toContain(3000);
+    expect(MARKET_LISTING_PRICE_OPTIONS).toContain(4000);
+    expect(MARKET_LISTING_PRICE_OPTIONS).toContain(10000);
+    expect(MARKET_LISTING_PRICE_OPTIONS).toContain(20000);
+    expect(MARKET_LISTING_PRICE_OPTIONS).toContain(100000);
+    expect(MARKET_LISTING_PRICE_OPTIONS).toContain(MARKET_LISTING_PRICE_UNBOUNDED_MAX);
+    expect(MARKET_LISTING_PRICE_OPTIONS).not.toContain(2760);
+
+    expect(normalizeMarketListingPriceRange(2760, 150000)).toEqual({ min: 2760, max: 150000 });
+    expect(normalizeMarketListingPriceRange('10,5', 'beliebig')).toEqual({
+      min: 10.5,
+      max: MARKET_LISTING_PRICE_UNBOUNDED_MAX
+    });
+    expect(normalizeMarketListingPriceRange('abc', 'def')).toEqual({
+      min: 0,
+      max: MARKET_LISTING_PRICE_UNBOUNDED_MAX
+    });
+    expect(normalizeMarketListingPriceRange('beliebig', '1000')).toEqual({
+      min: 0,
+      max: 1000
+    });
+  });
+
   it('hides sold listings in the selected market category view', () => {
     marketListingService.getMarketListingsByMaterialGroup.and.returnValue(of([
       {
@@ -142,6 +233,182 @@ describe('MarketComponent', () => {
 
     expect(component.selectedCategory?.listings.map(listing => listing.id)).toEqual(['listing-1']);
     expect(component.formatCategoryListingCount(component.materialGroups[0])).toBe('1 Inserat');
+  });
+
+  it('filters selected category listings on the frontend', () => {
+    marketListingService.getMarketListingsByMaterialGroup.and.returnValue(of([
+      {
+        id: 'listing-1',
+        component_id: 'part-1',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: 80,
+        width: 60,
+        height: 20,
+        name: 'Older cheap listing',
+        address: 'Test street 1',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: 12,
+        unit: MarketListingUnit.m,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      },
+      {
+        id: 'listing-2',
+        component_id: 'part-2',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: 120,
+        width: 70,
+        height: 30,
+        name: 'Matching listing',
+        address: 'Test street 2',
+        price: 250,
+        status: MarketListingStatus.verbaut,
+        available_from: '2026-06-01',
+        potential: MarketPotential.recycle,
+        quantity: 4,
+        unit: MarketListingUnit.m,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-06-01T00:00:00Z',
+        updated_at: '2026-06-01T00:00:00Z'
+      }
+    ]));
+
+    component.openCategory(component.materialGroups[0]);
+    const requestCount = marketListingService.getMarketListingsByMaterialGroup.calls.count();
+
+    component.onCategoryFilterChange({
+      ...component.categoryFilter,
+      priceMin: 150,
+      availableFromMin: '2026-05-01',
+      statuses: [MarketListingStatus.verbaut],
+      quantityMin: 4
+    });
+
+    expect(component.selectedCategory?.listings.map(listing => listing.id)).toEqual(['listing-2']);
+    expect(component.activeCategoryFilterCount).toBe(4);
+    expect(marketListingService.getMarketListingsByMaterialGroup.calls.count()).toBe(requestCount);
+  });
+
+  it('filters material category listings by quantity unit and minimum amount', () => {
+    marketListingService.getMarketListingsByMaterialGroup.and.returnValue(of([
+      {
+        id: 'listing-meter',
+        component_id: 'part-1',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Meter listing',
+        address: 'Test street 1',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: 10,
+        unit: MarketListingUnit.m,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      },
+      {
+        id: 'listing-kg',
+        component_id: 'part-2',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Kilogram listing',
+        address: 'Test street 2',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: 5,
+        unit: MarketListingUnit.kg,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      }
+    ]));
+
+    component.openCategory(component.materialGroups[0]);
+    component.onCategoryFilterChange({
+      ...component.categoryFilter,
+      quantityMin: 4,
+      quantityUnit: MarketListingUnit.kg
+    });
+
+    expect(component.selectedCategory?.listings.map(listing => listing.id)).toEqual(['listing-kg']);
+    expect(component.activeCategoryFilterCount).toBe(1);
+  });
+
+  it('ignores non-numeric price and quantity filter values', () => {
+    marketListingService.getMarketListingsByMaterialGroup.and.returnValue(of([
+      {
+        id: 'listing-1',
+        component_id: 'part-1',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Visible listing',
+        address: 'Test street 1',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: 10,
+        unit: MarketListingUnit.m,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      }
+    ]));
+
+    component.openCategory(component.materialGroups[0]);
+    component.onCategoryFilterChange({
+      ...component.categoryFilter,
+      priceMin: 'abc',
+      priceMax: 'def',
+      quantityMin: 'keine zahl'
+    } as any);
+
+    expect(component.selectedCategory?.listings.map(listing => listing.id)).toEqual(['listing-1']);
+    expect(component.activeCategoryFilterCount).toBe(0);
   });
 
   it('loads a clicked market listing by id and opens the detail view', () => {
