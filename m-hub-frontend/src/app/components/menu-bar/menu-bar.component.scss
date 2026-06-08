@@ -10,7 +10,7 @@
   width: 80px;
   background-color: #ececec;
   border-radius: 12px;
-  margin: 2rem;
+  margin: 1rem 1rem 2.15rem;
   padding: 1rem 0;
   box-shadow: 2px 4px 4px rgba(0, 0, 0, 0.2);
 
@@ -32,13 +32,46 @@
 }
 
 .router-outlet-container {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 2rem;
-  margin-left: 2rem;
-  height: 100%;
+  padding: 1rem 1rem 0.5rem;
+  margin-left: 1.8rem;
+  height: auto;
+}
+
+.page-footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0 1rem 0.5rem;
+  margin-left: 1.8rem;
+  color: rgba(0, 0, 0, 0.42);
+  font-size: 0.82rem;
+  line-height: 1.4;
+
+  a {
+    color: rgba(0, 0, 0, 0.48);
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+
+    &:hover,
+    &:focus-visible {
+      color: mat.get-color-from-palette(vars.$my-secondary, 800);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    &:focus-visible {
+      outline: 2px solid mat.get-color-from-palette(vars.$my-secondary, 300);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+  }
 }
 
 .logo-section {
@@ -234,10 +267,20 @@ mat-divider {
     margin-left: 0;
     padding: 1rem;
   }
+
+  .page-footer {
+    margin-left: 0;
+  }
 }
 
 @media (max-width: 600px) {
   .router-outlet-container {
     padding: 8px;
+  }
+
+  .page-footer {
+    gap: 0.5rem;
+    padding: 0 8px 0.65rem;
+    font-size: 0.78rem;
   }
 }

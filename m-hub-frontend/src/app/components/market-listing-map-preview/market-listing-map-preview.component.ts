@@ -136,7 +136,7 @@ export class MarketListingMapPreviewComponent implements AfterViewInit, OnChange
 
   private loadSelectedBuilding(): void {
     if (!this.map || !this.buildingId) {
-      this.loadError = this.buildingId ? null : 'Kein Gebaeude hinterlegt.';
+      this.loadError = this.buildingId ? null : 'Kein Gebäude hinterlegt.';
       return;
     }
 
@@ -145,7 +145,7 @@ export class MarketListingMapPreviewComponent implements AfterViewInit, OnChange
     this.mapService.getBuildingById(this.buildingsTable, this.buildingId, this.geometryColumns).subscribe({
       next: building => {
         if (!building?.geometry) {
-          this.loadError = 'Gebaeude konnte nicht angezeigt werden.';
+          this.loadError = 'Gebäude konnte nicht angezeigt werden.';
           return;
         }
 
@@ -153,7 +153,7 @@ export class MarketListingMapPreviewComponent implements AfterViewInit, OnChange
       },
       error: error => {
         console.error('Failed to load listing building preview:', error);
-        this.loadError = 'Gebaeude konnte nicht geladen werden.';
+        this.loadError = 'Gebäude konnte nicht geladen werden.';
       }
     });
   }
@@ -167,7 +167,7 @@ export class MarketListingMapPreviewComponent implements AfterViewInit, OnChange
       geometryObj = typeof geometry === 'string' ? JSON.parse(geometry) : geometry;
     } catch (error) {
       console.error('Failed to parse listing building geometry:', error);
-      this.loadError = 'Gebaeude konnte nicht angezeigt werden.';
+      this.loadError = 'Gebäude konnte nicht angezeigt werden.';
       return;
     }
 

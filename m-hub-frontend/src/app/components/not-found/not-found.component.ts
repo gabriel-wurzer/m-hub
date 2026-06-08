@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { AuthenticationService } from '../../services/authentication/authentication.service';
 
 @Component({
   selector: 'app-not-found',
@@ -10,4 +11,8 @@ import { RouterLink } from '@angular/router';
   styleUrl: './not-found.component.scss'
 
 })
-export class NotFoundComponent {}
+export class NotFoundComponent {
+  user$ = this.authService.getUser$();
+
+  constructor(private authService: AuthenticationService) {}
+}

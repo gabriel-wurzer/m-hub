@@ -15,10 +15,10 @@
 
     <!-- Navigation Buttons -->
     <div class="nav-buttons">
-      <button mat-icon-button matTooltip="Karte" matTooltipPosition="after" matTooltipShowDelay="500" (click)="onMenuClick('map')" [ngClass]="{'active': currentRoute.includes('/map')}">
+      <button mat-icon-button matTooltip="Karte" matTooltipPosition="after" matTooltipShowDelay="500" (click)="onMenuClick('karte')" [ngClass]="{'active': currentRoute.includes('/karte')}">
         <mat-icon>map</mat-icon>
       </button>
-      <button mat-icon-button matTooltip="Markt" matTooltipPosition="after" matTooltipShowDelay="500" (click)="onMenuClick('market')" [ngClass]="{'active': currentRoute.includes('/market')}">
+      <button mat-icon-button matTooltip="Markt" matTooltipPosition="after" matTooltipShowDelay="500" (click)="onMenuClick('markt')" [ngClass]="{'active': currentRoute.includes('/markt')}">
         <!-- <mat-icon>hub</mat-icon> -->
         <mat-icon>shopping_cart</mat-icon>
       </button>
@@ -29,9 +29,9 @@
         matTooltipClass="multiline-tooltip"
         matTooltipPosition="after" 
         matTooltipShowDelay="500" 
-        (click)="onMenuClick('data')" 
+        (click)="onMenuClick('bestandsverwaltung')" 
         [ngClass]="{
-          'active': currentRoute.includes('/data'), 
+          'active': currentRoute.includes('/bestandsverwaltung'), 
           'disabled-state': !(user$ | async)
         }">
         <!-- <mat-icon>grid_view</mat-icon> -->
@@ -79,14 +79,14 @@
   <mat-sidenav-content class="main-content">
 
     <mat-menu #menu="matMenu">
-      <div class="menu-item" (click)="onMenuClick('map')">
+      <div class="menu-item" (click)="onMenuClick('karte')">
         <button mat-menu-item disableRipple >
           <mat-icon>map</mat-icon> 
         </button>
         <span>Karte</span>
       </div>
 
-      <div class="menu-item" (click)="onMenuClick('market')">
+      <div class="menu-item" (click)="onMenuClick('markt')">
         <button mat-menu-item disableRipple >
           <!-- <mat-icon>hub</mat-icon>  -->
           <mat-icon>shopping_cart</mat-icon>
@@ -97,7 +97,7 @@
       <ng-container *ngIf="{ user: user$ | async } as auth">
         <div class="menu-item"
             [class.disabled-state]="!auth.user"
-            (click)="auth.user ? onMenuClick('data') : onDisabledDataClick()">
+            (click)="auth.user ? onMenuClick('bestandsverwaltung') : onDisabledDataClick()">
             
           <button mat-menu-item disableRipple>
             <mat-icon>grid_view</mat-icon> 
@@ -120,8 +120,7 @@
         <img src="/assets/images/mhub_logo_grey.svg" alt="Project logo" class="logo" />
       </div>
       <div class="name-section-mobile">
-        <span>M</span>
-        <span>HUB</span>
+        <span>M HUB</span>
       </div>
 
       <ng-container *ngIf="user$ | async as user; else loginButton">
@@ -155,5 +154,11 @@
     <div class="router-outlet-container">
       <router-outlet />
     </div>
+
+    <footer class="page-footer" aria-label="Rechtliche Links">
+      <a routerLink="/impressum">Impressum</a>
+      <span aria-hidden="true">|</span>
+      <a routerLink="/datenschutz">Datenschutzerklärung</a>
+    </footer>
   </mat-sidenav-content>
 </mat-sidenav-container>

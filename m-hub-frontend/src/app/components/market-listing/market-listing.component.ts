@@ -175,7 +175,7 @@ export class MarketListingComponent implements OnChanges, OnDestroy {
       return;
     }
 
-    this.router.navigate(['/map'], {
+    this.router.navigate(['/karte'], {
       queryParams: {
         buildingId: this.listing.building_id
       }

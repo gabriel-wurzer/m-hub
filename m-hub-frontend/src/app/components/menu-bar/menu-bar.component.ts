@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -22,7 +22,8 @@ import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog
   selector: 'app-menu-bar',
   standalone: true,
   imports: [ 
-    RouterOutlet, 
+    RouterOutlet,
+    RouterLink,
     CommonModule, 
     MatToolbarModule, 
     MatMenuModule, 

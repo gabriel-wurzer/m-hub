@@ -10,12 +10,21 @@
 
     <p>Die von Ihnen aufgerufene Seite existiert nicht oder wurde verschoben.</p>
     
-    <p>
+    <p *ngIf="user$ | async; else publicLinks">
     Hier geht es zurück zur 
-    <a routerLink="/map">Karte</a>, 
+    <a routerLink="/karte">Karte</a>, 
     dem
-    <a routerLink="/market">Markt</a> 
-    oder deiner 
-    <a routerLink="/data">Gebäudeliste</a>.
+    <a routerLink="/markt">Markt</a> 
+    oder der 
+    <a routerLink="/bestandsverwaltung">Bestandsverwaltung</a>.
     </p>
+
+    <ng-template #publicLinks>
+        <p>
+        Hier geht es zurück zur 
+        <a routerLink="/karte">Karte</a>
+        oder dem
+        <a routerLink="/markt">Markt</a>.
+        </p>
+    </ng-template>
 </div>
