@@ -80,8 +80,6 @@ mat-form-field {
   flex: 1 1 100%;
   flex-direction: row;
 
-  margin-top: 1.6rem;
-
   h2 {
     margin-bottom: 0;
   }
@@ -117,6 +115,10 @@ mat-form-field {
 .name-wrapper,
 .description-wrapper {
   flex-basis: 100%;
+}
+
+.description-wrapper {
+  margin-top: 1.2rem;
 }
 
 .actions {

@@ -15,14 +15,6 @@
         </mat-form-field>
       </div>
 
-      <div class="description-wrapper">
-        <h2>Bezeichnung</h2>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Bezeichnung</mat-label>
-          <textarea matInput rows="1" [(ngModel)]="description"></textarea>
-        </mat-form-field>
-      </div>
-
       <div class="location-wrapper">
         <h2>Verortung</h2>
         <mat-form-field appearance="outline" class="full-width">
@@ -74,6 +66,14 @@
           (structureChange)="onPartStructureChange($event)"
           (validityChange)="onPartStructureValidityChange($event)"
         />
+      </div>
+
+      <div class="description-wrapper">
+        <h2>Beschreibung</h2>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Beschreibung</mat-label>
+          <textarea matInput rows="2" [(ngModel)]="description"></textarea>
+        </mat-form-field>
       </div>
 
       <div class="checkbox-wrapper">
