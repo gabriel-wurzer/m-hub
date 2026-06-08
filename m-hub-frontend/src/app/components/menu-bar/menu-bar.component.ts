@@ -39,7 +39,7 @@ import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog
 })
 export class MenuBarComponent implements OnInit {
 
-  currentRoute: string = '/map';
+  currentRoute: string = '/karte';
 
   isMobile = false;
 
@@ -97,7 +97,7 @@ export class MenuBarComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result === true) {
         this.authService.logout();
-        this.router.navigate(['/map']);
+        this.router.navigate(['/karte']);
       }
     });
   }

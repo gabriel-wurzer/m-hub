@@ -324,6 +324,6 @@ export class BuildingSidepanelComponent implements OnInit, OnChanges, OnDestroy 
   }
 
   isOnMap(): boolean {
-    return this.router.url === '/map';
+    return this.router.url === '/karte';
   }
 }

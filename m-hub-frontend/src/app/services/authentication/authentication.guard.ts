@@ -10,7 +10,7 @@ export const authenticationGuard: CanActivateFn = (route, state) => {
     return true;
   } else {
     // Redirect to map if trying to access protected route while logged out
-    router.navigate(['/map']);
+    router.navigate(['/karte']);
     return false;
   }
 };

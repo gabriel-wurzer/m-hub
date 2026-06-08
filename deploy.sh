@@ -132,5 +132,5 @@ $DC up -d seaweed-filer m-hub-postgis-api m-hub-backend m-hub-frontend
 
 echo
 echo "[OK] Stack deployed."
-echo "     Frontend: http://localhost:8910/map"
+echo "     Frontend: http://localhost:8910/karte"
 echo "     Logs:     ${DC} logs -f"
