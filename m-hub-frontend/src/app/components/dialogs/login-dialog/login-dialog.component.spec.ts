@@ -50,8 +50,8 @@ describe('LoginDialogComponent', () => {
     const registrationLink = fixture.nativeElement.querySelector('.registration-info a') as HTMLAnchorElement;
 
     expect(component.showRegistrationInfo).toBeTrue();
-    expect(fixture.nativeElement.textContent).toContain('Für Registrierung bitte E-Mail an');
-    expect(registrationLink.getAttribute('href')).toBe('mailto:simlab@tuwien.ac.at');
-    expect(registrationLink.textContent?.trim()).toBe('simlab@tuwien.ac.at');
+    expect(fixture.nativeElement.textContent).toContain('Für die Registrierung senden Sie bitte eine E-Mail an:');
+    expect(registrationLink.getAttribute('href')).toBe('mailto:m-hub@dap.tuwien.ac.at?subject=Anfrage%3A%20M-Hub%20Registrierung');
+    expect(registrationLink.textContent?.trim()).toBe('m-hub@dap.tuwien.ac.at');
   });
 });

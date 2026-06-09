@@ -27,7 +27,8 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class LoginDialogComponent {
   readonly registrationEmail = 'm-hub@dap.tuwien.ac.at';
-  readonly registrationMailto = `mailto:${this.registrationEmail}`;
+  readonly registrationSubject = 'Anfrage zur Profilerstellung auf M-Hub';
+  readonly registrationMailto = `mailto:${this.registrationEmail}?subject=${encodeURIComponent(this.registrationSubject)}`;
 
   loginForm: FormGroup;
   isLoading = false;
