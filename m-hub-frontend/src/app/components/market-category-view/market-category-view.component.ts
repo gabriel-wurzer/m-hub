@@ -15,6 +15,8 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MarketListingStatus } from '../../enums/market-listing-status';
 import { MarketListingUnit } from '../../enums/market-listing-unit.enum';
 import { MarketPotential } from '../../enums/market-potential.enum';
+import { MaterialGroup, getMaterialTypesForGroup } from '../../enums/material-group';
+import { MaterialType } from '../../enums/material-type.enum';
 import {
   DEFAULT_MARKET_LISTING_FILTER_BOUNDS,
   MarketCategory,
@@ -237,6 +239,14 @@ export class MarketCategoryViewComponent implements OnChanges {
     this.emitFilterChange();
   }
 
+  onMaterialSelectionChange(values: MaterialType[]): void {
+    this.filterDraft = {
+      ...this.filterDraft,
+      materials: [...values]
+    };
+    this.emitFilterChange();
+  }
+
   onPotentialSelectionChange(values: MarketPotential[]): void {
     this.filterDraft = {
       ...this.filterDraft,
@@ -263,6 +273,15 @@ export class MarketCategoryViewComponent implements OnChanges {
     }
 
     return value;
+  }
+
+  getMaterialOptions(category: MarketCategory): readonly MaterialType[] {
+    if (category.kind !== 'material') {
+      return [];
+    }
+
+    const group = this.asMaterialGroup(category.title);
+    return group ? getMaterialTypesForGroup(group) : [];
   }
 
   formatStatusLabel(value: MarketListingStatus): string {
@@ -297,6 +316,7 @@ export class MarketCategoryViewComponent implements OnChanges {
     this.preserveInputTextOnNextFilterChange = preserveInputText;
     this.filterChange.emit({
       ...this.filterDraft,
+      materials: [...this.filterDraft.materials],
       potentials: [...this.filterDraft.potentials],
       statuses: [...this.filterDraft.statuses],
       availableFromMin: this.filterDraft.availableFromMin || null
@@ -315,9 +335,14 @@ export class MarketCategoryViewComponent implements OnChanges {
       quantityMin: this.normalizeOptionalPositiveNumber(filter.quantityMin),
       quantityUnit: filter.quantityUnit,
       availableFromMin: filter.availableFromMin || null,
+      materials: [...(filter.materials ?? [])],
       potentials: [...filter.potentials],
       statuses: [...filter.statuses],
     };
+  }
+
+  private asMaterialGroup(title: string): MaterialGroup | null {
+    return (Object.values(MaterialGroup) as string[]).includes(title) ? title as MaterialGroup : null;
   }
 
   private normalizeOptionalPositiveNumber(value: unknown): number | null {

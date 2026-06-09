@@ -20,9 +20,11 @@ import {
 import { MarketListing as ApiMarketListing } from '../../models/market-listing';
 import { MarketListingCategoryCount, MarketListingService } from '../../services/market-listing/market-listing.service';
 import { MaterialGroup } from '../../enums/material-group';
+import { MaterialType } from '../../enums/material-type.enum';
 import { ObjectType } from '../../enums/object-type';
 import { BuildingComponentCategory } from '../../enums/component-category';
 import { MarketListingStatus } from '../../enums/market-listing-status';
+import { MarketListingUnit } from '../../enums/market-listing-unit.enum';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserMarketListingsViewComponent } from '../user-market-listings-view/user-market-listings-view.component';
@@ -232,9 +234,13 @@ export class MarketComponent implements OnInit, OnDestroy {
       const listingDate = this.toDateOnlyTime(listing.available_from);
       const filterDate = this.toDateOnlyTime(filter.availableFromMin);
 
-      if (listingDate === null || filterDate === null || listingDate < filterDate) {
+      if (listingDate === null || filterDate === null || filterDate < listingDate) {
         return false;
       }
+    }
+
+    if (filter.materials.length > 0 && !this.matchesMaterialFilter(listing.material, filter.materials)) {
+      return false;
     }
 
     if (filter.potentials.length > 0 && !filter.potentials.includes(listing.potential)) {
@@ -245,11 +251,7 @@ export class MarketComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    if (filter.quantityUnit && listing.unit !== filter.quantityUnit) {
-      return false;
-    }
-
-    if (filter.quantityMin !== null && !this.matchesMinimumNumber(listing.quantity, filter.quantityMin)) {
+    if (!this.matchesQuantityFilter(listing, filter)) {
       return false;
     }
 
@@ -263,7 +265,7 @@ export class MarketComponent implements OnInit, OnDestroy {
   }
 
   private matchesRequiredNumberRange(value: unknown, min: number, max: number): boolean {
-    const numericValue = this.toFiniteNumber(value);
+    const numericValue = this.parseApiNumericValue(value);
     return numericValue !== null && numericValue >= min && numericValue <= max;
   }
 
@@ -277,16 +279,71 @@ export class MarketComponent implements OnInit, OnDestroy {
       priceMin: price.min,
       priceMax: price.max,
       quantityMin: this.normalizeOptionalPositiveNumber(filter.quantityMin),
-      quantityUnit: filter.quantityUnit,
+      quantityUnit: this.normalizeMarketListingUnitValue(filter.quantityUnit),
       availableFromMin: filter.availableFromMin || null,
+      materials: [...(filter.materials ?? [])],
       potentials: [...filter.potentials],
       statuses: [...filter.statuses],
     };
   }
 
+  private matchesMaterialFilter(
+    material: MaterialType | null | undefined,
+    selectedMaterials: MaterialType[]
+  ): boolean {
+    return !!material && selectedMaterials.includes(material);
+  }
+
+  private matchesQuantityFilter(listing: ApiMarketListing, filter: MarketListingFilter): boolean {
+    const effectiveUnit = filter.quantityUnit
+      ?? (listing.component_category === BuildingComponentCategory.Objekt ? MarketListingUnit.St : null);
+
+    if (effectiveUnit) {
+      const listingUnit = this.normalizeMarketListingUnitValue(listing.unit);
+
+      if (listingUnit !== effectiveUnit) {
+        return false;
+      }
+    }
+
+    if (filter.quantityMin !== null && !this.matchesMinimumNumber(listing.quantity, filter.quantityMin)) {
+      return false;
+    }
+
+    return true;
+  }
+
   private matchesMinimumNumber(value: unknown, min: number): boolean {
-    const numericValue = this.toFiniteNumber(value);
+    const numericValue = this.parseApiNumericValue(value);
     return numericValue !== null && numericValue >= min;
+  }
+
+  private normalizeMarketListingUnitValue(value: unknown): MarketListingUnit | null {
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    switch (value.trim()) {
+      case MarketListingUnit.St:
+      case 'Stueck':
+      case 'StÃ¼ck':
+        return MarketListingUnit.St;
+      case MarketListingUnit.m3:
+      case 'm3':
+      case 'm³':
+        return MarketListingUnit.m3;
+      case MarketListingUnit.m2:
+      case 'm2':
+      case 'm²':
+        return MarketListingUnit.m2;
+      case MarketListingUnit.m:
+        return MarketListingUnit.m;
+      case MarketListingUnit.kg:
+      case 'kg':
+        return MarketListingUnit.kg;
+      default:
+        return null;
+    }
   }
 
   private normalizeOptionalPositiveNumber(value: unknown): number | null {
@@ -301,6 +358,25 @@ export class MarketComponent implements OnInit, OnDestroy {
 
   private toFiniteNumber(value: unknown): number | null {
     return parseMarketListingNumericInput(value);
+  }
+
+  private parseApiNumericValue(value: unknown): number | null {
+    if (typeof value === 'number') {
+      return Number.isFinite(value) ? value : null;
+    }
+
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    const trimmedValue = value.trim();
+
+    if (!trimmedValue) {
+      return null;
+    }
+
+    const numericValue = Number(trimmedValue.replace(/\s/g, '').replace(',', '.'));
+    return Number.isFinite(numericValue) ? numericValue : null;
   }
 
   private toDateOnlyTime(value: string | null | undefined): number | null {
@@ -326,6 +402,10 @@ export class MarketComponent implements OnInit, OnDestroy {
     }
 
     if (filter.availableFromMin) {
+      count++;
+    }
+
+    if (filter.materials.length > 0) {
       count++;
     }
 

@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of, Subject } from 'rxjs';
 
 import { MarketComponent } from './market.component';
@@ -39,7 +40,7 @@ describe('MarketComponent', () => {
     authService.getUser$.and.returnValue(of(null));
 
     await TestBed.configureTestingModule({
-      imports: [MarketComponent],
+      imports: [MarketComponent, NoopAnimationsModule],
       providers: [
         {
           provide: MarketListingService,
@@ -101,6 +102,28 @@ describe('MarketComponent', () => {
     expect(filterButton).not.toBeNull();
     expect(filterButton.textContent).toContain('Filter');
     expect(myListingsButton).toBeNull();
+  });
+
+  it('shows the material filter only for material group categories', () => {
+    component.openCategory(component.materialGroups[0]);
+    fixture.detectChanges();
+
+    let categoryView = fixture.debugElement.query(By.directive(MarketCategoryViewComponent))
+      .componentInstance as MarketCategoryViewComponent;
+    categoryView.isFilterPanelVisible = true;
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.filter-block--material')).not.toBeNull();
+
+    component.openCategory(component.objectTypes[0]);
+    fixture.detectChanges();
+
+    categoryView = fixture.debugElement.query(By.directive(MarketCategoryViewComponent))
+      .componentInstance as MarketCategoryViewComponent;
+    categoryView.isFilterPanelVisible = true;
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.filter-block--material')).toBeNull();
   });
 
   it('allows reset when ignored invalid filter text is still visible in inputs', () => {
@@ -295,7 +318,7 @@ describe('MarketComponent', () => {
     component.onCategoryFilterChange({
       ...component.categoryFilter,
       priceMin: 150,
-      availableFromMin: '2026-05-01',
+      availableFromMin: '2026-06-01',
       statuses: [MarketListingStatus.verbaut],
       quantityMin: 4
     });
@@ -303,6 +326,162 @@ describe('MarketComponent', () => {
     expect(component.selectedCategory?.listings.map(listing => listing.id)).toEqual(['listing-2']);
     expect(component.activeCategoryFilterCount).toBe(4);
     expect(marketListingService.getMarketListingsByMaterialGroup.calls.count()).toBe(requestCount);
+  });
+
+  it('keeps listings whose available-from date is equal to or before the selected filter date', () => {
+    marketListingService.getMarketListingsByMaterialGroup.and.returnValue(of([
+      {
+        id: 'listing-available-before-date',
+        component_id: 'part-0',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Available before selected date',
+        address: 'Test street 0',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-05-31',
+        potential: MarketPotential.reuse,
+        quantity: 12,
+        unit: MarketListingUnit.m,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      },
+      {
+        id: 'listing-available-on-date',
+        component_id: 'part-1',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Available on selected date',
+        address: 'Test street 1',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-06-01',
+        potential: MarketPotential.reuse,
+        quantity: 10,
+        unit: MarketListingUnit.m,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      },
+      {
+        id: 'listing-available-later',
+        component_id: 'part-2',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Available after selected date',
+        address: 'Test street 2',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-06-02',
+        potential: MarketPotential.reuse,
+        quantity: 5,
+        unit: MarketListingUnit.m,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      }
+    ]));
+
+    component.openCategory(component.materialGroups[0]);
+    component.onCategoryFilterChange({
+      ...component.categoryFilter,
+      availableFromMin: '2026-06-01'
+    });
+
+    expect(component.selectedCategory?.listings.map(listing => listing.id)).toEqual([
+      'listing-available-before-date',
+      'listing-available-on-date'
+    ]);
+    expect(component.activeCategoryFilterCount).toBe(1);
+  });
+
+  it('filters material category listings by selected materials', () => {
+    marketListingService.getMarketListingsByMaterialGroup.and.returnValue(of([
+      {
+        id: 'listing-concrete',
+        component_id: 'part-1',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Concrete listing',
+        address: 'Test street 1',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: 10,
+        unit: MarketListingUnit.m,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      },
+      {
+        id: 'listing-brick',
+        component_id: 'part-2',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_38,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Brick listing',
+        address: 'Test street 2',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: 5,
+        unit: MarketListingUnit.m,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      }
+    ]));
+
+    component.openCategory(component.materialGroups[0]);
+    component.onCategoryFilterChange({
+      ...component.categoryFilter,
+      materials: [MaterialType.mat_3]
+    });
+
+    expect(component.selectedCategory?.listings.map(listing => listing.id)).toEqual(['listing-concrete']);
+    expect(component.activeCategoryFilterCount).toBe(1);
   });
 
   it('filters material category listings by quantity unit and minimum amount', () => {
@@ -327,6 +506,31 @@ describe('MarketComponent', () => {
         potential: MarketPotential.reuse,
         quantity: 10,
         unit: MarketListingUnit.m,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      },
+      {
+        id: 'listing-kg-too-small',
+        component_id: 'part-3',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Small kilogram listing',
+        address: 'Test street 3',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: 3,
+        unit: MarketListingUnit.kg,
         contact: 'user@example.com',
         images: [],
         created_at: '2026-04-22T00:00:00Z',
@@ -367,6 +571,201 @@ describe('MarketComponent', () => {
     });
 
     expect(component.selectedCategory?.listings.map(listing => listing.id)).toEqual(['listing-kg']);
+    expect(component.activeCategoryFilterCount).toBe(1);
+  });
+
+  it('parses backend quantity strings as decimal values when filtering material listings', () => {
+    marketListingService.getMarketListingsByMaterialGroup.and.returnValue(of([
+      {
+        id: 'listing-kg-too-small-string',
+        component_id: 'part-1',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Small kilogram listing',
+        address: 'Test street 1',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: '3.000' as any,
+        unit: MarketListingUnit.kg,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      },
+      {
+        id: 'listing-kg-string',
+        component_id: 'part-2',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Kilogram listing',
+        address: 'Test street 2',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: '5.000' as any,
+        unit: MarketListingUnit.kg,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      }
+    ]));
+
+    component.openCategory(component.materialGroups[0]);
+    component.onCategoryFilterChange({
+      ...component.categoryFilter,
+      quantityMin: 4,
+      quantityUnit: MarketListingUnit.kg
+    });
+
+    expect(component.selectedCategory?.listings.map(listing => listing.id)).toEqual(['listing-kg-string']);
+    expect(component.activeCategoryFilterCount).toBe(1);
+  });
+
+  it('filters object category listings by implicit Stück unit and minimum quantity', () => {
+    marketListingService.getMarketListingsByObjectType.and.returnValue(of([
+      {
+        id: 'object-too-small',
+        component_id: 'object-1',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: null,
+        component_category: BuildingComponentCategory.Objekt,
+        object_type: component.objectTypes[0].title as any,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Small object listing',
+        address: 'Test street 1',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: '3.000' as any,
+        unit: MarketListingUnit.St,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      },
+      {
+        id: 'object-wrong-unit',
+        component_id: 'object-2',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: null,
+        component_category: BuildingComponentCategory.Objekt,
+        object_type: component.objectTypes[0].title as any,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Wrong unit object listing',
+        address: 'Test street 2',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: '8.000' as any,
+        unit: MarketListingUnit.m,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      },
+      {
+        id: 'object-matching',
+        component_id: 'object-3',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: null,
+        component_category: BuildingComponentCategory.Objekt,
+        object_type: component.objectTypes[0].title as any,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Matching object listing',
+        address: 'Test street 3',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: '5.000' as any,
+        unit: MarketListingUnit.St,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      }
+    ]));
+
+    component.openCategory(component.objectTypes[0]);
+    component.onCategoryFilterChange({
+      ...component.categoryFilter,
+      quantityMin: 4,
+      quantityUnit: null
+    });
+
+    expect(component.selectedCategory?.listings.map(listing => listing.id)).toEqual(['object-matching']);
+    expect(component.activeCategoryFilterCount).toBe(1);
+  });
+
+  it('normalizes listing units before applying the quantity unit filter', () => {
+    marketListingService.getMarketListingsByMaterialGroup.and.returnValue(of([
+      {
+        id: 'listing-encoded-pieces',
+        component_id: 'part-1',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Encoded pieces listing',
+        address: 'Test street 1',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: '6' as any,
+        unit: 'StÃ¼ck' as any,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      }
+    ]));
+
+    component.openCategory(component.materialGroups[0]);
+    component.onCategoryFilterChange({
+      ...component.categoryFilter,
+      quantityMin: 5,
+      quantityUnit: MarketListingUnit.St
+    });
+
+    expect(component.selectedCategory?.listings.map(listing => listing.id)).toEqual(['listing-encoded-pieces']);
     expect(component.activeCategoryFilterCount).toBe(1);
   });
 

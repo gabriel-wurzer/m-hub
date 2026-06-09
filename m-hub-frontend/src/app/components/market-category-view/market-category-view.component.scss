@@ -218,6 +218,8 @@
 }
 
 .market-filter-panel {
+  --market-filter-field-max-width: 535px;
+
   box-sizing: border-box;
   width: min(100%, 1120px);
   padding: 8px 12px 12px;
@@ -260,7 +262,8 @@
 
 .filter-panel-content {
   display: grid;
-  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  grid-template-columns: repeat(2, minmax(220px, var(--market-filter-field-max-width)));
+  justify-content: start;
   gap: 18px 22px;
 }
 
@@ -307,8 +310,8 @@
 
 .range-input-row {
   display: grid;
-  grid-template-columns: repeat(2, minmax(120px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(120px, var(--market-filter-field-max-width)));
+  gap: 12px 22px;
 }
 
 .filter-warning {
@@ -323,13 +326,13 @@
 
 .quantity-filter-row {
   display: grid;
-  grid-template-columns: repeat(2, minmax(160px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(160px, var(--market-filter-field-max-width)));
+  gap: 12px 22px;
   align-items: center;
 }
 
 .quantity-filter-row--object {
-  grid-template-columns: minmax(160px, 0.5fr);
+  grid-template-columns: minmax(160px, var(--market-filter-field-max-width));
 }
 
 .filter-panel-footer {

@@ -1,6 +1,7 @@
 import { MarketListingStatus } from '../enums/market-listing-status';
 import { MarketListingUnit } from '../enums/market-listing-unit.enum';
 import { MarketPotential } from '../enums/market-potential.enum';
+import { MaterialType } from '../enums/material-type.enum';
 
 export type MarketCategoryKind = 'material' | 'object';
 
@@ -52,6 +53,7 @@ export interface MarketListingFilter {
   quantityMin: number | null;
   quantityUnit: MarketListingUnit | null;
   availableFromMin: string | null;
+  materials: MaterialType[];
   potentials: MarketPotential[];
   statuses: MarketListingStatus[];
 }
@@ -72,6 +74,7 @@ export function createMarketListingFilter(
     quantityMin: null,
     quantityUnit: null,
     availableFromMin: null,
+    materials: [],
     potentials: [],
     statuses: [],
   };

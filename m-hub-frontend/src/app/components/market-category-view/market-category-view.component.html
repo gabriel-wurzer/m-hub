@@ -153,6 +153,22 @@
               </div>
             </section>
 
+            <section class="filter-block filter-block--material" *ngIf="currentCategory.kind === 'material'">
+              <h3>Material</h3>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Materialien</mat-label>
+                <mat-select
+                  [ngModel]="filterDraft.materials"
+                  multiple
+                  (ngModelChange)="onMaterialSelectionChange($event)">
+                  <mat-option *ngFor="let option of getMaterialOptions(currentCategory)" [value]="option">
+                    {{ option }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </section>
+
             <section class="filter-block">
               <h3>Verfügbar ab</h3>
 
@@ -166,6 +182,36 @@
                 <mat-datepicker-toggle matIconSuffix [for]="availableFromPicker"></mat-datepicker-toggle>
                 <mat-datepicker #availableFromPicker></mat-datepicker>
               </mat-form-field>
+            </section>
+
+            <section class="filter-block filter-block--quantity">
+              <h3>{{ currentCategory.kind === 'material' ? 'Menge' : 'Anzahl' }}</h3>
+
+              <div class="quantity-filter-row" [class.quantity-filter-row--object]="currentCategory.kind === 'object'">
+                <mat-form-field appearance="outline" *ngIf="currentCategory.kind === 'material'">
+                  <mat-label>Einheit</mat-label>
+                  <mat-select
+                    [ngModel]="filterDraft.quantityUnit"
+                    (ngModelChange)="onQuantityUnitSelectionChange($event)">
+                    <mat-option *ngFor="let option of unitOptions" [value]="option">
+                      {{ option }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>{{ currentCategory.kind === 'material' ? 'Menge ab' : 'Stückzahl ab' }}</mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    inputmode="decimal"
+                    [(ngModel)]="quantityInput"
+                    (ngModelChange)="onQuantityInputChange()" />
+                  <mat-hint class="filter-warning" *ngIf="isQuantityInputInvalid()">
+                    Bitte gültigen Wert eingeben.
+                  </mat-hint>
+                </mat-form-field>
+              </div>
             </section>
 
             <section class="filter-block">
@@ -198,36 +244,6 @@
                   </mat-option>
                 </mat-select>
               </mat-form-field>
-            </section>
-
-            <section class="filter-block filter-block--quantity">
-              <h3>{{ currentCategory.kind === 'material' ? 'Menge' : 'Anzahl' }}</h3>
-
-              <div class="quantity-filter-row" [class.quantity-filter-row--object]="currentCategory.kind === 'object'">
-                <mat-form-field appearance="outline" *ngIf="currentCategory.kind === 'material'">
-                  <mat-label>Einheit</mat-label>
-                  <mat-select
-                    [ngModel]="filterDraft.quantityUnit"
-                    (ngModelChange)="onQuantityUnitSelectionChange($event)">
-                    <mat-option *ngFor="let option of unitOptions" [value]="option">
-                      {{ option }}
-                    </mat-option>
-                  </mat-select>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                  <mat-label>{{ currentCategory.kind === 'material' ? 'Menge ab' : 'Stückzahl ab' }}</mat-label>
-                  <input
-                    matInput
-                    type="text"
-                    inputmode="decimal"
-                    [(ngModel)]="quantityInput"
-                    (ngModelChange)="onQuantityInputChange()" />
-                  <mat-hint class="filter-warning" *ngIf="isQuantityInputInvalid()">
-                    Bitte gültigen Wert eingeben.
-                  </mat-hint>
-                </mat-form-field>
-              </div>
             </section>
           </div>
 
