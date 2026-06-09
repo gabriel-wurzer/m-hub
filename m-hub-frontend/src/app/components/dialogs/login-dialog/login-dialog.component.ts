@@ -26,9 +26,13 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrl: './login-dialog.component.scss'
 })
 export class LoginDialogComponent {
-loginForm: FormGroup;
+  readonly registrationEmail = 'm-hub@dap.tuwien.ac.at';
+  readonly registrationMailto = `mailto:${this.registrationEmail}`;
+
+  loginForm: FormGroup;
   isLoading = false;
   errorMessage = '';
+  showRegistrationInfo = false;
 
   hide = true;
 
@@ -64,5 +68,14 @@ loginForm: FormGroup;
         }
       }
     });
+  }
+
+  showRegistration(): void {
+    this.showRegistrationInfo = true;
+    this.errorMessage = '';
+  }
+
+  showLogin(): void {
+    this.showRegistrationInfo = false;
   }
 }

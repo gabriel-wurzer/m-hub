@@ -1,50 +1,73 @@
-<h2 mat-dialog-title>Anmelden</h2>
+<h2 mat-dialog-title>{{ showRegistrationInfo ? 'Registrieren' : 'Anmelden' }}</h2>
     
 <mat-dialog-content>
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <div class="form-container">
-            
-            <mat-form-field appearance="outline" class="full-width">
-                <mat-label>E-Mail</mat-label>
-                <input matInput type="email" formControlName="email" placeholder="alice@example.com">
-                <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
-                    Bitte E-Mail-Adresse angeben
-                </mat-error>
+    <ng-container *ngIf="!showRegistrationInfo; else registrationInfo">
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <div class="form-container">
 
-                <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
-                    Ungültiges E-Mail Format
-                </mat-error>
-            </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>E-Mail</mat-label>
+                    <input matInput type="email" formControlName="email" placeholder="alice@example.com">
+                    <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
+                        Bitte E-Mail-Adresse angeben
+                    </mat-error>
 
-            <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Passwort</mat-label>
-                <input matInput [type]="hide ? 'password' : 'text'" formControlName="password">
-                <button mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-label]="'Passwort verbergen'" [attr.aria-pressed]="hide" type="button">
-                    <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
-                </button>
+                    <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
+                        Ungültiges E-Mail Format
+                    </mat-error>
+                </mat-form-field>
 
-                <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
-                    Bitte Passwort angeben
-                </mat-error>
-            </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Passwort</mat-label>
+                    <input matInput [type]="hide ? 'password' : 'text'" formControlName="password">
+                    <button mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-label]="'Passwort verbergen'" [attr.aria-pressed]="hide" type="button">
+                        <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                    </button>
 
-            <div class="error-msg" *ngIf="errorMessage">
-            {{ errorMessage }}
+                    <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+                        Bitte Passwort angeben
+                    </mat-error>
+                </mat-form-field>
+
+                <div class="error-msg" *ngIf="errorMessage">
+                    {{ errorMessage }}
+                </div>
+
+                <div class="registration-entry">
+                    <span>Noch kein Zugang?</span>
+                    <button mat-button color="primary" type="button" (click)="showRegistration()">
+                        Registrieren
+                    </button>
+                </div>
             </div>
+        </form>
+    </ng-container>
+
+    <ng-template #registrationInfo>
+        <div class="registration-info" role="status">
+            <mat-icon aria-hidden="true">mail</mat-icon>
+            <p>
+                Für die Registrierung senden Sie bitte eine E-Mail an:
+                <a [href]="registrationMailto">{{ registrationEmail }}</a>
+            </p>
         </div>
-    </form>
+    </ng-template>
 </mat-dialog-content>
 
 
 
 <mat-dialog-actions class="actions">
     <button mat-button mat-dialog-close>Abbrechen</button>
+
+    <button mat-button color="primary" type="button" (click)="showLogin()" *ngIf="showRegistrationInfo">
+        Zurück
+    </button>
     
-    <button mat-button color="primary" (click)="onSubmit()" *ngIf="!isLoading" [disabled]="loginForm.invalid" class="login-button">
+    <button mat-button color="primary" (click)="onSubmit()" *ngIf="!showRegistrationInfo && !isLoading" [disabled]="loginForm.invalid" class="login-button">
         <!-- <ng-template #loginText>Login</ng-template> -->
          Login
     </button>
-    <div class="spinner-container" *ngIf="isLoading">
+    <div class="spinner-container" *ngIf="!showRegistrationInfo && isLoading">
         <mat-spinner diameter="20" color="accent"></mat-spinner>
     </div>
     
