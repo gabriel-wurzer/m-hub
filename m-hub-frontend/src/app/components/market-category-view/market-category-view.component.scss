@@ -28,6 +28,18 @@
   flex-wrap: wrap;
 }
 
+.market-category-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.filter-toggle-button {
+  width: min(100%, 150px);
+}
+
 .back-button,
 .filter-toggle-button,
 .my-listings-button {
@@ -35,7 +47,7 @@
 }
 
 .market-header-actions .back-button,
-.market-header-actions .filter-toggle-button,
+.market-category-actions .filter-toggle-button,
 .market-header-actions .my-listings-button {
   --mdc-outlined-button-label-text-color: #{mat.get-color-from-palette(vars.$my-secondary, 700)};
   --mdc-outlined-button-outline-color: #{mat.get-color-from-palette(vars.$my-secondary, 300)};
@@ -77,6 +89,7 @@
   gap: 8px;
 
   p {
+    margin: 0 0 10px;
     max-width: 760px;
     color: rgba(0, 0, 0, 0.62);
   }

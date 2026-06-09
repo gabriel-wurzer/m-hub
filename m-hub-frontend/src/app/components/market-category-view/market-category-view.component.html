@@ -1,24 +1,10 @@
 <ng-container *ngIf="category as currentCategory">
   <div class="market-category-view">
     <header class="market-category-header">
-      
       <div class="market-header-actions">
         <button mat-stroked-button class="back-button" type="button" (click)="back.emit()">
           <mat-icon>arrow_back</mat-icon>
           Zur Übersicht
-        </button>
-
-        <button
-          mat-stroked-button
-          class="filter-toggle-button"
-          [class.active]="isFilterPanelVisible || activeFilterCount > 0"
-          type="button"
-          aria-controls="market-filter-panel"
-          [attr.aria-expanded]="isFilterPanelVisible"
-          (click)="toggleFilterPanel()">
-          <mat-icon>filter_alt</mat-icon>
-          Filter
-          <span class="filter-count-badge" *ngIf="activeFilterCount > 0">{{ activeFilterCount }}</span>
         </button>
 
         <button
@@ -32,7 +18,6 @@
           Meine Inserate
         </button>
       </div>
-      
 
       <div class="market-category-heading">
         <div class="market-category-title-row">
@@ -42,6 +27,21 @@
           </span>
         </div>
         <p>{{ currentCategory.description }}</p>
+      </div>
+
+      <div class="market-category-actions">
+        <button
+          mat-stroked-button
+          class="filter-toggle-button"
+          [class.active]="isFilterPanelVisible || activeFilterCount > 0"
+          type="button"
+          aria-controls="market-filter-panel"
+          [attr.aria-expanded]="isFilterPanelVisible"
+          (click)="toggleFilterPanel()">
+          <mat-icon>filter_alt</mat-icon>
+          Filter
+          <span class="filter-count-badge" *ngIf="activeFilterCount > 0">{{ activeFilterCount }}</span>
+        </button>
       </div>
     </header>
 
