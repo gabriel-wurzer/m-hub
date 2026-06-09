@@ -30,12 +30,14 @@ describe('MarketComponent', () => {
       'getMarketListingCategoryCounts',
       'getMarketListingsByMaterialGroup',
       'getMarketListingsByObjectType',
+      'searchMarketListings',
       'getMarketListingById'
     ]);
     authService = jasmine.createSpyObj<AuthenticationService>('AuthenticationService', ['getUser$']);
     marketListingService.getMarketListingCategoryCounts.and.returnValue(of([]));
     marketListingService.getMarketListingsByMaterialGroup.and.returnValue(of([]));
     marketListingService.getMarketListingsByObjectType.and.returnValue(of([]));
+    marketListingService.searchMarketListings.and.returnValue(of([]));
     marketListingService.getMarketListingById.and.returnValue(of({} as any));
     authService.getUser$.and.returnValue(of(null));
 
@@ -61,6 +63,117 @@ describe('MarketComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('binds and clears the market listing search query', async () => {
+    const searchInput = fixture.nativeElement.querySelector('input[name="marketSearch"]') as HTMLInputElement;
+
+    expect(searchInput).not.toBeNull();
+    expect(searchInput.placeholder).toBe('Inserate suchen..');
+    expect(fixture.nativeElement.querySelector('.market-search-icon-button')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.market-search-submit-button')).toBeNull();
+
+    searchInput.value = 'Beton';
+    searchInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.marketSearchQuery).toBe('Beton');
+
+    const clearButton = fixture.nativeElement.querySelector('.market-search-clear-button') as HTMLButtonElement;
+    expect(clearButton).not.toBeNull();
+
+    clearButton.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.marketSearchQuery).toBe('');
+    expect(searchInput.value).toBe('');
+  });
+
+  it('searches market listings and renders visible results', async () => {
+    marketListingService.searchMarketListings.and.returnValue(of([
+      {
+        id: 'listing-search-1',
+        component_id: 'part-1',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Betonplatte',
+        address: 'Test street 1',
+        price: 100,
+        status: MarketListingStatus.eingelagert,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: 12,
+        unit: MarketListingUnit.m,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      },
+      {
+        id: 'listing-search-sold',
+        component_id: 'part-2',
+        owner_id: 'user-1',
+        user_building_id: 'user-building-1',
+        building_id: 'building-1',
+        location: 'EG',
+        component_category: BuildingComponentCategory.Bauteil,
+        material: MaterialType.mat_3,
+        length: null,
+        width: null,
+        height: null,
+        name: 'Verkaufte Betonplatte',
+        address: 'Test street 1',
+        price: 100,
+        status: MarketListingStatus.verkauft,
+        available_from: '2026-04-22',
+        potential: MarketPotential.reuse,
+        quantity: 12,
+        unit: MarketListingUnit.m,
+        contact: 'user@example.com',
+        images: [],
+        created_at: '2026-04-22T00:00:00Z',
+        updated_at: '2026-04-22T00:00:00Z'
+      }
+    ]));
+
+    const searchInput = fixture.nativeElement.querySelector('input[name="marketSearch"]') as HTMLInputElement;
+    searchInput.value = 'Beton';
+    searchInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    component.onMarketSearchSubmit();
+    fixture.detectChanges();
+
+    expect(marketListingService.searchMarketListings).toHaveBeenCalledOnceWith('Beton');
+    expect(component.marketSearchResults.map(listing => listing.id)).toEqual(['listing-search-1']);
+    expect(fixture.nativeElement.querySelector('.search-results-header')?.textContent).toContain('1 Inserat gefunden');
+    expect(fixture.nativeElement.querySelectorAll('.listing-card').length).toBe(1);
+    expect(fixture.nativeElement.querySelector('.listing-card')?.textContent).toContain('Betonplatte');
+    expect(fixture.nativeElement.querySelector('.market-section')).toBeNull();
+
+    const clearResultsButton = fixture.nativeElement.querySelector('.clear-search-results-button') as HTMLButtonElement;
+    expect(clearResultsButton).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.market-search-results')?.firstElementChild).toBe(clearResultsButton);
+
+    clearResultsButton.click();
+    fixture.detectChanges();
+
+    expect(component.marketSearchQuery).toBe('Beton');
+    expect(component.hasMarketSearchRun).toBeFalse();
+    expect(component.marketSearchResults).toEqual([]);
+    expect(fixture.nativeElement.querySelector('.market-search-results')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.market-section')).not.toBeNull();
+    expect((fixture.nativeElement.querySelector('input[name="marketSearch"]') as HTMLInputElement).value).toBe('Beton');
   });
 
   it('loads real market listing counts for overview category cards', () => {

@@ -22,78 +22,211 @@
           </button>
         </header>
 
+        <form class="market-search-form" role="search" (ngSubmit)="onMarketSearchSubmit()">
+          <mat-form-field appearance="outline" class="market-search-field">
+            <input
+              matInput
+              type="search"
+              name="marketSearch"
+              placeholder="Inserate suchen.."
+              aria-label="Inserate suchen"
+              autocomplete="off"
+              [(ngModel)]="marketSearchQuery" />
+            <button
+              *ngIf="marketSearchQuery"
+              mat-icon-button
+              matIconSuffix
+              class="market-search-clear-button"
+              type="button"
+              aria-label="Suche löschen"
+              [disableRipple]="true"
+              (click)="clearMarketSearch()">
+              <mat-icon>close</mat-icon>
+            </button>
+
+            <button
+              matIconSuffix
+              class="market-search-icon-button"
+              type="submit"
+              aria-label="Suche starten"
+              [disabled]="!marketSearchQuery.trim() || isMarketSearchLoading">
+              <mat-icon>search</mat-icon>
+            </button>
+          </mat-form-field>
+        </form>
+
         <mat-divider class="horizontal-divider"></mat-divider>
 
         <div class="market-content">
-          <section class="market-section">
-            <div class="section-header">
-              <h2>Materialien</h2>
-              <p>{{ materialGroups.length }} Materialgruppen</p>
+          <section
+            class="market-search-results"
+            *ngIf="isMarketSearchViewActive">
+            <button
+              mat-stroked-button
+              class="clear-search-results-button"
+              type="button"
+              (click)="closeMarketSearchResults()">
+              <mat-icon>arrow_back</mat-icon>
+              Zur Übersicht
+            </button>
+
+            <header class="search-results-header">
+              <div>
+                <h2>Suchergebnisse</h2>
+                <p *ngIf="submittedMarketSearchQuery">
+                  {{ marketSearchResultCountLabel }} f&uuml;r "{{ submittedMarketSearchQuery }}"
+                </p>
+              </div>
+            </header>
+
+            <div class="listing-panel-state error" *ngIf="!isMarketSearchLoading && marketSearchLoadError">
+              {{ marketSearchLoadError }}
             </div>
 
-            <div class="card-grid">
-              <mat-card
-                class="market-card"
-                *ngFor="let item of materialGroups; trackBy: trackByCategoryId"
-                tabindex="0"
-                role="button"
-                (click)="openCategory(item)"
-                (keydown.enter)="openCategory(item)"
-                (keydown.space)="openCategory(item); $event.preventDefault()">
-                <div class="card-image-shell">
-                  <img
-                    [src]="item.imageSrc"
-                    [alt]="item.imageAlt"
-                    class="card-image"
-                    loading="lazy" />
-                </div>
+            <div
+              class="listing-panel-state"
+              *ngIf="!isMarketSearchLoading && !marketSearchLoadError && marketSearchResults.length === 0">
+              Keine Marktinserate passen zu deiner Suche.
+            </div>
 
-                <mat-card-content class="card-content">
-                  <div class="card-header-row">
-                    <h3>{{ item.title }}</h3>
-                    <span *ngIf="categoryCountsLoaded" class="card-tag">{{ formatCategoryListingCount(item) }}</span>
+            <div
+              class="listing-stack"
+              [class.listing-stack--loading]="isMarketSearchLoading"
+              *ngIf="isMarketSearchLoading || (!marketSearchLoadError && marketSearchResults.length > 0)">
+              <div class="spinner-container" *ngIf="isMarketSearchLoading">
+                <mat-spinner [diameter]="72" [strokeWidth]="5" class="loading-spinner" />
+              </div>
+
+              <ng-container *ngIf="!isMarketSearchLoading && !marketSearchLoadError">
+                <mat-card
+                  class="listing-card"
+                  *ngFor="let item of marketSearchResults; trackBy: trackByListingId"
+                  tabindex="0"
+                  role="button"
+                  (click)="selectSearchResult(item)"
+                  (keydown.enter)="selectSearchResult(item)"
+                  (keydown.space)="selectSearchResult(item); $event.preventDefault()">
+                  <div class="listing-image-shell">
+                    <img
+                      [src]="item.imageSrc"
+                      [alt]="item.imageAlt"
+                      class="listing-image"
+                      [class.listing-image--placeholder]="isPlaceholderImage(item.imageSrc)"
+                      loading="lazy" />
                   </div>
-                  <p class="card-description">{{ item.description }}</p>
-                </mat-card-content>
-              </mat-card>
+
+                  <div class="listing-copy">
+                    <h3>{{ item.title }}</h3>
+
+                    <div class="listing-specs material-specs" *ngIf="isMaterialSearchResult(item); else objectSearchSpecs">
+                      <p class="spec-field spec-price">Preis: {{ item.price }}</p>
+                      <p class="spec-field spec-material">Material: {{ item.material || '-' }}</p>
+                      <p class="spec-field spec-length">L&auml;nge: {{ getDimensionValue(item, 0) }}</p>
+
+                      <p class="spec-field spec-quantity">{{ item.quantityLabel || 'Menge' }}: {{ item.quantity }}</p>
+                      <p class="spec-field spec-potential">Potenzial: {{ item.potential || '-' }}</p>
+                      <p class="spec-field spec-width">Breite: {{ getDimensionValue(item, 1) }}</p>
+
+                      <p class="spec-field spec-status">Status: {{ item.status || '-' }}</p>
+                      <p class="spec-field spec-height">H&ouml;he: {{ getDimensionValue(item, 2) }}</p>
+
+                      <p class="spec-field spec-address">Adresse: {{ item.address || '-' }}</p>
+                      <p class="spec-field spec-available">Verf&uuml;gbar ab: {{ item.availableFrom || '-' }}</p>
+                    </div>
+
+                    <ng-template #objectSearchSpecs>
+                      <div class="listing-specs object-specs">
+                        <p class="spec-field spec-price">Preis: {{ item.price }}</p>
+                        <p class="spec-field spec-status">Status: {{ item.status || '-' }}</p>
+                        <p class="spec-field spec-length">L&auml;nge: {{ getDimensionValue(item, 0) }}</p>
+
+                        <p class="spec-field spec-quantity">{{ item.quantityLabel || 'Anzahl' }}: {{ item.quantity }}</p>
+                        <p class="spec-field spec-potential">Potenzial: {{ item.potential || '-' }}</p>
+                        <p class="spec-field spec-width">Breite: {{ getDimensionValue(item, 1) }}</p>
+
+                        <p class="spec-field spec-height">H&ouml;he: {{ getDimensionValue(item, 2) }}</p>
+
+                        <p class="spec-field spec-address">Adresse: {{ item.address || '-' }}</p>
+                        <p class="spec-field spec-available">Verf&uuml;gbar ab: {{ item.availableFrom || '-' }}</p>
+                      </div>
+                    </ng-template>
+                  </div>
+                </mat-card>
+              </ng-container>
             </div>
           </section>
 
-          <mat-divider></mat-divider>
+          <ng-container *ngIf="!isMarketSearchViewActive">
+            <section class="market-section">
+              <div class="section-header">
+                <h2>Materialien</h2>
+                <p>{{ materialGroups.length }} Materialgruppen</p>
+              </div>
 
-          <section class="market-section">
-            <div class="section-header">
-              <h2>Objekt-Kategorien</h2>
-              <p>{{ objectTypes.length }} Kategorien</p>
-            </div>
-
-            <div class="card-grid">
-              <mat-card
-                class="market-card"
-                *ngFor="let item of objectTypes; trackBy: trackByCategoryId"
-                tabindex="0"
-                role="button"
-                (click)="openCategory(item)"
-                (keydown.enter)="openCategory(item)"
-                (keydown.space)="openCategory(item); $event.preventDefault()">
-                <div class="card-image-shell">
-                  <img
-                    [src]="item.imageSrc"
-                    [alt]="item.imageAlt"
-                    class="card-image"
-                    loading="lazy" />
-                </div>
-
-                <mat-card-content class="card-content">
-                  <div class="card-header-row">
-                    <h3>{{ item.title }}</h3>
-                    <span *ngIf="categoryCountsLoaded" class="card-tag">{{ formatCategoryListingCount(item) }}</span>
+              <div class="card-grid">
+                <mat-card
+                  class="market-card"
+                  *ngFor="let item of materialGroups; trackBy: trackByCategoryId"
+                  tabindex="0"
+                  role="button"
+                  (click)="openCategory(item)"
+                  (keydown.enter)="openCategory(item)"
+                  (keydown.space)="openCategory(item); $event.preventDefault()">
+                  <div class="card-image-shell">
+                    <img
+                      [src]="item.imageSrc"
+                      [alt]="item.imageAlt"
+                      class="card-image"
+                      loading="lazy" />
                   </div>
-                  <p class="card-description">{{ item.description }}</p>
-                </mat-card-content>
-              </mat-card>
-            </div>
-          </section>
+
+                  <mat-card-content class="card-content">
+                    <div class="card-header-row">
+                      <h3>{{ item.title }}</h3>
+                      <span *ngIf="categoryCountsLoaded" class="card-tag">{{ formatCategoryListingCount(item) }}</span>
+                    </div>
+                    <p class="card-description">{{ item.description }}</p>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+            </section>
+
+            <mat-divider></mat-divider>
+
+            <section class="market-section">
+              <div class="section-header">
+                <h2>Objekt-Kategorien</h2>
+                <p>{{ objectTypes.length }} Kategorien</p>
+              </div>
+
+              <div class="card-grid">
+                <mat-card
+                  class="market-card"
+                  *ngFor="let item of objectTypes; trackBy: trackByCategoryId"
+                  tabindex="0"
+                  role="button"
+                  (click)="openCategory(item)"
+                  (keydown.enter)="openCategory(item)"
+                  (keydown.space)="openCategory(item); $event.preventDefault()">
+                  <div class="card-image-shell">
+                    <img
+                      [src]="item.imageSrc"
+                      [alt]="item.imageAlt"
+                      class="card-image"
+                      loading="lazy" />
+                  </div>
+
+                  <mat-card-content class="card-content">
+                    <div class="card-header-row">
+                      <h3>{{ item.title }}</h3>
+                      <span *ngIf="categoryCountsLoaded" class="card-tag">{{ formatCategoryListingCount(item) }}</span>
+                    </div>
+                    <p class="card-description">{{ item.description }}</p>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+            </section>
+          </ng-container>
         </div>
       </ng-container>
 

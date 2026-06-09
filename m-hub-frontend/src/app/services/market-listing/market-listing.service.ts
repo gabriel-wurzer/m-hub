@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 import { CreateMarketListing, MarketListing, SimilarMarketListing, UpdateMarketListing } from '../../models/market-listing';
 import { MaterialType } from '../../enums/material-type.enum';
 import { ObjectType } from '../../enums/object-type';
@@ -70,6 +70,20 @@ export class MarketListingService {
     const params = new HttpParams().set('owner_id', ownerId);
 
     return this.http.get<MarketListing[]>(this.apiUrl, { params }).pipe(
+      map(listings => this.sortAndDedupeListings(listings))
+    );
+  }
+
+  searchMarketListings(query: string): Observable<MarketListing[]> {
+    const normalizedQuery = query.trim();
+
+    if (!normalizedQuery) {
+      return of([]);
+    }
+
+    const params = new HttpParams().set('q', normalizedQuery);
+
+    return this.http.get<MarketListing[]>(`${this.apiUrl}/search`, { params }).pipe(
       map(listings => this.sortAndDedupeListings(listings))
     );
   }

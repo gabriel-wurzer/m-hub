@@ -1,7 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { map, Observable, Subscription } from 'rxjs';
 
 import { MATERIAL_GROUP_CATEGORIES, OBJECT_TYPE_CATEGORIES } from '../../utils/market-catalog';
@@ -19,7 +23,7 @@ import {
 } from '../../models/market.models';
 import { MarketListing as ApiMarketListing } from '../../models/market-listing';
 import { MarketListingCategoryCount, MarketListingService } from '../../services/market-listing/market-listing.service';
-import { MaterialGroup } from '../../enums/material-group';
+import { getMaterialGroupForType, MaterialGroup } from '../../enums/material-group';
 import { MaterialType } from '../../enums/material-type.enum';
 import { ObjectType } from '../../enums/object-type';
 import { BuildingComponentCategory } from '../../enums/component-category';
@@ -36,8 +40,12 @@ import { MarketListingComponent } from '../market-listing/market-listing.compone
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatCardModule,
     MatDividerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
     MatButtonModule,
     MatIconModule,
     MarketCategoryViewComponent,
@@ -60,6 +68,12 @@ export class MarketComponent implements OnInit, OnDestroy {
   isCategoryCountLoading = false;
   categoryCountsLoaded = false;
   isUserListingsViewVisible = false;
+  marketSearchQuery = '';
+  submittedMarketSearchQuery = '';
+  marketSearchResults: MarketCategoryListing[] = [];
+  isMarketSearchLoading = false;
+  marketSearchLoadError: string | null = null;
+  hasMarketSearchRun = false;
   activeMarketListing: ApiMarketListing | null = null;
   isMarketListingViewVisible = false;
   isMarketListingLoading = false;
@@ -67,6 +81,7 @@ export class MarketComponent implements OnInit, OnDestroy {
 
   private categoryLoadSubscription?: Subscription;
   private categoryCountSubscription?: Subscription;
+  private marketSearchSubscription?: Subscription;
   private marketListingLoadSubscription?: Subscription;
   private readonly categoryCounts = new Map<string, number>();
   private categoryApiListings: ApiMarketListing[] = [];
@@ -130,6 +145,7 @@ export class MarketComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.categoryLoadSubscription?.unsubscribe();
     this.categoryCountSubscription?.unsubscribe();
+    this.marketSearchSubscription?.unsubscribe();
     this.marketListingLoadSubscription?.unsubscribe();
   }
 
@@ -160,6 +176,98 @@ export class MarketComponent implements OnInit, OnDestroy {
     }
 
     this.renderSelectedCategoryListings(this.selectedCategory);
+  }
+
+  onMarketSearchSubmit(): void {
+    const query = this.marketSearchQuery.trim();
+    this.marketSearchQuery = query;
+    this.marketSearchSubscription?.unsubscribe();
+
+    if (!query) {
+      this.resetMarketSearchState();
+      return;
+    }
+
+    this.submittedMarketSearchQuery = query;
+    this.marketSearchResults = [];
+    this.marketSearchLoadError = null;
+    this.isMarketSearchLoading = true;
+    this.hasMarketSearchRun = true;
+
+    this.marketSearchSubscription = this.marketListingService.searchMarketListings(query).subscribe({
+      next: listings => {
+        const visibleListings = this.filterVisibleCategoryListings(listings);
+        this.marketSearchResults = visibleListings.map(listing =>
+          this.mapApiListingToCategoryListing(listing, this.getSearchResultCategory(listing))
+        );
+        this.isMarketSearchLoading = false;
+      },
+      error: error => {
+        console.error('Error searching market listings:', error);
+        this.marketSearchResults = [];
+        this.isMarketSearchLoading = false;
+        this.marketSearchLoadError = 'Marktinserate konnten nicht gesucht werden.';
+      }
+    });
+  }
+
+  clearMarketSearch(): void {
+    this.marketSearchQuery = '';
+    this.resetMarketSearchState();
+  }
+
+  closeMarketSearchResults(): void {
+    this.resetMarketSearchState();
+  }
+
+  trackByListingId(_: number, item: MarketCategoryListing): string {
+    return item.id;
+  }
+
+  selectSearchResult(item: MarketCategoryListing): void {
+    this.openMarketListing(item);
+  }
+
+  getDimensionValue(item: MarketCategoryListing, index: number): string {
+    return item.dimensions?.[index]?.value ?? '-';
+  }
+
+  isPlaceholderImage(imageSrc: string | null | undefined): boolean {
+    return imageSrc?.trim().toLowerCase().startsWith('data:image/svg+xml') ?? false;
+  }
+
+  isMaterialSearchResult(item: MarketCategoryListing): boolean {
+    return item.material !== null;
+  }
+
+  get marketSearchResultCountLabel(): string {
+    const count = this.marketSearchResults.length;
+    return `${count} ${count === 1 ? 'Inserat' : 'Inserate'} gefunden`;
+  }
+
+  get isMarketSearchViewActive(): boolean {
+    return this.hasMarketSearchRun || this.isMarketSearchLoading || !!this.marketSearchLoadError;
+  }
+
+  private resetMarketSearchState(): void {
+    this.marketSearchSubscription?.unsubscribe();
+    this.submittedMarketSearchQuery = '';
+    this.marketSearchResults = [];
+    this.isMarketSearchLoading = false;
+    this.marketSearchLoadError = null;
+    this.hasMarketSearchRun = false;
+  }
+
+  private getSearchResultCategory(listing: ApiMarketListing): MarketCategory {
+    if (listing.component_category === BuildingComponentCategory.Objekt) {
+      return this.objectTypes.find(category => category.title === listing.object_type)
+        ?? this.objectTypes[0];
+    }
+
+    const materialGroup = getMaterialGroupForType(listing.material);
+
+    return this.materialGroups.find(category => category.title === materialGroup)
+      ?? this.materialGroups[0];
   }
 
   private loadCategoryCounts(): void {

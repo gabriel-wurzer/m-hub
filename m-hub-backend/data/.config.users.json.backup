@@ -14,13 +14,22 @@
                 "view-node-info-icon": true
             },
             "tours": {
-                "welcome": "4.1.0"
+                "welcome": "5.0.0"
             },
             "dialog": {
                 "export": {
                     "pretty": true,
                     "json-view": false
                 }
+            },
+            "sidebar": {
+                "order": [
+                    "debug",
+                    "info",
+                    "help",
+                    "config",
+                    "context"
+                ]
             }
         }
     }

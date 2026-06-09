@@ -14,7 +14,7 @@
                 "view-node-info-icon": true
             },
             "tours": {
-                "welcome": "4.1.0"
+                "welcome": "5.0.0"
             },
             "dialog": {
                 "export": {
@@ -29,7 +29,50 @@
                     "help",
                     "config",
                     "context"
-                ]
+                ],
+                "state": {
+                    "v": 4,
+                    "tabs": [],
+                    "primary": {
+                        "width": 300,
+                        "top": {
+                            "tabs": [
+                                "info",
+                                "help",
+                                "config",
+                                "context"
+                            ],
+                            "height": 302,
+                            "hidden": false,
+                            "active": "info"
+                        },
+                        "bottom": {
+                            "tabs": [
+                                "debug"
+                            ],
+                            "hidden": false,
+                            "active": "debug"
+                        }
+                    },
+                    "secondary": {
+                        "width": 210,
+                        "top": {
+                            "tabs": [
+                                "explorer"
+                            ],
+                            "height": 538,
+                            "hidden": false,
+                            "active": "explorer"
+                        },
+                        "bottom": {
+                            "tabs": [
+                                "palette"
+                            ],
+                            "hidden": false,
+                            "active": "palette"
+                        }
+                    }
+                }
             }
         }
     }

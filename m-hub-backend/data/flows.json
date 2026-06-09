@@ -225,6 +225,14 @@
         "env": []
     },
     {
+        "id": "32d65a8022e75f29",
+        "type": "tab",
+        "label": "GET LISTINGS by Search",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "94902d2db457c511",
         "type": "tab",
         "label": "GET Listings (similar in radius)",
@@ -4697,6 +4705,166 @@
         "x": 250,
         "y": 120,
         "wires": []
+    },
+    {
+        "id": "65c16416ddb507c3",
+        "type": "comment",
+        "z": "32d65a8022e75f29",
+        "name": "http://localhost:1880/api/market-listings/search",
+        "info": "",
+        "x": 420,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "1ccabcfd2db1db22",
+        "type": "http in",
+        "z": "32d65a8022e75f29",
+        "name": "GET market-listings",
+        "url": "/api/market-listings/search",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 330,
+        "y": 180,
+        "wires": [
+            [
+                "3456ed1e3e11da74"
+            ]
+        ]
+    },
+    {
+        "id": "6176c5be14114c45",
+        "type": "catch",
+        "z": "32d65a8022e75f29",
+        "name": "",
+        "scope": [
+            "f204d12b3a7f1702"
+        ],
+        "uncaught": false,
+        "x": 790,
+        "y": 360,
+        "wires": [
+            [
+                "666e8724a0c328e8"
+            ]
+        ]
+    },
+    {
+        "id": "666e8724a0c328e8",
+        "type": "function",
+        "z": "32d65a8022e75f29",
+        "name": "handle db errors",
+        "func": "const errMsg = msg.error && msg.error.message ? msg.error.message : '';\n\nmsg.statusCode = 500; // Internal Server Error\nmsg.payload = { error: 'Database error', details: errMsg };\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1000,
+        "y": 360,
+        "wires": [
+            [
+                "ede26bc32ec89554"
+            ]
+        ]
+    },
+    {
+        "id": "3456ed1e3e11da74",
+        "type": "function",
+        "z": "32d65a8022e75f29",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET');\n\nif (!secret) {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Server misconfigured: JWT_SECRET missing' };\n    return [null, msg];\n}\n\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.user = null;\n    return [msg, null];\n}\n\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.user = null;\n    return [msg, null];\n}\n\nconst token = parts[1];\n\ntry {\n    const decoded = jwt.verify(token, secret);\n    msg.user = decoded;\n} catch (err) {\n    msg.user = null;\n}\n\nreturn [msg, null];\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 320,
+        "wires": [
+            [
+                "da437c640ddacf1d"
+            ],
+            [
+                "ede26bc32ec89554"
+            ]
+        ]
+    },
+    {
+        "id": "da437c640ddacf1d",
+        "type": "function",
+        "z": "32d65a8022e75f29",
+        "name": "build SQL query",
+        "func": "const rawQuery = typeof msg.req?.query?.q === 'string'\n    ? msg.req.query.q.trim()\n    : '';\n\nif (!rawQuery) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Search query q is required' };\n    return [null, msg];\n}\n\nconst normalizedQuery = rawQuery\n    .replace(/\\s+/g, ' ')\n    .slice(0, 120)\n    .toLowerCase();\n\nmsg.query = `\n    SELECT\n        listing.*,\n        COALESCE(images.images, '[]'::json) AS images\n    FROM market_listings listing\n    LEFT JOIN LATERAL (\n        SELECT json_agg(\n            json_build_object(\n                'id', image.id,\n                'market_listing_id', image.market_listing_id,\n                'sort_order', image.sort_order,\n                'image_path', image.image_path,\n                'image_mime_type', image.image_mime_type,\n                'image_original_name', image.image_original_name,\n                'image_size_bytes', image.image_size_bytes,\n                'created_at', image.created_at,\n                'updated_at', image.updated_at\n            )\n            ORDER BY image.sort_order\n        ) AS images\n        FROM market_listing_images image\n        WHERE image.market_listing_id = listing.id\n    ) images ON true\n    WHERE listing.status <> 'verkauft'\n      AND (\n        strpos(LOWER(COALESCE(listing.name, '')), $1) > 0\n        OR strpos(LOWER(COALESCE(listing.description, '')), $1) > 0\n        OR strpos(LOWER(COALESCE(listing.material, '')), $1) > 0\n        OR strpos(LOWER(COALESCE(listing.object_type, '')), $1) > 0\n      )\n    ORDER BY listing.created_at DESC\n    LIMIT 100\n`;\n\nmsg.params = [normalizedQuery];\n\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 460,
+        "wires": [
+            [
+                "f204d12b3a7f1702"
+            ],
+            [
+                "ede26bc32ec89554"
+            ]
+        ]
+    },
+    {
+        "id": "ede26bc32ec89554",
+        "type": "http response",
+        "z": "32d65a8022e75f29",
+        "name": "market-listings response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1110,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "f204d12b3a7f1702",
+        "type": "postgresql",
+        "z": "32d65a8022e75f29",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 540,
+        "y": 640,
+        "wires": [
+            [
+                "b297d993b491e6e0"
+            ]
+        ]
+    },
+    {
+        "id": "b297d993b491e6e0",
+        "type": "function",
+        "z": "32d65a8022e75f29",
+        "name": "format result",
+        "func": "const rows = msg.payload;\nconst publicBaseUrl = (env.get('SEAWEED_PUBLIC_BASE_URL') || 'http://localhost:8888').replace(/\\/+$/, '');\n\nconst normalizeImages = (value) => {\n  let images = value;\n\n  if (typeof images === 'string') {\n    try {\n      images = JSON.parse(images);\n    } catch (err) {\n      images = [];\n    }\n  }\n\n  if (!Array.isArray(images)) {\n    return [];\n  }\n\n  return images.map((image) => {\n    if (!image || typeof image !== 'object') return image;\n\n    const imagePath = image.image_path || null;\n\n    return {\n      ...image,\n      image_url: imagePath ? `${publicBaseUrl}${imagePath}` : null\n    };\n  });\n};\n\nconst withImageUrls = (row) => {\n  if (!row || typeof row !== 'object') return row;\n\n  return {\n    ...row,\n    images: normalizeImages(row.images)\n  };\n};\n\nif (!Array.isArray(rows)) {\n  msg.statusCode = 500;\n  msg.payload = { error: 'Database query failed' };\n  return msg;\n}\n\nmsg.statusCode = 200;\nmsg.payload = rows.map(withImageUrls);\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 770,
+        "y": 640,
+        "wires": [
+            [
+                "ede26bc32ec89554"
+            ]
+        ]
     },
     {
         "id": "2aebc6bc511b6cda",

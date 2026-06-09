@@ -61,6 +61,26 @@ describe('MarketListingService', () => {
     request.flush([]);
   });
 
+  it('searches market listings by query text', () => {
+    service.searchMarketListings(' Beton ').subscribe(listings => {
+      expect(listings).toEqual([]);
+    });
+
+    const request = httpMock.expectOne(req => req.url === '/api/market-listings/search');
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.get('q')).toBe('Beton');
+
+    request.flush([]);
+  });
+
+  it('does not request market listing search for empty query text', () => {
+    service.searchMarketListings('   ').subscribe(listings => {
+      expect(listings).toEqual([]);
+    });
+
+    httpMock.expectNone('/api/market-listings/search');
+  });
+
   it('requests similar market listings in a radius', () => {
     service.getSimilarMarketListingsInRadius('listing-1', 2000).subscribe(listings => {
       expect(listings.map(listing => listing.id)).toEqual(['listing-2']);
