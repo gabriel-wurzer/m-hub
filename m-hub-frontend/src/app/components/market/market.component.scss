@@ -90,6 +90,19 @@ main {
   }
 }
 
+.market-search-field input[type='search'] {
+  appearance: textfield;
+  -webkit-appearance: textfield;
+}
+
+.market-search-field input[type='search']::-webkit-search-cancel-button,
+.market-search-field input[type='search']::-webkit-search-decoration,
+.market-search-field input[type='search']::-webkit-search-results-button,
+.market-search-field input[type='search']::-webkit-search-results-decoration {
+  display: none;
+  -webkit-appearance: none;
+}
+
 :host ::ng-deep .market-search-field .mat-mdc-text-field-wrapper,
 :host ::ng-deep .market-search-field .mat-mdc-form-field-flex {
   height: 52px;
