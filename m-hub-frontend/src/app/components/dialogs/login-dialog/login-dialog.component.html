@@ -64,7 +64,6 @@
     </button>
     
     <button mat-button color="primary" (click)="onSubmit()" *ngIf="!showRegistrationInfo && !isLoading" [disabled]="loginForm.invalid" class="login-button">
-        <!-- <ng-template #loginText>Login</ng-template> -->
          Login
     </button>
     <div class="spinner-container" *ngIf="!showRegistrationInfo && isLoading">

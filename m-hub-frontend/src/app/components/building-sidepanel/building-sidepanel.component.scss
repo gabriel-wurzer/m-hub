@@ -12,7 +12,7 @@
     width: inherit;
     height: inherit;
     padding: 8px 12px 12px;
-    background: white;
+    background: vars.$white-background;
     border-radius: 12px;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
     overflow-y: auto;
@@ -91,11 +91,3 @@ mat-divider {
   justify-content: center;
   height: 80%;
 }
-
-// /* Responsive behavior for mobile devices*/
-// @media (max-width: 800px) {
-//     .chart-container {
-//         max-width: 420px;
-//     }
-//   }
-

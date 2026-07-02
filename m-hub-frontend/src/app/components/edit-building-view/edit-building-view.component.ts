@@ -1,5 +1,4 @@
 ﻿import {
-  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -85,7 +84,7 @@ type LocationSegment = {
   templateUrl: './edit-building-view.component.html',
   styleUrl: './edit-building-view.component.scss'
 })
-export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
+export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
   @Input() userBuilding: UserBuilding | null = null;
   @Output() closeEditView = new EventEmitter<void>();
   @Output() buildingUpdated = new EventEmitter<UserBuilding>();
@@ -144,10 +143,6 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
     if (this.userBuilding) {
       this.initializeFromBuilding(this.userBuilding);
     }
-  }
-
-  ngAfterViewInit(): void {
-    // this.scheduleScrollBinding();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -278,12 +273,10 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
         this.documents = docs;
         this.isLoadingDocuments = false;
         console.log('Docs loaded for User Building:', this.documents);
-        // this.scheduleScrollBinding();
       },
       error: (err) => {
         console.error('Error loading documents', err);
         this.isLoadingDocuments = false;
-        // this.scheduleScrollBinding();
       }
     });
   }
@@ -1128,7 +1121,6 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
 
     if (!this.hasUnsavedChanges()) {
       this.commitTabIndex(nextIndex);
-      // this.scheduleScrollBinding();
       return;
     }
 
@@ -1136,7 +1128,6 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
 
     this.isRevertingTab = true;
     this.applyTabIndex(previousIndex);
-    // this.scheduleScrollBinding();
     Promise.resolve().then(() => {
       this.applyTabIndex(previousIndex);
       this.isRevertingTab = false;
@@ -1160,7 +1151,6 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
       if (result === true) {
         this.discardUnsavedChanges();
         this.commitTabIndex(nextIndex);
-        // this.scheduleScrollBinding();
       } else {
         this.applyTabIndex(previousIndex);
       }
@@ -1192,32 +1182,4 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, AfterViewIn
       this.closeEditView.emit();
     }
   }
-
-  // private scheduleScrollBinding(): void {
-  //   setTimeout(() => this.bindScrollListener());
-  // }
-
-  // private bindScrollListener(): void {
-  //   this.removeScrollListener?.();
-  //   const contentEl = this.getActiveTabContent();
-  //   if (!contentEl) return;
-
-  //   const onScroll = () => this.updateScrollFade(contentEl);
-  //   contentEl.addEventListener('scroll', onScroll, { passive: true });
-  //   this.removeScrollListener = () => contentEl.removeEventListener('scroll', onScroll);
-
-  //   this.updateScrollFade(contentEl);
-  // }
-
-  // private getActiveTabContent(): HTMLElement | null {
-  //   return this.tabGroupRef?.nativeElement.querySelector(
-  //     '.mat-mdc-tab-body-active .mat-mdc-tab-body-content'
-  //   ) as HTMLElement | null;
-  // }
-
-  // private updateScrollFade(contentEl: HTMLElement): void {
-  //   contentEl.classList.toggle('is-scrolled', contentEl.scrollTop > 0);
-  //   const hasScrollbar = contentEl.scrollHeight > contentEl.clientHeight + 1;
-  //   contentEl.classList.toggle('has-scrollbar', hasScrollbar);
-  // }
 }

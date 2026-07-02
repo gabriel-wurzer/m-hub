@@ -277,12 +277,6 @@
             <div class="image-preview-actions">
               <div class="image-name">{{ image.fileName }}</div>
               <div class="image-action-buttons">
-                <!-- <button mat-icon-button type="button" [disabled]="i === 0" (click)="moveSelectedImage(i, -1)" matTooltip="Nach vorne" aria-label="Bild nach vorne verschieben">
-                  <mat-icon>chevron_left</mat-icon>
-                </button>
-                <button mat-icon-button type="button" [disabled]="i === selectedImages.length - 1" (click)="moveSelectedImage(i, 1)" matTooltip="Nach hinten" aria-label="Bild nach hinten verschieben">
-                  <mat-icon>chevron_right</mat-icon>
-                </button> -->
                 <button mat-icon-button type="button" color="warn" (click)="removeSelectedImage(i)" matTooltip="Entfernen" aria-label="Bild entfernen">
                   <mat-icon>delete</mat-icon>
                 </button>

@@ -92,8 +92,6 @@ mat-form-field {
   font-size: 16px;
   width: 16px;
   height: 16px;
-  // line-height: 16px;
-  // margin-left: 2px;
   vertical-align: top;
   color: mat.get-color-from-palette(vars.$my-primary, 500);
 }
@@ -165,7 +163,7 @@ mat-form-field {
   flex: 0 0 auto;
   border: 1px solid #e0e7ef;
   border-radius: 8px;
-  background: #fff;
+  background: vars.$white-background;
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
 }
 
@@ -190,7 +188,7 @@ mat-form-field {
 .drop-zone-text {
   margin: 0;
   font-size: 0.98rem;
-  color: #4b5563;
+  color: mat.get-color-from-palette(vars.$my-secondary, 900);
 }
 
 .choose-link {
@@ -262,7 +260,7 @@ mat-form-field {
   overflow: hidden;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  background: #fff;
+  background: vars.$white-background;
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
 }
 
@@ -280,7 +278,7 @@ mat-form-field {
   overflow: hidden;
   box-sizing: border-box;
   padding: 48px 8px 8px;
-  background: #f4f6f9;
+  background: vars.$image-preview-background;
 }
 
 .image-card-toolbar {
@@ -344,10 +342,10 @@ mat-form-field {
   height: 26px;
   display: inline-flex;
   align-items: center;
-  padding: 0 8px;
+  padding: 2px 8px 0;
   border-radius: 999px;
-  background: rgba(231, 243, 238, 0.96);
-  color: #285f4a;
+  background-color: rgba(mat.get-color-from-palette(vars.$my-primary, 500), 0.15);
+  color: mat.get-color-from-palette(vars.$my-primary, 800);
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12);
   font-size: 0.78rem;
   font-weight: 600;
@@ -402,7 +400,7 @@ mat-form-field {
   overflow: hidden;
   border: 1px solid #dbe3ee;
   border-radius: 8px;
-  background: #fff;
+  background: vars.$white-background;
   box-shadow: 0 8px 18px rgba(16, 24, 40, 0.18);
   pointer-events: none;
 }
@@ -446,8 +444,6 @@ mat-error {
 }
 
 .location-option-note {
-  // font-style: italic;
-  // color: #5a6473;
   color: rgba(0, 0, 0, 0.6);
 }
 

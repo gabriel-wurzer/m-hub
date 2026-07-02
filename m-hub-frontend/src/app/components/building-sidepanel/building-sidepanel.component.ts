@@ -292,14 +292,6 @@ export class BuildingSidepanelComponent implements OnInit, OnChanges, OnDestroy 
     });
   }
 
-  // openStructureViewPanel() {
-  //   console.log('Open structure details view for building: ', this.building?.bw_geb_id);
-  //   if (this.building) {
-  //     // console.log('Emitting openStructureView event for building: ', this.building);
-  //     this.openStructureView.emit(this.building);
-  //   }
-  // }
-
   openStructureViewPanel() {
     if (this.building && this.building.bw_geb_id) {
       

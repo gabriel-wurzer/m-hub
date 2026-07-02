@@ -76,8 +76,10 @@
   gap: 6px;
   padding: 6px 10px;
   border-radius: 6px;
-  border: 1px solid rgba(23, 155, 222, 0.24);
-  background: #eef8fd;
+  // border: 1px solid rgba(23, 155, 222, 0.24);
+  border: 1px solid rgba(mat.get-color-from-palette(vars.$my-primary, 500), 0.28);
+  background: rgba(mat.get-color-from-palette(vars.$my-primary, 500), 0.07);
+  // background: #eef8fd;
   color: mat.get-color-from-palette(vars.$my-primary, 800);
   font-size: 0.76rem;
   font-weight: 600;

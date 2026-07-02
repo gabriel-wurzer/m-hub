@@ -1,3 +1,6 @@
+@use '@angular/material' as mat;
+@use '../../../../theme-setup' as vars;
+
 h2 {
   font-size: 1.4rem !important;
 }
@@ -45,7 +48,7 @@ mat-dialog-content {
   overflow: hidden;
   border: 1px solid rgba(31, 41, 55, 0.14);
   border-radius: 8px;
-  background: #fff;
+  background: vars.$white-background;
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
 }
 
@@ -55,7 +58,7 @@ mat-dialog-content {
   gap: 8px;
   padding: 10px 12px;
   border-bottom: 1px solid rgba(31, 41, 55, 0.08);
-  background: #f8fafc;
+  background: #f5f5f5;
 }
 
 .structure-chip {
@@ -64,7 +67,7 @@ mat-dialog-content {
   min-height: 26px;
   padding: 3px 9px;
   border-radius: 6px;
-  background: #fff;
+  background: vars.$white-background;
   border: 1px solid rgba(31, 41, 55, 0.12);
   font-size: 0.8rem;
   font-weight: 600;
@@ -72,9 +75,9 @@ mat-dialog-content {
 }
 
 .structure-chip:first-child {
-  border-color: rgba(23, 155, 222, 0.28);
-  background: #eef8fd;
-  color: #0e6aa8;
+  border-color: rgba(mat.get-color-from-palette(vars.$my-primary, 500), 0.28);
+  background: rgba(mat.get-color-from-palette(vars.$my-primary, 500), 0.07);
+  color: mat.get-color-from-palette(vars.$my-primary, 800);
 }
 
 .structure-layer-list {
@@ -87,7 +90,7 @@ mat-dialog-content {
   gap: 12px;
   align-items: center;
   padding: 10px 12px;
-  background: #fff;
+  background: vars.$white-background;
 }
 
 .structure-layer-item + .structure-layer-item {
@@ -149,7 +152,7 @@ mat-dialog-content {
 .document-open-link.text-link {
   display: block;
   margin-top: 8px;
-  color: #1a73b8;
+  color: mat.get-color-from-palette(vars.$my-primary, 700);
 }
 
 .document-image-preview {
@@ -159,7 +162,7 @@ mat-dialog-content {
   border-radius: 8px;
   border: 1px solid rgba(0, 0, 0, 0.12);
   object-fit: contain;
-  background: #fff;
+  background: vars.$white-background;
 }
 
 .document-pdf-preview {
@@ -168,7 +171,7 @@ mat-dialog-content {
   min-height: 320px;
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 8px;
-  background: #fff;
+  background: vars.$white-background;
 }
 
 .document-icon-card {
@@ -325,7 +328,7 @@ mat-dialog-content {
 .object-image-footer .document-open-link.text-link {
   margin-top: 0;
   margin-left: auto;
-  color: #1a73b8;
+  color: mat.get-color-from-palette(vars.$my-primary, 700);
 }
 
 .object-image-dots {
@@ -347,7 +350,7 @@ mat-dialog-content {
 
 .object-image-dot-active {
   width: 20px;
-  background: #1a73b8;
+  background: mat.get-color-from-palette(vars.$my-primary, 700);
 }
 
 @media (hover: none) {

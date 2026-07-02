@@ -75,7 +75,7 @@ $my-theme: mat.define-light-theme((
 
 
 .leaflet-control-geocoder button:hover {
-    background-color: #f4f4f4;
+    background-color: vars.$map-control-background;
 }
 
 .leaflet-control-geocoder-form {
@@ -123,12 +123,11 @@ ul.leaflet-control-geocoder-alternatives {
     display: none;
 } */
 
-
 .leaflet-control-filter {
     width: 30px;
     height: 30px;
     cursor: pointer;
-    background-color: #fff;
+    background-color: vars.$white-background;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -136,7 +135,7 @@ ul.leaflet-control-geocoder-alternatives {
 }
 
 .leaflet-control-filter:hover {
-    background-color: #f4f4f4;
+    background-color: vars.$map-control-background;
 }
 
 .filter-btn {

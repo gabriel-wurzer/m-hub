@@ -62,15 +62,15 @@
   min-height: 28px;
   padding: 0 9px;
   border-radius: 999px;
-  background-color: rgba(132, 90, 38, 0.1);
-  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+  background-color: vars.$tag-background;
+  color: vars.$tag-color;;
   font-size: 0.76rem;
   font-weight: 600;
 }
 
 .status-tag {
-  background-color: rgba(23, 155, 222, 0.12);
-  color: #0a6f9f;
+  background-color: rgba(mat.get-color-from-palette(vars.$my-primary, 500), 0.15);
+  color: mat.get-color-from-palette(vars.$my-primary, 800);
 }
 
 .status-tag--inactive {

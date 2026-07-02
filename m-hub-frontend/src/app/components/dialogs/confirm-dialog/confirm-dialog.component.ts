@@ -6,7 +6,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 
-// Interface für die Daten, die wir erwarten
+// Interface für die erwarteten Daten
 export interface ConfirmDialogData {
   title: string;
   message: string;

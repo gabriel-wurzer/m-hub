@@ -68,9 +68,9 @@ mat-form-field {
 .part-structure-wrapper {
   flex: 1 1 100%;
   width: 100%;
+  margin-top: 12px;
 
   > h2 {
-    color: #25364c;
     margin-bottom: 10px;
   }
 }
@@ -79,7 +79,6 @@ mat-form-field {
   display: flex;
   flex: 1 1 100%;
   flex-direction: row;
-  // width: 100%;
 
   h2 {
     margin-bottom: 0;
