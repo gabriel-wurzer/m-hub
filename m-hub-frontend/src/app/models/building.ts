@@ -43,7 +43,7 @@ export interface UserBuilding {
   building_id: string;      // reference to building
   structure: Floor[];
   name: string;
-  address?: string;        
+  address: string;        
   documents?: Document[];                       // fetched via relation
   building_components?: BuildingComponent[];    // fetched via relation
 }

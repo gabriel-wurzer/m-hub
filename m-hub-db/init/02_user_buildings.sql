@@ -1,23 +1,28 @@
 -- ===============================================
---  Documents Table Initialization Script
+--  User-Buildings Table Initialization Script
 -- ===============================================
 
 -- ===============================================
 --  TABLE DEFINITION
 -- ===============================================
 CREATE TABLE IF NOT EXISTS user_buildings (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL,
-    building_id TEXT NOT NULL,
-    structure JSONB NOT NULL,
-    name TEXT NOT NULL,
-    address TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    structure_updated_at TIMESTAMPTZ DEFAULT NOW()
+   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+   user_id UUID NOT NULL,
+   building_id TEXT NOT NULL,
+   structure JSONB NOT NULL,
+   name TEXT NOT NULL,
+   address TEXT NOT NULL,
+   created_at TIMESTAMPTZ DEFAULT NOW(),
+   structure_updated_at TIMESTAMPTZ DEFAULT NOW(),
+   CONSTRAINT user_buildings_building_id_not_blank CHECK (btrim(building_id) <> ''),
+   CONSTRAINT user_buildings_name_not_blank CHECK (btrim(name) <> ''),
+   CONSTRAINT user_buildings_address_not_blank CHECK (btrim(address) <> ''),
+   CONSTRAINT unique_user_building UNIQUE (user_id, building_id),
+   CONSTRAINT fk_userbuildings_user
+      FOREIGN KEY (user_id)
+      REFERENCES users(id)
+      ON DELETE CASCADE
 );
-
-ALTER TABLE user_buildings
-ADD CONSTRAINT unique_user_building UNIQUE (user_id, building_id);
 
 -- ===============================================
 --  INITIAL DATA INSERTS
@@ -65,15 +70,6 @@ VALUES
  'BHF Praterstern',
  'Praterstern 1, 1020 Wien'
 );
-
--- ===============================================
---  FOREIGN KEYS
--- ===============================================
-ALTER TABLE user_buildings
-  ADD CONSTRAINT fk_userbuildings_user
-  FOREIGN KEY (user_id)
-  REFERENCES users(id)
-  ON DELETE CASCADE;
 
 -- ===============================================
 --  STRUCTURE UPDATE TRIGGER LOGIC
