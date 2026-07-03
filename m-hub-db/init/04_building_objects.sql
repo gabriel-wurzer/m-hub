@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS building_objects (
     name TEXT NOT NULL,
     description TEXT,
     location TEXT,
-    object_type TEXT,
+    object_type TEXT NOT NULL,
     count INTEGER NOT NULL DEFAULT 1,
     length DOUBLE PRECISION,
     width DOUBLE PRECISION,
@@ -22,7 +22,31 @@ CREATE TABLE IF NOT EXISTS building_objects (
     is_public BOOLEAN NOT NULL DEFAULT TRUE,
     is_hazardous BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT building_objects_building_id_not_blank CHECK (btrim(building_id) <> ''),
+    CONSTRAINT building_objects_category_check CHECK (category = 'Objekt'),
+    CONSTRAINT building_objects_name_not_blank CHECK (btrim(name) <> ''),
+    CONSTRAINT building_objects_count_positive CHECK (count > 0),
+    CONSTRAINT building_objects_length_positive CHECK (length IS NULL OR length > 0),
+    CONSTRAINT building_objects_width_positive CHECK (width IS NULL OR width > 0),
+    CONSTRAINT building_objects_height_positive CHECK (height IS NULL OR height > 0),
+    CONSTRAINT building_objects_object_type_not_blank CHECK (btrim(object_type) <> ''),
+    CONSTRAINT building_objects_object_type_check CHECK (
+        object_type IN (
+            U&'Abh\00E4ngung',
+            U&'T\00FCr',
+            'Zarge',
+            'Fenster',
+            U&'Heizk\00F6rper',
+            'Rohre',
+            'Kabel',
+            'Sonstige'
+        )
+    ),
+    CONSTRAINT fk_objects_user_building
+        FOREIGN KEY (user_building_id)
+        REFERENCES user_buildings(id)
+        ON DELETE CASCADE
 );
 
 -- Multiple images per object are stored in a dedicated child table instead of
@@ -38,85 +62,13 @@ CREATE TABLE IF NOT EXISTS building_object_images (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT building_object_images_path_not_blank CHECK (btrim(image_path) <> ''),
-    CONSTRAINT building_object_images_object_sort_order_unique UNIQUE (building_object_id, sort_order)
+    CONSTRAINT building_object_images_object_sort_order_unique UNIQUE (building_object_id, sort_order),
+    CONSTRAINT fk_building_object_images_object
+        FOREIGN KEY (building_object_id)
+        REFERENCES building_objects(id)
+        ON DELETE CASCADE
 );
 
-ALTER TABLE building_objects
-  ADD COLUMN IF NOT EXISTS length DOUBLE PRECISION;
-
-ALTER TABLE building_objects
-  ADD COLUMN IF NOT EXISTS width DOUBLE PRECISION;
-
-ALTER TABLE building_objects
-  ADD COLUMN IF NOT EXISTS height DOUBLE PRECISION;
-
--- ===============================================
---  FOREIGN KEYS
--- ===============================================
-ALTER TABLE building_objects
-  ADD CONSTRAINT fk_objects_user_building
-  FOREIGN KEY (user_building_id)
-  REFERENCES user_buildings(id)
-  ON DELETE CASCADE;
-
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1
-        FROM pg_constraint
-        WHERE conname = 'fk_building_object_images_object'
-    ) THEN
-        ALTER TABLE building_object_images
-          ADD CONSTRAINT fk_building_object_images_object
-          FOREIGN KEY (building_object_id)
-          REFERENCES building_objects(id)
-          ON DELETE CASCADE;
-    END IF;
-END;
-$$;
-
-DO $$
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_name = 'building_objects'
-          AND column_name = 'image_path'
-    ) THEN
-        EXECUTE $migrate$
-            INSERT INTO building_object_images (
-                building_object_id,
-                sort_order,
-                image_path,
-                image_mime_type,
-                image_original_name,
-                image_size_bytes
-            )
-            SELECT
-                object.id,
-                0,
-                object.image_path,
-                object.image_mime_type,
-                object.image_original_name,
-                object.image_size_bytes
-            FROM building_objects object
-            WHERE object.image_path IS NOT NULL
-              AND btrim(object.image_path) <> ''
-              AND NOT EXISTS (
-                  SELECT 1
-                  FROM building_object_images image
-                  WHERE image.building_object_id = object.id
-              )
-        $migrate$;
-    END IF;
-END;
-$$;
-
-ALTER TABLE building_objects
-  DROP COLUMN IF EXISTS image_path,
-  DROP COLUMN IF EXISTS image_mime_type,
-  DROP COLUMN IF EXISTS image_original_name,
-  DROP COLUMN IF EXISTS image_size_bytes;
 
 -- ===============================================
 --  INITIAL DATA INSERTS
@@ -190,8 +142,6 @@ BEFORE UPDATE ON building_objects
 FOR EACH ROW
 WHEN (NEW IS DISTINCT FROM OLD)
 EXECUTE FUNCTION update_building_objects_updated_at();
-
-DROP TRIGGER IF EXISTS trg_building_object_images_set_updated_at ON building_object_images;
 
 CREATE TRIGGER trg_building_object_images_set_updated_at
 BEFORE UPDATE ON building_object_images
