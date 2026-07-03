@@ -1,5 +1,5 @@
 -- ===============================================
---  Ectensions Script
+--  Extensions Script
 -- ===============================================
 
 CREATE EXTENSION IF NOT EXISTS postgis;

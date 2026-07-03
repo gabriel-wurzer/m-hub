@@ -1,5 +1,5 @@
 -- ===============================================
---  Documents Table Initialization Script
+--  Users Table Initialization Script
 -- ===============================================
 
 -- ===============================================
@@ -11,17 +11,14 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT NOT NULL,
     password_hash TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT users_email_unique UNIQUE (email),
+    CONSTRAINT users_email_not_blank CHECK (btrim(email) <> ''),
+    CONSTRAINT users_username_not_blank CHECK (btrim(username) <> '')
 );
-
--- ensure unique emails
-ALTER TABLE users
-ADD CONSTRAINT users_email_unique UNIQUE (email);
-
 
 -- ===============================================
 --  INITIAL DATA INSERTS
--- password for hash: mypassword
 -- ===============================================
 INSERT INTO users (id, username, email, password_hash)
 VALUES
