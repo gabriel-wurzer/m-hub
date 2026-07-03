@@ -13,23 +13,46 @@ CREATE TABLE IF NOT EXISTS building_parts (
     category TEXT NOT NULL DEFAULT 'Bauteil',
     name TEXT NOT NULL,
     description TEXT,
-    location TEXT,
+    location TEXT NOT NULL,
     part_type TEXT NOT NULL,
     part_structure JSONB NOT NULL,
     is_public BOOLEAN NOT NULL DEFAULT TRUE,
     is_hazardous BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT building_parts_building_id_not_blank CHECK (btrim(building_id) <> ''),
+    CONSTRAINT building_parts_category_check CHECK (category = 'Bauteil'),
+    CONSTRAINT building_parts_name_not_blank CHECK (btrim(name) <> ''),
+    CONSTRAINT building_parts_location_not_blank CHECK (btrim(location) <> ''),
+    CONSTRAINT building_parts_part_type_not_blank CHECK (btrim(part_type) <> ''),
+    CONSTRAINT building_parts_part_type_check CHECK (
+        part_type IN (
+            'Bodenaufbau',
+            'Dachaufbau',
+            'Innenwand',
+            U&'Au\00DFenwand',
+            'Brandwand',
+            'Kniestock',
+            'Attika'
+        )
+    ),
+    CONSTRAINT building_parts_part_structure_object_check CHECK (
+        jsonb_typeof(part_structure) = 'object'
+    ),
+    CONSTRAINT building_parts_part_structure_type_check CHECK (
+        part_structure ? 'type'
+        AND part_structure->>'type' IN ('wall', 'slab')
+    ),
+    CONSTRAINT building_parts_part_structure_layers_check CHECK (
+        part_structure ? 'layers'
+        AND jsonb_typeof(part_structure->'layers') = 'array'
+        AND jsonb_array_length(part_structure->'layers') > 0
+    ),
+    CONSTRAINT fk_parts_user_building
+        FOREIGN KEY (user_building_id)
+        REFERENCES user_buildings(id)
+        ON DELETE CASCADE
 );
-
--- ===============================================
---  FOREIGN KEYS
--- ===============================================
-ALTER TABLE building_parts
-  ADD CONSTRAINT fk_parts_user_building
-  FOREIGN KEY (user_building_id)
-  REFERENCES user_buildings(id)
-  ON DELETE CASCADE;
 
 -- ===============================================
 --  INITIAL DATA INSERTS
