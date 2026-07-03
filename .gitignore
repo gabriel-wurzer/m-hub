@@ -54,3 +54,9 @@ Thumbs.db
 
 # Runtime data for m-hub-planimport backend
 /m-hub-planimport/backend/data/
+
+# Node-RED runtime caches (regenerated on start; not source, they drift and
+# would otherwise block git pull on every deploy)
+m-hub-backend/data/.config.nodes.json
+m-hub-backend/data/.config.nodes.json.backup
+m-hub-backend/data/.sessions.json
