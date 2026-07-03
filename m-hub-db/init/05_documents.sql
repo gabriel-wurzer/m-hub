@@ -18,55 +18,33 @@ CREATE TABLE IF NOT EXISTS documents (
     file_url TEXT,
     file_type TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT documents_building_id_not_blank CHECK (btrim(building_id) <> ''),
+    CONSTRAINT documents_name_not_blank CHECK (btrim(name) <> ''),
+    CONSTRAINT documents_file_url_not_blank CHECK (
+        file_url IS NULL OR btrim(file_url) <> ''
+    ),
+    CONSTRAINT documents_file_type_not_blank CHECK (
+       file_type IS NULL OR btrim(file_type) <> ''
+    ),
+    CONSTRAINT documents_file_type_check CHECK (
+        file_type IS NULL OR file_type IN (
+            'jpg', 'png', 'gif', 'bmp', 'tiff', 'svg', 'webp',
+            'pdf', 'doc', 'docx', 'txt', 'rtf', 'odt', 'html', 'md',
+            'csv', 'xlsx', 'xlsm',
+            'e57', 'obj', 'stl', 'ply', 'glb', 'gltf', 'fbx', 'ifc', 'las', 'laz'
+        )
+    ),  
+    CONSTRAINT fk_documents_user_building
+        FOREIGN KEY (user_building_id)
+        REFERENCES user_buildings(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_documents_owner
+        FOREIGN KEY (owner_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
 );
 
--- ===============================================
---  FOREIGN KEYS
--- ===============================================
-ALTER TABLE documents
-  ADD CONSTRAINT fk_documents_user_building
-  FOREIGN KEY (user_building_id)
-  REFERENCES user_buildings(id)
-  ON DELETE CASCADE;
-
--- ALTER TABLE documents
---   ADD CONSTRAINT fk_documents_component
---   FOREIGN KEY (component_id)
---   REFERENCES building_parts(id) -- or building_objects(id)
---   ON DELETE SET NULL;
-
--- ===============================================
---  FILE TYPE CONSTRAINT MIGRATION
---  Remove legacy checks and enforce one canonical file_type check
--- ===============================================
-DO $$
-DECLARE
-  constraint_row RECORD;
-BEGIN
-  FOR constraint_row IN
-    SELECT c.conname
-    FROM pg_constraint c
-    JOIN pg_class t ON t.oid = c.conrelid
-    WHERE t.relname = 'documents'
-      AND c.contype = 'c'
-      AND pg_get_constraintdef(c.oid) ILIKE '%file_type%'
-  LOOP
-    EXECUTE format('ALTER TABLE documents DROP CONSTRAINT IF EXISTS %I;', constraint_row.conname);
-  END LOOP;
-END;
-$$;
-
-ALTER TABLE documents
-ADD CONSTRAINT documents_file_type_check
-CHECK (
-  file_type IS NULL OR file_type IN (
-    'jpg', 'png', 'gif', 'bmp', 'tiff', 'svg', 'webp',
-    'pdf', 'doc', 'docx', 'txt', 'rtf', 'odt', 'html', 'md',
-    'csv', 'xlsx', 'xlsm',
-    'e57', 'obj', 'stl', 'ply', 'glb', 'gltf', 'fbx', 'ifc', 'las', 'laz'
-  )
-);
 
 -- ===============================================
 --  INITIAL DATA INSERTS
