@@ -8,7 +8,7 @@
 
 .sidenav {
   width: 80px;
-  background-color: #ececec;
+  background-color: vars.$menu-bar-background;
   border-radius: 12px;
   margin: 1rem 1rem 2.15rem;
   padding: 1rem 0;
@@ -20,7 +20,7 @@
 }
 
 .mobile-toolbar {
-  background-color: #ececec;
+  background-color: vars.$menu-bar-background;
 }
 
 .main-content {
@@ -191,7 +191,6 @@ button[mat-icon-button] {
   }
 
   &:hover {
-    // background: rgba(0, 0, 0, 0.05);
     mat-icon {
       color: mat.get-color-from-palette(vars.$my-secondary, 800);
     }
@@ -202,7 +201,7 @@ button[mat-icon-button].active {
   background-color: mat.get-color-from-palette(vars.$my-secondary, 700);
   transition: all 0.4s ease-in-out;
   mat-icon {
-    color: #ececec;
+    color: vars.$menu-bar-background;
   }
 }
 

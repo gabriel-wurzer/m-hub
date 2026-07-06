@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import * as L from 'leaflet';
 import vectorTileLayer from 'leaflet-vector-tile-layer';
@@ -66,8 +66,45 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
   constructor(
     private filterService: FilterService,
     private mapService: MapService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private hostRef: ElementRef<HTMLElement>
   ) {}
+
+  private get buildingStyle(): L.PathOptions {
+    return {
+      color: this.getThemeColor('--map-building-color', '#3388ff'),
+      fillColor: this.getThemeColor('--map-building-fill-color', '#3388ff'),
+      weight: 1,
+      fill: true,
+      fillOpacity: 0.4,
+    };
+  }
+
+  private get buildingBlockStyle(): L.PathOptions {
+    return {
+      color: this.getThemeColor('--map-building-block-color', '#446696ff'),
+      fillColor: this.getThemeColor('--map-building-block-fill-color', '#446696ff'),
+      weight: 1,
+      fill: true,
+      fillOpacity: 0.2,
+    };
+  }
+
+  private get selectedBuildingStyle(): L.PathOptions {
+    return {
+      color: this.getThemeColor('--map-selected-building-color', '#ff0000'),
+      fillColor: this.getThemeColor('--map-selected-building-fill-color', '#ff0000'),
+      weight: 3,
+      fill: true,
+      fillOpacity: 0.5,
+    };
+  }
+
+  private getThemeColor(cssVariableName: string, fallback: string): string {
+    return getComputedStyle(this.hostRef.nativeElement)
+      .getPropertyValue(cssVariableName)
+      .trim() || fallback;
+  }
 
   ngOnInit(): void {
 
@@ -349,7 +386,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
     return vectorTileLayer(url, {
       minZoom: 16, // safeguard
       maxZoom: 22,
-      style: { color: '#3388ff', weight: 1, fill: true, fillOpacity: 0.3 },
+      style: this.buildingStyle,
       interactive: true,
     }).on('click', (event: any) => {
       this.#handleBuildingClick(event.layer.properties['bw_geb_id']);
@@ -369,7 +406,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
     return vectorTileLayer(url, {
       minZoom: 12,
       maxZoom: 15, // safeguard
-      style: { color: '#446696ff', weight: 1, fill: true, fillOpacity: 0.2 },
+      style: this.buildingBlockStyle,
       interactive: true,
     }).on('click', (event: any) => {
       this.#handleBuildingBlockClick(event);
@@ -434,6 +471,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
 
         // highlight the block temporarily for selecton feedback
         blockLayer.setStyle({
+          ...this.buildingBlockStyle,
           weight: 2,
           fillOpacity: 0.2,
         }).addTo(this.#map);
@@ -490,13 +528,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
         }
     
         const layer = L.geoJSON(geometryObj, {
-          style: {
-            color: '#ff0000',
-            weight: 3,
-            fill: true,
-            fillColor: '#ff0000',
-            fillOpacity: 0.5,
-          },
+          style: this.selectedBuildingStyle,
         });
 
         this.#highlightedFeatureLayer = layer.addTo(this.#map);

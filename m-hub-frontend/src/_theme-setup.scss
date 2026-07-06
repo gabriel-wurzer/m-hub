@@ -81,13 +81,20 @@ $my-warn: mat.define-palette(mat.$deep-orange-palette);
 
 // Menubar, background, and other general colors
 $white-background: #fff;
-$image-preview-background: #f4f6f9;
+$image-preview-background: #fafafa; // #f4f6f9;
 
-$tag-color: mat.get-color-from-palette($my-complementary, 700);
-$tag-background: rgba(#845a26, 0.15);
+$tag-color: mat.get-color-from-palette($my-secondary, 700);
+$tag-background: rgba(132, 90, 38, 0.1);
+$tag-background-active: rgba(132, 90, 38, 0.14);
+
+
+$menu-bar-background: #ececec;
 
 // Map element colors
 $map-control-background: #f4f4f4;
-// $map-building-color: mat.get-color-from-palette($my-primary, 300);
-// $map-building-border: mat.get-color-from-palette($my-primary, 700);
-// $map-building-highlight: mat.get-color-from-palette($my-primary, 500);
+$map-building-color: mat.get-color-from-palette($my-primary, 700);
+$map-building-fill-color: mat.get-color-from-palette($my-primary, 500);
+$map-building-block-color: mat.get-color-from-palette($my-secondary, 500);
+$map-building-block-fill-color: mat.get-color-from-palette($my-secondary, 400);
+$map-selected-building-color: #ff0000;
+$map-selected-building-fill-color: #ff0000;
