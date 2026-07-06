@@ -4,10 +4,11 @@
     
     <button 
         *ngIf="!isLoading"
-        mat-raised-button
+        mat-stroked-button
+        type="button"
         class="add-button"
-        color="primary"
         (click)="onButtonClick()">
+        <mat-icon>{{ isAdded ? 'edit' : 'add' }}</mat-icon>
         {{ isAdded ? 'Gebäude bearbeiten' : 'Gebäude hinzufügen' }}
     </button>
 </div>

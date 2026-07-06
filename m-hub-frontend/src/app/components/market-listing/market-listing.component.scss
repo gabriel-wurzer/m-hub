@@ -1,6 +1,8 @@
 @use '@angular/material' as mat;
 @use '../../../theme-setup' as vars;
 
+$status-chip-background: rgba(mat.get-color-from-palette(vars.$my-primary, 500), 0.12);
+
 :host {
   display: flex;
   width: 100%;
@@ -62,8 +64,8 @@
   min-height: 28px;
   padding: 0 9px;
   border-radius: 999px;
-  background-color: vars.$tag-background;
-  color: vars.$tag-color;;
+  background-color: $status-chip-background;
+  color: mat.get-color-from-palette(vars.$my-primary, 800);
   font-size: 0.76rem;
   font-weight: 600;
 }
@@ -103,7 +105,7 @@
     border-style: solid;
     border-color: rgba(140, 34, 34, 0.22);
     background: rgba(140, 34, 34, 0.05);
-    color: #7b2a2a;
+    color: mat.get-color-from-palette(vars.$my-warn, 600);
   }
 }
 
@@ -124,9 +126,6 @@
   min-width: 0;
   min-height: 0;
   padding: 18px;
-  // border: 1px solid rgba(0, 0, 0, 0.18);
-  // border-radius: 8px;
-  // background: #fff;
   overflow-y: auto;
 }
 
@@ -266,13 +265,13 @@
 
 .listing-image-dot-active {
   width: 20px;
-  background: #1a73b8;
+  background: mat.get-color-from-palette(vars.$my-primary, 700);
 }
 
 .listing-image-link {
   width: fit-content;
   margin-left: auto;
-  color: #1a73b8;
+  color: mat.get-color-from-palette(vars.$my-primary, 700);
 }
 
 .empty-image {
@@ -327,7 +326,6 @@
   padding: 11px 12px;
   border: 1px solid rgba(23, 27, 31, 0.08);
   border-radius: 10px;
-  // background: rgba(255, 255, 255, 0.72);
   background: #fff;
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
 
@@ -415,14 +413,14 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   width: 100%;
-  border: 1px solid mat.get-color-from-palette(vars.$my-secondary, 300);
+  border: 1px solid mat.get-color-from-palette(vars.$my-primary, 500);
   border-radius: 8px;
   overflow: hidden;
 
   ::ng-deep .mat-button-toggle {
     display: flex;
     min-width: 0;
-    border-left-color: mat.get-color-from-palette(vars.$my-secondary, 300);
+    border-left-color: mat.get-color-from-palette(vars.$my-primary, 500);
   }
 
   ::ng-deep .mat-button-toggle:first-child {
@@ -464,7 +462,7 @@
   border: 1px solid mat.get-color-from-palette(vars.$my-secondary, 300);
   border-radius: 8px;
   overflow: auto;
-  background: mat.get-color-from-palette(vars.$my-secondary, 50);
+  background: mat.get-color-from-palette(vars.$my-primary, 50);
 }
 
 .similar-listing-row {
@@ -474,7 +472,7 @@
   gap: 10px;
   min-width: 0;
   padding: 12px 14px;
-  border-bottom: 1px solid mat.get-color-from-palette(vars.$my-secondary, 100);
+  border-bottom: 1px solid mat.get-color-from-palette(vars.$my-secondary, 300);
   border-left: 0;
   border-right: 0;
   border-top: 0;
@@ -486,7 +484,7 @@
 
   &:hover,
   &:focus-visible {
-    background: mat.get-color-from-palette(vars.$my-secondary, 50);
+    background: #f5f5f5;
   }
 
   &:focus-visible {
@@ -529,12 +527,9 @@
   min-height: 28px;
   max-width: 140px;
   padding: 0 10px;
-  // border: 1px solid mat.get-color-from-palette(vars.$my-secondary, 200);
   border-radius: 999px;
-  // background: mat.get-color-from-palette(vars.$my-secondary, 100);
-  // color: mat.get-color-from-palette(vars.$my-secondary, 700);
-  background-color: rgba(132, 90, 38, 0.1);
-  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+  background-color: vars.$tag-background;
+  color: vars.$tag-color;
   font-size: 0.84rem;
   font-weight: 700;
   white-space: nowrap;

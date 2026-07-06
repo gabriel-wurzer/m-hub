@@ -224,13 +224,13 @@ mat-expansion-panel-header {
 
 .object-image-dot-active {
     width: 20px;
-    background: #1a73b8;
+    background: mat.get-color-from-palette(vars.$my-primary, 700);
 }
 
 .object-image-link {
     width: fit-content;
     margin-left: auto;
-    color: #1a73b8;
+    color: mat.get-color-from-palette(vars.$my-primary, 700);
 }
 
 @media (hover: none) {
@@ -248,7 +248,7 @@ mat-expansion-panel-header {
     overflow: hidden;
     border: 1px solid rgba(31, 41, 55, 0.14);
     border-radius: 8px;
-    background: #fff;
+    background: vars.$white-background;
     box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
 }
 
@@ -258,7 +258,7 @@ mat-expansion-panel-header {
     gap: 8px;
     padding: 10px 12px;
     border-bottom: 1px solid rgba(31, 41, 55, 0.08);
-    background: #f8fafc;
+    background: #f8f8f8;
 }
 
 .structure-chip {
@@ -267,7 +267,7 @@ mat-expansion-panel-header {
     min-height: 26px;
     padding: 3px 9px;
     border-radius: 6px;
-    background: #fff;
+    background: vars.$white-background;
     border: 1px solid rgba(31, 41, 55, 0.12);
     font-size: 0.8rem;
     font-weight: 600;
@@ -275,9 +275,9 @@ mat-expansion-panel-header {
 }
 
 .structure-chip:first-child {
-    border-color: rgba(23, 155, 222, 0.28);
-    background: #eef8fd;
-    color: #0e6aa8;
+    border-color: rgba(mat.get-color-from-palette(vars.$my-primary, 500), 0.28);
+    background: rgba(mat.get-color-from-palette(vars.$my-primary, 500), 0.07);
+    color: mat.get-color-from-palette(vars.$my-primary, 800);
 }
 
 .structure-layer-list {
@@ -290,7 +290,7 @@ mat-expansion-panel-header {
     gap: 12px;
     align-items: center;
     padding: 10px 12px;
-    background: #fff;
+    background: vars.$white-background;
 }
 
 .structure-layer-item + .structure-layer-item {

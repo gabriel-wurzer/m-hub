@@ -246,7 +246,7 @@ main {
     border-style: solid;
     border-color: rgba(140, 34, 34, 0.22);
     background: rgba(140, 34, 34, 0.05);
-    color: #7b2a2a;
+    color: mat.get-color-from-palette(vars.$my-warn, 600);
   }
 }
 
@@ -296,12 +296,6 @@ main {
     border-color: mat.get-color-from-palette(vars.$my-secondary, 200);
     background-color: #fafafa;
     box-shadow: 0 10px 20px rgba(37, 45, 53, 0.08);
-  }
-
-  &:focus-visible {
-    outline: 3px solid rgba(23, 155, 222, 0.3);
-    outline-offset: 3px;
-    border-color: #179bde;
   }
 }
 
@@ -539,8 +533,8 @@ main {
   flex-shrink: 0;
   padding: 5px 10px;
   border-radius: 999px;
-  background-color: rgba(132, 90, 38, 0.1);
-  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+  background-color: vars.$tag-background;
+  color: vars.$tag-color;
   font-size: 0.76rem;
   font-weight: 600;
   letter-spacing: 0.01em;

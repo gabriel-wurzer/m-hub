@@ -1,6 +1,11 @@
 @use '@angular/material' as mat;
 @use '../../../theme-setup' as vars;
 
+$selection-glow-color: rgba(mat.get-color-from-palette(vars.$my-primary, 300), 0.3);
+$selection-shadow-color: rgba(mat.get-color-from-palette(vars.$my-primary, 600), 0.16);
+$selection-shadow-color-compact: rgba(mat.get-color-from-palette(vars.$my-primary, 600), 0.14);
+$selection-chip-background: rgba(mat.get-color-from-palette(vars.$my-primary, 500), 0.12);
+
 :host {
     height: 100%;
     width: 100%;
@@ -106,14 +111,14 @@ main {
   }
 
   &:focus-visible {
-    outline: 3px solid rgba(23, 155, 222, 0.3);
+    outline: 3px solid $selection-glow-color;
     outline-offset: 3px;
-    border-color: #179bde;
+    border-color: mat.get-color-from-palette(vars.$my-primary, 600);
   }
 
   &.selected {
-    border-color: #179bde;
-    box-shadow: 0 18px 34px rgba(23, 155, 222, 0.16);
+    border-color: mat.get-color-from-palette(vars.$my-primary, 600);
+    box-shadow: 0 18px 34px $selection-shadow-color;
   }
 }
 
@@ -125,7 +130,7 @@ main {
   height: 48px;
   flex-shrink: 0;
   border-radius: 14px;
-  background: rgba(132, 90, 38, 0.08);
+  background: vars.$tag-background;
   box-shadow: inset 0 0 0 1px rgba(132, 90, 38, 0.08);
 }
 
@@ -143,8 +148,8 @@ main {
   flex-shrink: 0;
   padding: 4px 9px;
   border-radius: 999px;
-  background-color: rgba(132, 90, 38, 0.1);
-  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+  background-color: vars.$tag-background;
+  color: vars.$tag-color;
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -251,8 +256,8 @@ main {
   height: 24px;
   flex-shrink: 0;
   border-radius: 8px;
-  background: rgba(23, 155, 222, 0.08);
-  color: rgba(10, 111, 159, 0.82);
+  background: mat.get-color-from-palette(vars.$my-secondary, 100);
+  color: mat.get-color-from-palette(vars.$my-secondary, 600);
 
   mat-icon {
     width: 16px;
@@ -264,7 +269,7 @@ main {
 
 .structure-icon-shell {
   background: mat.get-color-from-palette(vars.$my-secondary, 100);
-  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+  color: mat.get-color-from-palette(vars.$my-secondary, 600);
 }
 
 .info-panel-value {
@@ -359,8 +364,8 @@ main {
   font-weight: 600;
 
   &.active {
-    background-color: rgba(23, 155, 222, 0.12);
-    color: #0a6f9f;
+    background-color: $selection-chip-background;
+    color: mat.get-color-from-palette(vars.$my-primary, 800);
   }
 }
 
@@ -430,7 +435,7 @@ main {
     align-self: start;
 
     &.selected {
-      box-shadow: 0 10px 18px rgba(23, 155, 222, 0.14);
+      box-shadow: 0 10px 18px $selection-shadow-color-compact;
     }
   }
 

@@ -1,3 +1,6 @@
+@use '@angular/material' as mat;
+@use '../../../theme-setup' as vars;
+
 .not-found-container {
     display: flex;
     flex-direction: column;
@@ -35,11 +38,11 @@ p {
 }
 
 a {
-    color: #179bde;
+    color: mat.get-color-from-palette(vars.$my-primary, 700);
     font-weight: 500;
     text-decoration: none;
 }
 
 a:hover {
-    color: #0e6aa8;
+    color: mat.get-color-from-palette(vars.$my-primary, 800);
 }

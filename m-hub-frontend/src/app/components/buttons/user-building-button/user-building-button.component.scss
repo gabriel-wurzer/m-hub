@@ -1,3 +1,8 @@
+@use '@angular/material' as mat;
+@use '../../../../theme-setup' as vars;
+
+$add-button-text-color: mat.get-contrast-color-from-palette(vars.$my-primary, 900);
+
 .button-container {
     display: flex;
     justify-content: center;
@@ -8,4 +13,20 @@
 .add-button {
     width: 100%;
     margin-right: 10px;
-}   
+    --mdc-outlined-button-label-text-color: #{$add-button-text-color};
+    --mdc-outlined-button-outline-color: #{mat.get-color-from-palette(vars.$my-primary, 500)};
+    --mat-outlined-button-icon-color: #{$add-button-text-color};
+    background-color: mat.get-color-from-palette(vars.$my-primary, 500);
+    color: $add-button-text-color; 
+
+    &:hover {
+        --mdc-outlined-button-label-text-color: #{$add-button-text-color};
+        --mdc-outlined-button-outline-color: #{mat.get-color-from-palette(vars.$my-primary, 600)};
+        --mat-outlined-button-icon-color: #{$add-button-text-color};
+        background-color: mat.get-color-from-palette(vars.$my-primary, 600);
+    }
+
+    mat-icon {
+        color: $add-button-text-color;
+    }
+}

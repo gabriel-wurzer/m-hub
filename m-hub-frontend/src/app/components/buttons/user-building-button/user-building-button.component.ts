@@ -8,6 +8,7 @@ import { UserService } from '../../../services/user/user.service';
 import { BuildingService } from '../../../services/building/building.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AddBuildingDialogComponent } from '../../dialogs/add-building-dialog/add-building-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -15,7 +16,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 @Component({
   selector: 'user-building-button',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatProgressSpinnerModule, MatDialogModule],
+  imports: [CommonModule, MatButtonModule, MatProgressSpinnerModule, MatDialogModule, MatIconModule],
     templateUrl: './user-building-button.component.html',
     styleUrl: './user-building-button.component.scss'
 })
