@@ -151,20 +151,19 @@ mat-form-field {
   min-height: 156px;
   border: 1.5px dashed #b8c5d6;
   border-radius: 8px;
-  background: #f8fafc;
+  background: #fafafa;
   transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
   cursor: pointer;
 }
 
 .drop-zone:hover {
   border-color: mat.get-color-from-palette(vars.$my-primary, 500);
-  background: #f5f9fd;
+  background: #f8f8f8;
 }
 
 .drop-zone.drag-active {
   border-color: mat.get-color-from-palette(vars.$my-primary, 500);
-  background: #edf6fd;
-  box-shadow: 0 0 0 3px rgba(24, 130, 193, 0.15);
+  background: rgba(mat.get-color-from-palette(vars.$my-primary, 500), 0.05);
 }
 
 .drop-zone-inner {

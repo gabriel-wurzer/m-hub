@@ -78,11 +78,16 @@
         (drop)="onDrop($event)"
       >
         <div class="drop-zone-inner">
-          <mat-icon class="drop-zone-icon">upload_file</mat-icon>
-          <p class="drop-zone-text">
-            Drag & drop oder
-            <button type="button" class="choose-link" (click)="fileInput.click(); $event.stopPropagation()">Datei auswählen</button>
-          </p>
+          <span class="drop-zone-icon-shell">
+            <mat-icon class="drop-zone-icon">upload_file</mat-icon>
+          </span>
+          <div class="drop-zone-copy">
+            <p class="drop-zone-title">Dokument hochladen</p>
+            <p class="drop-zone-text">
+              Drag & drop oder
+              <button type="button" class="choose-link" (click)="fileInput.click(); $event.stopPropagation()">Datei auswählen</button>
+            </p>
+          </div>
         </div>
       </div>
 

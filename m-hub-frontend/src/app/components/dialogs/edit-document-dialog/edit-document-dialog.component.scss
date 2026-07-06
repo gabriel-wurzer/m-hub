@@ -118,46 +118,68 @@ mat-form-field {
 
 .drop-zone {
   width: 100%;
-  min-height: 240px;
-  border: 2px dashed #b6c6dc;
+  min-height: 156px;
+  border: 1.5px dashed #b8c5d6;
   border-radius: 8px;
-  background: #fbfdff;
+  background: #fafafa;
   transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
   cursor: pointer;
 }
 
 .drop-zone:hover {
   border-color: mat.get-color-from-palette(vars.$my-primary, 500);
-  background: #f7fbff;
+  background: #f8f8f8;
 }
 
 .drop-zone.drag-active {
   border-color: mat.get-color-from-palette(vars.$my-primary, 500);
-  background: #eef6ff;
-  box-shadow: 0 0 0 3px rgba(24, 130, 193, 0.15);
+  background: rgba(mat.get-color-from-palette(vars.$my-primary, 500), 0.05);
 }
 
 .drop-zone-inner {
-  min-height: 240px;
+  min-height: 156px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  text-align: center;
+  gap: 16px;
+  padding: 20px 24px;
+  text-align: left;
+}
+
+.drop-zone-icon-shell {
+  width: 56px;
+  height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid #e0e7ef;
+  border-radius: 8px;
+  background: vars.$white-background;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
 }
 
 .drop-zone-icon {
-  width: 48px;
-  height: 48px;
-  font-size: 48px;
-  color: mat.get-color-from-palette(vars.$my-secondary, 600);
-  margin-bottom: 12px;
+  width: 32px;
+  height: 32px;
+  font-size: 32px;
+  color: mat.get-color-from-palette(vars.$my-primary, 600);
+}
+
+.drop-zone-copy {
+  min-width: 0;
+}
+
+.drop-zone-title {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: mat.get-color-from-palette(vars.$my-secondary, 700);
 }
 
 .drop-zone-text {
   margin: 0;
-  font-size: 1.14rem;
+  font-size: 0.98rem;
   color: mat.get-color-from-palette(vars.$my-secondary, 900);
 }
 
@@ -167,13 +189,15 @@ mat-form-field {
   padding: 0;
   margin: 0;
   font: inherit;
+  font-weight: 600;
   color: mat.get-color-from-palette(vars.$my-primary, 600);
   cursor: pointer;
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .choose-link:hover {
   color: mat.get-color-from-palette(vars.$my-primary, 700);
+  text-decoration: underline;
 }
 
 .file-meta-row {
@@ -231,13 +255,13 @@ mat-form-field {
   font-size: 44px;
   width: 44px;
   height: 44px;
-  color: #4e647f;
+  color: mat.get-color-from-palette(vars.$my-secondary, 600);
 }
 
 .icon-preview-label {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #25364c;
+  color: mat.get-color-from-palette(vars.$my-secondary, 600);
   letter-spacing: 0.04em;
 }
 
@@ -274,10 +298,22 @@ mat-hint {
 
   .drop-zone,
   .drop-zone-inner {
-    min-height: 200px;
+    min-height: 136px;
+  }
+
+  .drop-zone-inner {
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+    text-align: center;
+  }
+
+  .drop-zone-icon-shell {
+    width: 48px;
+    height: 48px;
   }
 
   .drop-zone-text {
-    font-size: 1.02rem;
+    font-size: 0.95rem;
   }
 }
