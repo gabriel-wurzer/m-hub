@@ -1,16 +1,42 @@
 @use '@angular/material' as mat;
 
 $my-primary: mat.define-palette((
-  50: #e0f3fb,
-  100: #b1e0f5,
-  200: #7fccef,
-  300: #50b8e7,
-  400: #30a9e3,
-  500: #179bde, // primary color base
-  600: #148dcf,
-  700: #107bbc,
-  800: #0e6aa8, 
-  900: #084b86,
+  50: #faf6ee,
+  100: #f2e8d4,
+  200: #e5d5b3,
+  300: #d8c291,
+  400: #cdb478,
+  500: #c1aa6d, // brand accent (brown-gold)
+  600: #ac9559,
+  700: #8f7c45,
+  800: #736331,
+  900: #4f4420,
+  contrast: (
+    50: #000,
+    100: #000,
+    200: #000,
+    300: #000,
+    400: #000,
+    500: #000,
+    600: #000,
+    700: #fff,
+    800: #fff,
+    900: #fff
+  )
+));
+
+// Define the secondary palette (Neutral Grey)
+$my-secondary: mat.define-palette((
+  50: #fafafa,
+  100: #f5f5f5,
+  200: #eeeeee,
+  300: #e0e0e0,
+  400: #bdbdbd,
+  500: #9e9e9e, // secondary color base
+  600: #757575,
+  700: #616161,
+  800: #424242,
+  900: #212121,
   contrast: (
     50: #000,
     100: #000,
@@ -25,50 +51,24 @@ $my-primary: mat.define-palette((
   )
 ));
 
-// Define the secondary palette (Grey-Blue)
-$my-secondary: mat.define-palette((
-  50: #eceff1,
-  100: #cfd8dc,
-  200: #b0bec5,
-  300: #90a4ae,
-  400: #78909c,
-  500: #607d8b, // secondary color base
-  600: #546e7a,
-  700: #455a64,
-  800: #37474f,
-  900: #263238,
-  contrast: (
-    50: #000,
-    100: #000,
-    200: #000,
-    300: #000,
-    400: #fff,
-    500: #fff,
-    600: #fff,
-    700: #fff,
-    800: #fff,
-    900: #fff
-  )
-));
-
-// Define the complementary (Orange) palette
+// Define the complementary (Warm Brown) palette
 $my-complementary: mat.define-palette((
-  50: #f8eae6,
-  100: #f7cfbb,
-  200: #f2b08f,
-  300: #ed9462,
-  400: #e97e3f,
-  500: #e66c1a,
-  600: #dc6617,
-  700: #cf5f13,
-  800: #c15811,
-  900: #a84c0e, // complementary color base
+  50: #f8f0e6,
+  100: #ecd8bf,
+  200: #dfbd94,
+  300: #d1a268,
+  400: #c78e47,
+  500: #b3792e,
+  600: #9e6a22,
+  700: #855618,
+  800: #6b4411,
+  900: #4a2d09, // complementary color base
   contrast: (
     50: #000,
     100: #000,
     200: #000,
     300: #000,
-    400: #fff,
+    400: #000,
     500: #fff,
     600: #fff,
     700: #fff,
