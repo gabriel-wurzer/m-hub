@@ -135,6 +135,7 @@ services:
       context: ./m-hub-frontend
       args:
         MAPBOX_TOKEN: ${MAPBOX_TOKEN:-}
+        LOGO_PATH: ${LOGO_PATH:-/assets/images/mhub_logo_grey.svg}
     # docker run -i
     stdin_open: true
     # docker run -t

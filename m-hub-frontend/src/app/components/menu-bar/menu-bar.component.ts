@@ -17,6 +17,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProfileDialogComponent } from '../dialogs/profile-dialog/profile-dialog.component';
 import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog.component';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-menu-bar',
@@ -42,6 +43,8 @@ export class MenuBarComponent implements OnInit {
   currentRoute: string = '/karte';
 
   isMobile = false;
+
+  logo = environment.logo;
 
   user$: Observable<any>;
 

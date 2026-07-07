@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  mapboxToken: '' // token will be injected during build time from .env file
+  mapboxToken: '', // token will be injected during build time from .env file
+  logo: '/assets/images/mhub_logo_grey.svg' // overridden at build time from LOGO_PATH
 };
