@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MenuBarComponent } from './components/menu-bar/menu-bar.component';
+import { DisclaimerDialogComponent, DISCLAIMER_ACK_KEY } from './components/dialogs/disclaimer-dialog/disclaimer-dialog.component';
 
 @Component({
   selector: 'app-root',
@@ -8,6 +10,20 @@ import { MenuBarComponent } from './components/menu-bar/menu-bar.component';
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'm-hub-frontend';
+
+  constructor(private dialog: MatDialog) {}
+
+  ngOnInit(): void {
+    // Show the trial-phase notice once per browser until acknowledged.
+    if (localStorage.getItem(DISCLAIMER_ACK_KEY) !== '1') {
+      this.dialog.open(DisclaimerDialogComponent, {
+        width: '90%',
+        maxWidth: '520px',
+        disableClose: true,
+        autoFocus: false
+      });
+    }
+  }
 }
