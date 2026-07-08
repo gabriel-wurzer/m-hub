@@ -46,6 +46,8 @@ export class MenuBarComponent implements OnInit {
 
   logo = environment.logo;
 
+  hideNameSection = environment.hideNameSection;
+
   user$: Observable<any>;
 
   constructor(

@@ -136,6 +136,7 @@ services:
       args:
         MAPBOX_TOKEN: ${MAPBOX_TOKEN:-}
         LOGO_PATH: ${LOGO_PATH:-/assets/images/mhub_logo_grey.svg}
+        HIDE_NAME_SECTION: ${HIDE_NAME_SECTION:-false}
     # docker run -i
     stdin_open: true
     # docker run -t
