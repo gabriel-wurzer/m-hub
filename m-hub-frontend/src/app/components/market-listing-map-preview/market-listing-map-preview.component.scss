@@ -1,4 +1,13 @@
+@use '../../../theme-setup' as vars;
+
 :host {
+  --map-building-color: #{vars.$map-building-color};
+  --map-building-fill-color: #{vars.$map-building-fill-color};
+  --map-building-block-color: #{vars.$map-building-block-color};
+  --map-building-block-fill-color: #{vars.$map-building-block-fill-color};
+  --map-selected-building-color: #{vars.$map-selected-building-color};
+  --map-selected-building-fill-color: #{vars.$map-selected-building-fill-color};
+
   position: relative;
   display: block;
   width: 100%;
