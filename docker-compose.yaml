@@ -136,6 +136,7 @@ services:
       args:
         MAPBOX_TOKEN: ${MAPBOX_TOKEN:-}
         FRONTEND_BRANDING: ${FRONTEND_BRANDING:-default}
+        HIDE_NAME_SECTION: ${HIDE_NAME_SECTION:-false}
     # docker run -i
     stdin_open: true
     # docker run -t

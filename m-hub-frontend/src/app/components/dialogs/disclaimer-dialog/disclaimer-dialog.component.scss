@@ -1,0 +1,22 @@
+:host {
+  display: block;
+}
+
+h2[mat-dialog-title] {
+  margin-bottom: 0.5rem;
+}
+
+mat-dialog-content {
+  p {
+    margin: 0 0 0.85rem;
+    line-height: 1.55;
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+mat-dialog-actions {
+  padding-top: 0.5rem;
+}

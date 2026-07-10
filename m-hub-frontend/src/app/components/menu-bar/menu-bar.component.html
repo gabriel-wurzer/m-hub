@@ -7,7 +7,7 @@
         <img [src]="activeBranding.logoPath" [alt]="activeBranding.appName + ' logo'" class="logo" />
       </div>
       <div
-        *ngIf="activeBranding.menuLetters.length"
+        *ngIf="!hideNameSection && activeBranding.menuLetters.length"
         class="name-section"
         [class.long-brand]="activeBranding.menuLetters.length > 5">
         <p *ngFor="let letter of activeBranding.menuLetters">{{ letter }}</p>
@@ -116,13 +116,13 @@
 
     <mat-toolbar *ngIf="isMobile" class="mobile-toolbar">
       <button mat-icon-button [matMenuTriggerFor]="menu"><mat-icon>menu</mat-icon></button>
-      
+
       <div class="branding-section-mobile">
         <ng-container *ngIf="branding as activeBranding">
           <div class="logo-section-mobile">
             <img [src]="activeBranding.logoPath" [alt]="activeBranding.appName + ' logo'" class="logo" />
           </div>
-          <div *ngIf="activeBranding.menuLetters.length" class="name-section-mobile">
+          <div *ngIf="!hideNameSection && activeBranding.menuLetters.length" class="name-section-mobile">
             <span>{{ activeBranding.appName }}</span>
           </div>
         </ng-container>

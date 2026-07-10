@@ -3,6 +3,7 @@ FROM node:20-alpine AS build
 WORKDIR /app
 ARG MAPBOX_TOKEN=""
 ARG FRONTEND_BRANDING="default"
+ARG HIDE_NAME_SECTION="false"
 
 # git is required to resolve the 'gitlab:jkuebart/Leaflet.VectorTileLayer'
 # dependency in package.json. Rewrite SSH->HTTPS so no SSH key is needed.
@@ -13,7 +14,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-RUN node -e 'const fs=require("fs"); const token=process.argv[1] || ""; fs.writeFileSync("src/environments/environment.production.ts", `export const environment = {\n  production: true,\n  mapboxToken: ${JSON.stringify(token)}\n};\n`);' "$MAPBOX_TOKEN"
+RUN node -e 'const fs=require("fs"); const token=process.argv[1] || ""; const hide=process.argv[2]==="true"; fs.writeFileSync("src/environments/environment.production.ts", `export const environment = {\n  production: true,\n  mapboxToken: ${JSON.stringify(token)},\n  hideNameSection: ${hide}\n};\n`);' "$MAPBOX_TOKEN" "$HIDE_NAME_SECTION"
 RUN FRONTEND_BRANDING="$FRONTEND_BRANDING" npm run build
 
 # ---- Serve stage: nginx ----

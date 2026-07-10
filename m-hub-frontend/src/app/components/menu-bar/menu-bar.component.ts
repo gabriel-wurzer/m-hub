@@ -18,6 +18,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProfileDialogComponent } from '../dialogs/profile-dialog/profile-dialog.component';
 import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog.component';
 import { BrandingConfig, BrandingService } from '../../services/branding/branding.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-menu-bar',
@@ -45,6 +46,8 @@ export class MenuBarComponent implements OnInit {
   isMobile = false;
 
   branding: BrandingConfig | null = null;
+  hideNameSection = environment.hideNameSection;
+
 
   user$: Observable<any>;
 
