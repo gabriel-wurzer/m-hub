@@ -31,11 +31,13 @@ yarn-error.log
 
 # Angular Environments
 m-hub-frontend/src/environments/environment.ts
+m-hub-frontend/src/environments/asset-versions.generated.ts
+
+# Generated files / Imputed files during Build
+m-hub-frontend/src/index.html
 m-hub-frontend/src/_theme-setup.generated.scss
 m-hub-frontend/src/assets/branding/
 m-hub-frontend/src/assets/images/
-m-hub-frontend/src/environments/asset-versions.generated.ts
-m-hub-frontend/src/index.html
 
 # Miscellaneous
 .angular/
