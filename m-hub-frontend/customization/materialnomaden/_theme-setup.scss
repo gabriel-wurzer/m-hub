@@ -85,6 +85,8 @@ $tag-color: mat.get-color-from-palette($my-secondary, 700);
 $tag-background: rgba(132, 90, 38, 0.1);
 $tag-background-active: rgba(132, 90, 38, 0.14);
 
+$svg-asset-color: mat.get-color-from-palette($my-secondary, 700);
+
 // Menubar colors and styles
 $menu-bar-background: mat.get-color-from-palette($my-primary, 500);
 $menu-bar-color: mat.get-contrast-color-from-palette($my-primary, 500);

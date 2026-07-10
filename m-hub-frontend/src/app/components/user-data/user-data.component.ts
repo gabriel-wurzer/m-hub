@@ -20,6 +20,7 @@ import { EntityContext } from '../../models/entity-context';
 import { StructureViewComponent } from '../structure-view/structure-view.component';
 import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { versionedImageSvgUrl } from '../../utils/asset-url';
 
 
 @Component({
@@ -46,6 +47,7 @@ export class UserDataComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly compactActionWidthPx = 128;
 
   @ViewChildren('cardHeader') private cardHeaders!: QueryList<ElementRef<HTMLElement>>;
+  readonly houseIconUrl = versionedImageSvgUrl('/assets/images/house_icon.svg');
 
   readonly emptyValue = '—';
 

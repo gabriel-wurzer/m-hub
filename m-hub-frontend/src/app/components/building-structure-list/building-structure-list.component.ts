@@ -12,6 +12,7 @@ import { Floor, RoofFloor, StandardFloor } from '../../models/floor';
 import { FloorType } from '../../enums/floor-type.enum'; 
 import { RoofType } from '../../enums/roof-type.enum'; 
 import { ErrorStateMatcher } from '@angular/material/core';
+import { versionedImageSvgUrl } from '../../utils/asset-url';
 
 class FloorSelectMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -84,9 +85,9 @@ export class BuildingStructureListComponent implements OnInit {
   RoofType = RoofType;
   roofTypes = Object.values(RoofType);
   
-  rgFloorSvgUrl = '/assets/images/geschoss_rg.svg';
-  kgFloorSvgUrl = '/assets/images/geschoss_kg.svg';
-  roofSvgUrl = '/assets/images/dach.svg';
+  rgFloorSvgUrl = versionedImageSvgUrl('/assets/images/geschoss_rg.svg');
+  kgFloorSvgUrl = versionedImageSvgUrl('/assets/images/geschoss_kg.svg');
+  roofSvgUrl = versionedImageSvgUrl('/assets/images/dach.svg');
   animationsDisabled = true;
 
   ngOnInit(): void {

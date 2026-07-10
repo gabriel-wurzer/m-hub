@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { BuildingService } from '../../services/building/building.service';
 import { AuthenticationService } from '../../services/authentication/authentication.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { versionedImageSvgUrl } from '../../utils/asset-url';
 
 interface TreeNode {
   id: string;
@@ -41,6 +42,7 @@ export class StructureTreeComponent implements OnInit, OnDestroy {
 
   errorMessage = '';
   isLoading = false;
+  houseIconUrl = versionedImageSvgUrl('/assets/images/house_icon.svg');
 
   isLoggedIn$: Observable<boolean>;
   private authSubscription: Subscription | undefined;

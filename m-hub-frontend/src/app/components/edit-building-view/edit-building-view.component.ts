@@ -117,9 +117,6 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
   buildingObjects: Objekt[] = [];
   documents: Document[] = [];
 
-  floorSvgUrl = '/assets/images/geschoss.svg';
-  roofSvgUrl = '/assets/images/dach.svg';
-
   animationsDisabled = true;
   suppressStructureAnimations = false;
 
