@@ -91,6 +91,7 @@ $menu-bar-color: mat.get-contrast-color-from-palette($my-primary, 500);
 $menu-bar-buttons-background: mat.get-contrast-color-from-palette($my-secondary, 700);
 $menu-bar-button-icons-color: rgba(255, 255, 255, 0.9);
 $menu-bar-button-icons-hover: #fff;
+$menu-bar-button-icons-active: mat.get-color-from-palette($my-primary, 700);
 
 $menu-name-color: mat.get-contrast-color-from-palette($my-secondary, 700);
 

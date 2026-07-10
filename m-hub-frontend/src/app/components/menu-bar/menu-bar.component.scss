@@ -8,7 +8,7 @@
 
 .sidenav {
   width: 80px;
-  background-color: mat.get-color-from-palette(vars.$my-primary, 500);
+  background-color: vars.$menu-bar-background;
   border-radius: 12px;
   margin: 1rem 1rem 2.15rem;
   padding: 1rem 0;
@@ -221,7 +221,7 @@ button[mat-icon-button].active {
   background-color: vars.$menu-bar-buttons-background;
   transition: all 0.4s ease-in-out;
   mat-icon {
-    color: mat.get-color-from-palette(vars.$my-primary, 700);
+    color: vars.$menu-bar-button-icons-active;
   }
 }
 

@@ -93,6 +93,7 @@ $menu-bar-color: mat.get-contrast-color-from-palette($my-primary, 500);
 $menu-bar-buttons-background: mat.get-color-from-palette($my-secondary, 700);
 $menu-bar-button-icons-color: mat.get-color-from-palette($my-secondary, 700);
 $menu-bar-button-icons-hover: mat.get-color-from-palette($my-secondary, 800);
+$menu-bar-button-icons-active: #ececec;
 
 $menu-name-color: mat.get-color-from-palette($my-secondary, 700);
 
