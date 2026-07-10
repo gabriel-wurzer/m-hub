@@ -257,18 +257,35 @@ mat-divider {
   justify-content: center;
 }
 
+::ng-deep .mobile-nav-menu-panel {
+  min-width: 156px;
+}
+
 .menu-item {
   display: flex;
   flex-direction: row;
   align-items: center;
+  min-width: 156px;
+  padding-left: 8px;
+  padding-right: 14px;
+  cursor: pointer;
 
   &:hover {
     background-color: rgba(0, 0, 0, 0.05);
   }
 
+  button[mat-menu-item] {
+    flex: 0 0 48px;
+    min-width: 48px;
+    width: 48px;
+    padding: 0 0 0 6px;
+  }
+
   span {
     font-size: large;
-    padding-left: 4px;
+    padding-left: 6px;
+    padding-right: 8px;
+    white-space: nowrap;
   }
 
   &.disabled-state {
