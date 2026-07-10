@@ -1,4 +1,38 @@
-<section class="privacy-page">
-  <h1>Datenschutzerklärung</h1>
-  <p>Die Datenschutzerklärung wird noch ergänzt.</p>
-</section>
+<ng-container *ngIf="privacyHtml !== undefined">
+  <ng-container *ngIf="privacyHtml; else privacyFallback">
+    <div class="custom-imprint-html" [innerHTML]="privacyHtml"></div>
+  </ng-container>
+</ng-container>
+
+<ng-template #privacyFallback>
+  <section class="fallback-imprint imprint-page privacy-page">
+    <div class="imprint-header">
+      <h1>Datenschutzerklärung</h1>
+      <h2>Informationen zur Verarbeitung personenbezogener Daten</h2>
+    </div>
+
+    <div class="imprint-content">
+      <section class="publisher-section" aria-labelledby="privacy-controller-title">
+        <h3 id="privacy-controller-title" class="section-label">Verantwortlicher</h3>
+        <p class="publisher-name">m-hub</p>
+
+        <div class="contact-list" aria-label="Kontaktinformationen">
+          <div class="contact-item">
+            <mat-icon aria-hidden="true">mail</mat-icon>
+            <div>
+              <span>E-Mail</span>
+              <p>Bitte ergänzen</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="legal-section" aria-label="Datenschutzinformationen">
+        <div class="legal-block">
+          <h3>Hinweis</h3>
+          <p>Die Datenschutzerklärung wird aus dem aktiven Branding geladen. Bitte ergänzen Sie eine privacy.html im jeweiligen customization-Ordner.</p>
+        </div>
+      </section>
+    </div>
+  </section>
+</ng-template>

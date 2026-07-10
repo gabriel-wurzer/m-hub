@@ -11,7 +11,7 @@ export interface BrandingConfig {
 const DEFAULT_BRANDING: BrandingConfig = {
   appName: 'm-hub',
   menuLetters: ['m', 'h', 'u', 'b'],
-  logoPath: '/assets/images/mhub_logo_grey.svg'
+  logoPath: '/assets/branding/logo.svg'
 };
 
 @Injectable({
@@ -20,6 +20,7 @@ const DEFAULT_BRANDING: BrandingConfig = {
 export class BrandingService {
   private readonly brandingSubject = new ReplaySubject<BrandingConfig>(1);
   private readonly imprintHtmlSubject = new ReplaySubject<string | null>(1);
+  private readonly privacyHtmlSubject = new ReplaySubject<string | null>(1);
   private readonly assetCacheBuster = Date.now().toString();
   private brandingLoaded = false;
 
@@ -30,13 +31,15 @@ export class BrandingService {
       return;
     }
 
-    const [branding, imprintHtml] = await Promise.all([
+    const [branding, imprintHtml, privacyHtml] = await Promise.all([
       this.loadBrandingConfig(),
-      this.loadImprintHtml()
+      this.loadBrandingHtml('imprint.html'),
+      this.loadBrandingHtml('privacy.html')
     ]);
 
     this.brandingSubject.next(branding);
     this.imprintHtmlSubject.next(imprintHtml);
+    this.privacyHtmlSubject.next(privacyHtml);
     this.brandingLoaded = true;
   }
 
@@ -46,6 +49,10 @@ export class BrandingService {
 
   getImprintHtml(): Observable<string | null> {
     return this.imprintHtmlSubject.asObservable();
+  }
+
+  getPrivacyHtml(): Observable<string | null> {
+    return this.privacyHtmlSubject.asObservable();
   }
 
   private async loadBrandingConfig(): Promise<BrandingConfig> {
@@ -65,10 +72,10 @@ export class BrandingService {
     }
   }
 
-  private async loadImprintHtml(): Promise<string | null> {
+  private async loadBrandingHtml(fileName: string): Promise<string | null> {
     try {
       return await firstValueFrom(
-        this.http.get(this.getBrandingAssetUrl('imprint.html'), {
+        this.http.get(this.getBrandingAssetUrl(fileName), {
           responseType: 'text',
           headers: {
             'Cache-Control': 'no-cache',

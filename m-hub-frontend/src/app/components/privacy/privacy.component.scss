@@ -1,17 +1,69 @@
-.privacy-page {
-  // max-width: 900px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+@use '@angular/material' as mat;
+@use '../../../theme-setup' as vars;
+@use '../imprint/imprint.component.scss';
+
+:host ::ng-deep .custom-imprint-html .privacy-detail,
+.fallback-imprint .privacy-detail,
+:host ::ng-deep .custom-imprint-html .privacy-notes,
+.fallback-imprint .privacy-notes {
+  max-width: 980px;
+  margin: 4.5rem auto 0;
 }
 
-h1 {
-  margin: 0 0 1rem;
-  font-size: 1.75rem;
-  font-weight: 500;
+:host ::ng-deep .custom-imprint-html .privacy-detail,
+.fallback-imprint .privacy-detail {
+  display: grid;
+  gap: 1.5rem;
 }
 
-p {
-  margin: 0;
+:host ::ng-deep .custom-imprint-html .privacy-notes,
+.fallback-imprint .privacy-notes {
+  padding-top: 2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+:host ::ng-deep .custom-imprint-html .privacy-note,
+.fallback-imprint .privacy-note {
+  padding: 1rem 1.1rem;
+  border-left: 4px solid mat.get-color-from-palette(vars.$my-secondary, 600);
+  background: rgba(mat.get-color-from-palette(vars.$my-secondary, 100), 0.45);
+}
+
+:host ::ng-deep .custom-imprint-html .privacy-note p,
+.fallback-imprint .privacy-note p {
+  color: rgba(0, 0, 0, 0.76);
+}
+
+:host ::ng-deep .custom-imprint-html .privacy-server-note,
+.fallback-imprint .privacy-server-note {
+  padding: 0.8rem 1rem;
+  border-left: 4px solid rgba(0, 0, 0, 0.28);
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.74);
+}
+
+:host ::ng-deep .custom-imprint-html .privacy-group-heading h3,
+.fallback-imprint .privacy-group-heading h3 {
+  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+  margin-top: 0.4rem;
+}
+
+:host ::ng-deep .legal-block h4 {
+  margin-bottom: 0.4rem;
+}
+
+:host ::ng-deep .custom-imprint-html ul,
+.fallback-imprint ul {
+  margin: 0.35rem 0 0;
+  padding-left: 1.2rem;
   color: rgba(0, 0, 0, 0.68);
+  line-height: 1.55;
+}
+
+:host ::ng-deep .custom-imprint-html li + li,
+.fallback-imprint li + li {
+  margin-top: 0.25rem;
 }
