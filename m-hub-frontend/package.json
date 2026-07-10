@@ -4,7 +4,10 @@
   "author": "Lukas Rast <lukas.rast@tuwien.ac.at> (https://www.tuwien.ac.at)",
   "scripts": {
     "ng": "ng",
+    "apply-branding": "node scripts/apply-branding.js",
+    "prestart": "node scripts/apply-branding.js",
     "start": "ng serve",
+    "prebuild": "node scripts/apply-branding.js",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"

@@ -2,16 +2,17 @@
   <mat-sidenav *ngIf="!isMobile" mode="side" opened class="sidenav">
     
     <!-- Logo Section -->
-    <div class="logo-section">
-      <img src="/assets/images/mhub_logo_grey.svg" alt="Project logo" class="logo" />
-    </div>
-
-    <div class="name-section">
-      <p>M</p>
-      <p>H</p>
-      <p>U</p>
-      <p>B</p>
-    </div>
+    <ng-container *ngIf="branding as activeBranding">
+      <div class="logo-section">
+        <img [src]="activeBranding.logoPath" [alt]="activeBranding.appName + ' logo'" class="logo" />
+      </div>
+      <div
+        *ngIf="activeBranding.menuLetters.length"
+        class="name-section"
+        [class.long-brand]="activeBranding.menuLetters.length > 5">
+        <p *ngFor="let letter of activeBranding.menuLetters">{{ letter }}</p>
+      </div>
+    </ng-container>
 
     <!-- Navigation Buttons -->
     <div class="nav-buttons">
@@ -19,7 +20,6 @@
         <mat-icon>map</mat-icon>
       </button>
       <button mat-icon-button matTooltip="Markt" matTooltipPosition="after" matTooltipShowDelay="500" (click)="onMenuClick('markt')" [ngClass]="{'active': currentRoute.includes('/markt')}">
-        <!-- <mat-icon>hub</mat-icon> -->
         <mat-icon>shopping_cart</mat-icon>
       </button>
       <button 
@@ -100,7 +100,7 @@
             (click)="auth.user ? onMenuClick('bestandsverwaltung') : onDisabledDataClick()">
             
           <button mat-menu-item disableRipple>
-            <mat-icon>grid_view</mat-icon> 
+            <mat-icon>domain</mat-icon> 
           </button>
           <span>Daten</span>
         </div>
@@ -116,12 +116,18 @@
 
     <mat-toolbar *ngIf="isMobile" class="mobile-toolbar">
       <button mat-icon-button [matMenuTriggerFor]="menu"><mat-icon>menu</mat-icon></button>
-      <div class="logo-section-mobile">
-        <img src="/assets/images/mhub_logo_grey.svg" alt="Project logo" class="logo" />
+      
+      <div class="branding-section-mobile">
+        <ng-container *ngIf="branding as activeBranding">
+          <div class="logo-section-mobile">
+            <img [src]="activeBranding.logoPath" [alt]="activeBranding.appName + ' logo'" class="logo" />
+          </div>
+          <div *ngIf="activeBranding.menuLetters.length" class="name-section-mobile">
+            <span>{{ activeBranding.appName }}</span>
+          </div>
+        </ng-container>
       </div>
-      <div class="name-section-mobile">
-        <span>M HUB</span>
-      </div>
+
 
       <ng-container *ngIf="user$ | async as user; else loginButton">
     
@@ -158,7 +164,7 @@
     <footer class="page-footer" aria-label="Rechtliche Links">
       <a routerLink="/impressum">Impressum</a>
       <span aria-hidden="true">|</span>
-      <a routerLink="/datenschutz">Datenschutzerklärung</a>
+      <a routerLink="/datenschutz">Datenschutz</a>
     </footer>
   </mat-sidenav-content>
 </mat-sidenav-container>

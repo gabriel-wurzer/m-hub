@@ -31,6 +31,8 @@ yarn-error.log
 
 # Angular Environments
 m-hub-frontend/src/environments/environment.ts
+m-hub-frontend/src/_theme-setup.generated.scss
+m-hub-frontend/src/assets/branding/
 
 # Miscellaneous
 .angular/

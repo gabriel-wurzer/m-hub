@@ -135,6 +135,7 @@ services:
       context: ./m-hub-frontend
       args:
         MAPBOX_TOKEN: ${MAPBOX_TOKEN:-}
+        FRONTEND_BRANDING: ${FRONTEND_BRANDING:-default}
     # docker run -i
     stdin_open: true
     # docker run -t
