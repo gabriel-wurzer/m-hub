@@ -35,6 +35,8 @@ L.Icon.Default.mergeOptions({
 export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private readonly destroy$ = new Subject<void>();
+  private readonly buildingDetailZoom = 16;
+  private readonly filterPanelZoomDurationSeconds = 1.2;
 
   #zoomHandler?: () => void;
   #mapClickHandler?: () => void;
@@ -352,10 +354,9 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   #updateVisibleLayer(): void {
       if (!this.#map) return;
-      const zoomThreshold = 16;
       const zoom = this.#map.getZoom();
 
-    if (zoom >= zoomThreshold) { // show buildings, remove blocks
+    if (zoom >= this.buildingDetailZoom) { // show buildings, remove blocks
       if (this.#buildingBlocksLayer && this.#map.hasLayer(this.#buildingBlocksLayer)) {
         this.#map.removeLayer(this.#buildingBlocksLayer);
       }
@@ -370,6 +371,16 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
         this.#map.addLayer(this.#buildingBlocksLayer);
       }
     }
+  }
+
+  #zoomToFilterDetailLevel(): void {
+    if (!this.#map || this.#map.getZoom() >= this.buildingDetailZoom) return;
+
+    this.#map.setView(this.#map.getCenter(), this.buildingDetailZoom, {
+      animate: true,
+      duration: this.filterPanelZoomDurationSeconds,
+      easeLinearity: 0.15,
+    });
   }
 
   /**
@@ -572,7 +583,9 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
     this.isFilterPanelVisible = !this.isFilterPanelVisible;
     console.log(`Filter menu visibility toggled: ${this.isFilterPanelVisible ? 'Visible' : 'Hidden'}`);
 
-    if (!this.isFilterPanelVisible) {
+    if (this.isFilterPanelVisible) {
+      this.#zoomToFilterDetailLevel();
+    } else {
       this.enableMapInteractions();
     }
   }
