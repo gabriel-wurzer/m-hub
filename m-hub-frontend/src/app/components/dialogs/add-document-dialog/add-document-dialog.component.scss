@@ -201,15 +201,28 @@ mat-form-field {
 }
 
 .file-hints {
+  order: 1;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  padding: 0 2px;
   font-size: 0.9rem;
-  color: #5a6473;
+  color: rgba(0, 0, 0, 0.82);
+}
+
+.file-error-inline {
+  color: rgba(0, 0, 0, 0.82);
+}
+
+app-large-file-upload {
+  order: 5;
+  margin-top: 1rem;
 }
 
 .file-meta-row {
+  order: 4;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -228,6 +241,7 @@ mat-form-field {
 }
 
 .file-preview-wrapper {
+  order: 3;
   width: 100%;
 }
 
@@ -235,10 +249,13 @@ mat-form-field {
   width: 100%;
   max-width: 420px;
   max-height: 260px;
-  border-radius: 6px;
+  box-sizing: border-box;
+  padding: 8px;
   border: 1px solid #d8dee8;
+  border-radius: 8px;
   object-fit: contain;
-  background: vars.$white-background;
+  background: #f8fafc;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
 }
 
 .icon-preview {
@@ -247,7 +264,8 @@ mat-form-field {
   min-height: 120px;
   border: 1px solid #d8dee8;
   border-radius: 8px;
-  background: #fafafa;
+  background: #f8fafc;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
   display: flex;
   flex-direction: column;
   align-items: center;

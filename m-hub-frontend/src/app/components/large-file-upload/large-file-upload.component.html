@@ -1,0 +1,30 @@
+<section class="large-upload-request">
+  <div class="request-copy">
+    <strong>Großer Upload?</strong>
+    <span>Für Dateien über 100 MB einen temporären SFTP-Zugang vorbereiten.</span>
+  </div>
+
+  <button
+    mat-button
+    type="button"
+    color="primary"
+    (click)="requestAccess()"
+    [disabled]="state === 'requesting'"
+  >
+    Zugang anfordern
+  </button>
+
+  <div class="request-progress" *ngIf="state === 'requesting'" aria-label="SFTP-Zugang wird angefordert">
+    <span></span>
+  </div>
+
+  <div
+    class="request-message"
+    *ngIf="message"
+    [class.error]="state === 'error'"
+    [class.ready]="state === 'ready'"
+  >
+    <mat-icon aria-hidden="true">{{ state === 'ready' ? 'check_circle' : 'info' }}</mat-icon>
+    <span>{{ message }}</span>
+  </div>
+</section>

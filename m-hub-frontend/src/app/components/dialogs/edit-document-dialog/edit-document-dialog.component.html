@@ -90,9 +90,13 @@
         </div>
       </div>
 
-      <div class="file-meta-row" *ngIf="getActiveFileName() || getFileError()">
-        <div class="file-meta" *ngIf="getActiveFileName()">{{ getActiveFileName() }}</div>
-        <div class="file-error" *ngIf="getFileError()">{{ getFileError() }}</div>
+      <div class="file-hints file-hints-with-error">
+        <span>max. 100 MB gesamt</span>
+        <span class="file-error-inline" *ngIf="getFileError()">{{ getFileError() }}</span>
+      </div>
+
+      <div class="file-meta-row" *ngIf="getActiveFileName()">
+        <div class="file-meta">{{ getActiveFileName() }}</div>
         <button *ngIf="selectedFile" mat-button type="button" color="warn" (click)="removeSelectedFile()">
           Ausgewählte Datei verwerfen
         </button>

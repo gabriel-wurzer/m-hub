@@ -604,6 +604,8 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
         disableClose: true,
         autoFocus: false,
         data: {
+          buildingId: userBuilding.building_id,
+          userBuildingId: userBuilding.id,
           buildingParts: this.buildingParts,
           buildingObjects: this.buildingObjects
         }

@@ -91,18 +91,18 @@
         </div>
       </div>
 
-      <div class="file-hints">
-        <!-- <span>Unterstützt: PDF, DOC/DOCX, TXT/MD, CSV, XLSX/XLSM, E57/OBJ/STL/PLY/GLB/GLTF/FBX/IFC</span> -->
-        <!-- <span>Max. Dateigröße: 25MB</span> -->
+      <div class="file-hints file-hints-with-error">
+        <span>max. 100 MB gesamt</span>
+        <span class="file-error-inline" *ngIf="getFileError()">{{ getFileError() }}</span>
       </div>
 
-      <div class="file-meta-row" *ngIf="selectedFileName || getFileError()">
-        <div class="file-meta" *ngIf="selectedFileName">{{ selectedFileName }}</div>
-        <div class="file-error" *ngIf="getFileError()">{{ getFileError() }}</div>
-        <button mat-button type="button" color="warn" (click)="removeSelectedFile()" [disabled]="!selectedFile">
-          Entfernen
-        </button>
-      </div>
+      <app-large-file-upload
+        class="large-file-upload"
+        context="document-add"
+        [buildingId]="data?.buildingId ?? null"
+        [userBuildingId]="data?.userBuildingId ?? null"
+        [documentName]="name"
+      />
 
       <div class="file-preview-wrapper" *ngIf="selectedFile">
         <img
@@ -118,6 +118,13 @@
             <div class="icon-preview-label">{{ getPreviewTypeLabel(selectedFileType) }}</div>
           </div>
         </ng-template>
+      </div>
+
+      <div class="file-meta-row" *ngIf="selectedFileName">
+        <div class="file-meta">{{ selectedFileName }}</div>
+        <button mat-button type="button" color="warn" (click)="removeSelectedFile()" [disabled]="!selectedFile">
+          Entfernen
+        </button>
       </div>
     </div>
   </div>

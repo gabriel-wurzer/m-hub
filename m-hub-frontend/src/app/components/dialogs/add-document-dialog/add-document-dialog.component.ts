@@ -13,8 +13,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { FileType } from '../../../enums/file-type.enum';
 import { BuildingComponentCategory } from '../../../enums/component-category';
 import { Bauteil, Objekt } from '../../../models/building-component';
+import { LargeFileUploadComponent } from '../../large-file-upload/large-file-upload.component';
 
 export type AddDocumentDialogData = {
+  buildingId?: string;
+  userBuildingId?: string;
   buildingParts?: Bauteil[];
   buildingObjects?: Objekt[];
 };
@@ -52,7 +55,8 @@ type ComponentOptionVm = {
     MatSelectModule,
     MatIconModule,
     MatTooltipModule,
-    MatDividerModule
+    MatDividerModule,
+    LargeFileUploadComponent
   ],
   templateUrl: './add-document-dialog.component.html',
   styleUrl: './add-document-dialog.component.scss'
