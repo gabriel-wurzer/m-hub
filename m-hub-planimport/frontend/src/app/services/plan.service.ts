@@ -35,6 +35,13 @@ export class PlanService {
     return this.http.post<PlanDoc>(`${this.base}/plan/upload`, fd);
   }
 
+  /** Create a plan by fetching a PDF from a URL (integrated hand-off). */
+  createFromUrl(url: string, filename?: string, token?: string): Observable<PlanDoc> {
+    return this.http.post<PlanDoc>(`${this.base}/plan/from-url`, { url, filename, token }).pipe(
+      map((p) => ({ ...p, wallSegments: p.wallSegments ?? [], wallGroups: p.wallGroups ?? [], placemarks: p.placemarks ?? [], polygons: p.polygons ?? [] })),
+    );
+  }
+
   delete(id: string): Observable<any> {
     return this.http.delete(`${this.base}/plan/${id}`);
   }
