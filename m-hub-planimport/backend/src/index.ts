@@ -7,7 +7,6 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import { ensureDirs, listPlans, loadPlan, savePlan, RASTER_DIR, UPLOADS_DIR } from './store.js';
 import { importPdf } from './services/pipeline.js';
-import { searchOekobaudat } from './services/oekobaudat.js';
 import { PlanDoc } from './types.js';
 
 const PORT = Number(process.env.PORT ?? 3200);
@@ -57,8 +56,11 @@ async function main() {
     const merged: PlanDoc = {
       ...existing,
       wallSegments: incoming.wallSegments ?? existing.wallSegments,
+      wallGroups: incoming.wallGroups ?? existing.wallGroups ?? [],
+      placemarks: incoming.placemarks ?? existing.placemarks ?? [],
       polygons: incoming.polygons ?? existing.polygons,
       calibration: incoming.calibration ?? existing.calibration,
+      location: incoming.location ?? existing.location,
     };
     await savePlan(merged);
     res.json(merged);
@@ -68,22 +70,52 @@ async function main() {
   app.post('/api/plan/:id/detect-walls', async (req, res) => {
     const existing = await loadPlan(req.params.id);
     if (!existing) return res.status(404).json({ error: 'not found' });
-    const { wallColors, scaleDenominator, tolerance } = req.body as {
+    const { wallColors, scaleDenominator, tolerance, regions } = req.body as {
       wallColors: Array<[number, number, number]>;
       scaleDenominator?: number;
       tolerance?: number;
+      regions?: Array<{ x: number; y: number; w: number; h: number }>;
     };
     if (!wallColors || wallColors.length === 0) {
       return res.status(400).json({ error: 'wallColors required' });
     }
     try {
       const { redetectWalls } = await import('./services/redetect.js');
-      const updated = await redetectWalls(existing, wallColors, scaleDenominator, tolerance);
+      const updated = await redetectWalls(existing, wallColors, scaleDenominator, tolerance, regions);
       await savePlan(updated);
       res.json(updated);
     } catch (err: any) {
       console.error('[detect-walls] failed', err);
       res.status(500).json({ error: err?.message ?? 'detection failed' });
+    }
+  });
+
+  // Net floor area via flood-fill (convex-hull bounded).
+  app.post('/api/plan/:id/floodfill', async (req, res) => {
+    const plan = await loadPlan(req.params.id);
+    if (!plan) return res.status(404).json({ error: 'not found' });
+    const mmPerUnit = plan.calibration?.mmPerUnit;
+    if (!mmPerUnit) return res.status(400).json({ error: 'Bitte zuerst kalibrieren.' });
+    const { x, y, bound, blockers } = req.body as {
+      x?: number; y?: number;
+      bound?: Array<[number, number]>;
+      blockers?: Array<[number, number, number, number]>;
+    };
+    if (typeof x !== 'number' || typeof y !== 'number') {
+      return res.status(400).json({ error: 'x, y required' });
+    }
+    try {
+      const { floodfillFloor } = await import('./services/floodfillFloor.js');
+      const wallPolygons = plan.wallSegments.filter((s) => !s.excluded).map((s) => s.polygon);
+      const result = floodfillFloor({
+        wallPolygons, pageWidth: plan.pageWidth, pageHeight: plan.pageHeight,
+        mmPerUnit, clickX: x, clickY: y, bound, blockers,
+      });
+      if ('error' in result) return res.status(422).json(result);
+      res.json(result);
+    } catch (err: any) {
+      console.error('[floodfill] failed', err);
+      res.status(500).json({ error: err?.message ?? 'floodfill failed' });
     }
   });
 
@@ -118,19 +150,6 @@ async function main() {
       res.send(buf);
     } catch {
       res.status(404).end();
-    }
-  });
-
-  // --- ÖKOBAU.dat proxy ----------------------------------------------------
-
-  app.get('/api/materials/search', async (req, res) => {
-    const q = String(req.query.q ?? '');
-    try {
-      const hits = await searchOekobaudat(q);
-      res.json(hits);
-    } catch (err: any) {
-      console.error('[materials] search failed', err);
-      res.status(500).json({ error: err?.message ?? 'search failed' });
     }
   });
 

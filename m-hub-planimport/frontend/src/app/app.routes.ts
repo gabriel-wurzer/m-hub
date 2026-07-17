@@ -11,6 +11,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./components/plan-editor/plan-editor.component').then((m) => m.PlanEditorComponent),
   },
+  {
+    path: 'report/:id',
+    loadComponent: () =>
+      import('./components/report/report.component').then((m) => m.ReportComponent),
+  },
   { path: '', redirectTo: 'plans', pathMatch: 'full' },
   { path: '**', redirectTo: 'plans' },
 ];

@@ -24,8 +24,8 @@ export async function rasterizePdfPage(
     disableFontFace: true,
     useSystemFonts: false,
     isEvalSupported: false,
-    // @ts-expect-error — canvasFactory is accepted at runtime (see pdf.mjs
-    // line ~7351) but isn't in the public type definitions.
+    // canvasFactory is accepted at runtime (see pdf.mjs line ~7351) but isn't
+    // in the public type definitions; the `as any` cast below covers it.
     canvasFactory: new NapiCanvasFactory(),
   } as any).promise;
 

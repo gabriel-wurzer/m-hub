@@ -11,6 +11,7 @@ import {
   MAT_DIALOG_DATA, MatDialogModule, MatDialogRef,
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -19,7 +20,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PlanViewerComponent } from '../plan-viewer/plan-viewer.component';
 import { PlanService } from '../../services/plan.service';
-import { PlanDoc } from '../../models/plan.model';
+import { DetectRegion, PlanDoc } from '../../models/plan.model';
 
 export interface SetupDialogData {
   plan: PlanDoc;
@@ -34,7 +35,7 @@ function rgbCss(c: [number, number, number]): string {
   standalone: true,
   imports: [
     CommonModule, FormsModule, MatDialogModule,
-    MatButtonModule, MatIconModule, MatFormFieldModule,
+    MatButtonModule, MatButtonToggleModule, MatIconModule, MatFormFieldModule,
     MatSelectModule, MatInputModule, MatProgressBarModule,
     MatTooltipModule, PlanViewerComponent,
   ],
@@ -49,16 +50,29 @@ function rgbCss(c: [number, number, number]): string {
 
       <div class="body">
         <div class="viewer-area">
+          <div class="mode-bar">
+            <mat-button-toggle-group [value]="setupTool()" (change)="setupTool.set($event.value)">
+              <mat-button-toggle value="pipette"><mat-icon>colorize</mat-icon>&nbsp;Wandfarbe</mat-button-toggle>
+              <mat-button-toggle value="region"><mat-icon>crop_free</mat-icon>&nbsp;Bereich</mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
           <app-plan-viewer #viewer
             [plan]="viewerPlan()"
-            [tool]="'pipette'"
+            [tool]="setupTool()"
             [selection]="[]"
             [thicknessFilterMm]="[0, 99999]"
             [fitMargin]="0"
-            (colorPicked)="onColorPicked($event)" />
+            [regions]="regions()"
+            (colorPicked)="onColorPicked($event)"
+            (regionsChange)="regions.set($event)" />
           <div class="viewer-hint">
-            <mat-icon>colorize</mat-icon>
-            Klicke auf eine Wand um die Farbe aufzunehmen
+            @if (setupTool() === 'pipette') {
+              <mat-icon>colorize</mat-icon>
+              Klicke auf eine Wand um die Farbe aufzunehmen
+            } @else {
+              <mat-icon>crop_free</mat-icon>
+              Rechteck ziehen = Erkennungsbereich. Leer = ganzer Plan.
+            }
           </div>
         </div>
 
@@ -106,6 +120,28 @@ function rgbCss(c: [number, number, number]): string {
                 </div>
               }
             </div>
+          </div>
+
+          <div class="section">
+            <h3>Erkennungsbereich <span class="opt">optional</span></h3>
+            @if (regions().length === 0) {
+              <div class="region-empty">
+                Kein Bereich — der ganze Plan wird erkannt. Wechsle oben auf
+                „Bereich" und ziehe Rechtecke, um Koten &amp; Ränder auszusparen.
+              </div>
+            } @else {
+              <div class="region-list">
+                @for (r of regions(); track $index) {
+                  <div class="region-row">
+                    <mat-icon>crop_free</mat-icon>
+                    <span class="region-label">Bereich {{ $index + 1 }}</span>
+                    <button mat-icon-button (click)="removeRegion($index)" matTooltip="Entfernen">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
           </div>
 
           @if (error()) {
@@ -183,6 +219,18 @@ function rgbCss(c: [number, number, number]): string {
     .actions { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
     .full-btn { width: 100%; }
     .progress-text { text-align: center; color: #607d8b; font-size: 13px; margin-top: 4px; }
+
+    .mode-bar { position: absolute; top: 12px; left: 12px; z-index: 2;
+      background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+    .mode-bar .mat-button-toggle-checked { background: #107bbc; color: #fff; }
+    .mode-bar .mat-button-toggle-checked .mat-icon { color: #fff; }
+    .opt { font-size: 11px; color: #90a4ae; font-weight: 400; }
+    .region-empty { font-size: 12px; color: #90a4ae; line-height: 1.4; }
+    .region-list { display: flex; flex-direction: column; gap: 6px; }
+    .region-row { display: flex; align-items: center; gap: 8px;
+      padding: 2px 8px; background: #f4f8fb; border-radius: 6px; }
+    .region-row .region-label { flex: 1; font-size: 13px; color: #455a64; }
+    .region-row mat-icon { color: #107bbc; }
   `],
 })
 export class PlanSetupDialogComponent {
@@ -194,12 +242,17 @@ export class PlanSetupDialogComponent {
   scaleDenom = 100;
   customDenom = 100;
 
+  setupTool = signal<'pipette' | 'region'>('pipette');
+  regions = signal<DetectRegion[]>([]);
+
   rgbCss = rgbCss;
 
   // Build a minimal PlanDoc for the viewer (just raster, no segments).
   viewerPlan = computed<PlanDoc>(() => ({
     ...this.data.plan,
     wallSegments: [],
+    wallGroups: [],
+    placemarks: [],
     polygons: [],
   }));
 
@@ -223,6 +276,10 @@ export class PlanSetupDialogComponent {
     this.wallColors.update((prev) => prev.filter((_, i) => i !== index));
   }
 
+  removeRegion(index: number) {
+    this.regions.update((prev) => prev.filter((_, i) => i !== index));
+  }
+
   analyze() {
     const plan = this.data.plan;
     const colors = this.wallColors();
@@ -232,7 +289,7 @@ export class PlanSetupDialogComponent {
     this.analyzing.set(true);
     this.error.set(null);
 
-    this.planSvc.detectWalls(plan.id, colors, denom).subscribe({
+    this.planSvc.detectWalls(plan.id, colors, denom, undefined, this.regions()).subscribe({
       next: (updated) => {
         this.analyzing.set(false);
         this.ref.close(updated);

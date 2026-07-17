@@ -38,6 +38,13 @@ export interface DetectOptions {
   minAreaMm2: number;
   /** Max plausible wall thickness in mm. Anything thicker is not a wall. Default: 800. */
   maxThicknessMm: number;
+  /**
+   * Optional detection regions-of-interest, in plan units. When present,
+   * everything outside their union is masked out before segmentation — cuts
+   * false positives from dimension lines / title blocks and speeds up the
+   * heavy watershed + contour passes. Empty/absent = whole page.
+   */
+  regions?: Array<{ x: number; y: number; w: number; h: number }>;
 }
 
 export async function detectWallSegments(
@@ -81,6 +88,26 @@ export async function detectWallSegments(
   }
   rgb.delete();
   console.log(`[walls] 2-mask ${Date.now() - t1}ms`);
+
+  // ===== 2b. Restrict to detection regions (ROI) ==========================
+  // Zero out everything outside the union of user-drawn rectangles. Region
+  // coords are in plan units; raster px = plan * rasterScale.
+  if (opts.regions && opts.regions.length > 0) {
+    const roi = cv.Mat.zeros(mask.rows, mask.cols, cv.CV_8UC1);
+    for (const rg of opts.regions) {
+      const x1 = Math.max(0, Math.round(rg.x * opts.rasterScale));
+      const y1 = Math.max(0, Math.round(rg.y * opts.rasterScale));
+      const x2 = Math.min(mask.cols, Math.round((rg.x + rg.w) * opts.rasterScale));
+      const y2 = Math.min(mask.rows, Math.round((rg.y + rg.h) * opts.rasterScale));
+      if (x2 <= x1 || y2 <= y1) continue;
+      const sub = roi.roi(new cv.Rect(x1, y1, x2 - x1, y2 - y1));
+      sub.setTo(new cv.Scalar(255));
+      sub.delete();
+    }
+    cv.bitwise_and(mask, roi, mask);
+    roi.delete();
+    console.log(`[walls] 2b-roi ${opts.regions.length} region(s)`);
+  }
 
   // ===== 3. Morphological close (fill small gaps in wall outlines) =========
   const t2 = Date.now();

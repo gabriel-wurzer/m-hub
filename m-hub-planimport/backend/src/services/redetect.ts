@@ -10,6 +10,7 @@ export async function redetectWalls(
   wallColors: Array<[number, number, number]>,
   scaleDenominator?: number,
   toleranceRgb255?: number,
+  regions?: Array<{ x: number; y: number; w: number; h: number }>,
 ): Promise<PlanDoc> {
   const scaleDenom = scaleDenominator ?? plan.calibration?.scaleDenominator ?? 100;
   const mmPerUnit = (25.4 / 72) * scaleDenom;
@@ -29,8 +30,9 @@ export async function redetectWalls(
     tolerance,
     rasterScale,
     mmPerUnit,
-    minAreaMm2: 500,
+    minAreaMm2: 1500, // ~15 cm²: drops specks but keeps small real wall runs
     maxThicknessMm: 3000, // Altbau can have 1m+ walls; >3m is definitely wrong
+    regions,
   });
 
   const wallSegments: WallSegment[] = rawSegments.map((s) => ({
@@ -45,6 +47,8 @@ export async function redetectWalls(
   return {
     ...plan,
     wallSegments,
+    // Fresh segments carry new wallObjectIds; drop stale buildups.
+    wallGroups: [],
     wallColors,
     rasterScale,
     calibration: {

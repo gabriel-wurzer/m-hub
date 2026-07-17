@@ -36,6 +36,8 @@ export async function importPdf(
     rasterUrl: `/api/plan/${id}/raster`,
     rasterScale: raster.scale,
     wallSegments: [],
+    wallGroups: [],
+    placemarks: [],
     polygons: [],
   };
   await savePlan(plan);
