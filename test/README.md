@@ -29,11 +29,16 @@ The `test-runner` service connects to the fresh DB (to read a seeded user +
 building and to mint a JWT with the test secret) and hits the backend over HTTP.
 Assertions live in [`api.test.mjs`](api.test.mjs) using `node:test`.
 
-Currently covered:
+Currently covered (27 tests):
 
-- `POST /api/documents/reserve` — 201 + scoped upload token; 401 no auth; 400 missing building_id; 400 unsupported file_type
-- `POST /api/documents/:ID/attach` — 403 wrong owner; 409 file not stored; 400 spoofed path; 200 happy path (file_url set)
-- `POST /api/import/plan` — insert; re-import same `source_extract_id` → delete-and-reallocate (not doubled); 400 empty; 400 invalid object_type; 401 no auth
+- **reserve** `POST /api/documents/reserve` — 201 + scoped upload token; 401 no auth; 400 missing building_id; 400 unsupported file_type
+- **attach** `POST /api/documents/:ID/attach` — 403 wrong owner; 409 file not stored; 400 spoofed path; 200 happy path (file_url set)
+- **import** `POST /api/import/plan` — insert; re-import same `source_extract_id` → delete-and-reallocate (not doubled); 400 empty; 400 invalid object_type; 401 no auth
+- **parts** `POST/GET .../building/:ID/PUT/DELETE /api/parts` — full create→list→update→delete; 401 no auth; 400 invalid part_type; 400 missing name
+- **objects** `POST/GET .../building/:ID/PUT/DELETE /api/objects` — full CRUD; 401 no auth; 400 invalid object_type; 400 count < 1
+- **documents** `POST /api/documents` (inline base64) → `GET .../building/:ID` → `DELETE`; 400 missing file_data_url; 401 no auth
+- **auth** `POST /api/auth/login` — 200 + verifiable token; 401 wrong password; 401 unknown user; 400 missing password
+- **buildings** `GET /api/users/me/buildings` (200 + own building, 401 no auth); `GET /api/buildings/:ID/latest-structure` (200)
 
 ## Adding a test
 
@@ -42,20 +47,16 @@ Add a `test('...', async () => { ... })` to `api.test.mjs`. `ctx` (filled in the
 an `otherToken` (a different user, for ownership checks). Use the `call(method,
 path, token, body)` helper.
 
-## Coverage backlog (planned, separate effort)
+## Coverage backlog (still open)
 
-Everything below still needs cases. The harness already boots the whole backend,
-so each is just more `test(...)` blocks (auth ones may need a seeded plaintext
-password or a minted token):
+The harness already boots the whole backend, so each is just more `test(...)`
+blocks:
 
-- **auth**: `POST /api/auth/login` (valid, wrong password, unknown user)
-- **buildings**: `GET /api/buildings/:ID`, `GET /api/buildings/:ID/latest-structure`, `GET /api/users/me/buildings`
-- **documents**: `GET /api/documents`, `.../building/:ID`, `.../by-building/:buildingId`, `POST` (base64 create), `PUT/DELETE /api/documents/:ID`
-- **parts**: `GET/POST/PUT/DELETE /api/parts`, `.../building/:ID`
-- **objects**: `GET/POST/PUT/DELETE /api/objects`, `.../building/:ID`
-- **marketlistings** (init 06)
-- **structure update** endpoints
-- **nominatim** proxy
+- **documents**: `GET /api/documents` (query filters), `.../by-building/:buildingId` (summaries), `GET /api/documents/:ID`, `PUT /api/documents/:ID`
+- **buildings**: `GET /api/buildings/:ID` (geo details — needs the gdal `buildings_details` table seeded into the test stack)
+- **marketlistings** (init 06): full CRUD
+- **structure update** endpoints (writing `user_buildings.structure`)
+- **nominatim** proxy (hits an external host — mock or mark as network-dependent)
 
 ## Note: dev-DB schema drift
 
