@@ -624,6 +624,42 @@ test('market-listings: PUT /api/market-listings/:ID -> 200', async () => {
   await call('DELETE', `/api/parts/${part.id}`, ctx.token);
 });
 
+// --------------------------------------------------------------------------
+// structure update — writes user_buildings.structure (the storey list)
+// --------------------------------------------------------------------------
+test('structure: PUT /api/users/me/buildings/:id updates structure -> 200', async () => {
+  const structure = [
+    { type: 'Dach', roofType: 'Flachdach' },
+    { type: 'Regelgeschoss', count: 4, height: 280, area: 300 },
+  ];
+  const res = await call('PUT', `/api/users/me/buildings/${ctx.ub}`, ctx.token, {
+    name: 'Flackturm Augarten',
+    address: 'Augarten 1',
+    structure,
+  });
+  assert.equal(res.status, 200);
+  const updated = await res.json();
+  assert.ok(Array.isArray(updated.structure) && updated.structure.length === 2, 'structure not updated');
+});
+
+test('structure: PUT no auth -> 401', async () => {
+  const res = await call('PUT', `/api/users/me/buildings/${ctx.ub}`, null, {
+    name: 'x',
+    address: 'y',
+    structure: [{ type: 'Dach' }],
+  });
+  assert.equal(res.status, 401);
+});
+
+test('structure: PUT empty structure -> 400', async () => {
+  const res = await call('PUT', `/api/users/me/buildings/${ctx.ub}`, ctx.token, {
+    name: 'x',
+    address: 'y',
+    structure: [],
+  });
+  assert.equal(res.status, 400);
+});
+
 test('market-listings: no auth -> 401', async () => {
   const res = await call('POST', '/api/market-listings', null, newListing('00000000-0000-4000-8000-000000000000'));
   assert.equal(res.status, 401);
