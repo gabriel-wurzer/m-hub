@@ -518,6 +518,112 @@ test('market-listings: list without a filter -> 400', async () => {
   assert.equal(res.status, 400);
 });
 
+// --------------------------------------------------------------------------
+// single-resource reads + document list variants
+// --------------------------------------------------------------------------
+test('parts: GET /api/parts/:ID -> 200', async () => {
+  const created = await (await call('POST', '/api/parts', ctx.token, newPart())).json();
+  const res = await call('GET', `/api/parts/${created.id}`, ctx.token);
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).id, created.id);
+  await call('DELETE', `/api/parts/${created.id}`, ctx.token);
+});
+
+test('objects: GET /api/objects/:ID -> 200', async () => {
+  const created = await (await call('POST', '/api/objects', ctx.token, newObject())).json();
+  const res = await call('GET', `/api/objects/${created.id}`, ctx.token);
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).id, created.id);
+  await call('DELETE', `/api/objects/${created.id}`, ctx.token);
+});
+
+test('documents: GET /api/documents/:ID -> 200', async () => {
+  const created = await (
+    await call('POST', '/api/documents', ctx.token, {
+      building_id: ctx.building,
+      user_building_id: ctx.ub,
+      name: 'Read Doc',
+      is_public: true,
+      file_type: 'pdf',
+      file_original_name: 'r.pdf',
+      file_mime_type: 'application/pdf',
+      file_data_url: SMALL_PDF,
+    })
+  ).json();
+  const res = await call('GET', `/api/documents/${created.id}`, ctx.token);
+  assert.equal(res.status, 200);
+  await call('DELETE', `/api/documents/${created.id}`, ctx.token);
+});
+
+test('documents: GET /api/documents/by-building/:buildingId -> 200 array', async () => {
+  const res = await call('GET', `/api/documents/by-building/${ctx.building}`, ctx.token);
+  assert.equal(res.status, 200);
+  assert.ok(Array.isArray(await res.json()));
+});
+// NOTE: GET /api/documents (query-filter list) is intentionally disabled in the
+// flows (tab "GET Documents (by filter query parameters)" disabled) and the
+// frontend's getDocuments is commented out — so it is deliberately not tested.
+
+test('market-listings: GET /api/market-listing/categories/counts -> 200', async () => {
+  const res = await call('GET', '/api/market-listing/categories/counts', ctx.token);
+  assert.equal(res.status, 200);
+});
+
+test('documents: PUT /api/documents/:ID (metadata) -> 200', async () => {
+  const created = await (
+    await call('POST', '/api/documents', ctx.token, {
+      building_id: ctx.building,
+      user_building_id: ctx.ub,
+      name: 'Before',
+      is_public: false,
+      file_type: 'pdf',
+      file_original_name: 'p.pdf',
+      file_mime_type: 'application/pdf',
+      file_data_url: SMALL_PDF,
+    })
+  ).json();
+  const res = await call('PUT', `/api/documents/${created.id}`, ctx.token, {
+    name: 'After',
+    description: 'aktualisiert',
+    is_public: true,
+  });
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).name, 'After');
+  await call('DELETE', `/api/documents/${created.id}`, ctx.token);
+});
+
+test('market-listings: GET /api/market-listings/:ID -> 200', async () => {
+  const part = await (await call('POST', '/api/parts', ctx.token, newPart())).json();
+  const created = await (await call('POST', '/api/market-listings', ctx.token, newListing(part.id))).json();
+  const res = await call('GET', `/api/market-listings/${created.id}`, ctx.token);
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).id, created.id);
+  await call('DELETE', `/api/market-listings/${created.id}`, ctx.token);
+  await call('DELETE', `/api/parts/${part.id}`, ctx.token);
+});
+
+test('market-listings: PUT /api/market-listings/:ID -> 200', async () => {
+  const part = await (await call('POST', '/api/parts', ctx.token, newPart())).json();
+  const created = await (await call('POST', '/api/market-listings', ctx.token, newListing(part.id))).json();
+  const res = await call('PUT', `/api/market-listings/${created.id}`, ctx.token, {
+    name: 'Ziegel reduziert',
+    material: 'Ziegel',
+    price: 50,
+    quantity: 3,
+    status: 'verkauft',
+    potential: 'reuse',
+    unit: 'Stück',
+    available_from: '2026-09-01',
+    contact: 'verkauf@mhub.local',
+  });
+  assert.equal(res.status, 200);
+  const updated = await res.json();
+  assert.equal(updated.name, 'Ziegel reduziert');
+  assert.equal(updated.status, 'verkauft');
+  await call('DELETE', `/api/market-listings/${created.id}`, ctx.token);
+  await call('DELETE', `/api/parts/${part.id}`, ctx.token);
+});
+
 test('market-listings: no auth -> 401', async () => {
   const res = await call('POST', '/api/market-listings', null, newListing('00000000-0000-4000-8000-000000000000'));
   assert.equal(res.status, 401);
