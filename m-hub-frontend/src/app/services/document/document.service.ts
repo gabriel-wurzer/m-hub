@@ -86,9 +86,11 @@ export class DocumentService {
           if (aborted) return;
           const { document, upload: ticket } = reserved;
           const m = ticket.metadata;
-          // The upload service stores at this deterministic path (derived from
-          // the signed token). Prefer the X-Stored-Path header when present.
-          let storedPath = `/mhub/documents/${m.user_building_id}/${m.document_id}/${m.filename}`;
+          // The upload service stores at this deterministic path (built from the
+          // same signed-token claims), so we attach with it directly. (The
+          // service also returns X-Stored-Path, but browsers block reading that
+          // non-safelisted header, and it would be identical anyway.)
+          const storedPath = `/mhub/documents/${m.user_building_id}/${m.document_id}/${m.filename}`;
 
           upload = new tus.Upload(file, {
             endpoint: ticket.endpoint,
@@ -97,10 +99,6 @@ export class DocumentService {
             removeFingerprintOnSuccess: true,
             headers: { Authorization: `Bearer ${ticket.token}` },
             metadata: m as unknown as Record<string, string>,
-            onAfterResponse: (_req, res) => {
-              const stored = res.getHeader('X-Stored-Path');
-              if (stored) storedPath = stored;
-            },
             onProgress: (sent, total) => {
               if (onProgress && total > 0) onProgress(Math.round((sent / total) * 100));
             },
