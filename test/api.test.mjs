@@ -469,3 +469,75 @@ test('buildings: GET /api/buildings/:ID/latest-structure -> 200', async () => {
   const res = await call('GET', `/api/buildings/${ctx.building}/latest-structure`, ctx.token);
   assert.equal(res.status, 200);
 });
+
+// --------------------------------------------------------------------------
+// market listings — a Bauteil listing references a real building part
+// --------------------------------------------------------------------------
+const newListing = (componentId) => ({
+  building_id: ctx.building,
+  user_building_id: ctx.ub,
+  component_id: componentId,
+  component_category: 'Bauteil',
+  location: 'Regelgeschoss 1',
+  material: 'Ziegel',
+  name: 'Ziegel zu verkaufen',
+  description: 'Test-Inserat',
+  price: 100,
+  quantity: 5,
+  unit: 'Stück',
+  status: 'eingelagert',
+  potential: 'reuse',
+  available_from: '2026-08-01',
+  contact: 'verkauf@mhub.local',
+});
+
+test('market-listings: create -> list -> delete', async () => {
+  const part = await (await call('POST', '/api/parts', ctx.token, newPart())).json();
+
+  let res = await call('POST', '/api/market-listings', ctx.token, newListing(part.id));
+  assert.equal(res.status, 201);
+  const created = await res.json();
+  assert.ok(created.id, 'created listing has no id');
+  assert.equal(created.component_category, 'Bauteil');
+  assert.equal(created.material, 'Ziegel');
+
+  // the list endpoint requires exactly one filter; owner_id returns own listings
+  res = await call('GET', `/api/market-listings?owner_id=${ctx.owner}`, ctx.token);
+  assert.equal(res.status, 200);
+  const list = await res.json();
+  assert.ok(Array.isArray(list) && list.some((l) => l.id === created.id), 'created listing not in owner list');
+
+  res = await call('DELETE', `/api/market-listings/${created.id}`, ctx.token);
+  assert.ok(res.status === 200 || res.status === 204, `delete status ${res.status}`);
+
+  await call('DELETE', `/api/parts/${part.id}`, ctx.token);
+});
+
+test('market-listings: list without a filter -> 400', async () => {
+  const res = await call('GET', '/api/market-listings', ctx.token);
+  assert.equal(res.status, 400);
+});
+
+test('market-listings: no auth -> 401', async () => {
+  const res = await call('POST', '/api/market-listings', null, newListing('00000000-0000-4000-8000-000000000000'));
+  assert.equal(res.status, 401);
+});
+
+test('market-listings: invalid status -> 400', async () => {
+  const part = await (await call('POST', '/api/parts', ctx.token, newPart())).json();
+  const res = await call('POST', '/api/market-listings', ctx.token, { ...newListing(part.id), status: 'weggeworfen' });
+  assert.equal(res.status, 400);
+  await call('DELETE', `/api/parts/${part.id}`, ctx.token);
+});
+
+test('market-listings: Objekt listing with material -> 400', async () => {
+  const part = await (await call('POST', '/api/parts', ctx.token, newPart())).json();
+  const res = await call('POST', '/api/market-listings', ctx.token, {
+    ...newListing(part.id),
+    component_category: 'Objekt',
+    object_type: 'Tür',
+    // material must be null for Objekt listings
+  });
+  assert.equal(res.status, 400);
+  await call('DELETE', `/api/parts/${part.id}`, ctx.token);
+});
