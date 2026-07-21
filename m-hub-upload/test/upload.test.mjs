@@ -11,6 +11,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import jwt from 'jsonwebtoken';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const PORT = 3399;
@@ -131,4 +132,67 @@ test('resumable 2-chunk upload lands whole file in the filer', { timeout: 30000 
   assert.ok(got, `filer never received ${key} (keys: ${[...stored.keys()].join(', ')})`);
   assert.equal(got.length, data.length);
   assert.ok(got.equals(data), 'stored bytes differ from source');
+});
+
+test('auth: valid upload token creates, wrong scope 403, no token 401', { timeout: 30000 }, async () => {
+  const SECRET = 'testsecret';
+  const PORT2 = 3398;
+  const BASE2 = `http://127.0.0.1:${PORT2}`;
+
+  const filer2 = http.createServer((req, res) => {
+    req.resume();
+    req.on('end', () => res.writeHead(req.method === 'PUT' ? 201 : 200).end());
+  });
+  await new Promise((r) => filer2.listen(0, '127.0.0.1', r));
+
+  const child2 = spawn(process.execPath, ['dist/index.js'], {
+    cwd: ROOT,
+    env: {
+      ...process.env,
+      JWT_SECRET: SECRET, // auth ON
+      PORT: String(PORT2),
+      SEAWEED_FILER_INTERNAL_URL: `http://127.0.0.1:${filer2.address().port}`,
+      UPLOAD_DIR: fs.mkdtempSync(path.join(os.tmpdir(), 'tusauth-')),
+    },
+    stdio: 'ignore',
+  });
+
+  try {
+    for (let i = 0; i < 40; i++) {
+      try {
+        const r = await fetch(`${BASE2}/health`);
+        if (r.ok) break;
+      } catch {
+        /* not up yet */
+      }
+      await new Promise((r) => setTimeout(r, 250));
+    }
+
+    const createWith = (auth) =>
+      fetch(`${BASE2}/upload`, {
+        method: 'POST',
+        headers: {
+          'Tus-Resumable': '1.0.0',
+          'Upload-Length': '10',
+          'Upload-Metadata': meta({ filename: 'a.bin', document_id: 'd', user_building_id: 'u', filetype: 'application/octet-stream' }),
+          ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
+        },
+      });
+
+    const claims = { document_id: 'd', user_building_id: 'u', filename: 'a.bin', filetype: 'application/octet-stream' };
+    const uploadToken = jwt.sign({ sub: 'u1', scope: 'upload', ...claims }, SECRET, { algorithm: 'HS256', expiresIn: '1h' });
+    const sessionToken = jwt.sign({ sub: 'u1', ...claims }, SECRET, { algorithm: 'HS256', expiresIn: '1h' }); // no scope
+
+    let res = await createWith(uploadToken);
+    assert.equal(res.status, 201, 'a valid upload-scoped token must create the upload');
+
+    res = await createWith(sessionToken);
+    assert.equal(res.status, 403, 'a token without scope=upload must be forbidden');
+
+    res = await createWith(null);
+    assert.equal(res.status, 401, 'a missing token must be unauthorized');
+  } finally {
+    child2.kill();
+    filer2.close();
+  }
 });
