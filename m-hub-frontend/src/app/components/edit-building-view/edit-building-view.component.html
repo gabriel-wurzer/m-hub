@@ -161,6 +161,11 @@
                             </button>
                         </div>
 
+                        <div class="upload-progress" *ngIf="documentUploadProgress !== null">
+                            <mat-icon>cloud_upload</mat-icon>
+                            <span>Große Datei wird hochgeladen… {{ documentUploadProgress }}%</span>
+                        </div>
+
                         <div class="custom-list scroll-list">
                             <div class="custom-list-content">
                                 <div class="list-row grid-document header-row" *ngIf="documents.length > 0">

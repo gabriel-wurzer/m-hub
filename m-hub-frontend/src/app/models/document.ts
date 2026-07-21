@@ -45,3 +45,35 @@ export type UpdateDocumentPayload = {
     file_original_name?: string;
     file_type?: FileType;
 };
+
+/**
+ * Metadata for reserving a document before a resumable (big-file) upload.
+ * Same fields as CreateDocumentPayload but WITHOUT the inline file bytes.
+ */
+export type ReserveDocumentPayload = {
+    building_id: string;
+    user_building_id: string;
+    component_id?: string;
+    name: string;
+    description?: string;
+    is_public: boolean;
+    file_type?: FileType;
+    file_original_name?: string;
+};
+
+/** Short-lived ticket the backend hands out to stream the file to the upload service. */
+export type UploadTicket = {
+    endpoint: string; // where to POST the tus upload, e.g. '/upload'
+    token: string;    // scoped upload JWT (Bearer) for the upload service
+    metadata: {
+        document_id: string;
+        user_building_id: string;
+        filename: string;
+        filetype: string;
+    };
+};
+
+export type ReserveDocumentResponse = {
+    document: Document;
+    upload: UploadTicket;
+};

@@ -30,7 +30,7 @@ import {
   UpdateBauteilPayload,
   UpdateObjektPayload
 } from '../../models/building-component';
-import { Document, CreateDocumentPayload, UpdateDocumentPayload } from '../../models/document';
+import { Document, CreateDocumentPayload, ReserveDocumentPayload, UpdateDocumentPayload } from '../../models/document';
 import { Floor } from '../../models/floor';
 import { FloorType } from '../../enums/floor-type.enum';
 import { RoofType } from '../../enums/roof-type.enum';
@@ -124,6 +124,7 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
   suppressStructureAnimations = false;
 
   isLoadingDocuments = false;
+  documentUploadProgress: number | null = null; // 0..100 while a big file streams via resumable upload
   isLoadingObjects = false;
   isLoadingParts = false;
 
@@ -616,42 +617,66 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
     dialogRef.afterClosed().subscribe(result => {
       if (!result) return;
 
-      const payload: CreateDocumentPayload = {
+      this.isLoadingDocuments = true;
+
+      const onCreated = (createdDocument: Document) => {
+        this.documents = [createdDocument, ...this.documents];
+      };
+      const onSuccess = () => {
+        this.snackBar.open('Dokument hinzugefügt.', 'OK', {
+          duration: 3000,
+          verticalPosition: 'top'
+        });
+      };
+      const onError = (error: unknown) => {
+        console.error('Error creating document:', error);
+        this.snackBar.open('Fehler beim Hinzufügen des Dokuments!', 'OK', {
+          duration: 10000,
+          verticalPosition: 'top',
+          panelClass: 'snackbar-warn'
+        });
+      };
+
+      // Small files (fileDataUrl present) go the inline base64 path; big files
+      // are reserved, streamed via tus, then attached.
+      if (result.fileDataUrl) {
+        const payload: CreateDocumentPayload = {
+          building_id: userBuilding.building_id,
+          user_building_id: userBuilding.id,
+          component_id: result.componentId ?? undefined,
+          name: result.name,
+          description: result.description ?? undefined,
+          is_public: result.isPublic ?? false,
+          file_data_url: result.fileDataUrl,
+          file_mime_type: result.fileMimeType ?? undefined,
+          file_original_name: result.fileName,
+          file_type: result.fileType
+        };
+
+        this.documentService.createDocument(payload)
+          .pipe(finalize(() => this.isLoadingDocuments = false))
+          .subscribe({ next: onCreated, complete: onSuccess, error: onError });
+        return;
+      }
+
+      this.documentUploadProgress = 0;
+      const meta: ReserveDocumentPayload = {
         building_id: userBuilding.building_id,
         user_building_id: userBuilding.id,
         component_id: result.componentId ?? undefined,
         name: result.name,
         description: result.description ?? undefined,
         is_public: result.isPublic ?? false,
-        file_data_url: result.fileDataUrl,
-        file_mime_type: result.fileMimeType ?? undefined,
-        file_original_name: result.fileName,
-        file_type: result.fileType
+        file_type: result.fileType,
+        file_original_name: result.fileName
       };
 
-      this.isLoadingDocuments = true;
-
-      this.documentService.createDocument(payload)
-        .pipe(finalize(() => this.isLoadingDocuments = false))
-        .subscribe({
-          next: createdDocument => {
-            this.documents = [createdDocument, ...this.documents];
-          },
-          complete: () => {
-            this.snackBar.open('Dokument hinzugefügt.', 'OK', {
-              duration: 3000,
-              verticalPosition: 'top'
-            });
-          },
-          error: error => {
-            console.error('Error creating document:', error);
-            this.snackBar.open('Fehler beim Hinzufügen des Dokuments!', 'OK', {
-              duration: 10000,
-              verticalPosition: 'top',
-              panelClass: 'snackbar-warn'
-            });
-          }
-        });
+      this.documentService.uploadResumable(result.file, meta, pct => (this.documentUploadProgress = pct))
+        .pipe(finalize(() => {
+          this.isLoadingDocuments = false;
+          this.documentUploadProgress = null;
+        }))
+        .subscribe({ next: onCreated, complete: onSuccess, error: onError });
     });
   }
 

@@ -27,7 +27,7 @@ export type AddDocumentDialogResult = {
   fileName: string;
   fileType: FileType;
   fileMimeType: string | null;
-  fileDataUrl: string;
+  fileDataUrl: string | null; // null for big files (streamed, not base64)
   previewImageUrl: string | null;
   componentId: string | null;
 };
@@ -58,7 +58,10 @@ type ComponentOptionVm = {
   styleUrl: './add-document-dialog.component.scss'
 })
 export class AddDocumentDialogComponent {
-  private readonly maxFileSizeInBytes = 100 * 1024 * 1024; // 100 MB Upload limit
+  private readonly maxFileSizeInBytes = 5 * 1024 * 1024 * 1024; // 5 GB (big files stream via resumable upload)
+  // Files larger than this are streamed to the upload service instead of being
+  // read into memory as a base64 data URL.
+  private readonly resumableThresholdInBytes = 25 * 1024 * 1024; // 25 MB
   private readonly imageFileTypes = new Set<FileType>([
     FileType.JPG,
     FileType.PNG,
@@ -120,6 +123,7 @@ export class AddDocumentDialogComponent {
   selectedFileMimeType: string | null = null;
   selectedFileDataUrl: string | null = null;
   selectedPreviewImageUrl: string | null = null;
+  isResumable = false; // true => stream the file (big), no base64
 
   componentOptions: ComponentOptionVm[] = [];
   componentId: string | null = null;
@@ -145,13 +149,14 @@ export class AddDocumentDialogComponent {
     if (this.fileError) return this.fileError;
     if (!this.selectedFile) return 'Datei erforderlich';
     if (!this.selectedFileType) return 'Dateityp konnte nicht erkannt werden';
-    if (!this.selectedFileDataUrl) return 'Datei wird noch verarbeitet';
+    if (!this.isResumable && !this.selectedFileDataUrl) return 'Datei wird noch verarbeitet';
     return null;
   }
 
   isFormValid(): boolean {
     const hasName = this.name.trim().length > 0;
-    const hasValidFile = !!this.selectedFile && !!this.selectedFileType && !!this.selectedFileDataUrl;
+    const hasValidFile =
+      !!this.selectedFile && !!this.selectedFileType && (this.isResumable || !!this.selectedFileDataUrl);
     return hasName && hasValidFile && !this.fileError;
   }
 
@@ -188,6 +193,7 @@ export class AddDocumentDialogComponent {
     this.selectedFileMimeType = null;
     this.selectedFileDataUrl = null;
     this.selectedPreviewImageUrl = null;
+    this.isResumable = false;
   }
 
   isImageType(fileType: FileType | null): boolean {
@@ -212,7 +218,7 @@ export class AddDocumentDialogComponent {
 
   confirmAddDocument(): void {
     if (!this.isFormValid()) return;
-    if (!this.selectedFile || !this.selectedFileType || !this.selectedFileDataUrl) return;
+    if (!this.selectedFile || !this.selectedFileType) return;
 
     const result: AddDocumentDialogResult = {
       name: this.name.trim(),
@@ -239,7 +245,7 @@ export class AddDocumentDialogComponent {
     this.fileError = '';
 
     if (file.size > this.maxFileSizeInBytes) {
-      this.fileError = 'Datei ist zu groß. Maximal 100MB erlaubt.';
+      this.fileError = 'Datei ist zu groß. Maximal 5 GB erlaubt.';
       return;
     }
 
@@ -253,6 +259,14 @@ export class AddDocumentDialogComponent {
     this.selectedFileName = file.name;
     this.selectedFileType = resolvedType;
     this.selectedFileMimeType = file.type || null;
+    this.isResumable = file.size > this.resumableThresholdInBytes;
+
+    if (this.isResumable) {
+      // Big file: streamed to the upload service, never read into memory as base64.
+      this.selectedFileDataUrl = null;
+      this.selectedPreviewImageUrl = null;
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = () => {
