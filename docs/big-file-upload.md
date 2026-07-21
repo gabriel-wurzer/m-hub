@@ -1,5 +1,35 @@
 # m-hub: Großdatei-Upload (Punktwolken, IFC, Pläne)
 
+Status: **umgesetzt & getestet** (2026-07-21) · Konzept unten unverändert als Referenz
+
+## Umsetzungsstand (2026-07-21)
+
+Der Entwurf unten ist gebaut. Konkret:
+
+- **`m-hub-upload`** (neuer Dienst, `./m-hub-upload`): Express + tus-Server, streamt
+  resumable direkt zum Filer unter `/mhub/documents/<user_building_id>/<document_id>/<name>`.
+  Verifiziert das m-hub-JWT und erzwingt `scope:"upload"` — der Store-Pfad kommt aus
+  den signierten Claims, nicht aus Client-Metadaten. Tests: resumable 2-Chunk +
+  HEAD-Resume + Filer-Store, sowie Auth (Upload-Token 201, falscher Scope 403, kein Token 401).
+- **node-red** (3 neue Flows, gleiches Muster wie Bestand): `POST /api/documents/reserve`
+  (Doc metadaten-only anlegen, kurzlebiges Upload-JWT ausgeben), `POST /api/documents/:ID/attach`
+  (Owner-Check, Pfad-Präfix-Check, Filer-HEAD, `file_url` setzen).
+- **Frontend** (`m-hub-frontend`): `tus-js-client`. Der Dialog liest Dateien >25 MB
+  **nicht** mehr als Base64; `DocumentService.uploadResumable` macht reserve → tus → attach.
+  Kleine Dateien bleiben auf dem Base64-Weg. **Im Browser verifiziert** (30-MB-`.e57`
+  hochgeladen, Datei landet mit voller Größe im Filer, `file_url` gesetzt).
+- **Verdrahtung**: `m-hub-upload` in `docker-compose.yaml` (gleiches `JWT_SECRET`),
+  Frontend-nginx `location ^~ /upload` (streaming, `proxy_request_buffering off`),
+  dev-`proxy.conf.json`.
+
+**Offen (Deploy):** Host-nginx `/upload`-Location auf dem Photon-Server (serverseitig,
+nicht im Repo), Prod-Deploy, `git push`. Der Base64-Weg + das alte 100-MB-Dialog-Cap
+sind bewusst als Fallback für kleine Dateien geblieben.
+
+---
+
+## (Original-Entwurf)
+
 Status: Entwurf · 2026-07-17 · für Abstimmung mit Lukas (node-red-Backend)
 
 ## 1. Ziel & Umfang
