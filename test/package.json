@@ -1,0 +1,13 @@
+{
+  "name": "m-hub-api-tests",
+  "private": true,
+  "type": "module",
+  "description": "Integration tests for the m-hub backend endpoints (reserve / attach / import).",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.1"
+  }
+}

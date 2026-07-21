@@ -6,15 +6,20 @@ base64 path. See `docs/big-file-upload.md` for the concept.
 
 ## Flow
 
-1. m-hub reserves a document (metadata) and hands the tool/browser a **JWT**.
-2. Browser uploads resumably (tus) to `/upload` with the JWT + metadata
-   (`filename`, `document_id`, `user_id`, `filetype`).
+1. m-hub reserves a document (`POST /api/documents/reserve`) and hands the
+   tool/browser a short-lived **upload JWT** (`scope: "upload"`) carrying
+   `document_id`, `user_building_id`, `filename`, `filetype`.
+2. Browser uploads resumably (tus) to `/upload` with that JWT. The token is
+   verified on every request; a general session token is rejected (wrong scope).
 3. On completion the service PUTs the assembled file to the filer at
-   `/mhub/documents/<user_id>/<document_id>/<filename>` and returns the path in
-   `X-Stored-Path`. m-hub records it (`documents.file_url`).
+   `/mhub/documents/<user_building_id>/<document_id>/<filename>` — the path comes
+   from the **signed token**, not client metadata, so a token for document A
+   cannot write into document B's path. It returns the path in `X-Stored-Path`.
+4. The browser calls `POST /api/documents/:id/attach` to record it
+   (`documents.file_url`) after the service confirms the file is stored.
 
 Bytes never touch node-red; the whole file is streamed and chunked. Auth is the
-same m-hub JWT (verified here). Verified locally: resumable 2-chunk upload +
+same m-hub JWT secret (HS256). Verified locally: resumable 2-chunk upload +
 HEAD-resume + filer store.
 
 ## Run

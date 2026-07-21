@@ -16,6 +16,9 @@ CREATE TABLE IF NOT EXISTS building_parts (
     location TEXT NOT NULL,
     part_type TEXT NOT NULL,
     part_structure JSONB NOT NULL,
+    -- set when the row originates from a 2D-plan import; groups all rows of one
+    -- (document, storey) extract so a re-import can delete-and-reallocate them.
+    source_extract_id UUID,
     is_public BOOLEAN NOT NULL DEFAULT TRUE,
     is_hazardous BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -53,6 +56,11 @@ CREATE TABLE IF NOT EXISTS building_parts (
         REFERENCES user_buildings(id)
         ON DELETE CASCADE
 );
+
+-- Fast lookup for the plan-import delete-and-reallocate (WHERE source_extract_id = ...).
+CREATE INDEX IF NOT EXISTS idx_building_parts_source_extract
+    ON building_parts(source_extract_id)
+    WHERE source_extract_id IS NOT NULL;
 
 -- ===============================================
 --  INITIAL DATA INSERTS

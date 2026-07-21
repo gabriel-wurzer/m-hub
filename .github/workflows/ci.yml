@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Unit/integration test of the resumable upload service (spawns the built
+  # service against a mock filer, drives the raw tus protocol).
+  upload:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: m-hub-upload
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npm test
+
+  # Integration test of the backend HTTP endpoints against a FRESH database
+  # (reserve / attach / import). The hermetic stack lives in
+  # docker-compose.test.yaml; the test-runner's exit code is the job result.
+  backend-endpoints:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run integration suite
+        # -p m-hub-test isolates from any COMPOSE_PROJECT_NAME (harmless in CI
+        # where no .env exists, required locally where the dev .env sets it).
+        run: >
+          docker compose -p m-hub-test -f docker-compose.test.yaml up --build
+          --abort-on-container-exit --exit-code-from test-runner
+      - name: Tear down
+        if: always()
+        run: docker compose -p m-hub-test -f docker-compose.test.yaml down -v
+
+  # NOTE: full endpoint coverage (auth, buildings, parts/objects/documents CRUD,
+  # marketlistings, structure) and frontend build/lint jobs are planned as a
+  # separate expansion — see test/README.md "Coverage backlog".

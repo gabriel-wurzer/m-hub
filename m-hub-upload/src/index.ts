@@ -21,6 +21,21 @@ await fs.mkdir(UPLOAD_DIR, { recursive: true });
 const sanitize = (n: string) =>
   (n || 'file').replace(/[^a-zA-Z0-9._-]/g, '_').replace(/_+/g, '_').slice(0, 180);
 
+const readBearer = (req: { headers: Record<string, unknown> }): string => {
+  const auth = req.headers['authorization'];
+  return typeof auth === 'string' && auth.startsWith('Bearer ') ? auth.slice(7) : '';
+};
+
+// The upload token is minted by node-red's /api/documents/reserve and binds this
+// upload to exactly one document (scope + document_id + user_building_id + filename).
+type UploadClaims = {
+  scope?: string;
+  document_id?: string;
+  user_building_id?: string;
+  filename?: string;
+  filetype?: string;
+};
+
 const tus = new Server({
   path: '/upload',
   datastore: new FileStore({ directory: UPLOAD_DIR }),
@@ -29,25 +44,43 @@ const tus = new Server({
   // Auth: verify the m-hub JWT on every incoming request (dev: disabled if no secret).
   async onIncomingRequest(req) {
     if (!JWT_SECRET) return;
-    const auth = req.headers['authorization'];
-    const token = typeof auth === 'string' && auth.startsWith('Bearer ') ? auth.slice(7) : '';
+    let claims: UploadClaims;
     try {
-      jwt.verify(token, JWT_SECRET);
+      claims = jwt.verify(readBearer(req), JWT_SECRET) as UploadClaims;
     } catch {
       throw Object.assign(new Error('unauthorized'), { status_code: 401, body: 'Invalid or missing token' });
+    }
+    // Reject general session tokens: only reserve-issued upload tokens may store files.
+    if (claims.scope !== 'upload') {
+      throw Object.assign(new Error('forbidden'), { status_code: 403, body: 'Token not scoped for upload' });
     }
   },
 
   // On completion: store the assembled file in the filer, return the path.
-  async onUploadFinish(_req, res, upload) {
+  async onUploadFinish(req, res, upload) {
     const meta: Record<string, string | null> = upload.metadata ?? {};
-    const name = sanitize(meta['filename'] ?? upload.id);
-    const relPath = `/mhub/documents/${meta['user_id'] ?? 'unknown'}/${meta['document_id'] ?? upload.id}/${name}`;
+    // Path components come from the signed token, NOT client metadata, so a token
+    // for document A can never write into document B's path. Dev (no secret) falls
+    // back to metadata.
+    let userBuilding = meta['user_building_id'] ?? undefined;
+    let documentId = meta['document_id'] ?? undefined;
+    let filename = meta['filename'] ?? undefined;
+    let filetype = meta['filetype'] ?? undefined;
+    if (JWT_SECRET) {
+      const claims = jwt.verify(readBearer(req), JWT_SECRET) as UploadClaims;
+      userBuilding = claims.user_building_id ?? userBuilding;
+      documentId = claims.document_id ?? documentId;
+      filename = claims.filename ?? filename;
+      filetype = claims.filetype ?? filetype;
+    }
+
+    const name = sanitize(filename ?? upload.id);
+    const relPath = `/mhub/documents/${userBuilding ?? 'unknown'}/${documentId ?? upload.id}/${name}`;
     const data = await fs.readFile(path.join(UPLOAD_DIR, upload.id));
 
     const put = await fetch(FILER_URL + relPath, {
       method: 'PUT',
-      headers: { 'Content-Type': meta['filetype'] ?? 'application/octet-stream' },
+      headers: { 'Content-Type': filetype ?? 'application/octet-stream' },
       body: data,
     });
     if (!put.ok) {

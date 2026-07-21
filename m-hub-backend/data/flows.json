@@ -7267,5 +7267,551 @@
                 "2a4e92211ea6c8a6"
             ]
         ]
+    },
+    {
+        "id": "a11ce5e100000001",
+        "type": "tab",
+        "label": "Reserve Document (big-file upload)",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "a11ce5e100000002",
+        "type": "tab",
+        "label": "Attach Document (big-file upload)",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "a11ce5e100000003",
+        "type": "tab",
+        "label": "Import Plan (2D-plan tool)",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "a11ce5e190000001",
+        "type": "comment",
+        "z": "a11ce5e100000001",
+        "name": "POST /api/documents/reserve  (metadata-only, returns upload JWT)",
+        "info": "",
+        "x": 300,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "a11ce5e110000001",
+        "type": "http in",
+        "z": "a11ce5e100000001",
+        "name": "RESERVE document",
+        "url": "/api/documents/reserve",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 270,
+        "y": 160,
+        "wires": [
+            [
+                "a11ce5e120000001"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e120000001",
+        "type": "function",
+        "z": "a11ce5e100000001",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET');\nif (!secret) {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Server misconfigured: JWT_SECRET missing' };\n    return [null, msg];\n}\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg];\n}\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\ntry {\n    msg.user = jwt.verify(parts[1], secret);\n    return [msg, null];\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 240,
+        "wires": [
+            [
+                "a11ce5e130000001"
+            ],
+            [
+                "a11ce5e160000001"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e130000001",
+        "type": "function",
+        "z": "a11ce5e100000001",
+        "name": "build SQL query",
+        "func": "const user_id = msg.user && msg.user.sub;\nconst b = msg.payload || {};\nconst uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\nconst allowed = new Set(['jpg','png','gif','bmp','tiff','svg','webp','pdf','doc','docx','txt','rtf','odt','html','md','csv','xlsx','xlsm','e57','obj','stl','ply','glb','gltf','fbx','ifc','las','laz']);\nconst txt = (v) => (typeof v === 'string' && v.trim() ? v.trim() : null);\n\nif (!uuidRe.test(String(user_id || ''))) {\n    msg.statusCode = 401; msg.payload = { error: 'Invalid user in token' }; return [null, msg];\n}\nconst building_id = txt(b.building_id);\nif (!building_id) { msg.statusCode = 400; msg.payload = { error: 'building_id is required' }; return [null, msg]; }\nif (!uuidRe.test(String(b.user_building_id || ''))) { msg.statusCode = 400; msg.payload = { error: 'Invalid user_building_id' }; return [null, msg]; }\nconst name = txt(b.name);\nif (!name) { msg.statusCode = 400; msg.payload = { error: 'name is required' }; return [null, msg]; }\nconst component_id = txt(b.component_id);\nif (component_id !== null && !uuidRe.test(component_id)) { msg.statusCode = 400; msg.payload = { error: 'Invalid component_id' }; return [null, msg]; }\n\nlet ext = txt(b.file_type);\nif (!ext) {\n    const orig = txt(b.file_original_name);\n    if (orig && orig.includes('.')) ext = orig.split('.').pop().toLowerCase();\n}\next = ext ? ext.toLowerCase() : null;\nif (!ext || !allowed.has(ext)) { msg.statusCode = 400; msg.payload = { error: 'Unsupported or missing file_type' }; return [null, msg]; }\n\nconst fallback = 'file.' + ext;\nconst rawName = txt(b.file_original_name) || fallback;\nmsg.reserveFilename = rawName.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/_+/g, '_').slice(0, 180);\n\nmsg.query = 'INSERT INTO documents (building_id, owner_id, user_building_id, component_id, name, description, is_public, file_url, file_type) VALUES ($1, $2::uuid, $3::uuid, $4, $5, $6, $7, NULL, $8) RETURNING *;';\nmsg.params = [\n    building_id,\n    user_id,\n    String(b.user_building_id),\n    component_id,\n    name,\n    txt(b.description),\n    typeof b.is_public === 'boolean' ? b.is_public : false,\n    ext\n];\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 340,
+        "wires": [
+            [
+                "a11ce5e140000001"
+            ],
+            [
+                "a11ce5e160000001"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e140000001",
+        "type": "postgresql",
+        "z": "a11ce5e100000001",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 440,
+        "y": 460,
+        "wires": [
+            [
+                "a11ce5e150000001"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e150000001",
+        "type": "function",
+        "z": "a11ce5e100000001",
+        "name": "issue upload token",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET');\nconst rows = msg.payload;\nif (!Array.isArray(rows) || rows.length === 0) {\n    msg.statusCode = 500; msg.payload = { error: 'Document could not be reserved.' }; return msg;\n}\nconst doc = rows[0];\nconst meta = {\n    document_id: doc.id,\n    user_building_id: doc.user_building_id,\n    filename: msg.reserveFilename,\n    filetype: doc.file_type\n};\nconst token = jwt.sign(\n    Object.assign({ sub: doc.owner_id, scope: 'upload' }, meta),\n    secret,\n    { algorithm: 'HS256', expiresIn: '2h' }\n);\nmsg.statusCode = 201;\nmsg.payload = { document: doc, upload: { endpoint: '/upload', token: token, metadata: meta } };\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 560,
+        "wires": [
+            [
+                "a11ce5e160000001"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e160000001",
+        "type": "http response",
+        "z": "a11ce5e100000001",
+        "name": "reserve response",
+        "statusCode": "",
+        "headers": {},
+        "x": 900,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "a11ce5e170000001",
+        "type": "catch",
+        "z": "a11ce5e100000001",
+        "name": "",
+        "scope": [
+            "a11ce5e140000001"
+        ],
+        "uncaught": false,
+        "x": 690,
+        "y": 360,
+        "wires": [
+            [
+                "a11ce5e180000001"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e180000001",
+        "type": "function",
+        "z": "a11ce5e100000001",
+        "name": "handle db errors",
+        "func": "const err = msg.error || {};\nconst errMsg = err.message || '';\nconst code = err.code || '';\nif (code === '23503' || errMsg.includes('violates foreign key')) {\n    msg.statusCode = 409;\n    msg.payload = { error: 'Referenced record missing or still in use.', details: errMsg };\n} else if (code === '23514' || errMsg.includes('violates check constraint')) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Data rejected by a table constraint.', details: errMsg };\n} else if (code === '22P02' || code === '22032' || errMsg.includes('invalid input syntax')) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Invalid ID, JSON or data type.', details: errMsg };\n} else {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Database error', details: errMsg };\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 880,
+        "y": 360,
+        "wires": [
+            [
+                "a11ce5e160000001"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e190000002",
+        "type": "comment",
+        "z": "a11ce5e100000002",
+        "name": "POST /api/documents/:ID/attach  (set file_url after resumable upload)",
+        "info": "",
+        "x": 320,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "a11ce5e110000002",
+        "type": "http in",
+        "z": "a11ce5e100000002",
+        "name": "ATTACH document",
+        "url": "/api/documents/:ID/attach",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 270,
+        "y": 160,
+        "wires": [
+            [
+                "a11ce5e120000002"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e120000002",
+        "type": "function",
+        "z": "a11ce5e100000002",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET');\nif (!secret) {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Server misconfigured: JWT_SECRET missing' };\n    return [null, msg];\n}\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg];\n}\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\ntry {\n    msg.user = jwt.verify(parts[1], secret);\n    return [msg, null];\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 240,
+        "wires": [
+            [
+                "a11ce5e130000002"
+            ],
+            [
+                "a11ce5e165000002"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e130000002",
+        "type": "function",
+        "z": "a11ce5e100000002",
+        "name": "load doc + validate",
+        "func": "const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\nconst id = String((msg.req.params && msg.req.params.ID) || '').trim();\nif (!uuidRe.test(id)) { msg.statusCode = 400; msg.payload = { error: 'Invalid document id' }; return [null, msg]; }\nconst b = msg.payload || {};\nconst stored = typeof b.stored_path === 'string' ? b.stored_path.trim() : '';\nif (!stored.startsWith('/mhub/documents/')) { msg.statusCode = 400; msg.payload = { error: 'Invalid stored_path' }; return [null, msg]; }\nif (stored.includes('..')) { msg.statusCode = 400; msg.payload = { error: 'Invalid stored_path' }; return [null, msg]; }\nmsg.attachPath = stored;\nmsg.docId = id;\nmsg.query = 'SELECT id, owner_id, user_building_id, file_type FROM documents WHERE id = $1::uuid LIMIT 1;';\nmsg.params = [id];\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 300,
+        "wires": [
+            [
+                "a11ce5e140000002"
+            ],
+            [
+                "a11ce5e165000002"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e140000002",
+        "type": "postgresql",
+        "z": "a11ce5e100000002",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 440,
+        "y": 380,
+        "wires": [
+            [
+                "a11ce5e150000002"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e150000002",
+        "type": "function",
+        "z": "a11ce5e100000002",
+        "name": "HEAD filer + build UPDATE",
+        "func": "const rows = msg.payload;\nif (!Array.isArray(rows) || rows.length === 0) { msg.statusCode = 404; msg.payload = { error: 'Document not found' }; return [null, msg]; }\nconst doc = rows[0];\nif (String(doc.owner_id) !== String(msg.user && msg.user.sub)) { msg.statusCode = 403; msg.payload = { error: 'Not your document' }; return [null, msg]; }\nconst prefix = '/mhub/documents/' + doc.user_building_id + '/' + doc.id + '/';\nif (!msg.attachPath.startsWith(prefix)) { msg.statusCode = 400; msg.payload = { error: 'stored_path does not belong to this document' }; return [null, msg]; }\n\nconst filerBase = (env.get('SEAWEED_FILER_INTERNAL_URL') || 'http://seaweed-filer:8888').replace(/\\/+$/, '');\nconst fetchFn = global.get('fetch') || globalThis.fetch;\nreturn (async () => {\n    let head;\n    try {\n        head = await fetchFn(filerBase + msg.attachPath, { method: 'HEAD' });\n    } catch (e) {\n        msg.statusCode = 502; msg.payload = { error: 'Storage unreachable', details: e.message || String(e) }; return [null, msg];\n    }\n    if (!head.ok) { msg.statusCode = 409; msg.payload = { error: 'File not found in storage; upload not completed.' }; return [null, msg]; }\n    msg.query = 'UPDATE documents SET file_url = $1 WHERE id = $2::uuid AND owner_id = $3::uuid RETURNING *;';\n    msg.params = [msg.attachPath, doc.id, msg.user.sub];\n    return [msg, null];\n})();",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 460,
+        "wires": [
+            [
+                "a11ce5e155000002"
+            ],
+            [
+                "a11ce5e165000002"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e155000002",
+        "type": "postgresql",
+        "z": "a11ce5e100000002",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 560,
+        "y": 560,
+        "wires": [
+            [
+                "a11ce5e160000002"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e160000002",
+        "type": "function",
+        "z": "a11ce5e100000002",
+        "name": "function success",
+        "func": "const rows = msg.payload;\nconst publicBase = (env.get('SEAWEED_PUBLIC_BASE_URL') || 'http://localhost:8888').replace(/\\/+$/, '');\nif (Array.isArray(rows) && rows.length > 0) {\n    const row = rows[0];\n    const raw = typeof row.file_url === 'string' ? row.file_url.trim() : '';\n    row.file_url = raw ? (/^https?:\\/\\//i.test(raw) ? raw : publicBase + raw) : null;\n    msg.statusCode = 200; msg.payload = row; return msg;\n}\nmsg.statusCode = 500; msg.payload = { error: 'Attach failed' }; return msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 620,
+        "wires": [
+            [
+                "a11ce5e165000002"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e165000002",
+        "type": "http response",
+        "z": "a11ce5e100000002",
+        "name": "attach response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1000,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "a11ce5e170000002",
+        "type": "catch",
+        "z": "a11ce5e100000002",
+        "name": "",
+        "scope": [
+            "a11ce5e140000002",
+            "a11ce5e155000002"
+        ],
+        "uncaught": false,
+        "x": 690,
+        "y": 300,
+        "wires": [
+            [
+                "a11ce5e180000002"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e180000002",
+        "type": "function",
+        "z": "a11ce5e100000002",
+        "name": "handle db errors",
+        "func": "const err = msg.error || {};\nconst errMsg = err.message || '';\nconst code = err.code || '';\nif (code === '23503' || errMsg.includes('violates foreign key')) {\n    msg.statusCode = 409;\n    msg.payload = { error: 'Referenced record missing or still in use.', details: errMsg };\n} else if (code === '23514' || errMsg.includes('violates check constraint')) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Data rejected by a table constraint.', details: errMsg };\n} else if (code === '22P02' || code === '22032' || errMsg.includes('invalid input syntax')) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Invalid ID, JSON or data type.', details: errMsg };\n} else {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Database error', details: errMsg };\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 880,
+        "y": 320,
+        "wires": [
+            [
+                "a11ce5e165000002"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e190000003",
+        "type": "comment",
+        "z": "a11ce5e100000003",
+        "name": "POST /api/import/plan  (2D-plan tool: delete-and-reallocate by source_extract_id)",
+        "info": "",
+        "x": 320,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "a11ce5e110000003",
+        "type": "http in",
+        "z": "a11ce5e100000003",
+        "name": "IMPORT plan",
+        "url": "/api/import/plan",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 250,
+        "y": 160,
+        "wires": [
+            [
+                "a11ce5e120000003"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e120000003",
+        "type": "function",
+        "z": "a11ce5e100000003",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET');\nif (!secret) {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Server misconfigured: JWT_SECRET missing' };\n    return [null, msg];\n}\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg];\n}\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\ntry {\n    msg.user = jwt.verify(parts[1], secret);\n    return [msg, null];\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 240,
+        "wires": [
+            [
+                "a11ce5e130000003"
+            ],
+            [
+                "a11ce5e165000003"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e130000003",
+        "type": "function",
+        "z": "a11ce5e100000003",
+        "name": "build SQL query",
+        "func": "const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\nconst user_id = msg.user && msg.user.sub;\nconst b = msg.payload || {};\nconst txt = (v) => (typeof v === 'string' && v.trim() ? v.trim() : null);\n\nif (!uuidRe.test(String(user_id || ''))) { msg.statusCode = 401; msg.payload = { error: 'Invalid user in token' }; return [null, msg]; }\nconst building_id = txt(b.building_id);\nif (!building_id) { msg.statusCode = 400; msg.payload = { error: 'building_id is required' }; return [null, msg]; }\nif (!uuidRe.test(String(b.user_building_id || ''))) { msg.statusCode = 400; msg.payload = { error: 'Invalid user_building_id' }; return [null, msg]; }\nif (!uuidRe.test(String(b.source_extract_id || ''))) { msg.statusCode = 400; msg.payload = { error: 'Invalid source_extract_id' }; return [null, msg]; }\nconst parts = Array.isArray(b.parts) ? b.parts : [];\nconst objects = Array.isArray(b.objects) ? b.objects : [];\nif (parts.length === 0 && objects.length === 0) { msg.statusCode = 400; msg.payload = { error: 'Nothing to import (parts and objects both empty)' }; return [null, msg]; }\n\n// Light shape checks; the DB constraints are the source of truth for the rest.\nfor (const p of parts) {\n    if (!p || typeof p.name !== 'string' || typeof p.location !== 'string' || typeof p.part_type !== 'string' || typeof p.part_structure !== 'object' || p.part_structure === null) {\n        msg.statusCode = 400; msg.payload = { error: 'Each part needs name, location, part_type and part_structure' }; return [null, msg];\n    }\n}\nfor (const o of objects) {\n    if (!o || typeof o.name !== 'string' || typeof o.object_type !== 'string') {\n        msg.statusCode = 400; msg.payload = { error: 'Each object needs name and object_type' }; return [null, msg];\n    }\n}\n\nmsg.importExtract = String(b.source_extract_id);\nmsg.query = \"WITH\\ndel_parts AS (\\n  DELETE FROM building_parts\\n  WHERE source_extract_id = $1::uuid AND user_building_id = $2::uuid\\n  RETURNING 1\\n),\\ndel_objs AS (\\n  DELETE FROM building_objects\\n  WHERE source_extract_id = $1::uuid AND user_building_id = $2::uuid\\n  RETURNING 1\\n),\\nins_parts AS (\\n  INSERT INTO building_parts\\n    (building_id, user_building_id, owner_id, category, name, description, location,\\n     part_type, part_structure, is_public, is_hazardous, source_extract_id)\\n  SELECT $3, $2::uuid, $4::uuid, 'Bauteil', p.name, p.description, p.location,\\n         p.part_type, p.part_structure, COALESCE(p.is_public, true), COALESCE(p.is_hazardous, false), $1::uuid\\n  FROM jsonb_to_recordset($5::jsonb) AS p(\\n    name text, description text, location text, part_type text,\\n    part_structure jsonb, is_public boolean, is_hazardous boolean\\n  )\\n  RETURNING 1\\n),\\nins_objs AS (\\n  INSERT INTO building_objects\\n    (building_id, user_building_id, owner_id, category, name, description, location,\\n     object_type, count, length, width, height, is_public, is_hazardous, source_extract_id)\\n  SELECT $3, $2::uuid, $4::uuid, 'Objekt', o.name, o.description, o.location,\\n         o.object_type, COALESCE(o.count, 1), o.length, o.width, o.height,\\n         COALESCE(o.is_public, true), COALESCE(o.is_hazardous, false), $1::uuid\\n  FROM jsonb_to_recordset($6::jsonb) AS o(\\n    name text, description text, location text, object_type text,\\n    count integer, length double precision, width double precision, height double precision,\\n    is_public boolean, is_hazardous boolean\\n  )\\n  RETURNING 1\\n)\\nSELECT\\n  (SELECT count(*) FROM del_parts) AS parts_deleted,\\n  (SELECT count(*) FROM del_objs)  AS objects_deleted,\\n  (SELECT count(*) FROM ins_parts) AS parts_inserted,\\n  (SELECT count(*) FROM ins_objs)  AS objects_inserted;\";\nmsg.params = [\n    String(b.source_extract_id),\n    String(b.user_building_id),\n    building_id,\n    user_id,\n    JSON.stringify(parts),\n    JSON.stringify(objects)\n];\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 340,
+        "wires": [
+            [
+                "a11ce5e140000003"
+            ],
+            [
+                "a11ce5e165000003"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e140000003",
+        "type": "postgresql",
+        "z": "a11ce5e100000003",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 460,
+        "y": 460,
+        "wires": [
+            [
+                "a11ce5e160000003"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e160000003",
+        "type": "function",
+        "z": "a11ce5e100000003",
+        "name": "format result",
+        "func": "const rows = msg.payload;\nif (Array.isArray(rows) && rows.length > 0) {\n    const r = rows[0];\n    msg.statusCode = 200;\n    msg.payload = {\n        source_extract_id: msg.importExtract,\n        parts_deleted: Number(r.parts_deleted),\n        objects_deleted: Number(r.objects_deleted),\n        parts_inserted: Number(r.parts_inserted),\n        objects_inserted: Number(r.objects_inserted)\n    };\n    return msg;\n}\nmsg.statusCode = 500; msg.payload = { error: 'Import returned no result' }; return msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 720,
+        "y": 560,
+        "wires": [
+            [
+                "a11ce5e165000003"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e165000003",
+        "type": "http response",
+        "z": "a11ce5e100000003",
+        "name": "import response",
+        "statusCode": "",
+        "headers": {},
+        "x": 980,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "a11ce5e170000003",
+        "type": "catch",
+        "z": "a11ce5e100000003",
+        "name": "",
+        "scope": [
+            "a11ce5e140000003"
+        ],
+        "uncaught": false,
+        "x": 690,
+        "y": 360,
+        "wires": [
+            [
+                "a11ce5e180000003"
+            ]
+        ]
+    },
+    {
+        "id": "a11ce5e180000003",
+        "type": "function",
+        "z": "a11ce5e100000003",
+        "name": "handle db errors",
+        "func": "const err = msg.error || {};\nconst errMsg = err.message || '';\nconst code = err.code || '';\nif (code === '23503' || errMsg.includes('violates foreign key')) {\n    msg.statusCode = 409;\n    msg.payload = { error: 'Referenced record missing or still in use.', details: errMsg };\n} else if (code === '23514' || errMsg.includes('violates check constraint')) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Data rejected by a table constraint.', details: errMsg };\n} else if (code === '22P02' || code === '22032' || errMsg.includes('invalid input syntax')) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Invalid ID, JSON or data type.', details: errMsg };\n} else {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Database error', details: errMsg };\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 880,
+        "y": 360,
+        "wires": [
+            [
+                "a11ce5e165000003"
+            ]
+        ]
     }
 ]

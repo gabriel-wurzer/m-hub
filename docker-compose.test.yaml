@@ -1,0 +1,91 @@
+# Hermetic integration-test stack for the m-hub backend endpoints.
+#
+# Fully isolated from the dev stack: NO host ports, and the DB runs on tmpfs so
+# every run starts from a FRESH schema (init scripts re-run each time). This is
+# what catches schema drift.
+#
+# IMPORTANT: always pass `-p m-hub-test`. The repo .env sets
+# COMPOSE_PROJECT_NAME=m-hub, and that env value overrides the `name:` below —
+# without the explicit -p flag this stack would collide with the dev project and
+# recreate its containers. The -p flag has the highest precedence.
+#
+# Run:
+#   docker compose -p m-hub-test -f docker-compose.test.yaml up --build \
+#       --abort-on-container-exit --exit-code-from test-runner
+#   docker compose -p m-hub-test -f docker-compose.test.yaml down -v
+name: m-hub-test
+
+services:
+  m-hub-db:
+    build: ./m-hub-db
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: mhubdb
+    # tmpfs => empty data dir on every start => init scripts always run => fresh schema.
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U test -d mhubdb"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+
+  seaweed-filer:
+    image: chrislusf/seaweedfs:3.93
+    command: server -ip=seaweed-filer -dir=/data -filer=true
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 8888"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  m-hub-backend:
+    build:
+      context: ./m-hub-backend
+    environment:
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+      - SEAWEED_FILER_INTERNAL_URL=http://seaweed-filer:8888
+      - SEAWEED_PUBLIC_BASE_URL=http://seaweed-filer:8888
+      - JWT_SECRET=testsecret
+    volumes:
+      # Same layering as the dev stack: bind the flows/settings, keep the
+      # image-installed palette deps (postgresql, jsonwebtoken) on top.
+      - ./m-hub-backend/data:/data
+      - test-backend-deps:/data/node_modules
+    depends_on:
+      m-hub-db:
+        condition: service_healthy
+      seaweed-filer:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "const net=require('net');const s=net.connect(1880,'127.0.0.1');s.on('connect',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));setTimeout(()=>process.exit(1),2000);"
+        ]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+
+  test-runner:
+    build: ./test
+    environment:
+      API_URL: http://m-hub-backend:1880
+      FILER_URL: http://seaweed-filer:8888
+      PGHOST: m-hub-db
+      PGUSER: test
+      PGPASSWORD: test
+      PGDATABASE: mhubdb
+      JWT_SECRET: testsecret
+    depends_on:
+      m-hub-backend:
+        condition: service_healthy
+
+volumes:
+  test-backend-deps:
