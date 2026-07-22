@@ -176,9 +176,9 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
     window.open(`${base}/plans?${params.toString()}`, '_blank', 'noopener');
   }
 
-  /** A PDF document can be opened in the 2D-plan tool. */
+  /** A PDF document can be opened in the 2D-plan tool — only when the tool is configured. */
   isEvaluablePlan(document: Document): boolean {
-    return (document.file_type as string) === 'pdf';
+    return !!environment.planToolUrl && (document.file_type as string) === 'pdf';
   }
 
   /** Expand the storey structure into individual location labels (e.g. "Regelgeschoss 1"). */
