@@ -127,8 +127,8 @@ $DC exec -T m-hub-db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "CREAT
 echo "[OK] Spatial indexes ready."
 
 # -------- Remaining services --------
-echo "[START] Backend, Frontend, Postgis-API and SeaweedFS..."
-$DC up -d seaweed-filer m-hub-postgis-api m-hub-backend m-hub-frontend
+echo "[START] Backend, Upload, Frontend, Postgis-API and SeaweedFS..."
+$DC up -d seaweed-filer m-hub-postgis-api m-hub-backend m-hub-upload m-hub-frontend
 
 echo
 echo "[OK] Stack deployed."
