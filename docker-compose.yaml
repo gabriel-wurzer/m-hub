@@ -165,6 +165,7 @@ services:
         MAPBOX_TOKEN: ${MAPBOX_TOKEN:-}
         FRONTEND_BRANDING: ${FRONTEND_BRANDING:-default}
         HIDE_NAME_SECTION: ${HIDE_NAME_SECTION:-false}
+        PLAN_TOOL_URL: ${PLAN_TOOL_URL:-}
     # docker run -i
     stdin_open: true
     # docker run -t
