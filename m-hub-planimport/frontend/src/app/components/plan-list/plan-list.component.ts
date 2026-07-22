@@ -11,6 +11,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { PlanService } from '../../services/plan.service';
 import { PlanDoc } from '../../models/plan.model';
 import { PlanSetupDialogComponent, SetupDialogData } from '../plan-setup/plan-setup-dialog.component';
+import { IntegrationContextService } from '../../services/integration-context.service';
 
 @Component({
   selector: 'app-plan-list',
@@ -97,13 +98,33 @@ export class PlanListComponent {
   private planSvc = inject(PlanService);
   private router = inject(Router);
   private dialog = inject(MatDialog);
+  private ctxSvc = inject(IntegrationContextService);
 
   plans = signal<Array<Pick<PlanDoc, 'id' | 'originalFilename' | 'createdAt' | 'updatedAt'>>>([]);
   uploading = signal(false);
   error = signal<string | null>(null);
 
   constructor() {
-    this.refresh();
+    // Auto-launch: m-hub opened us with a PDF to evaluate — fetch it and go
+    // straight into the editor (the integration context persists for hand-off).
+    const ctx = this.ctxSvc.context;
+    if (ctx?.pdfUrl) {
+      this.uploading.set(true);
+      const filename = ctx.pdfUrl.split('/').pop() || 'plan.pdf';
+      this.planSvc.createFromUrl(ctx.pdfUrl, filename, ctx.token).subscribe({
+        next: (plan) => {
+          this.uploading.set(false);
+          this.router.navigate(['/plan', plan.id]);
+        },
+        error: (e) => {
+          this.uploading.set(false);
+          this.error.set(e?.error?.error ?? e?.message ?? 'Plan konnte nicht geladen werden');
+          this.refresh();
+        },
+      });
+    } else {
+      this.refresh();
+    }
   }
 
   refresh() {

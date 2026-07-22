@@ -333,16 +333,36 @@ export interface CreateObjektPayload {
 }
 
 /**
- * Batch hand-off to m-hub. The backend stamps each part/object with `location`
- * for every entry in `locations` and replaces everything from `source_extract_id`
- * (delete-and-reallocate). parts/objects carry an empty location here.
+ * One hand-off batch to m-hub's POST /api/import/plan. Each part/object already
+ * carries its `location` (storey). The backend replaces everything with the same
+ * `source_extract_id` for that `user_building_id` (delete-and-reallocate).
+ *
+ * One packet == one (document, storey) extract. A plan spanning several storeys
+ * is submitted as several packets (one per storey), each with its own
+ * `source_extract_id` so a storey can be re-imported independently.
  */
 export interface ImportPacket {
   building_id: string;
+  user_building_id: string;
   source_extract_id: string;
-  locations: string[];
   parts: CreateBauteilPayload[];
   objects: CreateObjektPayload[];
+}
+
+/**
+ * Deterministic extract id for a (document, storey) pair: same inputs always
+ * yield the same UUID, so re-importing the same plan+storey replaces its rows
+ * instead of duplicating them. SHA-256 of "documentId|storey", formatted as a
+ * v4-shaped UUID (passes m-hub's UUID validation).
+ */
+export async function extractIdFor(documentId: string, storey: string): Promise<string> {
+  const bytes = new Uint8Array(
+    await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${documentId}|${storey}`)),
+  ).slice(0, 16);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+  bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant 10xx
+  const h = [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }
 
 /** One aggregated object (identical placemarks folded into a count). */

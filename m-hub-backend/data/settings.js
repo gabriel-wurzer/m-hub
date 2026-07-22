@@ -203,7 +203,11 @@ module.exports = {
             "http://localhost",
             "http://localhost:4200",
             "http://127.0.0.1",
-            "http://127.0.0.1:4200"
+            "http://127.0.0.1:4200",
+            // m-hub-planimport (2D-plan tool) — hands off imports cross-origin.
+            // Dev ports; add the tool's prod origin here at deploy time.
+            "http://localhost:4300",
+            "http://127.0.0.1:4300"
         ],
         methods: "GET,PUT,POST,PATCH,DELETE,OPTIONS",
         allowedHeaders: "Content-Type,Authorization",

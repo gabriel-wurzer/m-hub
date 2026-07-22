@@ -14,13 +14,14 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSliderModule } from '@angular/material/slider';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { PlanService } from '../../services/plan.service';
 import { EditorStatsService } from '../../services/editor-stats.service';
 import { FloorPolygon, PlanDoc, Placemark, WallSegment, WallGroup } from '../../models/plan.model';
 import {
   WallPartType, WallBuildup, SlabBuildup, SlabPartType, MhubContext, toBauteilPayloads,
   FIXTURE_CATALOG, fixtureByKey, ObjektAggregate, objektToPayload, CreateObjektPayload,
-  CreateBauteilPayload, ImportPacket,
+  CreateBauteilPayload, ImportPacket, extractIdFor,
 } from '../../models/mhub.model';
 import { PlanViewerComponent, ViewerTool } from '../plan-viewer/plan-viewer.component';
 import { MaterialPanelComponent } from '../material-panel/material-panel.component';
@@ -986,42 +987,68 @@ export class PlanEditorComponent implements OnDestroy {
     this.snack.open(`${bauteile.length} Bauteil(e), ${objekte.length} Objekt(e) exportiert`, 'OK', { duration: 2500 });
   }
 
-  /** Hand-off to m-hub: pick storey(s), then POST the batch packet (or download it stand-alone). */
-  handoff() {
+  /**
+   * Hand-off to m-hub: pick storey(s), then POST one batch per storey (each with
+   * its own delete-and-reallocate extract id), or download stand-alone.
+   */
+  async handoff() {
     const p = this.plan();
     if (!p) return;
     const ctx = this.ctxSvc.context;
-    const mctx: MhubContext = {
+    const base: MhubContext = {
       building_id: ctx?.buildingId ?? '', user_building_id: ctx?.userBuildingId ?? '',
       owner_id: ctx?.ownerId ?? '', location: '',
     };
-    const { bauteile, objekte } = this.assemblePayloads(mctx);
-    if (bauteile.length === 0 && objekte.length === 0) {
+    const probe = this.assemblePayloads(base);
+    if (probe.bauteile.length === 0 && probe.objekte.length === 0) {
       this.snack.open('Nichts zu übergeben', 'OK', { duration: 3000 });
       return;
     }
-    this.dialog.open(HandoffDialogComponent, {
-      width: '440px', maxWidth: '95vw',
-      data: { storeys: ctx?.storeys ?? [], integrated: !!ctx, bauteilCount: bauteile.length, objektCount: objekte.length },
-    }).afterClosed().subscribe((locations: string[] | undefined) => {
-      if (!locations || locations.length === 0) return;
-      const packet: ImportPacket = {
-        building_id: mctx.building_id, source_extract_id: p.id, locations, parts: bauteile, objects: objekte,
-      };
-      // Reflect the chosen storey(s) in the plan for the report header.
-      this.plan.update((pl) => (pl ? { ...pl, location: locations.join(', ') } : pl));
-      this.markChanged();
 
-      if (ctx) {
-        this.planSvc.submitImport(ctx.submitUrl, ctx.token, packet).subscribe({
-          next: () => this.snack.open(`Übergeben: ${bauteile.length} Bauteil(e), ${objekte.length} Objekt(e)`, 'OK', { duration: 3000 }),
-          error: (e) => this.snack.open(e?.error?.error ?? 'Übergabe fehlgeschlagen', 'OK', { duration: 4000 }),
-        });
-      } else {
-        this.download(`${p.originalFilename.replace(/\.pdf$/i, '')}-import.json`, packet);
-        this.snack.open('Import-Packet heruntergeladen (stand-alone)', 'OK', { duration: 2500 });
+    const locations = (await firstValueFrom(
+      this.dialog.open(HandoffDialogComponent, {
+        width: '440px', maxWidth: '95vw',
+        data: { storeys: ctx?.storeys ?? [], integrated: !!ctx, bauteilCount: probe.bauteile.length, objektCount: probe.objekte.length },
+      }).afterClosed(),
+    )) as string[] | undefined;
+    if (!locations || locations.length === 0) return;
+
+    // Reflect the chosen storey(s) in the plan for the report header.
+    this.plan.update((pl) => (pl ? { ...pl, location: locations.join(', ') } : pl));
+    this.markChanged();
+
+    // One packet per storey: each part/object stamped with that storey, own extract id.
+    const documentId = ctx?.documentId ?? p.id;
+    const packets: ImportPacket[] = [];
+    for (const loc of locations) {
+      const { bauteile, objekte } = this.assemblePayloads({ ...base, location: loc });
+      packets.push({
+        building_id: base.building_id,
+        user_building_id: base.user_building_id,
+        source_extract_id: await extractIdFor(documentId, loc),
+        parts: bauteile,
+        objects: objekte,
+      });
+    }
+
+    if (!ctx) {
+      this.download(`${p.originalFilename.replace(/\.pdf$/i, '')}-import.json`, packets);
+      this.snack.open('Import-Packet(e) heruntergeladen (stand-alone)', 'OK', { duration: 2500 });
+      return;
+    }
+
+    try {
+      for (const packet of packets) {
+        await firstValueFrom(this.planSvc.submitImport(ctx.submitUrl, ctx.token, packet));
       }
-    });
+      this.snack.open(
+        `Übergeben: ${probe.bauteile.length} Bauteil(e), ${probe.objekte.length} Objekt(e) × ${locations.length} Geschoss(e)`,
+        'OK', { duration: 3500 },
+      );
+    } catch (e) {
+      const msg = (e as { error?: { error?: string } })?.error?.error;
+      this.snack.open(msg ?? 'Übergabe fehlgeschlagen', 'OK', { duration: 4000 });
+    }
   }
 
   private download(filename: string, data: unknown) {

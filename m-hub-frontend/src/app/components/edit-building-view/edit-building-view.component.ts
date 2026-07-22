@@ -53,6 +53,8 @@ import { finalize } from 'rxjs';
 import { BuildingComponentCategory } from '../../enums/component-category';
 import { CreateMarketListing } from '../../models/market-listing';
 import { MarketListingService } from '../../services/market-listing/market-listing.service';
+import { AuthenticationService } from '../../services/authentication/authentication.service';
+import { environment } from '../../../environments/environment';
 
 export type EditBuildingPayload = {
   name: string;
@@ -137,8 +139,60 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
     private marketListingService: MarketListingService,
     private userService: UserService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private auth: AuthenticationService
   ) {}
+
+  /**
+   * Launch the 2D-plan tool ("Plan auswerten") for a PDF document: hands over the
+   * building context, a session token and the storey list, and points the tool's
+   * submit back at m-hub's import endpoint. The tool draws + streams the extract
+   * back to POST /api/import/plan.
+   */
+  evaluatePlan(document: Document): void {
+    const ub = this.userBuilding;
+    if (!ub) return;
+    const token = this.auth.getToken();
+    if (!token) {
+      this.snackBar.open('Nicht angemeldet.', 'OK', { duration: 3000, verticalPosition: 'top' });
+      return;
+    }
+    if (!document.file_url) {
+      this.snackBar.open('Dokument hat keine Datei.', 'OK', { duration: 3000, verticalPosition: 'top' });
+      return;
+    }
+
+    const params = new URLSearchParams({
+      building_id: ub.building_id,
+      user_building_id: ub.id,
+      owner_id: ub.user_id,
+      token,
+      submit_url: `${window.location.origin}/api/import/plan`,
+      storeys: this.storeyLabels(ub.structure).join(','),
+      document_id: document.id,
+      pdf_url: document.file_url
+    });
+    const base = environment.planToolUrl || '';
+    window.open(`${base}/plans?${params.toString()}`, '_blank', 'noopener');
+  }
+
+  /** A PDF document can be opened in the 2D-plan tool. */
+  isEvaluablePlan(document: Document): boolean {
+    return (document.file_type as string) === 'pdf';
+  }
+
+  /** Expand the storey structure into individual location labels (e.g. "Regelgeschoss 1"). */
+  private storeyLabels(structure: Floor[] | undefined): string[] {
+    const labels: string[] = [];
+    for (const floor of structure ?? []) {
+      if ('count' in floor && typeof floor.count === 'number' && floor.count > 0) {
+        for (let i = 1; i <= floor.count; i++) labels.push(`${floor.type} ${i}`);
+      } else {
+        labels.push(String(floor.type));
+      }
+    }
+    return labels;
+  }
 
   ngOnInit(): void {
     if (this.userBuilding) {

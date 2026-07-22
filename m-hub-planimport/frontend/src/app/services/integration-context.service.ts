@@ -7,6 +7,7 @@ import { Injectable } from '@angular/core';
  * Example launch:
  *   /plans?building_id=5312213&user_building_id=<uuid>&owner_id=<uuid>
  *          &token=<jwt>&submit_url=/api/import/plan&storeys=Regelgeschoss%201,Dach
+ *          &document_id=<uuid>&pdf_url=/files/mhub/documents/.../plan.pdf
  */
 export interface IntegrationContext {
   buildingId: string;
@@ -16,6 +17,8 @@ export interface IntegrationContext {
   submitUrl: string;
   storeys: string[];
   pdfUrl?: string;
+  /** The m-hub document (PDF) this plan came from — extract-id key with the storey. */
+  documentId?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -39,6 +42,7 @@ export class IntegrationContextService {
         submitUrl,
         storeys: (q.get('storeys') ?? '').split(',').map((s) => s.trim()).filter(Boolean),
         pdfUrl: q.get('pdf_url') ?? undefined,
+        documentId: q.get('document_id') ?? undefined,
       };
     } catch {
       return null;

@@ -187,8 +187,11 @@
                                     <div class="col-public">{{ formatPublicBoolean(doc.is_public) }}</div>
 
                                     <div class="col-actions">
+                                        <button *ngIf="isEvaluablePlan(doc)" mat-icon-button color="primary" matTooltip="Plan auswerten" (click)="evaluatePlan(doc)">
+                                            <mat-icon>architecture</mat-icon>
+                                        </button>
                                         <button mat-icon-button color="primary" matTooltip="Informationen" (click)="openEntityInfoDialog(doc)">
-                                            <mat-icon>info_outline</mat-icon> 
+                                            <mat-icon>info_outline</mat-icon>
                                         </button>
                                         <button mat-icon-button color="primary" matTooltip="Bearbeiten" (click)="openEditDocumentDialog(doc)">
                                             <mat-icon>edit</mat-icon>
