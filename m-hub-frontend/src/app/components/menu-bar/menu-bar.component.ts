@@ -17,6 +17,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProfileDialogComponent } from '../dialogs/profile-dialog/profile-dialog.component';
 import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog.component';
+import { BrandingConfig, BrandingService } from '../../services/branding/branding.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -44,9 +45,9 @@ export class MenuBarComponent implements OnInit {
 
   isMobile = false;
 
-  logo = environment.logo;
-
+  branding: BrandingConfig | null = null;
   hideNameSection = environment.hideNameSection;
+
 
   user$: Observable<any>;
 
@@ -55,7 +56,8 @@ export class MenuBarComponent implements OnInit {
     private router: Router,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private breakpointObserver: BreakpointObserver
+    private breakpointObserver: BreakpointObserver,
+    private brandingService: BrandingService
   ) {
     this.user$ = this.authService.getUser$();
 
@@ -69,6 +71,10 @@ export class MenuBarComponent implements OnInit {
   ngOnInit() {
     this.breakpointObserver.observe(['(max-width: 1199px)']).subscribe(result => {
       this.isMobile = result.matches;
+    });
+
+    this.brandingService.getBranding().subscribe((branding) => {
+      this.branding = branding;
     });
   }
 

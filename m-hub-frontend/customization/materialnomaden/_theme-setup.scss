@@ -1,0 +1,122 @@
+@use '@angular/material' as mat;
+
+$my-primary: mat.define-palette((
+  50: #faf6ee,
+  100: #f2e8d4,
+  200: #e5d5b3,
+  300: #d8c291,
+  400: #cdb478,
+  500: #c1aa6d, // brand accent (brown-gold)
+  600: #ac9559,
+  700: #8f7c45,
+  800: #736331,
+  900: #4f4420,
+  contrast: (
+    50: #000,
+    100: #000,
+    200: #000,
+    300: #000,
+    400: #000,
+    500: #000,
+    600: #000,
+    700: #fff,
+    800: #fff,
+    900: #fff
+  )
+));
+
+$my-secondary: mat.define-palette((
+  50: #fafafa,
+  100: #f5f5f5,
+  200: #eeeeee,
+  300: #e0e0e0,
+  400: #bdbdbd,
+  500: #9e9e9e, // secondary color base
+  600: #757575,
+  700: #616161,
+  800: #424242,
+  900: #212121,
+  contrast: (
+    50: #000,
+    100: #000,
+    200: #000,
+    300: #000,
+    400: #000,
+    500: #fff,
+    600: #fff,
+    700: #fff,
+    800: #fff,
+    900: #fff 
+  )
+));
+
+$my-complementary: mat.define-palette((
+  50: #f8f0e6,
+  100: #ecd8bf,
+  200: #dfbd94,
+  300: #d1a268,
+  400: #c78e47,
+  500: #b3792e,
+  600: #9e6a22,
+  700: #855618,
+  800: #6b4411,
+  900: #4a2d09, // complementary color base
+  contrast: (
+    50: #000,
+    100: #000,
+    200: #000,
+    300: #000,
+    400: #000,
+    500: #fff,
+    600: #fff,
+    700: #fff,
+    800: #fff,
+    900: #fff
+  )
+));
+
+$my-warn: mat.define-palette(mat.$deep-orange-palette);
+
+// Backgrounds and other general colors
+$white-background: #fff;
+$image-preview-background: #fafafa;
+
+$tag-color: mat.get-color-from-palette($my-secondary, 700);
+$tag-background: rgba(132, 90, 38, 0.1);
+$tag-background-active: rgba(132, 90, 38, 0.14);
+
+$svg-asset-color: mat.get-color-from-palette($my-secondary, 700);
+
+// Menubar colors and styles
+$menu-bar-background: mat.get-color-from-palette($my-primary, 500);
+$menu-bar-color: mat.get-contrast-color-from-palette($my-primary, 500);
+$menu-bar-buttons-background: mat.get-contrast-color-from-palette($my-secondary, 700);
+$menu-bar-button-icons-color: rgba(255, 255, 255, 0.9);
+$menu-bar-button-icons-hover: #fff;
+$menu-bar-button-icons-active: mat.get-color-from-palette($my-primary, 700);
+
+$menu-name-color: mat.get-contrast-color-from-palette($my-secondary, 700);
+
+$logo-background: transparent;
+$logo-section-width: fit-content;
+$logo-section-height: fit-content;
+$logo-section-width-mobile: fit-content;
+$logo-section-height-mobile: fit-content;
+$logo-section-margin-bottom: 1rem;
+
+$menu-logo-width: 56px;
+$menu-logo-height: 56px;
+$menu-logo-width-mobile: 60px;
+$menu-logo-height-mobile: 38px;
+$menu-logo-transform: none;
+$menu-logo-transform-mobile: translateY(4px);
+$menu-logo-filter: brightness(0) invert(1);
+
+// Map element colors
+$map-control-background: #f4f4f4;
+$map-building-color: mat.get-color-from-palette($my-primary, 700);
+$map-building-fill-color: mat.get-color-from-palette($my-primary, 500);
+$map-building-block-color: mat.get-color-from-palette($my-secondary, 600);
+$map-building-block-fill-color: mat.get-color-from-palette($my-secondary, 500);
+$map-selected-building-color: #ff0000;
+$map-selected-building-fill-color: #ff0000;

@@ -2,7 +2,7 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 ARG MAPBOX_TOKEN=""
-ARG LOGO_PATH="/assets/images/mhub_logo_grey.svg"
+ARG FRONTEND_BRANDING="default"
 ARG HIDE_NAME_SECTION="false"
 
 # git is required to resolve the 'gitlab:jkuebart/Leaflet.VectorTileLayer'
@@ -14,8 +14,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-RUN node -e 'const fs=require("fs"); const token=process.argv[1] || ""; const logo=process.argv[2] || "/assets/images/mhub_logo_grey.svg"; const hide=process.argv[3]==="true"; fs.writeFileSync("src/environments/environment.production.ts", `export const environment = {\n  production: true,\n  mapboxToken: ${JSON.stringify(token)},\n  logo: ${JSON.stringify(logo)},\n  hideNameSection: ${hide}\n};\n`);' "$MAPBOX_TOKEN" "$LOGO_PATH" "$HIDE_NAME_SECTION"
-RUN npm run build
+RUN node -e 'const fs=require("fs"); const token=process.argv[1] || ""; const hide=process.argv[2]==="true"; fs.writeFileSync("src/environments/environment.production.ts", `export const environment = {\n  production: true,\n  mapboxToken: ${JSON.stringify(token)},\n  hideNameSection: ${hide}\n};\n`);' "$MAPBOX_TOKEN" "$HIDE_NAME_SECTION"
+RUN FRONTEND_BRANDING="$FRONTEND_BRANDING" npm run build
 
 # ---- Serve stage: nginx ----
 FROM nginx:alpine

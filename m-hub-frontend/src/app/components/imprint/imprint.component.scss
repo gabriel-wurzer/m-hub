@@ -1,17 +1,326 @@
-.imprint-page {
-  // max-width: 900px;
+@use '@angular/material' as mat;
+@use '../../../theme-setup' as vars;
+
+:host {
+  display: block;
+  flex: 1 1 auto;
   width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+:host ::ng-deep .custom-imprint-html,
+.fallback-imprint {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+:host ::ng-deep .custom-imprint-html .imprint-page,
+.fallback-imprint.imprint-page {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 2.5rem 1rem 3rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  color: rgba(0, 0, 0, 0.82);
 }
 
-h1 {
-  margin: 0 0 1rem;
-  font-size: 1.75rem;
+:host ::ng-deep .custom-imprint-html .imprint-header,
+:host ::ng-deep .custom-imprint-html .imprint-content,
+:host ::ng-deep .custom-imprint-html .partner-logos,
+:host ::ng-deep .custom-imprint-html .logo,
+.fallback-imprint .imprint-header,
+.fallback-imprint .imprint-content,
+.fallback-imprint .partner-logos,
+.fallback-imprint .logo {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+:host ::ng-deep .custom-imprint-html h1,
+.fallback-imprint h1 {
+  font-size: 2.25rem;
   font-weight: 500;
+  line-height: 1.15;
 }
 
-p {
-  margin: 0;
+:host ::ng-deep .custom-imprint-html h2,
+.fallback-imprint h2 {
+  margin: 0 0 0.5rem;
+  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+  font-size: 1.52rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+:host ::ng-deep .custom-imprint-html .section-label,
+.fallback-imprint .section-label {
+  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+:host ::ng-deep .custom-imprint-html .publisher-name,
+.fallback-imprint .publisher-name {
+  margin: 0 0 1.5rem;
+  color: mat.get-color-from-palette(vars.$my-secondary, 900);
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+:host ::ng-deep .custom-imprint-html .imprint-content,
+.fallback-imprint .imprint-content {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.95fr) minmax(320px, 1.05fr);
+  gap: 3rem;
+  margin-top: 2rem;
+}
+
+:host ::ng-deep .custom-imprint-html .publisher-section,
+:host ::ng-deep .custom-imprint-html .legal-section,
+.fallback-imprint .publisher-section,
+.fallback-imprint .legal-section {
+  min-width: 0;
+}
+
+:host ::ng-deep .custom-imprint-html h3,
+.fallback-imprint h3 {
+  margin: 0.6rem 0 0.8rem;
+  color: mat.get-color-from-palette(vars.$my-secondary, 900);
+  font-size: 1.6rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+:host ::ng-deep .custom-imprint-html .contact-list,
+.fallback-imprint .contact-list {
+  display: grid;
+  gap: 1rem;
+}
+
+:host ::ng-deep .custom-imprint-html .contact-item,
+.fallback-imprint .contact-item {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 0.9rem;
+  align-items: start;
+  padding: 0.95rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+:host ::ng-deep .custom-imprint-html .contact-item mat-icon,
+:host ::ng-deep .custom-imprint-html .contact-item .material-icons,
+:host ::ng-deep .custom-imprint-html .contact-item .imprint-material-icon,
+.fallback-imprint .contact-item mat-icon,
+.fallback-imprint .contact-item .material-icons,
+.fallback-imprint .contact-item .imprint-material-icon {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(mat.get-color-from-palette(vars.$my-primary, 500), 0.12);
+  color: mat.get-color-from-palette(vars.$my-primary, 700);
+  font-family: 'Material Icons';
+  font-feature-settings: 'liga';
+  font-size: 22px;
+  font-style: normal;
+  font-weight: normal;
+  letter-spacing: normal;
+  line-height: 1;
+  text-transform: none;
+  white-space: nowrap;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+:host ::ng-deep .custom-imprint-html .contact-item span,
+.fallback-imprint .contact-item span {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+:host ::ng-deep .custom-imprint-html .contact-item p,
+.fallback-imprint .contact-item p {
+  color: rgba(0, 0, 0, 0.78);
+  line-height: 1.45;
+}
+
+:host ::ng-deep .custom-imprint-html .legal-section,
+.fallback-imprint .legal-section {
+  display: grid;
+  align-self: start;
+  align-content: start;
+  gap: 1.4rem;
+}
+
+:host ::ng-deep .custom-imprint-html .legal-block h3,
+.fallback-imprint .legal-block h3 {
+  margin: 0 0 0.4rem;
+  color: mat.get-color-from-palette(vars.$my-secondary, 800);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+:host ::ng-deep .custom-imprint-html .legal-block p,
+.fallback-imprint .legal-block p {
   color: rgba(0, 0, 0, 0.68);
+  line-height: 1.55;
+}
+
+:host ::ng-deep .custom-imprint-html .partner-logos,
+:host ::ng-deep .custom-imprint-html .logo,
+.fallback-imprint .partner-logos,
+.fallback-imprint .logo {
+  display: grid;
+  gap: 2rem;
+  margin-top: 4.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+:host ::ng-deep .custom-imprint-html .partner-logo-group,
+:host ::ng-deep .custom-imprint-html .logo-group,
+.fallback-imprint .partner-logo-group,
+.fallback-imprint .logo-group {
+  display: grid;
+  gap: 1rem;
+}
+
+:host ::ng-deep .custom-imprint-html .partner-logo-group h3,
+:host ::ng-deep .custom-imprint-html .logo-group h3,
+.fallback-imprint .partner-logo-group h3,
+.fallback-imprint .logo-group h3 {
+  margin: 0;
+  color: mat.get-color-from-palette(vars.$my-secondary, 700);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+:host ::ng-deep .custom-imprint-html .partner-logo-list,
+:host ::ng-deep .custom-imprint-html .logo-list,
+.fallback-imprint .partner-logo-list,
+.fallback-imprint .logo-list {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+:host ::ng-deep .custom-imprint-html .partner-logo-list img,
+:host ::ng-deep .custom-imprint-html .logo-list img,
+.fallback-imprint .partner-logo-list img,
+.fallback-imprint .logo-list img {
+  display: block;
+  width: auto;
+  max-width: 220px;
+  max-height: 72px;
+  object-fit: contain;
+}
+
+:host ::ng-deep .custom-imprint-html .logo-materialnomaden,
+.fallback-imprint .logo-materialnomaden {
+  max-width: 280px;
+}
+
+:host ::ng-deep .custom-imprint-html .logo-zt,
+:host ::ng-deep .custom-imprint-html .logo-ig,
+.fallback-imprint .logo-zt,
+.fallback-imprint .logo-ig {
+  width: 280px;
+  max-width: 100%;
+  max-height: 72px;
+}
+
+:host ::ng-deep .custom-imprint-html p,
+.fallback-imprint p {
+  margin: 0;
+}
+
+:host ::ng-deep .custom-imprint-html a,
+.fallback-imprint a {
+  color: mat.get-color-from-palette(vars.$my-primary, 700);
+  text-decoration: none;
+}
+
+:host ::ng-deep .custom-imprint-html a:hover,
+:host ::ng-deep .custom-imprint-html a:focus-visible,
+.fallback-imprint a:hover,
+.fallback-imprint a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+:host ::ng-deep .custom-imprint-html a:focus-visible,
+.fallback-imprint a:focus-visible {
+  outline: 2px solid mat.get-color-from-palette(vars.$my-primary, 300);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (max-width: 820px) {
+  :host ::ng-deep .custom-imprint-html .imprint-page,
+  .fallback-imprint.imprint-page {
+    padding: 1.75rem 0.75rem 2.5rem;
+  }
+
+  :host ::ng-deep .custom-imprint-html .imprint-content,
+  .fallback-imprint .imprint-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  :host ::ng-deep .custom-imprint-html .partner-logo-list,
+  :host ::ng-deep .custom-imprint-html .logo-list,
+  .fallback-imprint .partner-logo-list,
+  .fallback-imprint .logo-list {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 520px) {
+  :host ::ng-deep .custom-imprint-html h1,
+  .fallback-imprint h1 {
+    font-size: 2rem;
+  }
+
+  :host ::ng-deep .custom-imprint-html h2,
+  .fallback-imprint h2 {
+    font-size: 1.46rem;
+  }
+
+  :host ::ng-deep .custom-imprint-html .contact-item,
+  .fallback-imprint .contact-item {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  :host ::ng-deep .custom-imprint-html .contact-item mat-icon,
+  :host ::ng-deep .custom-imprint-html .contact-item .material-icons,
+  :host ::ng-deep .custom-imprint-html .contact-item .imprint-material-icon,
+  .fallback-imprint .contact-item mat-icon,
+  .fallback-imprint .contact-item .material-icons,
+  .fallback-imprint .contact-item .imprint-material-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
 }

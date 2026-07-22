@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MenuBarComponent } from './components/menu-bar/menu-bar.component';
 import { DisclaimerDialogComponent, DISCLAIMER_ACK_KEY } from './components/dialogs/disclaimer-dialog/disclaimer-dialog.component';
+import { versionedImageSvgUrl } from './utils/asset-url';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +13,7 @@ import { DisclaimerDialogComponent, DISCLAIMER_ACK_KEY } from './components/dial
 })
 export class AppComponent implements OnInit {
   title = 'm-hub-frontend';
+  houseIconUrl = versionedImageSvgUrl('/assets/images/house_icon.svg');
 
   constructor(private dialog: MatDialog) {}
 

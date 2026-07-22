@@ -32,7 +32,46 @@ export class MarketListingMapPreviewComponent implements AfterViewInit, OnChange
   private readonly buildingZoomThreshold = 15;
   private readonly previewMaxZoom = 17;
 
-  constructor(private mapService: MapService) {}
+  constructor(
+    private mapService: MapService,
+    private hostRef: ElementRef<HTMLElement>
+  ) {}
+
+  private get buildingStyle(): L.PathOptions {
+    return {
+      color: this.getThemeColor('--map-building-color', '#3388ff'),
+      fillColor: this.getThemeColor('--map-building-fill-color', '#3388ff'),
+      weight: 1,
+      fill: true,
+      fillOpacity: 0.18
+    };
+  }
+
+  private get buildingBlockStyle(): L.PathOptions {
+    return {
+      color: this.getThemeColor('--map-building-block-color', '#446696ff'),
+      fillColor: this.getThemeColor('--map-building-block-fill-color', '#446696ff'),
+      weight: 1,
+      fill: true,
+      fillOpacity: 0.2
+    };
+  }
+
+  private get selectedBuildingStyle(): L.PathOptions {
+    return {
+      color: this.getThemeColor('--map-selected-building-color', '#ff3b30'),
+      fillColor: this.getThemeColor('--map-selected-building-fill-color', '#ff3b30'),
+      weight: 3,
+      fill: true,
+      fillOpacity: 0.45
+    };
+  }
+
+  private getThemeColor(cssVariableName: string, fallback: string): string {
+    return getComputedStyle(this.hostRef.nativeElement)
+      .getPropertyValue(cssVariableName)
+      .trim() || fallback;
+  }
 
   ngAfterViewInit(): void {
     this.initMap();
@@ -116,7 +155,7 @@ export class MarketListingMapPreviewComponent implements AfterViewInit, OnChange
       {
         minZoom: this.buildingZoomThreshold,
         maxZoom: 22,
-        style: { color: '#3388ff', weight: 1, fill: true, fillOpacity: 0.18 },
+        style: this.buildingStyle,
         interactive: false
       }
     );
@@ -128,7 +167,7 @@ export class MarketListingMapPreviewComponent implements AfterViewInit, OnChange
       {
         minZoom: 11,
         maxZoom: this.buildingZoomThreshold - 1,
-        style: { color: '#446696ff', weight: 1, fill: true, fillOpacity: 0.2 },
+        style: this.buildingBlockStyle,
         interactive: false
       }
     );
@@ -177,13 +216,7 @@ export class MarketListingMapPreviewComponent implements AfterViewInit, OnChange
     }
 
     const layer = L.geoJSON(geometryObj, {
-      style: {
-        color: '#ff3b30',
-        weight: 3,
-        fill: true,
-        fillColor: '#ff3b30',
-        fillOpacity: 0.45
-      }
+      style: this.selectedBuildingStyle
     });
 
     this.highlightedFeatureLayer = layer.addTo(this.map);

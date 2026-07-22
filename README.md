@@ -39,9 +39,19 @@ Follow these steps to set up the project environment and import the building dat
 
     You will also need a mapbox token: Go to mapbox.com, create an account, and follow the following procedure: [Setting up a mapbox token](https://docs.mapbox.com/help/dive-deeper/access-tokens/#creating-public-tokens). Paste the created token into your .env file as MAPBOX_TOKEN.
 
+    Frontend branding can be selected in `.env`:
+
+    ```env
+    FRONTEND_BRANDING=default
+    HIDE_NAME_SECTION=false
+    ```
+
+    `FRONTEND_BRANDING` must match a folder in `m-hub-frontend/customization/`.
+    `HIDE_NAME_SECTION=true` hides the name section in the menu bar for the deployed frontend.
+
     Note: If you are on an ARM host, `deploy.sh` detects it and sets `DOCKER_PLATFORM=linux/amd64` for the PostGIS image.
 
-2. **Pull latest sources**
+3. **Pull latest sources**
 
     ```bash
     ./pull.sh
@@ -55,10 +65,95 @@ Follow these steps to set up the project environment and import the building dat
     > ```
     > Apply any additions/renames manually (e.g. `SEAWEED_PUBLIC_BASE_URL=/files` was introduced and must be set on previously-deployed `.env` files).
 
-3. **Build and deploy**
+4. **Build and deploy**
 
     ```bash
     ./deploy.sh
     ```
 
     This builds all Docker images, starts Postgres database, imports the GeoPackage, and brings up the rest of the stack.
+
+---
+
+## Frontend customization / branding
+
+The frontend supports switchable branding through folders in:
+
+```text
+m-hub-frontend/customization/<branding-name>/
+```
+
+The active branding is selected with `FRONTEND_BRANDING` in `.env`. During `npm run start`, `npm run build`, and Docker builds, `m-hub-frontend/scripts/apply-branding.js` applies the selected branding before Angular starts or builds.
+
+Currently supported `.env` flags:
+
+```env
+# Must match a folder below m-hub-frontend/customization/.
+FRONTEND_BRANDING=default
+
+# Hides the vertical name section in the menu bar when true.
+HIDE_NAME_SECTION=false
+```
+
+Available branding folders currently include:
+
+```text
+m-hub-frontend/customization/default/
+m-hub-frontend/customization/materialnomaden/
+```
+
+Each customization folder must contain:
+
+```text
+_theme-setup.scss
+branding.json
+```
+
+Recommended optional files:
+
+```text
+logo.svg
+favicon.ico
+imprint.html
+privacy.html
+logos/
+```
+
+All files and folders inside the selected customization folder are copied to:
+
+```text
+m-hub-frontend/src/assets/branding/
+```
+
+`_theme-setup.scss` is copied separately to:
+
+```text
+m-hub-frontend/src/_theme-setup.generated.scss
+```
+
+`favicon.ico` is copied to `src/assets/branding/favicon.ico`. If the selected branding does not contain a favicon, the default favicon is used when available.
+
+The `branding.json` shape is:
+
+```json
+{
+  "appName": "m-hub",
+  "logoPath": "/assets/branding/logo.svg",
+  "menuLetters": ["m", "h", "u", "b"]
+}
+```
+
+Fields:
+
+- `appName`: Used for the browser title during branding application.
+- `logoPath`: Path used by the menu logo. Prefer `/assets/branding/logo.svg`.
+- `menuLetters`: Optional vertical menu-name letters. Omit it or set it to an empty array to render no name section for that branding.
+
+The branding script also:
+
+- appends content hashes to the logo and favicon URLs for cache busting;
+- updates the browser title in `src/index.html`;
+- updates the favicon link in `src/index.html`;
+- updates the logo preload link in `src/index.html`;
+- recolors SVGs in `src/assets/images/` when `$svg-asset-color` is defined in the selected `_theme-setup.scss`;
+- writes `src/environments/asset-versions.generated.ts` so SVG usages can be cache-busted after recoloring.

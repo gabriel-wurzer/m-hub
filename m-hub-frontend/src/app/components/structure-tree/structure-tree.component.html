@@ -10,7 +10,7 @@
       class="mat-tree-node structure-tree-row clickable"
       [class.active]="isSelected(node)"
       (click)="onNodeClickAllowed(node)">
-      <img src="/assets/images/house_icon.svg" alt="House Icon" class="house-icon" loading="eager"/>
+      <img [src]="houseIconUrl" alt="House Icon" class="house-icon" loading="eager"/>
       <span class="building-text">
         {{ node.name }}
       </span>
