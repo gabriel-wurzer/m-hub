@@ -29,11 +29,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # node-red runs as uid 1000 and bind-mounts ./m-hub-backend/data as its
-      # writable /data userDir (it mkdirs /data/lib on boot). The checkout is
-      # owned by the runner user, so uid 1000 gets EACCES. Give it ownership,
-      # matching prod where that dir is 1000:1000.
-      - name: Let node-red own its bind-mounted /data
-        run: sudo chown -R 1000:1000 m-hub-backend/data
+      # writable /data userDir (it mkdirs /data/lib on boot). The fresh checkout
+      # isn't writable by that uid, so node-red would EACCES and exit. Same fix
+      # deploy.sh applies on the server (its "Host-side perms" step).
+      - name: Make node-red's bind-mounted /data writable (mirrors deploy.sh)
+        run: chmod -R a+rwX m-hub-backend/data
       - name: Run integration suite
         # -p m-hub-test isolates from any COMPOSE_PROJECT_NAME (harmless in CI
         # where no .env exists, required locally where the dev .env sets it).
