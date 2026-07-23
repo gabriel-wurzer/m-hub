@@ -6,7 +6,10 @@ import { DetectRegion, PlanDoc } from '../models/plan.model';
 @Injectable({ providedIn: 'root' })
 export class PlanService {
   private http = inject(HttpClient);
-  private base = '/api';
+  // Relative so it resolves against <base href>: '/api' at root standalone,
+  // '/plantool/api' when the app is served under /plantool (base-href=/plantool/).
+  // Absolute '/api' would hit m-hub's backend instead when served under a path.
+  private base = 'api';
 
   list(): Observable<Array<Pick<PlanDoc, 'id' | 'originalFilename' | 'createdAt' | 'updatedAt'>>> {
     return this.http.get<any>(`${this.base}/plan`);

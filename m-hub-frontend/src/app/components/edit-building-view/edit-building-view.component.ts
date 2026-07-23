@@ -167,7 +167,9 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
       submit_url: `${window.location.origin}/api/import/plan`,
       storeys: this.storeyLabels(ub.structure).join(','),
       document_id: document.id,
-      pdf_url: document.file_url
+      // Absolute: the tool's backend fetches this server-side, where a
+      // relative /files/... path would not resolve.
+      pdf_url: new URL(document.file_url, window.location.origin).href
     });
     const base = environment.planToolUrl || '';
     window.open(`${base}/plans?${params.toString()}`, '_blank', 'noopener');

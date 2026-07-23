@@ -13,6 +13,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        # "/" standalone; set PLANIMPORT_BASE_HREF=/plantool/ on the m-hub host.
+        BASE_HREF: ${PLANIMPORT_BASE_HREF:-/}
     ports:
       - "127.0.0.1:4300:80"
     depends_on:
