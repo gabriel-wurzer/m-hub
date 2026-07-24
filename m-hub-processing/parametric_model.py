@@ -51,8 +51,8 @@ METRIC_CRS = "EPSG:31256"
 
 # bp period codes -> human label (m-hub-frontend/src/app/enums/period.enum.ts)
 PERIOD_LABEL = {
-    0: "unbekannt", 1: "vor 1919", 2: "1919-1944",
-    3: "1945-1979", 4: "1980-1999", 5: "nach 2000",
+    0: "unbekannt", 1: "bis 1918", 2: "1919-1944",
+    3: "1945-1979", 4: "1980-1999", 5: "ab 2000",
 }
 
 # --- per-period constants: PLACEHOLDER defaults, keyed by bp code -----------
