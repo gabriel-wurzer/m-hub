@@ -59,6 +59,9 @@ Thumbs.db
 .claude/
 .playwright-mcp/
 
+# Stray local apache config (unused; app serves via nginx)
+m-hub-frontend/httpd.conf
+
 # Folder for geopackage data
 /data/*
 !/data/.gitkeep
