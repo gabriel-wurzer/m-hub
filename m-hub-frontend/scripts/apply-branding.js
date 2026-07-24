@@ -29,6 +29,7 @@ const brandingJsonSource = path.join(source, 'branding.json');
 const brandingJsonTarget = path.join(assetsTarget, 'branding.json');
 const indexHtmlTarget = path.join(projectRoot, 'src', 'index.html');
 const imageAssetsTarget = path.join(projectRoot, 'src', 'assets', 'images');
+const imageSourceDir = path.join(projectRoot, 'src', 'image-sources');
 const assetVersionsTarget = path.join(projectRoot, 'src', 'environments', 'asset-versions.generated.ts');
 
 for (const requiredFile of [themeSource, brandingJsonSource]) {
@@ -69,7 +70,7 @@ if (Array.isArray(branding.menuLetters)) {
 fs.writeFileSync(brandingJsonTarget, `${JSON.stringify(branding, null, 2)}\n`);
 
 fs.copyFileSync(themeSource, themeTarget);
-recolorSvgImageAssets(readScssColorVariable(themeSource, 'svg-asset-color'));
+generateImageAssets(readScssColorVariable(themeSource, 'svg-asset-color'));
 writeAssetVersions();
 
 const faviconToCopy = fs.existsSync(faviconSource) ? faviconSource : defaultFaviconSource;
@@ -189,19 +190,28 @@ function readPaletteColor(scss, paletteName, shade) {
   return shadeMatch ? shadeMatch[1].toLowerCase() : null;
 }
 
-function recolorSvgImageAssets(svgAssetColor) {
-  if (!svgAssetColor || !fs.existsSync(imageAssetsTarget)) {
+// Generate the (gitignored) runtime image dir from the tracked source dir:
+// SVGs get recolored to the theme's svg-asset-color, everything else is copied as-is.
+function generateImageAssets(svgAssetColor) {
+  fs.rmSync(imageAssetsTarget, { recursive: true, force: true });
+  fs.mkdirSync(imageAssetsTarget, { recursive: true });
+
+  if (!fs.existsSync(imageSourceDir)) {
+    console.warn(`[branding] No image source dir at ${path.relative(projectRoot, imageSourceDir)}.`);
     return;
   }
 
-  for (const filePath of getFiles(imageAssetsTarget, '.svg')) {
-    const svg = fs.readFileSync(filePath, 'utf8');
-    const recoloredSvg = svg
-      .replace(/(stroke\s*[:=]\s*["']?\s*)#[0-9a-fA-F]{6}/g, `$1${svgAssetColor}`)
-      .replace(/(fill\s*[:=]\s*["']?\s*)#[0-9a-fA-F]{6}/g, `$1${svgAssetColor}`);
+  for (const sourcePath of getFiles(imageSourceDir, '')) {
+    const targetPath = path.join(imageAssetsTarget, path.relative(imageSourceDir, sourcePath));
+    fs.mkdirSync(path.dirname(targetPath), { recursive: true });
 
-    if (recoloredSvg !== svg) {
-      fs.writeFileSync(filePath, recoloredSvg);
+    if (svgAssetColor && sourcePath.toLowerCase().endsWith('.svg')) {
+      const recoloredSvg = fs.readFileSync(sourcePath, 'utf8')
+        .replace(/(stroke\s*[:=]\s*["']?\s*)#[0-9a-fA-F]{6}/g, `$1${svgAssetColor}`)
+        .replace(/(fill\s*[:=]\s*["']?\s*)#[0-9a-fA-F]{6}/g, `$1${svgAssetColor}`);
+      fs.writeFileSync(targetPath, recoloredSvg);
+    } else {
+      fs.copyFileSync(sourcePath, targetPath);
     }
   }
 }
