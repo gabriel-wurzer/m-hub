@@ -55,6 +55,10 @@ Thumbs.db
 # Bash .env files
 .env
 
+# Local-only tooling / agent artifacts (never checked in)
+.claude/
+.playwright-mcp/
+
 # Folder for geopackage data
 /data/*
 !/data/.gitkeep
