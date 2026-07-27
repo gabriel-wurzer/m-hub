@@ -71,7 +71,10 @@ def catalog_T(bp, ort, art, default=0.20):
 
 def ort_split(row):
     """Parametrische Zeile -> Liste von (ort, art, flaeche_m2)."""
-    P = float(row["aussenwand_frei_lfm"]) + float(row["aussenwand_beruehrend_lfm"])
+    # party walls (beruehrend) are SHARED with the neighbour -> count HALF, sonst
+    # zaehlt die Stadtbilanz jede geteilte Wand doppelt (beide Nachbarn sehen sie).
+    # (Fuer einen Per-Gebaeude-Pass spaeter ggf. anders konventionieren.)
+    P = float(row["aussenwand_frei_lfm"]) + 0.5 * float(row["aussenwand_beruehrend_lfm"])
     A = float(row["gross_area_m2"])
     iw_lfm = float(row["innenwand_lfm"])
     N = int(row["storeys"])
