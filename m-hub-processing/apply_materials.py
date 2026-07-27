@@ -65,7 +65,7 @@ def catalog_T(bp, ort, art, default=0.20):
               (d.art == art)]:
         s = pd.to_numeric(d.loc[f, "staerke"], errors="coerce").dropna()
         if len(s):
-            return float(s.mean())
+            return float(s.median())   # median, nicht mean: robust gegen Dateneingabe-Ausreisser (IW/D bis 18-50m)
     return default
 
 
