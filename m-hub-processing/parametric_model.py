@@ -14,7 +14,9 @@ Output columns (one row per building):
   group_id                   the grouping key (bw_geb_id)
   bp_code                    building-period code 0..5 after collapsing bp
   bauperiode                 human label for bp_code
-  storeys                    round(height / storey_height[bp])
+  storeys                    round(height / storey_height[bp])  (above grade)
+  keller_geschosse           basement floors below grade (PLACEHOLDER; calib. from user data, floored)
+  dachgeschosse              top floors counted as Dachgeschoss (RG = storeys - dachgeschosse)
   height_m
   wall_thickness_m           inward offset (mean exterior wall, by period)
   gross_area_m2              footprint area                            (02: fläche_alt)
@@ -24,6 +26,7 @@ Output columns (one row per building):
   aussenwand_beruehrend_lfm  exterior wall touching a neighbour = party (04: GrenzLaenge)
   innenwand_lfm              interior_wall_lfm_per_m2[bp] * net_area_m2
   floor_area_m2              gross_area * storeys
+  dach_area_m2               gross_area * roof_area_factor (roof, simplified pitch)
 
 Period is the m-hub `bp` CODE (period.enum.ts): 0 unbekannt, 1 vor 1919,
 2 1919-1944, 3 1945-1979, 4 1980-1999, 5 nach 2000. `bp` in buildings_details is
@@ -66,6 +69,15 @@ _DEFAULTS: dict[str, tuple[dict[int, float], float]] = {
     "interior_wall_lfm_per_m2": ({1: 0.50, 2: 0.50, 3: 0.53, 4: 0.55, 5: 0.58}, 0.50),
     # storey height [m] for storeys = round(height / storey_height); older taller
     "storey_height_m":          ({1: 3.5, 2: 3.2}, 3.0),
+    # basement floors below grade; avg by bp from user data (m-hub input), FLOORED
+    "keller_geschosse":         ({}, 1.0),
+    # top floors counted as Dachgeschoss (rest of above-grade storeys = Regelgeschoss);
+    # calibrated from user data by bp, FLOORED, same as keller. Wolfgang: default ~1.
+    "dachgeschosse":            ({}, 1.0),
+    # roof area = footprint * factor. 1.2 = geneigtes Dach (simplified, per Wolfgang: the
+    # real 45deg-pitch geometry is deliberately not modelled). KNOWN LIMIT: a FLAT roof is
+    # ~1.0, so this factor is inadequate for flat roofs -- accepted for now (Wolfgang).
+    "roof_area_factor":         ({}, 1.2),
 }
 
 # ---- CALIBRATION -----------------------------------------------------------
@@ -170,6 +182,9 @@ def compute_parametric(
         thickness = metric("wall_thickness_m", bp_code, calibration)
         storey_h = metric("storey_height_m", bp_code, calibration)
         lfm_per_m2 = metric("interior_wall_lfm_per_m2", bp_code, calibration)
+        keller = int(metric("keller_geschosse", bp_code, calibration))   # floored basement floors
+        dachg = int(metric("dachgeschosse", bp_code, calibration))       # floored top (Dach) floors
+        roof_factor = metric("roof_area_factor", bp_code, calibration)
 
         gross_area = geom.area
         inner = geom.buffer(-thickness)
@@ -201,6 +216,8 @@ def compute_parametric(
                 bp_code=bp_code,
                 bauperiode=PERIOD_LABEL.get(bp_code, "unbekannt"),
                 storeys=storeys,
+                keller_geschosse=keller,
+                dachgeschosse=min(dachg, storeys),
                 height_m=round(height, 2),
                 wall_thickness_m=thickness,
                 gross_area_m2=round(gross_area, 2),
@@ -210,6 +227,7 @@ def compute_parametric(
                 aussenwand_beruehrend_lfm=round(touching, 2),
                 innenwand_lfm=round(innenwand_lfm, 2),
                 floor_area_m2=round(gross_area * storeys, 2),
+                dach_area_m2=round(gross_area * roof_factor, 2),
             )
         )
 
