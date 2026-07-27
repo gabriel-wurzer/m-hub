@@ -18,6 +18,7 @@ Dicke T je Element: AW = wall_thickness_m (parametrisch, gebaeudespezifisch),
 sonst Katalog-Mittel `staerke` je (bp, ort, art) mit Backoff.
 """
 from collections import defaultdict
+from functools import lru_cache
 
 import pandas as pd
 
@@ -25,6 +26,37 @@ import material_markov as mk
 import material_thickness as th
 
 
+# Rohdichten [kg/m3], erster Wurf mit Standardwerten (spaeter verfeinern).
+DENSITY = {
+    "Ziegel": 1800, "Vollziegel": 2000, "Beton": 2300, "STB": 2400,
+    "Leichtbeton": 1200, "Betonfertigteil": 2400, "Betonträger/Untezug": 2400,
+    "Stein": 2600, "Unterzug": 2400, "Wand": 1800, "Stiegen": 2400, "Stiegenhaus": 2400,
+    "Putz": 1600, "Putzträger": 1600, "Gips": 1000, "Estrich": 2100, "Schüttung": 1600,
+    "Dämmung-weich": 40, "Dämmung-hart": 150, "Styropor": 20,
+    "Heraklith": 450, "Heraklith/Holz": 450,
+    "Glas": 2500, "Keramik": 2000, "Wandfliesen": 2000, "Faserzement": 1700, "Dachfenster": 2500,
+    "Bitumen": 1050, "Abdichtung": 1000, "Dachschindeln": 1100,
+    "Stahl": 7850, "Stahlträger": 7850, "IPE": 7850, "IPE 140": 7850, "IPE Träger": 7850,
+    "Rundeisen": 7850, "Träger": 7850, "Gitterträger": 7850, "Metall": 7850, "Blech": 7850,
+    "Blechdach": 7850, "Trockenbauprofil": 7850, "Blitzableiter": 7850, "Dachrinne": 7850,
+    "Geländer": 7850, "Geländersteher": 7850, "Lawinengitter": 7850,
+    "Rigipswand": 900,
+    "Holz": 500, "Holzschalung": 500, "Holztram": 500, "Holzträger": 500, "Sparren": 500,
+    "Latten": 500, "Ziegellatten": 500, "Pfetten": 500, "Querpfetten": 500, "Längspfetten": 500,
+    "Querbalken": 500, "Längsbalken": 500, "Bodensparren": 500, "Bodenbretter": 500,
+    "Pfosten": 500, "Säulen": 500, "Dippelbaum": 500, "Dippelboden": 500, "Tramdecke": 500,
+    "Wandverkleidung": 500, "Unterkonstruktion": 500, "Ausfachung": 500, "Ausspreizung": 500,
+    "Aussteifung": 500,
+}
+DENSITY_DEFAULT = 1500   # unmapped -> mittleres Mineral
+
+
+def mass(vol):
+    """m3 je Material -> kg je Material."""
+    return {m: v * DENSITY.get(m, DENSITY_DEFAULT) for m, v in vol.items()}
+
+
+@lru_cache(maxsize=None)
 def catalog_T(bp, ort, art, default=0.20):
     """Mittlere Gesamtstaerke aus dem Katalog je (bp,ort,art), Backoff, sonst default."""
     d = th.df
@@ -58,20 +90,33 @@ def ort_split(row):
     return elements
 
 
+_profile_cache = {}
+
+
+def element_profile(bp, ort, art, T):
+    """[(material, dicke)] fuer ein Element. Gecacht: haengt nur an (bp,ort,art,T),
+    nicht am Einzelgebaeude -> ein Markov/Dicke-Lauf je Zelle statt je Gebaeude."""
+    key = (bp, ort, art, round(float(T), 4))
+    if key not in _profile_cache:
+        pred = mk.predict(bp, ort, art, k=1)
+        if pred and pred[0][0]:
+            seq = pred[0][0]
+            _profile_cache[key] = list(zip(seq, th.predict_C(seq, bp, ort, art, T)))
+        else:
+            _profile_cache[key] = []
+    return _profile_cache[key]
+
+
 def apply_building(row):
     """Volumen [m3] je Material fuer ein Gebaeude (parametrische Zeile)."""
     bp = row["bauperiode"]
+    wt = float(row["wall_thickness_m"])
     vol = defaultdict(float)
     for ort, art, area in ort_split(row):
         if area <= 0:
             continue
-        pred = mk.predict(bp, ort, art, k=1)
-        if not pred or not pred[0][0]:
-            continue
-        seq = pred[0][0]
-        T = float(row["wall_thickness_m"]) if art == "AW" else catalog_T(bp, ort, art)
-        thicks = th.predict_C(seq, bp, ort, art, T)
-        for material, t in zip(seq, thicks):
+        T = wt if art == "AW" else catalog_T(bp, ort, art)
+        for material, t in element_profile(bp, ort, art, T):
             vol[material] += t * area
     return dict(vol)
 
