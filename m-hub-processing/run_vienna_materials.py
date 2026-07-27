@@ -28,15 +28,25 @@ print(f"parametrik: {len(para):,} Zeilen in {time.time()-t1:.1f}s")
 
 t2 = time.time()
 total_vol = defaultdict(float)
-period_mass = defaultdict(float)     # Masse [kg] je Bauperiode
+period_mass = defaultdict(float)      # Masse [kg] je Bauperiode
+elem_mass = defaultdict(float)        # Masse [kg] je (Ort, Art) — Diagnose
+DENS = am.DENSITY
 n = 0
 for row in para.itertuples(index=False):
     r = row._asdict()
-    v = am.apply_building(r)
     n += 1
-    for mat, x in v.items():
-        total_vol[mat] += x
-    period_mass[r["bauperiode"]] += sum(am.mass(v).values())
+    bp = r["bauperiode"]
+    wt = float(r["wall_thickness_m"])
+    for ort, art, area in am.ort_split(r):
+        if area <= 0:
+            continue
+        T = wt if art == "AW" else am.catalog_T(bp, ort, art)
+        for material, t in am.element_profile(bp, ort, art, T):
+            v = t * area
+            kg = v * DENS.get(material, am.DENSITY_DEFAULT)
+            total_vol[material] += v
+            period_mass[bp] += kg
+            elem_mass[(ort, art)] += kg
 print(f"apply: {n:,} Gebaeude in {time.time()-t2:.1f}s "
       f"({len(am._profile_cache)} gecachte Element-Profile)")
 
@@ -57,6 +67,10 @@ for mat, kg in sorted(total_mass.items(), key=lambda x: x[1], reverse=True)[:15]
 print("\nMasse nach Bauperiode:")
 for bp, kg in sorted(period_mass.items(), key=lambda x: x[1], reverse=True):
     print(f"  {kg/1e9:7.2f} Mio t  {100*kg/tot_kg:4.1f}%  {bp}")
+
+print("\nMasse nach Bauteil (Ort, Art) — Diagnose Aufblaehung:")
+for (ort, art), kg in sorted(elem_mass.items(), key=lambda x: x[1], reverse=True):
+    print(f"  {kg/1e9:7.2f} Mio t  {100*kg/tot_kg:4.1f}%  {ort} {art}")
 
 deflt_kg = sum(kg for mat, kg in total_mass.items() if mat not in am.DENSITY)
 print(f"\nMasse aus Dichte-Default (Abdeckungscheck): {100*deflt_kg/tot_kg:.1f}%")
