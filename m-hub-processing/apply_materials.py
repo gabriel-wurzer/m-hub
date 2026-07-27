@@ -35,7 +35,7 @@ DENSITY = {
     "Dämmung-weich": 40, "Dämmung-hart": 150, "Styropor": 20,
     "Heraklith": 450, "Heraklith/Holz": 450,
     "Glas": 2500, "Keramik": 2000, "Wandfliesen": 2000, "Faserzement": 1700, "Dachfenster": 2500,
-    "Bitumen": 1050, "Abdichtung": 1000, "Dachschindeln": 1100,
+    "Bitumen": 1050, "Abdichtung": 1000, "Dachschindeln": 1100, "Dachaufbau": 1000, "Dachlucke": 2500,
     "Stahl": 7850, "Stahlträger": 7850, "IPE": 7850, "IPE 140": 7850, "IPE Träger": 7850,
     "Rundeisen": 7850, "Träger": 7850, "Gitterträger": 7850, "Metall": 7850, "Blech": 7850,
     "Blechdach": 7850, "Trockenbauprofil": 7850, "Blitzableiter": 7850, "Dachrinne": 7850,
