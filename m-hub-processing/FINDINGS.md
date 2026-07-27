@@ -3,7 +3,23 @@
 Vom `/loop` erzeugt. Jede Runde: eine sichere Verbesserung, ODER eine untersuchte,
 aber domänen-abhängige Frage, die Gabriel/Wolfgang entscheiden (nicht geraten).
 
-## 2026-07-24 — Dach (art=D) überzählt ~10× für bp=unbekannt/ab-2000
+## 2026-07-24 — FIX: catalog_T median statt mean → Wien-Bilanz 905→446 Mt
+
+**Der große Hebel, sicher gefixt.** `catalog_T` (Gesamtstärke T je bp/ort/art) nahm den
+**Mittelwert** der Katalog-`staerke`. Der ist von physikalisch unmöglichen Dateneingabe-
+Ausreißern vergiftet: IW max **18000 mm** (18-m-Innenwand!), D max **50000 mm**.
+Mean vs Median: IW 529 vs **150 mm**, AW 1182 vs 365 mm, D 649 vs **48 mm**. Dadurch lief
+die typische Innenwand mit ~704 mm Ziegel (1260 kg/m²) statt ~150 mm.
+
+**Fix:** `catalog_T` nutzt jetzt den **Median** — robust gegen Ausreißer, keine
+Domänen-Entscheidung. Ergebnis: **Wien-Bilanz 905 → 446 Mio t**, damit in der
+Literatur-Range (Kleemann et al. ~380 Mt; ~1,2× statt vorher 2,4×).
+
+**Nebeneffekt:** löst weitgehend auch den Dach-Befund unten (D median 48 mm statt 787 mm
+mean) und die IW-Aufblähung (RG IW war 49 % der Masse). Die verbleibende IW-Feinheit
+(Tragwand vs Trennwand) bleibt Wolfgangs Frage, aber die Größenordnung stimmt jetzt.
+
+## 2026-07-24 — Dach (art=D) überzählt ~10× für bp=unbekannt/ab-2000  [weitgehend gelöst durch Median-Fix oben]
 
 **Befund:** Das Dach der unbekannt- und ab-2000-Gebäude (zusammen ~80 % des Bestands)
 wird als **787 mm massiver Ziegel = 1416 kg/m²** modelliert. Real: ~100–200 kg/m².
