@@ -3,6 +3,23 @@
 Vom `/loop` erzeugt. Jede Runde: eine sichere Verbesserung, ODER eine untersuchte,
 aber domänen-abhängige Frage, die Gabriel/Wolfgang entscheiden (nicht geraten).
 
+## Nacht-Zusammenfassung (Branch `nacht-opt`, review + merge in der Früh)
+
+Loop-Ergebnis über Nacht:
+- **catalog_T median statt mean** → Wien-Bilanz **905 → 446 Mio t**, in Literatur-Range
+  (der große Fix; ein 18–50 m-Dateneingabe-Ausreißer war die halbe Stadt).
+- Dichte-Tabelle vervollständigt (alle 74 Materialien, 0 % Default).
+- Höhen-Robustheit geprüft: sauber, kein Clamp nötig (max 250 m = DC Tower, echt).
+- Dach-Überzählung untersucht und durch den Median-Fix miterledigt.
+
+Offene **Domänen-Fragen für Wolfgang** (bewusst nicht geraten):
+- **IW Tragwand vs Trennwand**: die Feinheit der Innenwand-Dicke (Median deckelt grob, aber
+  die Mischung tragend/leicht ist Modellsache).
+- **Dach-Materialmodell**: Dachziegel/Lattung/Sparren als dünne/Linienelemente statt
+  Fläche × Voll-Dicke (Median hat den akuten Fehler entschärft, das Modell bleibt offen).
+
+Branch `nacht-opt` ist reviewbar; **nichts auf main gemerged.**
+
 ## Stand-Bilanz nach Median-Fix (Referenz)
 
 Wien-Gesamtbestand (Modell, erster Wurf): **446,5 Mio t / 238,7 Mio m³** (Literatur ~380 Mt).
