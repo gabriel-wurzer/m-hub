@@ -3,6 +3,16 @@
 Vom `/loop` erzeugt. Jede Runde: eine sichere Verbesserung, ODER eine untersuchte,
 aber domänen-abhängige Frage, die Gabriel/Wolfgang entscheiden (nicht geraten).
 
+## Stand-Bilanz nach Median-Fix (Referenz)
+
+Wien-Gesamtbestand (Modell, erster Wurf): **446,5 Mio t / 238,7 Mio m³** (Literatur ~380 Mt).
+- Zusammensetzung: **Ziegel 68,8 % · STB 23,0 % · Putz 6,8 %** · Rest <1 %.
+- Nach Bauteil: RG AW 28,6 % · **RG IW 21,9 %** (war 49 %) · RG FB 18,1 % · KG AW 9,0 % · DG AW 8,8 % · (Dach DG-D jetzt aus Top raus).
+- Nach Periode: unbekannt 80,2 % · bis 1918 12,4 % · 1919-1944 4,7 % · Rest <3 %.
+
+Höhen geprüft (Iteration 4): **sauber** — max 250 m = DC Tower, top-10 sind echte Hochhäuser,
+4 Null-Höhen sind abgefangen (storeys=1). Kein Clamp nötig, die 12 Gebäude >40 Geschosse sind echt.
+
 ## 2026-07-24 — FIX: catalog_T median statt mean → Wien-Bilanz 905→446 Mt
 
 **Der große Hebel, sicher gefixt.** `catalog_T` (Gesamtstärke T je bp/ort/art) nahm den
