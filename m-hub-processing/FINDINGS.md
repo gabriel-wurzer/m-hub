@@ -9,7 +9,9 @@ Loop-Ergebnis über Nacht:
 - **catalog_T median statt mean** → Wien-Bilanz **905 → 446 Mio t**, in Literatur-Range
   (der große Fix; ein 18–50 m-Dateneingabe-Ausreißer war die halbe Stadt).
 - Dichte-Tabelle vervollständigt (alle 74 Materialien, 0 % Default).
-- Höhen-Robustheit geprüft: sauber, kein Clamp nötig (max 250 m = DC Tower, echt).
+- Robustheit geprüft: Höhen (max 250 m = DC Tower, echt) UND Markov-Gewicht
+  `nettoflaeche` (max 4451 m² legitim, Null-Werte durch +0.01 abgefangen) — beide sauber,
+  kein Clamp/Cap nötig.
 - Dach-Überzählung untersucht und durch den Median-Fix miterledigt.
 
 Offene **Domänen-Fragen für Wolfgang** (bewusst nicht geraten):
