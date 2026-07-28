@@ -102,12 +102,15 @@ def ort_split(row):
 # tragend = Kamininnenwand ~ Gebaeudelaenge; bis 1945 Ziegel 45cm, danach STB 25cm.
 # leicht  = restliche Innenwand (Trennwand), 12cm Leichtbau-Proxy (Gips).
 # (Wohnungstrennwaende erstmal in "leicht" gefaltet — Wolfgangs offener Punkt.)
-IW_TRAGEND = {              # bp_code -> (material, dicke_m)
-    0: ("Ziegel", 0.45),   # unbekannt -> Altbau-dominiert
-    1: ("Ziegel", 0.45), 2: ("Ziegel", 0.45),                # bis 1945
-    3: ("STB", 0.25), 4: ("STB", 0.25), 5: ("STB", 0.25),    # ab 1945
+IW_TRAGEND = {   # bp_code -> Aufbau (Kaminwand ~ Gebaeudelaenge), Wolfgang 2026-07-28
+    0: [("Putz", 0.015), ("Ziegel", 0.45), ("Putz", 0.015)],   # unbekannt -> Altbau, 48cm
+    1: [("Putz", 0.015), ("Ziegel", 0.45), ("Putz", 0.015)],   # bis 1918: Kaminwand 48cm
+    2: [("Putz", 0.015), ("Ziegel", 0.42), ("Putz", 0.015)],   # 1919-44: Kaminwand 45cm
+    3: [("STB", 0.15)],   # 1945-79: Betonphase, STB 15cm
+    4: [("STB", 0.18)],   # 1980-99: STB 15-20cm
+    5: [("STB", 0.18)],   # ab 2000: dito
 }
-IW_TRAGEND_DEFAULT = ("Ziegel", 0.45)
+IW_TRAGEND_DEFAULT = [("Putz", 0.015), ("Ziegel", 0.45), ("Putz", 0.015)]
 
 # leichte (nicht-tragende) IW — Aufbau je bp_code (Wolfgang 2026-07-28). WICHTIG: im
 # Altbau ist die "leichte" IW SOLIDER Ziegel (schwer!), erst ab ~1970 Gipskarton-
@@ -130,7 +133,7 @@ def iw_split(row):
     laenge = float(row["gebaeudelaenge_m"])
     iw_lfm = float(row["innenwand_lfm"])
     h = _storey_h(row)
-    mat_t, dick_t = IW_TRAGEND.get(code, IW_TRAGEND_DEFAULT)
+    tragend_aufbau = IW_TRAGEND.get(code, IW_TRAGEND_DEFAULT)
     leicht_aufbau = IW_LEICHT.get(code, IW_LEICHT_DEFAULT)
     out = []
     for ort, n in _floors(row):
@@ -138,9 +141,10 @@ def iw_split(row):
             continue
         tragend_lfm = min(laenge, iw_lfm)              # tragend <= gesamte IW-Laenge
         leicht_lfm = max(0.0, iw_lfm - tragend_lfm)
-        out.append(("tragend", mat_t, dick_t, tragend_lfm * h * n))
-        for mat_l, dick_l in leicht_aufbau:
-            out.append(("leicht", mat_l, dick_l, leicht_lfm * h * n))
+        for mat, dick in tragend_aufbau:
+            out.append(("tragend", mat, dick, tragend_lfm * h * n))
+        for mat, dick in leicht_aufbau:
+            out.append(("leicht", mat, dick, leicht_lfm * h * n))
     return out
 
 
