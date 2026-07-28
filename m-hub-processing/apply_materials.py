@@ -89,10 +89,11 @@ def ort_split(row):
     P = float(row["aussenwand_frei_lfm"]) + 0.5 * float(row["aussenwand_beruehrend_lfm"])
     A = float(row["gross_area_m2"])
     h = _storey_h(row)
+    aw_offen = 1.0 - OPEN_AW.get(int(row["bp_code"]), 0.25)   # Fenster-Oeffnungen abziehen
     elements = []
     for ort, n in _floors(row):
         if n > 0:
-            elements.append((ort, "AW", P * h * n))
+            elements.append((ort, "AW", P * h * n * aw_offen))
             elements.append((ort, "FB", A * n))
     elements.append(("DG", "D", float(row["dach_area_m2"])))   # Dach immer (ein Dach je Gebaeude)
     return elements
@@ -141,6 +142,11 @@ IW_WOHNUNG_DEFAULT = [("Putz", 0.015), ("Ziegel", 0.29), ("Putz", 0.015)]
 IW_LFM_TRAGEND = {0: 0.125, 1: 0.125, 2: 0.10, 3: 0.10, 4: 0.04, 5: 0.04}
 IW_LFM_LEICHT = {0: 0.175, 1: 0.175, 2: 0.35, 3: 0.35, 4: 0.285, 5: 0.285}
 
+# Oeffnungsanteile (Tueren/Fenster) je bp_code (Wolfgang Q8, Mittelwerte) -> Wandflaeche x (1-anteil).
+OPEN_AW = {0: 0.20, 1: 0.20, 2: 0.25, 3: 0.25, 4: 0.30, 5: 0.37}            # Fenster
+OPEN_IW_TRAGEND = {0: 0.12, 1: 0.12, 2: 0.07, 3: 0.07, 4: 0.03, 5: 0.03}    # Tueren, tragend + Wohnung
+OPEN_IW_LEICHT = {0: 0.25, 1: 0.25, 2: 0.17, 3: 0.17, 4: 0.32, 5: 0.32}     # Tueren, leichte Trennwand
+
 
 def iw_split(row):
     """Wolfgangs IW-Struktur -> [(typ, material, dicke_m, flaeche_m2)];
@@ -151,6 +157,8 @@ def iw_split(row):
     h = _storey_h(row)
     lfm_tragend = IW_LFM_TRAGEND.get(code, 0.12) * net    # Kaminwand+Wohnung, je Geschoss
     lfm_leicht = IW_LFM_LEICHT.get(code, 0.30) * net      # leicht, je Geschoss
+    offen_t = 1.0 - OPEN_IW_TRAGEND.get(code, 0.08)       # Tueren tragend/Wohnung abziehen
+    offen_l = 1.0 - OPEN_IW_LEICHT.get(code, 0.20)        # Tueren leicht abziehen
     tragend_aufbau = IW_TRAGEND.get(code, IW_TRAGEND_DEFAULT)
     wohnung_aufbau = IW_WOHNUNG.get(code, IW_WOHNUNG_DEFAULT)
     leicht_aufbau = IW_LEICHT.get(code, IW_LEICHT_DEFAULT)
@@ -161,11 +169,11 @@ def iw_split(row):
         kamin_lfm = min(laenge, lfm_tragend)             # Kaminwand <= tragende Laenge
         wohnung_lfm = max(0.0, lfm_tragend - kamin_lfm)
         for mat, dick in tragend_aufbau:
-            out.append(("tragend", mat, dick, kamin_lfm * h * n))
+            out.append(("tragend", mat, dick, kamin_lfm * h * n * offen_t))
         for mat, dick in wohnung_aufbau:
-            out.append(("wohnung", mat, dick, wohnung_lfm * h * n))
+            out.append(("wohnung", mat, dick, wohnung_lfm * h * n * offen_t))
         for mat, dick in leicht_aufbau:
-            out.append(("leicht", mat, dick, lfm_leicht * h * n))
+            out.append(("leicht", mat, dick, lfm_leicht * h * n * offen_l))
     return out
 
 
