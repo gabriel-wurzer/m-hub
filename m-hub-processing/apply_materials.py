@@ -136,9 +136,10 @@ IW_WOHNUNG = {
 }
 IW_WOHNUNG_DEFAULT = [("Putz", 0.015), ("Ziegel", 0.29), ("Putz", 0.015)]
 
-# Aufteilung der Innenwand-LAENGE (Platzhalter, = Punkt 7 fuer Wolfgang): tragend =
-# Kaminwand ~ Gebaeudelaenge; vom Rest sind WOHNUNG_ANTEIL Wohnungstrennwaende, Rest leicht.
-WOHNUNG_ANTEIL = 0.35
+# Innenwand-Laufmeter je NETTO-m2 Geschossflaeche (Wolfgang Q7, Mittelwerte je Periode;
+# "netto" = ohne Aussenwand). tragend = Kaminwand + Wohnungstrennwand; leicht = nicht-tragend.
+IW_LFM_TRAGEND = {0: 0.125, 1: 0.125, 2: 0.10, 3: 0.10, 4: 0.04, 5: 0.04}
+IW_LFM_LEICHT = {0: 0.175, 1: 0.175, 2: 0.35, 3: 0.35, 4: 0.285, 5: 0.285}
 
 
 def iw_split(row):
@@ -146,8 +147,10 @@ def iw_split(row):
     tragend ~ Gebaeudelaenge, leicht = Rest der Innenwand-Laenge."""
     code = int(row["bp_code"])
     laenge = float(row["gebaeudelaenge_m"])
-    iw_lfm = float(row["innenwand_lfm"])
+    net = float(row["net_area_m2"])
     h = _storey_h(row)
+    lfm_tragend = IW_LFM_TRAGEND.get(code, 0.12) * net    # Kaminwand+Wohnung, je Geschoss
+    lfm_leicht = IW_LFM_LEICHT.get(code, 0.30) * net      # leicht, je Geschoss
     tragend_aufbau = IW_TRAGEND.get(code, IW_TRAGEND_DEFAULT)
     wohnung_aufbau = IW_WOHNUNG.get(code, IW_WOHNUNG_DEFAULT)
     leicht_aufbau = IW_LEICHT.get(code, IW_LEICHT_DEFAULT)
@@ -155,16 +158,14 @@ def iw_split(row):
     for ort, n in _floors(row):
         if n <= 0:
             continue
-        tragend_lfm = min(laenge, iw_lfm)              # Kaminwand <= gesamte IW-Laenge
-        rest = max(0.0, iw_lfm - tragend_lfm)
-        wohnung_lfm = WOHNUNG_ANTEIL * rest
-        leicht_lfm = rest - wohnung_lfm
+        kamin_lfm = min(laenge, lfm_tragend)             # Kaminwand <= tragende Laenge
+        wohnung_lfm = max(0.0, lfm_tragend - kamin_lfm)
         for mat, dick in tragend_aufbau:
-            out.append(("tragend", mat, dick, tragend_lfm * h * n))
+            out.append(("tragend", mat, dick, kamin_lfm * h * n))
         for mat, dick in wohnung_aufbau:
             out.append(("wohnung", mat, dick, wohnung_lfm * h * n))
         for mat, dick in leicht_aufbau:
-            out.append(("leicht", mat, dick, leicht_lfm * h * n))
+            out.append(("leicht", mat, dick, lfm_leicht * h * n))
     return out
 
 
