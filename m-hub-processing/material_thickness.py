@@ -17,7 +17,7 @@ from collections import defaultdict
 
 import pandas as pd
 
-SRC = "../data/useCasesAufbauten.xlsx"
+SRC = "../data/aufbauten_katalog.xlsx"   # Wolfgangs MitStärke-Katalog (Stand 2026-07-25)
 
 
 def parse_layers(mat):

@@ -19,14 +19,21 @@ from collections import defaultdict
 
 import pandas as pd
 
-SRC = "../data/useCasesAufbauten.xlsx"
+SRC = "../data/aufbauten_katalog.xlsx"   # Wolfgangs MitStärke-Katalog (Stand 2026-07-25)
 S, E = "<S>", "<E>"
 
 
 def parse_materials(mat):
-    """'(Putz, 0.015; Ziegel, 0.16; Putz, 0.025)' -> ['Putz', 'Ziegel', 'Putz']"""
-    s = str(mat).strip().strip("()")
-    return [lay.split(",")[0].strip() for lay in s.split(";") if lay.split(",")[0].strip()]
+    """'(Putz, 0.015; Ziegel, 0.16; Putz, 0.025)' -> ['Putz', 'Ziegel', 'Putz'].
+    Balken/Linien-Zeilen (LxW-Schema, z.B. 'IPE, 30.00x14.20') werden uebersprungen."""
+    out = []
+    for lay in str(mat).strip().strip("()").split(";"):
+        parts = [p.strip() for p in lay.split(",")]
+        name = parts[0]
+        if not name or "x" in ",".join(parts[1:]):   # 'x' -> LxW-Balken, kein Flaechen-Layer
+            continue
+        out.append(name)
+    return out
 
 
 df = pd.read_excel(SRC, sheet_name="Ergebnis")
@@ -34,6 +41,7 @@ df.columns = ["bauperiode", "ort", "art", "mat", "nettoflaeche",
               "anteil", "pct_po", "stk", "staerke"]
 df = df.dropna(subset=["mat"]).copy()
 df["seq"] = df["mat"].map(parse_materials)
+df = df[df["seq"].map(len) > 0].copy()   # reine Balken-Zeilen (leere Folge) raus
 df["w"] = df["nettoflaeche"].fillna(0).clip(lower=0) + 0.01
 
 
