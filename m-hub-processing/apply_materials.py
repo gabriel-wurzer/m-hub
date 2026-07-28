@@ -69,28 +69,66 @@ def catalog_T(bp, ort, art, default=0.20):
     return default
 
 
+def _floors(row):
+    """[(ort, geschosse)] fuer KG / RG / DG."""
+    N = int(row["storeys"])
+    return [("KG", int(row["keller_geschosse"])),
+            ("RG", max(0, N - int(row["dachgeschosse"]))),
+            ("DG", int(row["dachgeschosse"]))]
+
+
+def _storey_h(row):
+    N = int(row["storeys"])
+    return float(row["height_m"]) / N if N else 3.0
+
+
 def ort_split(row):
-    """Parametrische Zeile -> Liste von (ort, art, flaeche_m2)."""
+    """AW, FB (+ Dach) — die datengetriebenen Elemente. IW siehe iw_split()."""
     # party walls (beruehrend) are SHARED with the neighbour -> count HALF, sonst
     # zaehlt die Stadtbilanz jede geteilte Wand doppelt (beide Nachbarn sehen sie).
-    # (Fuer einen Per-Gebaeude-Pass spaeter ggf. anders konventionieren.)
     P = float(row["aussenwand_frei_lfm"]) + 0.5 * float(row["aussenwand_beruehrend_lfm"])
     A = float(row["gross_area_m2"])
-    iw_lfm = float(row["innenwand_lfm"])
-    N = int(row["storeys"])
-    K = int(row["keller_geschosse"])
-    DG = int(row["dachgeschosse"])
-    RG = max(0, N - DG)
-    h = float(row["height_m"]) / N if N else 3.0
-
+    h = _storey_h(row)
     elements = []
-    for ort, n in (("KG", K), ("RG", RG), ("DG", DG)):
+    for ort, n in _floors(row):
         if n > 0:
             elements.append((ort, "AW", P * h * n))
-            elements.append((ort, "IW", iw_lfm * h * n))
             elements.append((ort, "FB", A * n))
     elements.append(("DG", "D", float(row["dach_area_m2"])))   # Dach immer (ein Dach je Gebaeude)
     return elements
+
+
+# --- Innenwand-Modell (Wolfgangs Struktur, kalibrierbar) -------------------
+# tragend = Kamininnenwand ~ Gebaeudelaenge; bis 1945 Ziegel 45cm, danach STB 25cm.
+# leicht  = restliche Innenwand (Trennwand), 12cm Leichtbau-Proxy (Gips).
+# (Wohnungstrennwaende erstmal in "leicht" gefaltet — Wolfgangs offener Punkt.)
+IW_TRAGEND = {              # bp_code -> (material, dicke_m)
+    0: ("Ziegel", 0.45),   # unbekannt -> Altbau-dominiert
+    1: ("Ziegel", 0.45), 2: ("Ziegel", 0.45),                # bis 1945
+    3: ("STB", 0.25), 4: ("STB", 0.25), 5: ("STB", 0.25),    # ab 1945
+}
+IW_TRAGEND_DEFAULT = ("Ziegel", 0.45)
+IW_LEICHT = ("Gips", 0.12)
+
+
+def iw_split(row):
+    """Wolfgangs IW-Struktur -> [(typ, material, dicke_m, flaeche_m2)];
+    tragend ~ Gebaeudelaenge, leicht = Rest der Innenwand-Laenge."""
+    code = int(row["bp_code"])
+    laenge = float(row["gebaeudelaenge_m"])
+    iw_lfm = float(row["innenwand_lfm"])
+    h = _storey_h(row)
+    mat_t, dick_t = IW_TRAGEND.get(code, IW_TRAGEND_DEFAULT)
+    mat_l, dick_l = IW_LEICHT
+    out = []
+    for ort, n in _floors(row):
+        if n <= 0:
+            continue
+        tragend_lfm = min(laenge, iw_lfm)              # tragend <= gesamte IW-Laenge
+        leicht_lfm = max(0.0, iw_lfm - tragend_lfm)
+        out.append(("tragend", mat_t, dick_t, tragend_lfm * h * n))
+        out.append(("leicht", mat_l, dick_l, leicht_lfm * h * n))
+    return out
 
 
 _profile_cache = {}
@@ -115,12 +153,15 @@ def apply_building(row):
     bp = row["bauperiode"]
     wt = float(row["wall_thickness_m"])
     vol = defaultdict(float)
-    for ort, art, area in ort_split(row):
+    for ort, art, area in ort_split(row):            # AW, FB, Dach: Markov + C
         if area <= 0:
             continue
         T = wt if art == "AW" else catalog_T(bp, ort, art)
         for material, t in element_profile(bp, ort, art, T):
             vol[material] += t * area
+    for _typ, material, dicke, area in iw_split(row):   # IW: Wolfgangs Struktur
+        if area > 0:
+            vol[material] += dicke * area
     return dict(vol)
 
 

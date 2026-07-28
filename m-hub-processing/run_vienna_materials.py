@@ -47,6 +47,13 @@ for row in para.itertuples(index=False):
             total_vol[material] += v
             period_mass[bp] += kg
             elem_mass[(ort, art)] += kg
+    for typ, material, dicke, area in am.iw_split(r):     # IW: Wolfgangs tragend/leicht
+        if area <= 0:
+            continue
+        kg = dicke * area * DENS.get(material, am.DENSITY_DEFAULT)
+        total_vol[material] += dicke * area
+        period_mass[bp] += kg
+        elem_mass[("IW", typ)] += kg
 print(f"apply: {n:,} Gebaeude in {time.time()-t2:.1f}s "
       f"({len(am._profile_cache)} gecachte Element-Profile)")
 

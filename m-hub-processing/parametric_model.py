@@ -27,6 +27,7 @@ Output columns (one row per building):
   innenwand_lfm              interior_wall_lfm_per_m2[bp] * net_area_m2
   floor_area_m2              gross_area * storeys
   dach_area_m2               gross_area * roof_area_factor (roof, simplified pitch)
+  gebaeudelaenge_m           longer side of the minimum rotated rectangle (Gebaeudelaenge)
 
 Period is the m-hub `bp` CODE (period.enum.ts): 0 unbekannt, 1 vor 1919,
 2 1919-1944, 3 1945-1979, 4 1980-1999, 5 nach 2000. `bp` in buildings_details is
@@ -45,6 +46,8 @@ storey); exterior-wall QUANTITY = perimeter split (04), the ring stays as
 """
 
 from __future__ import annotations
+
+import math
 
 import geopandas as gpd
 import pandas as pd
@@ -130,6 +133,20 @@ def load_calibration(rows) -> dict[str, dict[int, float]]:
 
 
 # --- core ------------------------------------------------------------------
+
+def _building_length(geom) -> float:
+    """Laengere Seite des minimal rotierten Umrings = Gebaeudelaenge (fuer die
+    tragende Innenwand ~ Kamininnenwand laut Wolfgang)."""
+    try:
+        xy = list(geom.minimum_rotated_rectangle.exterior.coords)
+        if len(xy) < 3:
+            return math.sqrt(max(geom.area, 0.0))
+        s1 = math.hypot(xy[1][0] - xy[0][0], xy[1][1] - xy[0][1])
+        s2 = math.hypot(xy[2][0] - xy[1][0], xy[2][1] - xy[1][1])
+        return max(s1, s2)
+    except Exception:
+        return math.sqrt(max(geom.area, 0.0))
+
 
 def compute_parametric(
     buildings: gpd.GeoDataFrame,
@@ -228,6 +245,7 @@ def compute_parametric(
                 innenwand_lfm=round(innenwand_lfm, 2),
                 floor_area_m2=round(gross_area * storeys, 2),
                 dach_area_m2=round(gross_area * roof_factor, 2),
+                gebaeudelaenge_m=round(_building_length(geom), 2),
             )
         )
 
