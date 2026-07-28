@@ -108,7 +108,19 @@ IW_TRAGEND = {              # bp_code -> (material, dicke_m)
     3: ("STB", 0.25), 4: ("STB", 0.25), 5: ("STB", 0.25),    # ab 1945
 }
 IW_TRAGEND_DEFAULT = ("Ziegel", 0.45)
-IW_LEICHT = ("Gips", 0.12)
+
+# leichte (nicht-tragende) IW — Aufbau je bp_code (Wolfgang 2026-07-28). WICHTIG: im
+# Altbau ist die "leichte" IW SOLIDER Ziegel (schwer!), erst ab ~1970 Gipskarton-
+# Staenderwand (leicht, effektiv nur ~2 Platten -> als Gips 0.025 modelliert).
+IW_LEICHT = {
+    0: [("Putz", 0.015), ("Ziegel", 0.14), ("Putz", 0.015)],   # unbekannt -> Altbau, 17cm
+    1: [("Putz", 0.015), ("Ziegel", 0.14), ("Putz", 0.015)],   # bis 1918, 17cm
+    2: [("Putz", 0.010), ("Ziegel", 0.12), ("Putz", 0.010)],   # 1919-44, 14cm
+    3: [("Putz", 0.010), ("Ziegel", 0.12), ("Putz", 0.010)],   # 1945-79, Nachkrieg-Ziegel (Repr.)
+    4: [("Gips", 0.025)],   # 1980-99, Gipskarton-Staenderwand (effektiv ~2x12.5mm)
+    5: [("Gips", 0.025)],   # ab 2000, dito
+}
+IW_LEICHT_DEFAULT = [("Putz", 0.015), ("Ziegel", 0.14), ("Putz", 0.015)]
 
 
 def iw_split(row):
@@ -119,7 +131,7 @@ def iw_split(row):
     iw_lfm = float(row["innenwand_lfm"])
     h = _storey_h(row)
     mat_t, dick_t = IW_TRAGEND.get(code, IW_TRAGEND_DEFAULT)
-    mat_l, dick_l = IW_LEICHT
+    leicht_aufbau = IW_LEICHT.get(code, IW_LEICHT_DEFAULT)
     out = []
     for ort, n in _floors(row):
         if n <= 0:
@@ -127,7 +139,8 @@ def iw_split(row):
         tragend_lfm = min(laenge, iw_lfm)              # tragend <= gesamte IW-Laenge
         leicht_lfm = max(0.0, iw_lfm - tragend_lfm)
         out.append(("tragend", mat_t, dick_t, tragend_lfm * h * n))
-        out.append(("leicht", mat_l, dick_l, leicht_lfm * h * n))
+        for mat_l, dick_l in leicht_aufbau:
+            out.append(("leicht", mat_l, dick_l, leicht_lfm * h * n))
     return out
 
 
