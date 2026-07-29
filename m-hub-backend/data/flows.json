@@ -7813,5 +7813,85 @@
                 "a11ce5e165000003"
             ]
         ]
+    },
+    {
+        "id": "b1a05ec4a1000001",
+        "type": "tab",
+        "label": "Plausibility",
+        "disabled": false,
+        "info": "Plausibilitaetscheck des Material-Aufbaus. Ruft plausibility_api.py (PLAUSIBILITY_URL per env, default http://127.0.0.1:8971).",
+        "env": []
+    },
+    {
+        "id": "b1a05ec4a1000002",
+        "type": "http in",
+        "z": "b1a05ec4a1000001",
+        "name": "POST plausibility",
+        "url": "/api/plausibility",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 120,
+        "wires": [
+            [
+                "b1a05ec4a1000003"
+            ]
+        ]
+    },
+    {
+        "id": "b1a05ec4a1000003",
+        "type": "function",
+        "z": "b1a05ec4a1000001",
+        "name": "build check request",
+        "func": "// Plausibilitaets-Check: Aufbau-Daten an den Python-Service weiterreichen.\nconst b = msg.payload || {};\nconst materials = b.materials || (b.layers || [])\n    .map(function (l) { return l && l.material; }).filter(Boolean);\nmsg.method = 'POST';\nmsg.headers = { 'content-type': 'application/json' };\nmsg.payload = {\n    period: b.period || '',\n    floor_type: b.floor_type || '',\n    part_type: b.part_type || '',\n    materials: materials\n};\nmsg.url = (env.get('PLAUSIBILITY_URL') || 'http://127.0.0.1:8971') + '/check';\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 120,
+        "wires": [
+            [
+                "b1a05ec4a1000004"
+            ]
+        ]
+    },
+    {
+        "id": "b1a05ec4a1000004",
+        "type": "http request",
+        "z": "b1a05ec4a1000001",
+        "name": "plausibility service",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 640,
+        "y": 120,
+        "wires": [
+            [
+                "b1a05ec4a1000005"
+            ]
+        ]
+    },
+    {
+        "id": "b1a05ec4a1000005",
+        "type": "http response",
+        "z": "b1a05ec4a1000001",
+        "name": "plausibility response",
+        "statusCode": "",
+        "headers": {},
+        "x": 890,
+        "y": 120,
+        "wires": []
     }
 ]
