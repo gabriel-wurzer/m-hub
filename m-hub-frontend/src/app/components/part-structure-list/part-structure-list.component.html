@@ -41,6 +41,16 @@
     </div>
   </div>
 
+  <div
+    class="plausibility-banner"
+    *ngIf="plausibility"
+    [ngClass]="'plausibility-stufe-' + plausibility.stufe"
+    [matTooltip]="plausibility.detail"
+  >
+    <mat-icon>{{ plausibilityIcon }}</mat-icon>
+    <span class="plausibility-text">{{ plausibility.label }}</span>
+  </div>
+
   <div class="part-structure-content" [class.wall-content]="isWallStructure">
     <div class="structure-visual-card">
       <span class="visual-title"> Darstellung Schichten </span>

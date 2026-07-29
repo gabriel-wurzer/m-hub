@@ -16,10 +16,17 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import material_markov as mk
 
-# --- Mapping Frontend-Enums -> Katalog --------------------------------------
-ORT = {"KG": "KG", "RG": "RG", "D": "DG", "DG": "DG"}                      # FloorType -> Katalog-Ort
-ART = {"IW": "IW", "AW": "AW", "BW": "AW", "BA": "FB", "DA": "D",          # PartType -> Katalog-Art
-       "KS": "AW", "A": "AW"}
+# --- Mapping Frontend-Enums -> Katalog (akzeptiert Kuerzel UND deutsche Enum-Werte) ---
+ORT = {"KG": "KG", "Kellergeschoss": "KG",              # FloorType -> Katalog-Ort
+       "RG": "RG", "Regelgeschoss": "RG",
+       "D": "DG", "Dach": "DG", "DG": "DG"}
+ART = {"IW": "IW", "Innenwand": "IW",                   # PartType -> Katalog-Art
+       "AW": "AW", "Außenwand": "AW",
+       "BW": "AW", "Brandwand": "AW",
+       "BA": "FB", "Bodenaufbau": "FB",
+       "DA": "D", "Dachaufbau": "D",
+       "KS": "AW", "Kniestock": "AW",
+       "A": "AW", "Attika": "AW"}
 BP = {"unbekannt": "unbekannt", "vor 1919": "bis 1918", "bis 1918": "bis 1918",
       "1919-1944": "1919-1944", "1945-1979": "1945-1979", "1980-1999": "1980-1999",
       "nach 2000": "ab 2000", "ab 2000": "ab 2000"}

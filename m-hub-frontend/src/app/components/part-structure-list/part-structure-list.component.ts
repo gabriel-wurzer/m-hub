@@ -25,6 +25,9 @@ import { PartType } from '../../enums/part-type.enum';
 import { MaterialType } from '../../enums/material-type.enum';
 import { PartStructure, Layer } from '../../models/part-structure';
 import { LayerMaterial, LAYER_MATERIAL_OPTIONS } from '../../models/layer-material';
+import { Subject, Subscription, of } from 'rxjs';
+import { catchError, debounceTime, switchMap } from 'rxjs/operators';
+import { PlausibilityService, PlausibilityResult } from '../../services/plausibility/plausibility.service';
 
 type EditablePartLayer = {
   layer_index: number;
@@ -144,8 +147,12 @@ type StructureType = PartStructure['type'];
 export class PartStructureListComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   @Input() partType: PartType | null = null;
   @Input() structure: PartStructure | null = null;
+  @Input() period: string | null = null;
+  @Input() floorType: string | null = null;
   @Output() structureChange = new EventEmitter<PartStructure | null>();
   @Output() validityChange = new EventEmitter<boolean>();
+
+  plausibility: PlausibilityResult | null = null;
 
   @ViewChild('structureVisual')
   set structureVisualRef(value: ElementRef<HTMLElement> | undefined) {
@@ -191,11 +198,17 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
   private structureVisualElement: HTMLElement | null = null;
   private directionStartLabelElement: HTMLElement | null = null;
   private directionEndLabelElement: HTMLElement | null = null;
+  private readonly plausibilityTrigger = new Subject<void>();
+  private plausibilitySub: Subscription | null = null;
 
-  constructor(private readonly ngZone: NgZone) {}
+  constructor(
+    private readonly ngZone: NgZone,
+    private readonly plausibilityService: PlausibilityService
+  ) {}
 
   ngOnInit(): void {
     this.setupViewportQuery();
+    this.setupPlausibilityCheck();
     this.syncFromInputs();
     setTimeout(() => (this.animationsDisabled = false));
   }
@@ -208,6 +221,7 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
     this.mobileViewportQuery?.removeEventListener('change', this.handleViewportQueryChange);
     this.layerChipCompactQuery?.removeEventListener('change', this.handleLayerChipCompactQueryChange);
     this.wallWidthObserver?.disconnect();
+    this.plausibilitySub?.unsubscribe();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -218,6 +232,19 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
 
   get isWallStructure(): boolean {
     return this.structureType === 'wall';
+  }
+
+  get plausibilityIcon(): string {
+    if (!this.plausibility) {
+      return 'help_outline';
+    }
+    if (this.plausibility.stufe === 3) {
+      return 'check_circle';
+    }
+    if (this.plausibility.stufe === 1) {
+      return 'error';
+    }
+    return this.plausibility.umgekehrt ? 'swap_vert' : 'warning';
   }
 
   get directionStartLabel(): string {
@@ -315,6 +342,7 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
   }
 
   emitChanges(): void {
+    this.plausibilityTrigger.next();
     if (!this.structureType) {
       this.emitIfChanged(null, false);
       return;
@@ -424,6 +452,37 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
 
   private emitChangesDeferred(): void {
     queueMicrotask(() => this.emitChanges());
+  }
+
+  private setupPlausibilityCheck(): void {
+    this.plausibilitySub = this.plausibilityTrigger
+      .pipe(
+        debounceTime(400),
+        switchMap(() => {
+          const materials = this.currentMaterials();
+          if (materials.length < 1) {
+            this.plausibility = null;
+            return of<PlausibilityResult | null>(null);
+          }
+          return this.plausibilityService
+            .check({
+              period: this.period,
+              floor_type: this.floorType,
+              part_type: this.partType,
+              materials
+            })
+            .pipe(catchError(() => of<PlausibilityResult | null>(null)));
+        })
+      )
+      .subscribe((result) => {
+        this.plausibility = result;
+      });
+  }
+
+  private currentMaterials(): string[] {
+    return this.layers
+      .map((layer) => layer.material)
+      .filter((material): material is LayerMaterial => material !== null && material !== undefined);
   }
 
   private setupViewportQuery(): void {

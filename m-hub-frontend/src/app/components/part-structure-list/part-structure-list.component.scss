@@ -377,3 +377,24 @@ mat-error {
  }
 
 }
+
+// Plausibilitaets-Ampel (Stufe 3 gruen / 2 gelb / 1 rot)
+.plausibility-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.plausibility-banner mat-icon {
+  flex: 0 0 auto;
+  font-size: 20px;
+  height: 20px;
+  width: 20px;
+}
+.plausibility-banner.plausibility-stufe-3 { background: rgba(46, 160, 67, 0.14); color: #1a7f37; }
+.plausibility-banner.plausibility-stufe-2 { background: rgba(230, 160, 26, 0.16); color: #9a6700; }
+.plausibility-banner.plausibility-stufe-1 { background: rgba(211, 47, 47, 0.14); color: #b3261e; }
