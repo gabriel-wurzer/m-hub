@@ -128,7 +128,7 @@ echo "[OK] Spatial indexes ready."
 
 # -------- Remaining services --------
 echo "[START] Backend, Upload, Frontend, Postgis-API and SeaweedFS..."
-$DC up -d seaweed-filer m-hub-postgis-api m-hub-backend m-hub-upload m-hub-frontend
+$DC up -d seaweed-filer m-hub-postgis-api m-hub-backend m-hub-upload m-hub-frontend m-hub-plausibility
 
 echo
 echo "[OK] Stack deployed."

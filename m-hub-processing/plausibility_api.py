@@ -12,6 +12,7 @@ der Processing-Core; spaeter ggf. FastAPI, wenn Point-Cloud-Endpoints dazukommen
 Start:  cd m-hub-processing && python plausibility_api.py   (lauscht auf 127.0.0.1:8971)
 """
 import json
+import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import material_markov as mk
@@ -81,6 +82,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    PORT = 8971
-    print(f"plausibility-service on 127.0.0.1:{PORT}  (POST /check, GET /health)")
-    HTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
+    HOST = os.environ.get("PLAUSIBILITY_HOST", "127.0.0.1")   # Container setzt 0.0.0.0
+    PORT = int(os.environ.get("PLAUSIBILITY_PORT", "8971"))
+    print(f"plausibility-service on {HOST}:{PORT}  (POST /check, GET /health)")
+    HTTPServer((HOST, PORT), Handler).serve_forever()

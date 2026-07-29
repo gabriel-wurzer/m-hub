@@ -12,12 +12,13 @@ Drei Modelle, verglichen auf dem Katalog (T = Summe der beobachteten Schichten):
   B  A, proportional auf T skaliert               -> nutzt T, aber dünne Fixschichten wachsen mit
   C  fixe Schichten (niedrige CV) fix, variable Schicht absorbiert den Rest
 """
+import os
 import statistics
 from collections import defaultdict
 
 import pandas as pd
 
-SRC = "../data/aufbauten_katalog.xlsx"   # Wolfgangs MitStärke-Katalog (Stand 2026-07-25)
+SRC = os.path.join(os.path.dirname(__file__), "data", "aufbauten_katalog.xlsx")   # Wolfgangs MitStärke-Katalog (Stand 2026-07-25)
 
 
 def parse_layers(mat):

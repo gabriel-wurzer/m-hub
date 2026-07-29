@@ -15,11 +15,14 @@ No API, no hallucination, self-hosted, fit for production. Empty cells (bp5) and
 the rare tail are the gap an offline LLM (fable) fills during development.
 """
 import math
+import os
 from collections import defaultdict
 
 import pandas as pd
 
-SRC = "../data/aufbauten_katalog.xlsx"   # Wolfgangs MitStärke-Katalog (Stand 2026-07-25)
+# Katalog liegt gebuendelt beim Service. Skript-relativ, damit CWD egal ist:
+# lokal aus m-hub-processing/, im Container aus /app.
+SRC = os.path.join(os.path.dirname(__file__), "data", "aufbauten_katalog.xlsx")   # Wolfgangs MitStärke-Katalog (Stand 2026-07-25)
 S, E = "<S>", "<E>"
 
 

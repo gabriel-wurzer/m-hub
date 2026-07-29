@@ -103,6 +103,7 @@ services:
       - SEAWEED_FILER_INTERNAL_URL=${SEAWEED_FILER_INTERNAL_URL:-http://seaweed-filer:8888}
       - SEAWEED_PUBLIC_BASE_URL=${SEAWEED_PUBLIC_BASE_URL:-http://localhost:8888}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+      - PLAUSIBILITY_URL=http://m-hub-plausibility:8971
     # Mount host directories to container directories as volumes.
     # The named volume on /data/node_modules sits ON TOP of the bind mount and
     # gets initialised from the image's /data/node_modules on first start, so
@@ -178,6 +179,28 @@ services:
         condition: service_healthy
       m-hub-upload:
         condition: service_healthy
+
+  # Plausibilitaets-Service (Processing-Core): Markov + Referenzbereich + Umkehr-
+  # Erkennung. node-red ruft ihn ueber PLAUSIBILITY_URL. Bewusst KEIN depends_on
+  # am Backend: faellt der Service aus, laeuft die App weiter, nur die Aufbau-
+  # Ampel bleibt stumm.
+  m-hub-plausibility:
+    image: m-hub-plausibility
+    build:
+      context: ./m-hub-processing
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8971/health').read()"
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+
 volumes:
   # declare named value
   pgdata:
