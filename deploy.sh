@@ -64,10 +64,9 @@ if [ ! -f "$ENV_TS" ] && [ -f "$ENV_TEMPLATE" ]; then
 fi
 
 # -------- node-red /data perms --------
-# Handled by the m-hub-backend-perms one-shot in docker-compose.yaml, which runs
-# on EVERY `up` (this script AND the mhub.service boot path `docker-compose up -d`),
-# so node-red's bind-mounted /data is always writable by uid 1000. No host-side
-# chmod needed here - one source of truth, and the boot path is covered too.
+# Handled inside the m-hub-backend image: a root entrypoint chowns the bind-mounted
+# /data to node-red (uid 1000) then drops privileges (su-exec) before starting
+# node-red. Runs on every `up` incl. the mhub.service boot path. No host-side chmod.
 
 # -------- Platform hint for PostGIS on ARM --------
 ARCH=$(uname -m 2>/dev/null || echo "")
