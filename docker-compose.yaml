@@ -91,6 +91,19 @@ services:
       retries: 20
       start_period: 10s
 
+  # node-red (uid 1000) bind-mounts ./m-hub-backend/data as its writable /data
+  # userDir (it writes flows.json, .config/.sessions, and mkdirs lib/ on boot).
+  # A root-owned or umask-0600 checkout makes it EACCES and exit. This one-shot
+  # fixes the perms on EVERY `up` - deploy.sh AND the mhub.service boot path
+  # (docker-compose up -d) - so node-red is self-healing and never depends on a
+  # manual chmod or on deploy.sh having run.
+  m-hub-backend-perms:
+    image: alpine:3.20
+    restart: "no"
+    volumes:
+      - ./m-hub-backend/data:/data
+    command: chmod -R a+rwX /data
+
   m-hub-backend:
     image: m-hub-backend
     build:
@@ -113,6 +126,8 @@ services:
       - ./m-hub-backend/data:/data
       - m-hub-backend-deps:/data/node_modules
     depends_on:
+      m-hub-backend-perms:
+        condition: service_completed_successfully
       m-hub-postgis-api:
         condition: service_healthy
       seaweed-filer:
