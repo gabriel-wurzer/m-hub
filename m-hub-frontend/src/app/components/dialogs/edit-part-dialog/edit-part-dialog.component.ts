@@ -342,6 +342,24 @@ export class EditPartDialogComponent {
     return trimmed.length === 0 ? null : trimmed;
   }
 
+  /**
+   * Ort (Geschosstyp) fuer den Plausibilitaetscheck: nur wenn ALLE gewaehlten
+   * Verortungen denselben Typ haben - sonst mehrdeutig (z.B. KG+RG) und wir lassen
+   * es offen (null -> der Check backt art-allgemein ab). period bleibt offen: die
+   * Bauperiode haengt am Gebaeude (buildings_details.bp), nicht am Frontend-Model.
+   */
+  get selectedFloorType(): FloorType | null {
+    const types = new Set<FloorType>();
+    for (const location of this.selectedLocations) {
+      if (location === this.specialLocationOptionValue) return null;
+      if (location.startsWith(FloorType.KG)) types.add(FloorType.KG);
+      else if (location.startsWith(FloorType.RG)) types.add(FloorType.RG);
+      else if (location === FloorType.D) types.add(FloorType.D);
+      else return null;
+    }
+    return types.size === 1 ? [...types][0] : null;
+  }
+
   private buildFloorOptions(structure: Floor[]): FloorOption[] {
     const floorTypeIndex = {
       [FloorType.KG]: 0,

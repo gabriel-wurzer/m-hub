@@ -62,6 +62,7 @@
         <h2>Schichtaufbau</h2>
         <app-part-structure-list
           [partType]="partType"
+          [floorType]="selectedFloorType"
           [structure]="partStructure"
           (structureChange)="onPartStructureChange($event)"
           (validityChange)="onPartStructureValidityChange($event)"
