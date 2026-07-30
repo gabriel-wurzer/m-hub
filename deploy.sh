@@ -123,6 +123,30 @@ echo "[DB] Creating spatial indexes..."
 $DC exec -T m-hub-db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "CREATE INDEX IF NOT EXISTS idx_buildings_details_geom_geography ON public.buildings_details USING GIST ((geom::geography));"'
 echo "[OK] Spatial indexes ready."
 
+# -------- Building period prediction (ML snapshot) --------
+# Separate table, so the gdal buildings_details re-import above does not wipe it.
+# Snapshot keyed on bw_geb_id, tied to the current mhub_wien.gpkg; regenerate if
+# the dataset changes. Load is idempotent (TRUNCATE + COPY).
+PRED_GZ="m-hub-db/building_period_prediction.csv.gz"
+if [ -f "$PRED_GZ" ]; then
+  echo "[DB] Loading building period prediction..."
+  $DC exec -T m-hub-db sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' <<'SQL'
+CREATE TABLE IF NOT EXISTS building_period_prediction (
+  bw_geb_id varchar(10) PRIMARY KEY,
+  bp5       smallint NOT NULL,   -- 1 bis1918, 2 1919-44, 3 1945-79, 4 1980-99, 5 ab2000
+  coarse3   text     NOT NULL,   -- vertrauenswuerdige Grobklasse (bis 1918 / 1919-1945 / nach 1945)
+  source    text     NOT NULL,   -- known_bp | known_coarse | predicted
+  conf      real     NOT NULL,   -- Konfidenz der bp5-Zuordnung (1.0 = bekannt)
+  p_bp3     real, p_bp4 real, p_bp5 real  -- Nachkriegs-Subwahrscheinlichkeiten (weiche Nutzung)
+);
+TRUNCATE building_period_prediction;
+SQL
+  gunzip -c "$PRED_GZ" | $DC exec -T m-hub-db sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "\copy building_period_prediction FROM STDIN WITH (FORMAT csv, HEADER true)"'
+  echo "[OK] Building period prediction loaded."
+else
+  echo "[SKIP] $PRED_GZ missing; skipping period prediction load."
+fi
+
 # -------- Remaining services --------
 echo "[START] Backend, Upload, Frontend, Postgis-API and SeaweedFS..."
 $DC up -d seaweed-filer m-hub-postgis-api m-hub-backend m-hub-upload m-hub-frontend m-hub-plausibility
