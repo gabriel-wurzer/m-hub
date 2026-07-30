@@ -12,9 +12,9 @@ export enum Period {
 
 export const PeriodLabels: Record<number, string> = {
   [Period.p_unknown]: 'Bauperiode unbekannt',
-  [Period.p_s1919]: 'Bauperiode vor 1919',
+  [Period.p_s1919]: 'Bauperiode bis 1918',
   [Period. p_s1945]: 'Bauperiode 1919-1944',
   [Period. p_s1980]: 'Bauperiode 1945-1979',
   [Period.p_s2000]: 'Bauperiode 1980-1999',
-  [Period.p_geq2000]: 'Bauperiode nach 2000',
+  [Period.p_geq2000]: 'Bauperiode ab 2000',
 };  
