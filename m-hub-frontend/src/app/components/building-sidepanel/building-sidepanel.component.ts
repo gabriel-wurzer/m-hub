@@ -111,6 +111,11 @@ export class BuildingSidepanelComponent implements OnInit, OnChanges, OnDestroy 
   }
   
   get periodLabel(): string {
+    if (this.building && this.building.bp_best_guess != null){
+      const bpValue = Number(this.building.bp_best_guess);
+      return (!isNaN(bpValue) && this.periodLabels[bpValue]) ? this.periodLabels[bpValue] : 'Bauperiode unbekannt';
+    }
+    //fallback to old bp list - deprecated    
     if (this.building && this.building.bp) {
       const bpValues = this.building.bp.split(',').map(val => val.trim());
       const labels = bpValues.map(bpStr => {

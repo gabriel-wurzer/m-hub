@@ -13,6 +13,7 @@ export interface BaseBuilding {
     fid: number;
     bw_geb_id: string;
     dom_nutzung: number;
+    bp_best_guess: number;
     bp: string;
     m3vol: number;
     m2bgf: number;

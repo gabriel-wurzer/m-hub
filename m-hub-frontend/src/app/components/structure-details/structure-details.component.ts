@@ -114,7 +114,12 @@ export class StructureDetailsComponent implements OnChanges {
   }
 
   get periodLabel(): string {
-    if (this.building && this.building.bp) {
+    if (this.building && this.building.bp_best_guess != null){
+      const bpValue = Number(this.building.bp_best_guess);
+      return (!isNaN(bpValue) && this.periodLabels[bpValue]) ? this.periodLabels[bpValue] : 'Bauperiode unbekannt';
+    }
+    //fallback to old bp list - deprecated
+    else if (this.building && this.building.bp) {
       const bpValues = this.building.bp.split(',').map(val => val.trim());
       const labels = bpValues.map(bpStr => {
         const bpValue = Number(bpStr);
