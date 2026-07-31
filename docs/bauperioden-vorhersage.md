@@ -101,9 +101,9 @@ Pipeline im Repo unter [../m-hub-processing/bauperioden/](../m-hub-processing/ba
 
 Die Pipeline ist damit komplett aus der gpkg reproduzierbar (keine Prod-Abhängigkeit). Der
 gpkg-native `extract_features.py` ist gegen die ursprüngliche Prod-Extraktion validiert
-(Features corr ~1,0, ganze Pipeline reproduziert die deployte Vorhersage zu 95,5%; Details im
-README). Die aktuell deployte gz stammt noch aus der Prod-Extraktion und kann bei Bedarf per
-kompletter Neuberechnung exakt aus der Pipeline ersetzt werden.
+(Features corr ~1,0; Details im README). Die **deployte gz wird seit 2026-07-31 komplett aus
+der Pipeline erzeugt** (extract_features → rollout_hier → finalize), nicht mehr aus einer
+Prod-Extraktion. Pipeline-Ausgabe und Deployment sind damit dasselbe.
 
 ## Mobile Ansicht
 

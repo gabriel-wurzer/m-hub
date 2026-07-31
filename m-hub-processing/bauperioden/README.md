@@ -39,6 +39,6 @@ Optional (Auswertung/Bilder, nicht für den Rollout nötig):
   identisch**, Verteilung deckungsgleich. Die ~4,5% Rest sind Feature-Mikrodiffs, die durch
   die RF-Grenzen kippen, alle im geratenen Teil.
 
-Die aktuell deployte `building_period_prediction.csv.gz` stammt noch aus der Prod-Extraktion.
-Wer sie exakt aus der Pipeline haben will (Prod-Abhängigkeit ganz weg), rechnet einmal komplett
-durch (`extract_features` → `rollout_hier` → `finalize`) und committet die neue gz.
+Die deployte `building_period_prediction.csv.gz` wird seit 2026-07-31 komplett aus dieser
+Pipeline erzeugt (`extract_features` → `rollout_hier` → `finalize`), nicht mehr aus einer
+Prod-Extraktion. Pipeline-Ausgabe und Deployment sind bit-genau dasselbe.
