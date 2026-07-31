@@ -1,17 +1,19 @@
 # Bauperioden-Vorhersage (building_period_prediction)
 
-Status: **ausgerollt** (2026-07-30) · alle 164.268 Wiener Gebäude · ehrliche Grenze bei post-1980
+Status: **ausgerollt** (2026-07-30), neu gerechnet auf frischen Stadt-Wien-Basisdaten
+(2026-07-31, mit `bp_best_guess`) · 165.375 Wiener Gebäude · ehrliche Grenze bei post-1980
 
 ## Was es ist
 
-Nur ~7% der Gebäude in `buildings_details` haben ein echtes `bp`-Label (Bauperiode),
-weitere ~18% lassen sich über die Stadt-Wien-Typologie (GEBAEUDETYPOGD) grob zuordnen.
-Für die restlichen ~75% schätzt ein Modell die Bauperiode aus der **Footprint-Morphologie**
+~26% der Gebäude in `buildings_details` haben ein bekanntes Bauperioden-Label
+(`bp_best_guess`, Stefans deterministische, volumengewichtete Kollabierung des `bp`-Felds),
+weitere ~3% lassen sich über die Stadt-Wien-Typologie (GEBAEUDETYPOGD) grob zuordnen.
+Für die restlichen ~72% schätzt ein Modell die Bauperiode aus der **Footprint-Morphologie**
 (Grundriss, Volumen, Innenhof, Nachbarschaft). Ergebnis ist eine separate Prod-Tabelle,
 die je Gebäude die feine 5-Klassen-Periode, die belastbare 3-Klassen-Grobstufe und eine
 Konfidenz liefert.
 
-Die Verteilung über die Stadt (38% bis 1918, 25% Zwischenkrieg, 36% Nachkrieg, <1% nach 1980)
+Die Verteilung über die Stadt (42% bis 1918, 23% Zwischenkrieg, 34% Nachkrieg, <1% nach 1980)
 bildet die erwartete Wiener Struktur ab: Gründerzeit-Kern innen, Nachkriegs-Peripherie außen.
 
 ## Tabelle `building_period_prediction`
@@ -29,19 +31,20 @@ importiert. Die Prediction-Tabelle überlebt das.
 | `conf` | real | Konfidenz der bp5-Zuordnung. 1.0 = bekannt. |
 | `p_bp3`, `p_bp4`, `p_bp5` | real | Nachkriegs-Subwahrscheinlichkeiten, für weiche Nutzung statt hartem argmax. |
 
-Herkunft: 11.431 `known_bp` (7%), 28.963 `known_coarse` (18%), 123.874 `predicted`.
+Herkunft: 42.359 `known_bp` (26%), 4.477 `known_coarse` (3%), 118.539 `predicted`.
 
 ## Modell (hierarchisch)
 
 Zwei Stufen, damit die glaubwürdige Grobebene nicht von der label-armen Feinebene verdorben wird:
 
 1. **Stage 1, 3 Klassen** (`bis 1918` / `1919-1945` / `nach 1945`), trainiert auf der
-   Union aus `bp` und GEBAEUDETYPOGD (40.394 Labels). Das ist die belastbare Ebene.
+   Union aus `bp_best_guess` und GEBAEUDETYPOGD (46.836 Labels). Das ist die belastbare Ebene.
 2. **Stage 2, Verfeinerung** nur innerhalb `nach 1945` in 1945-79 / 1980-99 / ab2000,
-   trainiert auf den 928 `bp`-Labels der Nachkriegszeit (767 / 153 / 8).
+   trainiert auf den 12.308 Nachkriegs-Labels (12.147 / 153 / 8).
 
-Zusammenbau: bekanntes `bp` sticht immer, sonst die bekannte Grobklasse, sonst Stage 1;
-`nach 1945` wird durch Stage 2 verfeinert.
+Als bekanntes Label dient `bp_best_guess` (Stefans volumengewichtete Kollabierung, besser als
+ein min-collapse). Zusammenbau: bekanntes `bp_best_guess` sticht immer, sonst die bekannte
+Grobklasse, sonst Stage 1; `nach 1945` wird durch Stage 2 verfeinert.
 
 Features: `log_area`, `log_vol`, `vol_per_area`, `m2bgf`, `maxhoehe`, `perim_m`, `npoints`,
 `compactness`, `shape_idx`, **`solidity`** (Fläche/Hüllfläche, erkennt Innenhof/Blockrand,
@@ -56,8 +59,11 @@ Config wie deployt.
 
 | Ebene | accuracy | balanced | Klassen (F1) |
 |---|---|---|---|
-| Grob 3 Klassen | 72% | 55% | bis 1918 **0,82** · 1919-45 0,37 · nach 1945 0,56 |
-| Fein 5 Klassen | 78% | 34% | bis1918 0,87 · 1919-44 0,65 · 1945-79 0,24 · **1980-99 0,00** · **ab2000 0,00** |
+| Grob 3 Klassen | 72% | 53% | bis 1918 **0,82** · 1919-45 0,32 · nach 1945 0,53 |
+| Fein 5 Klassen | 73% | 32% | bis1918 0,83 · 1919-44 0,34 · 1945-79 **0,54** · **1980-99 0,00** · **ab2000 0,00** |
+
+(Vorher, auf dem alten Datensatz mit nur 928 Nachkriegs-Labels, war 1945-79 F1 nur 0,24 — die
+frischen Daten mit 12k echten bp3-Codes heben das auf 0,54. Post-1980 bleibt unverändert 0,00.)
 
 Zufall wäre 33% (grob) bzw. 20% (fein) balanced. Was trägt: **alt vs. Nachkrieg**, vor allem
 die Gründerzeit-Erkennung (dichte Blockrandmorphologie ist lernbar). Was nicht trägt: die
@@ -85,6 +91,9 @@ feine Moderne.
 - Load: Step in `deploy.sh` nach dem gdal-Import und den Spatial-Indizes. Idempotent
   (`CREATE TABLE IF NOT EXISTS` + `TRUNCATE` + `\copy FROM STDIN`), läuft bei jedem `./deploy.sh`
   automatisch. Separate Tabelle, überlebt den `buildings_details`-Overwrite.
+- **Zusammen deployen:** die gz ist auf den Gebäudebestand der `mhub_wien.gpkg` gekeyt (Stand
+  2026-07-31: 165.375 Gebäude mit `bp_best_guess`). Prediction und gpkg müssen gemeinsam auf Prod,
+  sonst bleiben nicht-matchende bw_geb_ids (neue Prediction × alte gpkg oder umgekehrt).
 
 ## Neu rechnen (wenn sich die gpkg ändert)
 

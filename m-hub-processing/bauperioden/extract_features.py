@@ -19,7 +19,7 @@ def npts(geom):
     return int(sum(len(p.exterior.coords)+sum(len(r.coords) for r in p.interiors) for p in parts))
 area=gm.area.values
 cent=g.geometry.centroid
-feat=pd.DataFrame({"fid":g["fid"].values,"bp":g["bp"].values,"dom_nutzung":g["dom_nutzung"].values,
+feat=pd.DataFrame({"fid":g["fid"].values,"bp":g["bp"].values,"bp_best_guess":g["bp_best_guess"].values,"dom_nutzung":g["dom_nutzung"].values,
     "m2flaeche":g["m2flaeche"].values,"m3vol":g["m3vol"].values,"m2bgf":g["m2bgf"].values,
     "maxhoehe":g["maxhoehe"].values,"perim_m":gm.length.values,"npoints":g.geometry.apply(npts).values,
     "area_m2":area,"hull_area_m2":gm.convex_hull.area.values,"cx":cent.x.values,"cy":cent.y.values})

@@ -15,9 +15,7 @@ jj=gpd.sjoin(pts,poly,how="left",predicate="within"); jj=jj[~jj.index.duplicated
 def gt3(s):
     s=str(s).replace(" ","")
     return "nach 1945" if s=="nach1945" else "1919-1945" if s.startswith("1919") else ("bis 1918" if s in ("vor1848","1848-1918","1849-1859") else None)
-def bp5(bp):
-    r=[int(x) for x in str(bp).split(",") if x.strip() and x.strip()!="0"]; return min(r) if r else np.nan
-df["k5"]=df["bp"].apply(bp5)                                          # bekannte 5-klasse (1..5) oder NaN
+df["k5"]=df["bp_best_guess"].where(df["bp_best_guess"]>0, np.nan)     # Stefans bp_best_guess (0=unbekannt) als bekannte Feinklasse (1..5)
 df["k3_bp"]=df["k5"].map({1:"bis 1918",2:"1919-1945",3:"nach 1945",4:"nach 1945",5:"nach 1945"})
 df["k3"]=df["k3_bp"].fillna(df["gt_raw"].apply(gt3))                  # bekannte 3-klasse (bp bevorzugt, sonst gebtyp)
 
