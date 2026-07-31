@@ -91,17 +91,19 @@ feine Moderne.
 Pipeline im Repo unter [../m-hub-processing/bauperioden/](../m-hub-processing/bauperioden/)
 (Details im dortigen README):
 
-1. `extract_features.py` (noch zu bauen) → `feat164k.csv` + `context.csv`; extern
-   `gebtyp_full.json` (GEBAEUDETYPOGD).
+1. `extract_features.py` (gpkg-nativ, kein Prod-Zugriff) → `feat164k.csv` + `context.csv`;
+   extern `gebtyp_full.json` (GEBAEUDETYPOGD).
 2. `rollout_hier.py` trainiert beide Stufen → `bp_hier_prediction.csv` (auf `fid`).
 3. `finalize.py` schlüsselt auf `bw_geb_id` um und schreibt
    `m-hub-db/building_period_prediction.csv.gz`. Danach `./deploy.sh`.
 4. `measure_acc.py` liefert die CV-Zahlen, `plot_*.py` die Karten, `build_artifact.py` die
    mobile Webseite.
 
-**Verbleibende Lücke:** `feat164k.csv`/`context.csv` stammen noch aus einer ad-hoc-Extraktion
-gegen die Prod-PostGIS (SQL nicht versioniert). Beide sind aus der gpkg ableitbar; ein
-gpkg-nativer `extract_features.py` würde die Prod-Abhängigkeit entfernen (Methode im README).
+Die Pipeline ist damit komplett aus der gpkg reproduzierbar (keine Prod-Abhängigkeit). Der
+gpkg-native `extract_features.py` ist gegen die ursprüngliche Prod-Extraktion validiert
+(Features corr ~1,0, ganze Pipeline reproduziert die deployte Vorhersage zu 95,5%; Details im
+README). Die aktuell deployte gz stammt noch aus der Prod-Extraktion und kann bei Bedarf per
+kompletter Neuberechnung exakt aus der Pipeline ersetzt werden.
 
 ## Mobile Ansicht
 

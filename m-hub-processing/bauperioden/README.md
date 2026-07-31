@@ -8,7 +8,7 @@ in `./work/` und `./out/` (beide gitignored).
 
 ## Reihenfolge
 
-1. **`extract_features.py`** *(noch zu bauen, siehe Lücke unten)* → `./work/feat164k.csv`,
+1. **`extract_features.py`** (gpkg-nativ, kein Prod-Zugriff) → `./work/feat164k.csv`,
    `./work/context.csv`. Zusätzlich extern: `./work/gebtyp_full.json` (GEBAEUDETYPOGD).
 2. **`rollout_hier.py`** — trainiert das hierarchische Modell (3 Klassen + Nachkriegs-
    Verfeinerung), schreibt `./work/bp_hier_prediction.csv` (auf `fid`).
@@ -23,25 +23,22 @@ Optional (Auswertung/Bilder, nicht für den Rollout nötig):
 ## Eingaben
 
 - `../../data/mhub_wien.gpkg` — Quelle der Gebäude (liegt schon da, ogr2ogr-Input von deploy).
+  `extract_features.py` erzeugt daraus `feat164k.csv` + `context.csv`.
 - `./work/gebtyp_full.json` — GEBAEUDETYPOGD (Stadt Wien, EPSG:31256), externe Datei für die
-  3-Klassen-Union. Muss separat abgelegt werden.
-- `./work/feat164k.csv`, `./work/context.csv` — Feature-Tabellen, siehe Lücke.
+  3-Klassen-Union. Muss separat abgelegt werden (nicht aus der gpkg ableitbar).
 
-## Offene Lücke: Feature-Extraktion
+## Validierung (2026-07-31)
 
-`feat164k.csv` und `context.csv` stammen aktuell aus einer **ad-hoc-Extraktion gegen die
-Prod-PostGIS** (SQL nicht versioniert). Das ist die verbleibende Reproduzierbarkeits-Schwäche.
+`extract_features.py` gegen die ursprüngliche Prod-Extraktion geprüft (n=164.268):
 
-Beide sind aber aus der gpkg ableitbar, ein `extract_features.py` (gpkg-nativ, kein
-Prod-Zugriff) ist der saubere Fix:
+- feat164k: `area_m2`/`perim_m`/`hull_area_m2`/`npoints`/`cx`/`cy` corr **1,00000**
+  (npoints/cx/cy/bp bit-genau), Rest im Rundungsbereich.
+- context: `n_nb` corr 0,9998 (ratio 0,996), `sum_nb_area`/`mean_nb_area` corr 0,999.
+  Der Puffer nutzt `resolution=8`, sonst zählt das Achteck ~7% Nachbarn zu wenig.
+- Gesamte Pipeline gpkg-nativ vs. deployte Vorhersage: **bp5 zu 95,5%, coarse3 zu 95,6%
+  identisch**, Verteilung deckungsgleich. Die ~4,5% Rest sind Feature-Mikrodiffs, die durch
+  die RF-Grenzen kippen, alle im geratenen Teil.
 
-- **feat164k:** `fid`, `bp`, `dom_nutzung`, `m2flaeche`, `m3vol`, `m2bgf`, `maxhoehe` sind
-  Attribute; `perim_m`, `hull_area_m2`, `npoints`, `area_m2`, `cx`/`cy` aus der Geometrie
-  (metrisch in EPSG:31256, Zentroid in 4326).
-- **context:** je Gebäude die Nachbarn innerhalb ~120 m (`ST_DWithin(geom, 0.0012°)`
-  in Prod), aggregiert zu `n_nb`, `sum_nb_area`, `mean_nb_area`, `std_nb_area`. In geopandas
-  über einen räumlichen Join der (gepufferten) Geometrien.
-
-Achtung: eine gpkg-native Neu-Extraktion kann sich durch Reprojektion/Geometrie-Details
-minimal von der aktuell deployten Momentaufnahme unterscheiden. Bis eine volle Neuberechnung
-validiert ist, bleibt die deployte `building_period_prediction.csv.gz` die Wahrheit.
+Die aktuell deployte `building_period_prediction.csv.gz` stammt noch aus der Prod-Extraktion.
+Wer sie exakt aus der Pipeline haben will (Prod-Abhängigkeit ganz weg), rechnet einmal komplett
+durch (`extract_features` → `rollout_hier` → `finalize`) und committet die neue gz.
