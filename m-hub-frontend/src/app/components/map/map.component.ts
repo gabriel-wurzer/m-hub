@@ -54,7 +54,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
 
   #buildingsTable = 'buildings_details';
   #defaultColumns = ['fid', 'bw_geb_id', 'ST_AsGeoJSON(geom) as geometry'];
-  #additionalColumns = ['dom_nutzung', 'bp', 'm3vol', 'm2bgf', 'm2bgf_use1', 'm2bgf_use2', 'm2bgf_use3', 'm2bgf_use4', 'm2flaeche', 'maxhoehe', 'bmg1', 'bmg2', 'bmg3', 'bmg4', 'bmg5', 'bmg6', 'bmg7', 'bmg8', 'bmg9'];    
+  #additionalColumns = ['dom_nutzung', 'bp_best_guess', 'bp', 'm3vol', 'm2bgf', 'm2bgf_use1', 'm2bgf_use2', 'm2bgf_use3', 'm2bgf_use4', 'm2flaeche', 'maxhoehe', 'bmg1', 'bmg2', 'bmg3', 'bmg4', 'bmg5', 'bmg6', 'bmg7', 'bmg8', 'bmg9'];    
 
   #buildingBlockTable = 'buildingblocks';
   #defaultColumnsBB = ['blk', 'ST_AsGeoJSON(geom) as geometry'];
