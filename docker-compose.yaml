@@ -225,6 +225,10 @@ services:
       timeout: 3s
       retries: 30
       start_period: 40s
+    # Sicherheitsnetz: ein einzelner Job darf nie den Host-RAM sprengen (der 127-Mio-
+    # Punkte-Scan tat das global). Bei Ueberschreitung stirbt nur DIESER Container
+    # (kontrolliert, restart), nicht Postgres/node-red. Chunked-Load haelt den Peak niedrig.
+    mem_limit: 8g
     restart: unless-stopped
 
 volumes:

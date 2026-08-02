@@ -9,14 +9,30 @@ from scipy.ndimage import gaussian_filter1d
 from vis_util import visualize_floors, debug_floors, debug_floor_profile
 
 
-def load_pointcloud(input_path) -> o3d.geometry.PointCloud:
+def load_pointcloud(input_path, prevoxel=0.05, chunk=5_000_000) -> o3d.geometry.PointCloud:
     ext = Path(input_path).suffix.lower()
     if ext in {".laz", ".las"}:
+        # Chunked lesen + pro Chunk voxel-downsamplen, damit riesige Scans nicht den
+        # RAM sprengen: der Linzer-Scan hat 127 Mio Punkte -> ganzes Einlesen peakt
+        # >10 GB und OOMt. So bleibt der Peak bei ~einem Chunk + der reduzierten Menge.
+        parts = []
         with laspy.open(input_path) as fh:
-            las = fh.read()
-            coords = np.vstack((las.x, las.y, las.z)).T
-        pcd = o3d.t.geometry.PointCloud()
-        pcd.point.positions = o3d.core.Tensor(coords, o3d.core.float32)
+            for pts in fh.chunk_iterator(chunk):
+                xyz = np.vstack((pts.x, pts.y, pts.z)).T.astype(np.float32)
+                p = o3d.geometry.PointCloud()
+                p.points = o3d.utility.Vector3dVector(xyz)
+                p = p.voxel_down_sample(prevoxel)
+                parts.append(np.asarray(p.points, dtype=np.float32))
+                del xyz, p, pts
+        xyz = np.concatenate(parts) if parts else np.empty((0, 3), np.float32)
+        del parts
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(xyz)
+        pcd = pcd.voxel_down_sample(prevoxel)   # globale Konsistenz nach Chunk-Merge
+        if pcd.is_empty():
+            raise ValueError(f"Loaded point cloud is empty: {input_path}")
+        print(f"[load_pointcloud] chunked-loaded {pcd} from {input_path}")
+        return pcd
     elif ext in {".pcd", ".ply", ".xyz", ".xyzn", ".xyzrgb", ".pts"}:
         pcd = o3d.t.io.read_point_cloud(input_path)
     elif ext == ".e57":
