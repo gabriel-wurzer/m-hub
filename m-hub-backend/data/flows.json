@@ -7893,5 +7893,412 @@
         "x": 890,
         "y": 120,
         "wires": []
+    },
+    {
+        "id": "p2itab000000001",
+        "type": "tab",
+        "label": "Point2IFC (point-cloud -> reduced IFC)",
+        "disabled": false,
+        "info": "Punktwolke -> reduziertes IFC. Proxyt POINT2IFC_URL (m-hub-point2ifc:8972), JWT-gated.",
+        "env": []
+    },
+    {
+        "id": "p2ia_in",
+        "type": "http in",
+        "z": "p2itab000000001",
+        "name": "POST point2ifc/start",
+        "url": "/api/point2ifc/start",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 150,
+        "y": 80,
+        "wires": [
+            [
+                "p2ia_jwt"
+            ]
+        ]
+    },
+    {
+        "id": "p2ia_jwt",
+        "type": "function",
+        "z": "p2itab000000001",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET');\nif (!secret) {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Server misconfigured: JWT_SECRET missing' };\n    return [null, msg];\n}\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg];\n}\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\ntry {\n    msg.user = jwt.verify(parts[1], secret);\n    return [msg, null];\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 80,
+        "wires": [
+            [
+                "p2ia_sel"
+            ],
+            [
+                "p2ia_resp"
+            ]
+        ]
+    },
+    {
+        "id": "p2ia_sel",
+        "type": "function",
+        "z": "p2itab000000001",
+        "name": "build SELECT",
+        "func": "const uid = msg.user && msg.user.sub;\nconst b = msg.payload || {};\nconst uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\nconst docId = (typeof b.document_id === 'string' && b.document_id.trim()) ? b.document_id.trim() : null;\nif (!uuidRe.test(String(docId || ''))) { msg.statusCode = 400; msg.payload = { error: 'Invalid document_id' }; return [null, msg]; }\nmsg.query = 'SELECT file_url, owner_id FROM documents WHERE id = $1::uuid LIMIT 1;';\nmsg.params = [docId];\nreturn [msg, null];\n",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 80,
+        "wires": [
+            [
+                "p2ia_pg"
+            ],
+            [
+                "p2ia_resp"
+            ]
+        ]
+    },
+    {
+        "id": "p2ia_pg",
+        "type": "postgresql",
+        "z": "p2itab000000001",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 760,
+        "y": 80,
+        "wires": [
+            [
+                "p2ia_build"
+            ]
+        ]
+    },
+    {
+        "id": "p2ia_build",
+        "type": "function",
+        "z": "p2itab000000001",
+        "name": "build point2ifc request",
+        "func": "const rows = msg.payload;\nif (!Array.isArray(rows) || rows.length === 0) { msg.statusCode = 404; msg.payload = { error: 'Document not found' }; return [null, msg]; }\nconst doc = rows[0];\nif (doc.owner_id !== (msg.user && msg.user.sub)) { msg.statusCode = 403; msg.payload = { error: 'Forbidden' }; return [null, msg]; }\nconst fu = doc.file_url || '';\nconst base = (env.get('SEAWEED_FILER_INTERNAL_URL') || 'http://seaweed-filer:8888').replace(/\\/+$/, '');\nconst input = /^https?:\\/\\//i.test(fu) ? fu : base + (fu.charAt(0) === '/' ? fu : '/' + fu);\nmsg.method = 'POST';\nmsg.headers = { 'content-type': 'application/json' };\nmsg.payload = { input: input };\nmsg.url = (env.get('POINT2IFC_URL') || 'http://m-hub-point2ifc:8972') + '/point2ifc';\nreturn [msg, null];\n",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 960,
+        "y": 80,
+        "wires": [
+            [
+                "p2ia_httpreq"
+            ],
+            [
+                "p2ia_resp"
+            ]
+        ]
+    },
+    {
+        "id": "p2ia_httpreq",
+        "type": "http request",
+        "z": "p2itab000000001",
+        "name": "point2ifc start",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1160,
+        "y": 80,
+        "wires": [
+            [
+                "p2ia_resp"
+            ]
+        ]
+    },
+    {
+        "id": "p2ia_resp",
+        "type": "http response",
+        "z": "p2itab000000001",
+        "name": "start response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1360,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "p2ib_in",
+        "type": "http in",
+        "z": "p2itab000000001",
+        "name": "GET point2ifc/:jobId/status",
+        "url": "/api/point2ifc/:jobId/status",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 150,
+        "y": 240,
+        "wires": [
+            [
+                "p2ib_jwt"
+            ]
+        ]
+    },
+    {
+        "id": "p2ib_jwt",
+        "type": "function",
+        "z": "p2itab000000001",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET');\nif (!secret) {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Server misconfigured: JWT_SECRET missing' };\n    return [null, msg];\n}\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg];\n}\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\ntry {\n    msg.user = jwt.verify(parts[1], secret);\n    return [msg, null];\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 240,
+        "wires": [
+            [
+                "p2ib_build"
+            ],
+            [
+                "p2ib_resp"
+            ]
+        ]
+    },
+    {
+        "id": "p2ib_build",
+        "type": "function",
+        "z": "p2itab000000001",
+        "name": "build status request",
+        "func": "const jobId = String((msg.req.params && msg.req.params.jobId) || '').trim();\nif (!/^[a-f0-9]{6,}$/i.test(jobId)) { msg.statusCode = 400; msg.payload = { error: 'Invalid jobId' }; return [null, msg]; }\nmsg.method = 'GET';\nmsg.headers = {};\nmsg.url = (env.get('POINT2IFC_URL') || 'http://m-hub-point2ifc:8972') + '/point2ifc/' + jobId;\nreturn [msg, null];\n",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 240,
+        "wires": [
+            [
+                "p2ib_httpreq"
+            ],
+            [
+                "p2ib_resp"
+            ]
+        ]
+    },
+    {
+        "id": "p2ib_httpreq",
+        "type": "http request",
+        "z": "p2itab000000001",
+        "name": "point2ifc status",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 900,
+        "y": 240,
+        "wires": [
+            [
+                "p2ib_resp"
+            ]
+        ]
+    },
+    {
+        "id": "p2ib_resp",
+        "type": "http response",
+        "z": "p2itab000000001",
+        "name": "status response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1160,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "p2ic_in",
+        "type": "http in",
+        "z": "p2itab000000001",
+        "name": "GET point2ifc/:jobId/ifc",
+        "url": "/api/point2ifc/:jobId/ifc",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 150,
+        "y": 400,
+        "wires": [
+            [
+                "p2ic_jwt"
+            ]
+        ]
+    },
+    {
+        "id": "p2ic_jwt",
+        "type": "function",
+        "z": "p2itab000000001",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET');\nif (!secret) {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Server misconfigured: JWT_SECRET missing' };\n    return [null, msg];\n}\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg];\n}\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\ntry {\n    msg.user = jwt.verify(parts[1], secret);\n    return [msg, null];\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 400,
+        "wires": [
+            [
+                "p2ic_build"
+            ],
+            [
+                "p2ic_resp"
+            ]
+        ]
+    },
+    {
+        "id": "p2ic_build",
+        "type": "function",
+        "z": "p2itab000000001",
+        "name": "build ifc request",
+        "func": "const jobId = String((msg.req.params && msg.req.params.jobId) || '').trim();\nif (!/^[a-f0-9]{6,}$/i.test(jobId)) { msg.statusCode = 400; msg.payload = { error: 'Invalid jobId' }; return [null, msg]; }\nmsg.method = 'GET';\nmsg.headers = {};\nmsg.url = (env.get('POINT2IFC_URL') || 'http://m-hub-point2ifc:8972') + '/point2ifc/' + jobId + '/ifc';\nreturn [msg, null];\n",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 400,
+        "wires": [
+            [
+                "p2ic_httpreq"
+            ],
+            [
+                "p2ic_resp"
+            ]
+        ]
+    },
+    {
+        "id": "p2ic_httpreq",
+        "type": "http request",
+        "z": "p2itab000000001",
+        "name": "point2ifc ifc",
+        "method": "GET",
+        "ret": "bin",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 900,
+        "y": 400,
+        "wires": [
+            [
+                "p2ic_head"
+            ]
+        ]
+    },
+    {
+        "id": "p2ic_head",
+        "type": "function",
+        "z": "p2itab000000001",
+        "name": "set ifc headers",
+        "func": "msg.headers = { 'content-type': 'application/octet-stream', 'content-disposition': 'attachment; filename=\"reduced.ifc\"' };\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1120,
+        "y": 400,
+        "wires": [
+            [
+                "p2ic_resp"
+            ]
+        ]
+    },
+    {
+        "id": "p2ic_resp",
+        "type": "http response",
+        "z": "p2itab000000001",
+        "name": "ifc response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1360,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "p2i_catch",
+        "type": "catch",
+        "z": "p2itab000000001",
+        "name": "",
+        "scope": null,
+        "uncaught": false,
+        "x": 150,
+        "y": 520,
+        "wires": [
+            [
+                "p2i_handle"
+            ]
+        ]
+    },
+    {
+        "id": "p2i_handle",
+        "type": "function",
+        "z": "p2itab000000001",
+        "name": "handle errors",
+        "func": "const err = msg.error || {};\nconst errMsg = err.message || '';\nconst code = err.code || '';\nif (code === '23503' || errMsg.includes('violates foreign key')) {\n    msg.statusCode = 409;\n    msg.payload = { error: 'Referenced record missing or still in use.', details: errMsg };\n} else if (code === '23514' || errMsg.includes('violates check constraint')) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Data rejected by a table constraint.', details: errMsg };\n} else if (code === '22P02' || code === '22032' || errMsg.includes('invalid input syntax')) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'Invalid ID, JSON or data type.', details: errMsg };\n} else {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Database error', details: errMsg };\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 520,
+        "wires": [
+            [
+                "p2i_errresp"
+            ]
+        ]
+    },
+    {
+        "id": "p2i_errresp",
+        "type": "http response",
+        "z": "p2itab000000001",
+        "name": "error response",
+        "statusCode": "",
+        "headers": {},
+        "x": 640,
+        "y": 520,
+        "wires": []
     }
 ]

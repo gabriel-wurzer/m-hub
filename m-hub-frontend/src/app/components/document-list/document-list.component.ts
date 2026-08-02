@@ -13,8 +13,10 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { EntityInfoDialogComponent } from '../dialogs/entity-info-dialog/entity-info-dialog.component';
 import { AuthenticationService } from '../../services/authentication/authentication.service';
-import { Subscription } from 'rxjs';
+import { Subscription, interval, switchMap, takeWhile } from 'rxjs';
+import { MatButtonModule } from '@angular/material/button';
 import { FileType } from '../../enums/file-type.enum';
+import { Point2ifcService, Point2ifcStatus } from '../../services/point2ifc/point2ifc.service';
 
 type DocumentListItem = DocumentSummaryDto & {
   canRead: boolean;
@@ -24,7 +26,7 @@ type DocumentListItem = DocumentSummaryDto & {
 @Component({
   selector: 'app-document-list',
   standalone: true,
-  imports: [CommonModule, MatListModule, MatIconModule, MatProgressSpinnerModule, MatTooltipModule, MatDialogModule, MatSnackBarModule],
+  imports: [CommonModule, MatListModule, MatIconModule, MatProgressSpinnerModule, MatTooltipModule, MatDialogModule, MatSnackBarModule, MatButtonModule],
   templateUrl: './document-list.component.html',
   styleUrls: ['./document-list.component.scss']
 })
@@ -51,11 +53,17 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
   private authInitialized = false;
   private loadingDocumentIds = new Set<string>();
 
+  // Point2IFC: Punktwolke -> reduziertes IFC, per-Dokument Job-Zustand
+  readonly pointCloudTypes = new Set<string>(['e57', 'ply', 'las', 'laz']);
+  private p2i: Record<string, { status: 'running' | 'done' | 'error'; jobId?: string; summary?: string }> = {};
+  private p2iSubs: Subscription[] = [];
+
   constructor(
     private documentService: DocumentService,
     private dialog: MatDialog,
     private authService: AuthenticationService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private point2ifc: Point2ifcService
   ) {}
 
   ngOnInit() {
@@ -85,6 +93,7 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.authSubscription?.unsubscribe();
+    this.p2iSubs.forEach((s) => s.unsubscribe());
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -149,6 +158,74 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
       complete: () => {
         this.loadingDocumentIds.delete(document.id);
       }
+    });
+  }
+
+  isPointCloud(doc: DocumentListItem): boolean {
+    const ft = (doc.fileType ?? doc.file_type ?? '').toString().toLowerCase();
+    return this.pointCloudTypes.has(ft);
+  }
+
+  p2iStatus(doc: DocumentListItem): '' | 'running' | 'done' | 'error' {
+    return (doc.id && this.p2i[doc.id]?.status) || '';
+  }
+
+  p2iSummary(doc: DocumentListItem): string {
+    return (doc.id && this.p2i[doc.id]?.summary) || '';
+  }
+
+  startReducedIfc(doc: DocumentListItem, event: Event): void {
+    event.stopPropagation();
+    const id = doc.id;
+    if (!id || this.p2i[id]?.status === 'running') return;
+    this.p2i[id] = { status: 'running' };
+    this.point2ifc.startJob(id).subscribe({
+      next: (start) => {
+        const jobId = start.job_id;
+        const sub = interval(3000).pipe(
+          switchMap(() => this.point2ifc.getStatus(jobId)),
+          takeWhile((s: Point2ifcStatus) => s.status === 'queued' || s.status === 'running', true)
+        ).subscribe({
+          next: (s: Point2ifcStatus) => {
+            if (s.status === 'done') {
+              const r = s.result;
+              this.p2i[id] = {
+                status: 'done', jobId,
+                summary: r ? `${r.storeys} Gesch. · ${r.walls} Wände · ${r.openings} Öffn.` : ''
+              };
+            } else if (s.status === 'error') {
+              this.p2i[id] = { status: 'error' };
+              this.snackBar.open('Point2IFC fehlgeschlagen.', 'OK', { duration: 5000, verticalPosition: 'top' });
+            }
+          },
+          error: () => {
+            this.p2i[id] = { status: 'error' };
+            this.snackBar.open('Point2IFC: Statusabfrage fehlgeschlagen.', 'OK', { duration: 5000, verticalPosition: 'top' });
+          }
+        });
+        this.p2iSubs.push(sub);
+      },
+      error: () => {
+        this.p2i[id] = { status: 'error' };
+        this.snackBar.open('Point2IFC-Job konnte nicht gestartet werden.', 'OK', { duration: 5000, verticalPosition: 'top' });
+      }
+    });
+  }
+
+  downloadReducedIfc(doc: DocumentListItem, event: Event): void {
+    event.stopPropagation();
+    const st = doc.id ? this.p2i[doc.id] : undefined;
+    if (!st?.jobId) return;
+    this.point2ifc.getIfc(st.jobId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${doc.name || 'reduced'}.ifc`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => this.snackBar.open('IFC-Download fehlgeschlagen.', 'OK', { duration: 5000, verticalPosition: 'top' })
     });
   }
 
