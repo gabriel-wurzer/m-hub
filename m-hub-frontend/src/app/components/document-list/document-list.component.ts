@@ -13,10 +13,10 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { EntityInfoDialogComponent } from '../dialogs/entity-info-dialog/entity-info-dialog.component';
 import { AuthenticationService } from '../../services/authentication/authentication.service';
-import { Subscription, interval, switchMap, takeWhile } from 'rxjs';
+import { Subscription, interval, switchMap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { FileType } from '../../enums/file-type.enum';
-import { Point2ifcService, Point2ifcStatus } from '../../services/point2ifc/point2ifc.service';
+import { Point2ifcService } from '../../services/point2ifc/point2ifc.service';
 
 type DocumentListItem = DocumentSummaryDto & {
   canRead: boolean;
@@ -53,10 +53,10 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
   private authInitialized = false;
   private loadingDocumentIds = new Set<string>();
 
-  // Point2IFC: Punktwolke -> reduziertes IFC, per-Dokument Job-Zustand
+  // Point2IFC: Punktwolke -> reduziertes IFC. Wahrheit ist der persistierte Status
+  // aus der documents-Zeile (doc.p2i_*); hier nur ein leiser Refresh solange ein Job laeuft.
   readonly pointCloudTypes = new Set<string>(['e57', 'ply', 'las', 'laz']);
-  private p2i: Record<string, { status: 'running' | 'done' | 'error'; jobId?: string; summary?: string }> = {};
-  private p2iSubs: Subscription[] = [];
+  private refreshSub?: Subscription;
 
   constructor(
     private documentService: DocumentService,
@@ -93,7 +93,7 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.authSubscription?.unsubscribe();
-    this.p2iSubs.forEach((s) => s.unsubscribe());
+    this.refreshSub?.unsubscribe();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -123,6 +123,7 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
             ? 'No documents found for this building.'
             : 'No documents found for this building component.'
           : '';
+        this.ensureP2iRefresh();
       },
       error: (error) => {
         console.error('Error loading documents:', error);
@@ -166,47 +167,33 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
     return this.pointCloudTypes.has(ft);
   }
 
-  p2iStatus(doc: DocumentListItem): '' | 'running' | 'done' | 'error' {
-    return (doc.id && this.p2i[doc.id]?.status) || '';
+  p2iStatus(doc: DocumentListItem): '' | 'queued' | 'running' | 'done' | 'error' {
+    return doc.p2i_status || '';
   }
 
   p2iSummary(doc: DocumentListItem): string {
-    return (doc.id && this.p2i[doc.id]?.summary) || '';
+    const r = doc.p2i_result;
+    return r ? `${r.storeys ?? '?'} Gesch. · ${r.walls ?? '?'} Wände · ${r.openings ?? '?'} Öffn.` : '';
+  }
+
+  p2iError(doc: DocumentListItem): string {
+    return doc.p2i_error || '';
   }
 
   startReducedIfc(doc: DocumentListItem, event: Event): void {
     event.stopPropagation();
     const id = doc.id;
-    if (!id || this.p2i[id]?.status === 'running') return;
-    this.p2i[id] = { status: 'running' };
+    if (!id || doc.p2i_status === 'queued' || doc.p2i_status === 'running') return;
+    doc.p2i_status = 'queued';
+    doc.p2i_error = null;
     this.point2ifc.startJob(id).subscribe({
       next: (start) => {
-        const jobId = start.job_id;
-        const sub = interval(3000).pipe(
-          switchMap(() => this.point2ifc.getStatus(jobId)),
-          takeWhile((s: Point2ifcStatus) => s.status === 'queued' || s.status === 'running', true)
-        ).subscribe({
-          next: (s: Point2ifcStatus) => {
-            if (s.status === 'done') {
-              const r = s.result;
-              this.p2i[id] = {
-                status: 'done', jobId,
-                summary: r ? `${r.storeys} Gesch. · ${r.walls} Wände · ${r.openings} Öffn.` : ''
-              };
-            } else if (s.status === 'error') {
-              this.p2i[id] = { status: 'error' };
-              this.snackBar.open('Point2IFC fehlgeschlagen.', 'OK', { duration: 5000, verticalPosition: 'top' });
-            }
-          },
-          error: () => {
-            this.p2i[id] = { status: 'error' };
-            this.snackBar.open('Point2IFC: Statusabfrage fehlgeschlagen.', 'OK', { duration: 5000, verticalPosition: 'top' });
-          }
-        });
-        this.p2iSubs.push(sub);
+        doc.p2i_job_id = start.job_id;
+        doc.p2i_status = (start.status as DocumentListItem['p2i_status']) || 'queued';
+        this.ensureP2iRefresh();
       },
       error: () => {
-        this.p2i[id] = { status: 'error' };
+        doc.p2i_status = 'error';
         this.snackBar.open('Point2IFC-Job konnte nicht gestartet werden.', 'OK', { duration: 5000, verticalPosition: 'top' });
       }
     });
@@ -214,9 +201,9 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
 
   downloadReducedIfc(doc: DocumentListItem, event: Event): void {
     event.stopPropagation();
-    const st = doc.id ? this.p2i[doc.id] : undefined;
-    if (!st?.jobId) return;
-    this.point2ifc.getIfc(st.jobId).subscribe({
+    const jobId = doc.p2i_job_id;
+    if (!jobId) return;
+    this.point2ifc.getIfc(jobId).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -227,6 +214,39 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
       },
       error: () => this.snackBar.open('IFC-Download fehlgeschlagen.', 'OK', { duration: 5000, verticalPosition: 'top' })
     });
+  }
+
+  /** Wahrheit ist der DB-Status. Solange ein Job laeuft, still die Summaries neu
+   *  laden und die p2i_*-Felder mergen (kein Babysitten der Leitung noetig). */
+  private anyP2iActive(): boolean {
+    return this.documents.some((d) => d.p2i_status === 'queued' || d.p2i_status === 'running');
+  }
+
+  private ensureP2iRefresh(): void {
+    if (this.refreshSub || !this.entity || this.skipFetch || !this.anyP2iActive()) return;
+    const entity = this.entity;
+    const buildingId = isBuilding(entity) ? entity.bw_geb_id : entity.building_id;
+    const componentId = isBuilding(entity) ? undefined : entity.id;
+    this.refreshSub = interval(8000)
+      .pipe(switchMap(() => this.documentService.getDocumentSummariesByBuilding(buildingId, componentId)))
+      .subscribe({
+        next: (fresh) => {
+          const byId = new Map(fresh.map((d) => [d.id, d]));
+          for (const d of this.documents) {
+            const f = d.id ? byId.get(d.id) : undefined;
+            if (!f) continue;
+            d.p2i_status = f.p2i_status;
+            d.p2i_job_id = f.p2i_job_id;
+            d.p2i_result = f.p2i_result;
+            d.p2i_error = f.p2i_error;
+          }
+          if (!this.anyP2iActive()) {
+            this.refreshSub?.unsubscribe();
+            this.refreshSub = undefined;
+          }
+        },
+        error: () => { /* transient, weiter versuchen */ }
+      });
   }
 
   getDocumentIcon(document: DocumentListItem): string {

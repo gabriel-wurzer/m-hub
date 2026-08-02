@@ -16,11 +16,11 @@
             <ng-container *ngIf="isPointCloud(doc) && doc.canRead">
               <button mat-icon-button
                       *ngIf="p2iStatus(doc) === '' || p2iStatus(doc) === 'error'"
-                      matTooltip="Reduziertes IFC aus Punktwolke erzeugen"
+                      [matTooltip]="p2iStatus(doc) === 'error' ? (p2iError(doc) || 'Fehlgeschlagen') + ' – erneut versuchen' : 'Reduziertes IFC aus Punktwolke erzeugen'"
                       (click)="startReducedIfc(doc, $event)">
                 <mat-icon>architecture</mat-icon>
               </button>
-              <mat-spinner *ngIf="p2iStatus(doc) === 'running'" [diameter]="20" [strokeWidth]="2"
+              <mat-spinner *ngIf="p2iStatus(doc) === 'running' || p2iStatus(doc) === 'queued'" [diameter]="20" [strokeWidth]="2"
                            matTooltip="Point2IFC läuft…"></mat-spinner>
               <button mat-icon-button
                       *ngIf="p2iStatus(doc) === 'done'"

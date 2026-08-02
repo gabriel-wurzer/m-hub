@@ -16,6 +16,7 @@ Start:  cd point2ifc && python job_api.py   (0.0.0.0:8972)
 import json
 import os
 import queue
+import re
 import threading
 import traceback
 import urllib.request
@@ -29,6 +30,48 @@ os.makedirs(WORK, exist_ok=True)
 
 JOBS: dict[str, dict] = {}
 Q: "queue.Queue[str]" = queue.Queue()
+
+
+def _short_error(e: Exception) -> str:
+    """Kurze, pfadfreie Fehlermeldung für den Browser. Der volle Traceback (mit
+    lokalen Pfaden) geht nur ins Container-Log, nie in die API-Antwort."""
+    line = (str(e).splitlines() or [""])[0].strip()
+    line = re.sub(r"(?:[A-Za-z]:\\|/)[\w.\-\\/]+", "", line)  # Pfade rausschneiden
+    return (line or e.__class__.__name__).strip()[:200]
+
+
+def _persist_done(jid: str, result: dict) -> None:
+    """result.json neben das IFC schreiben, damit ein fertiger Job einen
+    OOM-/Redeploy-Restart des Service überlebt (siehe _rehydrate)."""
+    try:
+        out = os.path.join(WORK, jid, "out")
+        os.makedirs(out, exist_ok=True)
+        with open(os.path.join(out, "result.json"), "w", encoding="utf-8") as f:
+            json.dump(result, f)
+    except Exception:
+        pass
+
+
+def _rehydrate() -> None:
+    """Beim Start fertige Jobs aus dem WORK-Verzeichnis wiederherstellen. Nur DONE
+    (result.json + IFC liegen da); in-flight Jobs sind nach einem Crash ehrlich
+    verloren -> der node-red-Poller sieht 404 und meldet 'abgebrochen'."""
+    try:
+        entries = os.listdir(WORK)
+    except FileNotFoundError:
+        return
+    for jid in entries:
+        rp = os.path.join(WORK, jid, "out", "result.json")
+        if not os.path.isfile(rp):
+            continue
+        try:
+            with open(rp, encoding="utf-8") as f:
+                result = json.load(f)
+        except Exception:
+            continue
+        ifc = (result or {}).get("ifc")
+        if ifc and os.path.isfile(ifc):
+            JOBS[jid] = {"status": "done", "input": None, "result": result, "error": None}
 
 
 def _worker():
@@ -46,16 +89,20 @@ def _worker():
                 src = local
             if not os.path.isfile(src):
                 raise FileNotFoundError(f"input not found: {src}")
-            job["result"] = build_ifc(src, out_dir=os.path.join(WORK, jid, "out"),
-                                      write_floors=False)
+            result = build_ifc(src, out_dir=os.path.join(WORK, jid, "out"),
+                               write_floors=False)
+            job["result"] = result
             job["status"] = "done"
+            _persist_done(jid, result)
         except Exception as e:
-            job["error"] = f"{e}\n{traceback.format_exc()}"
+            print(f"[point2ifc] job {jid} failed:\n{traceback.format_exc()}", flush=True)
+            job["error"] = _short_error(e)
             job["status"] = "error"
         finally:
             Q.task_done()
 
 
+_rehydrate()
 threading.Thread(target=_worker, daemon=True).start()
 
 

@@ -17,6 +17,13 @@ CREATE TABLE IF NOT EXISTS documents (
     is_public BOOLEAN NOT NULL DEFAULT FALSE,
     file_url TEXT,
     file_type TEXT,
+    -- Point2IFC durabler Job-Status (siehe migrations/2026-08_p2i_columns.sql)
+    p2i_job_id TEXT,
+    p2i_status TEXT,
+    p2i_result JSONB,
+    p2i_error TEXT,
+    p2i_started_at TIMESTAMPTZ,
+    p2i_updated_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT documents_building_id_not_blank CHECK (btrim(building_id) <> ''),
@@ -34,7 +41,10 @@ CREATE TABLE IF NOT EXISTS documents (
             'csv', 'xlsx', 'xlsm',
             'e57', 'obj', 'stl', 'ply', 'glb', 'gltf', 'fbx', 'ifc', 'las', 'laz'
         )
-    ),  
+    ),
+    CONSTRAINT documents_p2i_status_check CHECK (
+        p2i_status IS NULL OR p2i_status IN ('queued','running','done','error')
+    ),
     CONSTRAINT fk_documents_user_building
         FOREIGN KEY (user_building_id)
         REFERENCES user_buildings(id)
@@ -104,3 +114,7 @@ BEFORE UPDATE ON documents
 FOR EACH ROW
 WHEN (NEW IS DISTINCT FROM OLD)
 EXECUTE FUNCTION update_documents_updated_at();
+
+-- Poller fragt nur die aktiven Point2IFC-Jobs ab -> partieller Index.
+CREATE INDEX IF NOT EXISTS idx_documents_p2i_active
+  ON documents (p2i_status) WHERE p2i_status IN ('queued','running');

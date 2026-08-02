@@ -2157,7 +2157,7 @@
         "type": "function",
         "z": "1890f310e8c4ae9e",
         "name": "build SQL query",
-        "func": "const user_id = msg.user?.sub || null;\nconst building_id = msg.req.params.buildingId;\nconst component_id = msg.req.query?.componentId ? String(msg.req.query.componentId).trim() : null;\n\n\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (user_id && !uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid user ID format\" };\n    return [null, msg];\n}\n\nif (!building_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"building_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (building_id.length > 10 || !/^[A-Za-z0-9_\\-]+$/.test(building_id)) {\n  msg.statusCode = 400;\n  msg.payload = { error: \"Invalid ID format\" };\n  return [null, msg];\n}\n\nif (component_id && !uuidRegex.test(component_id)) {\n  msg.statusCode = 400;\n  msg.payload = { error: \"Invalid component ID format\" };\n  return [null, msg];\n}\n\nmsg.query = `\n  SELECT\n    d.id,\n    d.name,\n    d.file_type,\n    d.component_id,\n    (\n      COALESCE(d.is_public, false)\n      OR ($2::uuid IS NOT NULL AND d.owner_id = $2::uuid)\n    ) AS can_read\n  FROM documents d\n  WHERE d.building_id = $1\n    AND ($3::uuid IS NULL OR d.component_id = $3::uuid)\n  ORDER BY d.name ASC;\n`;\n\nmsg.params = [building_id, user_id, component_id];\nreturn [msg, null];\n",
+        "func": "const user_id = msg.user?.sub || null;\nconst building_id = msg.req.params.buildingId;\nconst component_id = msg.req.query?.componentId ? String(msg.req.query.componentId).trim() : null;\n\n\n\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\n\nif (user_id && !uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid user ID format\" };\n    return [null, msg];\n}\n\nif (!building_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"building_id is missing\" };\n    return [null, msg]; // to second output if you want an error path\n}\n\nif (building_id.length > 10 || !/^[A-Za-z0-9_\\-]+$/.test(building_id)) {\n  msg.statusCode = 400;\n  msg.payload = { error: \"Invalid ID format\" };\n  return [null, msg];\n}\n\nif (component_id && !uuidRegex.test(component_id)) {\n  msg.statusCode = 400;\n  msg.payload = { error: \"Invalid component ID format\" };\n  return [null, msg];\n}\n\nmsg.query = `\n  SELECT\n    d.id,\n    d.name,\n    d.file_type,\n    d.component_id,\n    d.p2i_status,\n    d.p2i_job_id,\n    d.p2i_result,\n    d.p2i_error,\n    (\n      COALESCE(d.is_public, false)\n      OR ($2::uuid IS NOT NULL AND d.owner_id = $2::uuid)\n    ) AS can_read\n  FROM documents d\n  WHERE d.building_id = $1\n    AND ($3::uuid IS NULL OR d.component_id = $3::uuid)\n  ORDER BY d.name ASC;\n`;\n\nmsg.params = [building_id, user_id, component_id];\nreturn [msg, null];\n",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -7947,8 +7947,8 @@
         "id": "p2ia_sel",
         "type": "function",
         "z": "p2itab000000001",
-        "name": "build SELECT",
-        "func": "const uid = msg.user && msg.user.sub;\nconst b = msg.payload || {};\nconst uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\nconst docId = (typeof b.document_id === 'string' && b.document_id.trim()) ? b.document_id.trim() : null;\nif (!uuidRe.test(String(docId || ''))) { msg.statusCode = 400; msg.payload = { error: 'Invalid document_id' }; return [null, msg]; }\nmsg.query = 'SELECT file_url, owner_id FROM documents WHERE id = $1::uuid LIMIT 1;';\nmsg.params = [docId];\nreturn [msg, null];\n",
+        "name": "build claim UPDATE",
+        "func": "const uid = msg.user && msg.user.sub;\nconst b = msg.payload || {};\nconst uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\nconst docId = (typeof b.document_id === 'string' && b.document_id.trim()) ? b.document_id.trim() : null;\nif (!uuidRe.test(String(docId || ''))) { msg.statusCode = 400; msg.payload = { error: 'Invalid document_id' }; return [null, msg]; }\nif (!uuidRe.test(String(uid || ''))) { msg.statusCode = 401; msg.payload = { error: 'Invalid user' }; return [null, msg]; }\nmsg._docId = docId;\nmsg._uid = uid;\n// Atomarer Claim: nur EIN Start gewinnt (kein Doppel-Queue bei zwei Tabs auf dem seriellen Worker).\nmsg.query = \"UPDATE documents SET p2i_status='queued', p2i_job_id=NULL, p2i_result=NULL, p2i_error=NULL, p2i_started_at=now(), p2i_updated_at=now() WHERE id=$1::uuid AND owner_id=$2::uuid AND file_url IS NOT NULL AND (p2i_status IS NULL OR p2i_status NOT IN ('queued','running')) RETURNING id, file_url;\";\nmsg.params = [docId, uid];\nreturn [msg, null];\n",
         "outputs": 2,
         "noerr": 0,
         "initialize": "",
@@ -7987,8 +7987,8 @@
         "id": "p2ia_build",
         "type": "function",
         "z": "p2itab000000001",
-        "name": "build point2ifc request",
-        "func": "const rows = msg.payload;\nif (!Array.isArray(rows) || rows.length === 0) { msg.statusCode = 404; msg.payload = { error: 'Document not found' }; return [null, msg]; }\nconst doc = rows[0];\nif (doc.owner_id !== (msg.user && msg.user.sub)) { msg.statusCode = 403; msg.payload = { error: 'Forbidden' }; return [null, msg]; }\nconst fu = doc.file_url || '';\nconst base = (env.get('SEAWEED_FILER_INTERNAL_URL') || 'http://seaweed-filer:8888').replace(/\\/+$/, '');\nconst input = /^https?:\\/\\//i.test(fu) ? fu : base + (fu.charAt(0) === '/' ? fu : '/' + fu);\nmsg.method = 'POST';\nmsg.headers = { 'content-type': 'application/json' };\nmsg.payload = { input: input };\nmsg.url = (env.get('POINT2IFC_URL') || 'http://m-hub-point2ifc:8972') + '/point2ifc';\nreturn [msg, null];\n",
+        "name": "decide claim",
+        "func": "const rows = msg.payload;\nif (Array.isArray(rows) && rows.length > 0) {\n    const doc = rows[0];\n    msg._docId = doc.id;\n    const fu = doc.file_url || '';\n    const base = (env.get('SEAWEED_FILER_INTERNAL_URL') || 'http://seaweed-filer:8888').replace(/\\/+$/, '');\n    const input = /^https?:\\/\\//i.test(fu) ? fu : base + (fu.charAt(0) === '/' ? fu : '/' + fu);\n    msg.method = 'POST';\n    msg.headers = { 'content-type': 'application/json' };\n    msg.payload = { input: input };\n    msg.url = (env.get('POINT2IFC_URL') || 'http://m-hub-point2ifc:8972') + '/point2ifc';\n    return [msg, null];\n}\n// Claim verloren -> herausfinden warum.\nmsg.query = 'SELECT owner_id, file_url, p2i_status, p2i_job_id FROM documents WHERE id=$1::uuid LIMIT 1;';\nmsg.params = [msg._docId];\nreturn [null, msg];\n",
         "outputs": 2,
         "noerr": 0,
         "initialize": "",
@@ -8001,7 +8001,7 @@
                 "p2ia_httpreq"
             ],
             [
-                "p2ia_resp"
+                "p2ia_pg2"
             ]
         ]
     },
@@ -8025,7 +8025,7 @@
         "y": 80,
         "wires": [
             [
-                "p2ia_resp"
+                "p2ia_persist"
             ]
         ]
     },
@@ -8300,5 +8300,296 @@
         "x": 640,
         "y": 520,
         "wires": []
+    },
+    {
+        "id": "p2ia_pg2",
+        "type": "postgresql",
+        "z": "p2itab000000001",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 560,
+        "y": 200,
+        "wires": [
+            [
+                "p2ia_already"
+            ]
+        ]
+    },
+    {
+        "id": "p2ia_already",
+        "type": "function",
+        "z": "p2itab000000001",
+        "name": "already/404/403",
+        "func": "const rows = msg.payload;\nif (!Array.isArray(rows) || rows.length === 0) { msg.statusCode = 404; msg.payload = { error: 'Document not found' }; return msg; }\nconst d = rows[0];\nif (d.owner_id !== msg._uid) { msg.statusCode = 403; msg.payload = { error: 'Forbidden' }; return msg; }\nif (!d.file_url) { msg.statusCode = 409; msg.payload = { error: 'Dokument hat noch keine Datei' }; return msg; }\nif (d.p2i_status === 'queued' || d.p2i_status === 'running') { msg.statusCode = 202; msg.payload = { job_id: d.p2i_job_id, status: d.p2i_status }; return msg; }\nmsg.statusCode = 202; msg.payload = { job_id: d.p2i_job_id, status: d.p2i_status || 'queued' }; return msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 200,
+        "wires": [
+            [
+                "p2ia_resp"
+            ]
+        ]
+    },
+    {
+        "id": "p2ia_persist",
+        "type": "function",
+        "z": "p2itab000000001",
+        "name": "persist job_id",
+        "func": "const p = msg.payload || {};\nconst sc = msg.statusCode;\nif (sc >= 200 && sc < 300 && p.job_id) {\n    msg.query = 'UPDATE documents SET p2i_job_id=$1, p2i_updated_at=now() WHERE id=$2::uuid;';\n    msg.params = [p.job_id, msg._docId];\n    msg._resp = { statusCode: 202, payload: { job_id: p.job_id, status: 'queued' } };\n} else {\n    msg.query = \"UPDATE documents SET p2i_status='error', p2i_error=$1, p2i_updated_at=now() WHERE id=$2::uuid;\";\n    msg.params = ['Point2IFC-Start fehlgeschlagen.', msg._docId];\n    msg._resp = { statusCode: 502, payload: { error: 'Point2IFC nicht erreichbar' } };\n}\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1160,
+        "y": 160,
+        "wires": [
+            [
+                "p2ia_pg3"
+            ]
+        ]
+    },
+    {
+        "id": "p2ia_catch",
+        "type": "catch",
+        "z": "p2itab000000001",
+        "name": "",
+        "scope": [
+            "p2ia_httpreq"
+        ],
+        "uncaught": false,
+        "x": 1160,
+        "y": 320,
+        "wires": [
+            [
+                "p2ia_httperr"
+            ]
+        ]
+    },
+    {
+        "id": "p2ia_httperr",
+        "type": "function",
+        "z": "p2itab000000001",
+        "name": "start network error",
+        "func": "msg.query = \"UPDATE documents SET p2i_status='error', p2i_error=$1, p2i_updated_at=now() WHERE id=$2::uuid;\";\nmsg.params = ['Point2IFC nicht erreichbar.', msg._docId];\nmsg._resp = { statusCode: 502, payload: { error: 'Point2IFC nicht erreichbar' } };\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1160,
+        "y": 400,
+        "wires": [
+            [
+                "p2ia_pg3"
+            ]
+        ]
+    },
+    {
+        "id": "p2ia_pg3",
+        "type": "postgresql",
+        "z": "p2itab000000001",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 1160,
+        "y": 240,
+        "wires": [
+            [
+                "p2ia_finresp"
+            ]
+        ]
+    },
+    {
+        "id": "p2ia_finresp",
+        "type": "function",
+        "z": "p2itab000000001",
+        "name": "response",
+        "func": "const r = msg._resp || { statusCode: 200, payload: { status: 'ok' } };\nmsg.statusCode = r.statusCode;\nmsg.payload = r.payload;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1360,
+        "y": 240,
+        "wires": [
+            [
+                "p2ia_resp"
+            ]
+        ]
+    },
+    {
+        "id": "p2ip_inject",
+        "type": "inject",
+        "z": "p2itab000000001",
+        "name": "poll 8s",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "8",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "5",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 150,
+        "y": 500,
+        "wires": [
+            [
+                "p2ip_selq"
+            ]
+        ]
+    },
+    {
+        "id": "p2ip_selq",
+        "type": "function",
+        "z": "p2itab000000001",
+        "name": "select active jobs",
+        "func": "msg.query = \"SELECT id, p2i_job_id FROM documents WHERE p2i_status IN ('queued','running') AND p2i_job_id IS NOT NULL;\";\nmsg.params = [];\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 500,
+        "wires": [
+            [
+                "p2ip_pg"
+            ]
+        ]
+    },
+    {
+        "id": "p2ip_pg",
+        "type": "postgresql",
+        "z": "p2itab000000001",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 560,
+        "y": 500,
+        "wires": [
+            [
+                "p2ip_build"
+            ]
+        ]
+    },
+    {
+        "id": "p2ip_build",
+        "type": "function",
+        "z": "p2itab000000001",
+        "name": "fan out GETs",
+        "func": "const rows = Array.isArray(msg.payload) ? msg.payload : [];\nconst base = (env.get('POINT2IFC_URL') || 'http://m-hub-point2ifc:8972');\nconst out = [];\nfor (const r of rows) {\n    if (!r.id || !r.p2i_job_id) continue;\n    out.push({ _docId: r.id, method: 'GET', headers: {}, url: base + '/point2ifc/' + r.p2i_job_id });\n}\nreturn [out];\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 500,
+        "wires": [
+            [
+                "p2ip_httpreq"
+            ]
+        ]
+    },
+    {
+        "id": "p2ip_httpreq",
+        "type": "http request",
+        "z": "p2itab000000001",
+        "name": "point2ifc status",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 960,
+        "y": 500,
+        "wires": [
+            [
+                "p2ip_upd"
+            ]
+        ]
+    },
+    {
+        "id": "p2ip_catch",
+        "type": "catch",
+        "z": "p2itab000000001",
+        "name": "",
+        "scope": [
+            "p2ip_httpreq"
+        ],
+        "uncaught": false,
+        "x": 960,
+        "y": 580,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "p2ip_upd",
+        "type": "function",
+        "z": "p2itab000000001",
+        "name": "build status UPDATE",
+        "func": "const doc = msg._docId;\nconst sc = msg.statusCode;\nconst p = msg.payload || {};\nif (!doc) return null;\nif (sc === 404) {\n    msg.query = \"UPDATE documents SET p2i_status='error', p2i_error=$2, p2i_updated_at=now() WHERE id=$1::uuid AND p2i_status IN ('queued','running');\";\n    msg.params = [doc, 'Verarbeitung abgebrochen, bitte erneut starten.'];\n    return msg;\n}\nif (sc >= 200 && sc < 300 && p.status === 'done') {\n    const r = p.result || {};\n    const slim = { storeys: r.storeys, walls: r.walls, openings: r.openings, slabs: r.slabs, roofs: r.roofs };\n    msg.query = \"UPDATE documents SET p2i_status='done', p2i_result=$2::jsonb, p2i_error=NULL, p2i_updated_at=now() WHERE id=$1::uuid AND p2i_status IS DISTINCT FROM 'done';\";\n    msg.params = [doc, JSON.stringify(slim)];\n    return msg;\n}\nif (sc >= 200 && sc < 300 && p.status === 'error') {\n    msg.query = \"UPDATE documents SET p2i_status='error', p2i_error=$2, p2i_updated_at=now() WHERE id=$1::uuid AND p2i_status IS DISTINCT FROM 'error';\";\n    msg.params = [doc, String(p.error || 'Fehler bei der Verarbeitung').slice(0, 300)];\n    return msg;\n}\nif (sc >= 200 && sc < 300 && (p.status === 'queued' || p.status === 'running')) {\n    msg.query = \"UPDATE documents SET p2i_status=$2, p2i_updated_at=now() WHERE id=$1::uuid AND p2i_status IS DISTINCT FROM $2;\";\n    msg.params = [doc, p.status];\n    return msg;\n}\nreturn null;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1160,
+        "y": 500,
+        "wires": [
+            [
+                "p2ip_pgupd"
+            ]
+        ]
+    },
+    {
+        "id": "p2ip_pgupd",
+        "type": "postgresql",
+        "z": "p2itab000000001",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 1360,
+        "y": 500,
+        "wires": [
+            []
+        ]
     }
 ]
