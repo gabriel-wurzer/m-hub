@@ -40,6 +40,11 @@ const tus = new Server({
   path: '/upload',
   datastore: new FileStore({ directory: UPLOAD_DIR }),
   maxSize: MAX_BYTES,
+  // Relative Location (/upload/<id>) statt absoluter URL. Hinter dem Reverse-Proxy
+  // baut @tus/server sonst 'http://<host>/upload/<id>' -> auf der https-Seite
+  // Mixed-Content + falscher Host -> Browser blockt den PATCH ("Fehler beim
+  // Hinzufuegen des Dokuments"). Relativ loest der Browser gegen die Seiten-Origin auf.
+  relativeLocation: true,
 
   // Auth: verify the m-hub JWT on every incoming request (dev: disabled if no secret).
   async onIncomingRequest(req) {
