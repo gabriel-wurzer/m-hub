@@ -149,7 +149,7 @@ fi
 
 # -------- Remaining services --------
 echo "[START] Backend, Upload, Frontend, Postgis-API and SeaweedFS..."
-$DC up -d seaweed-filer m-hub-postgis-api m-hub-backend m-hub-upload m-hub-frontend m-hub-plausibility
+$DC up -d seaweed-filer m-hub-postgis-api m-hub-backend m-hub-upload m-hub-frontend m-hub-plausibility m-hub-point2ifc
 
 echo
 echo "[OK] Stack deployed."

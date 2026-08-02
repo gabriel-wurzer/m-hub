@@ -104,6 +104,7 @@ services:
       - SEAWEED_PUBLIC_BASE_URL=${SEAWEED_PUBLIC_BASE_URL:-http://localhost:8888}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
       - PLAUSIBILITY_URL=http://m-hub-plausibility:8971
+      - POINT2IFC_URL=http://m-hub-point2ifc:8972
     # Mount host directories to container directories as volumes.
     # The named volume on /data/node_modules sits ON TOP of the bind mount and
     # gets initialised from the image's /data/node_modules on first start, so
@@ -201,9 +202,35 @@ services:
       retries: 20
       start_period: 20s
 
+  # Point2IFC: Punktwolke -> reduziertes IFC (async-Job, ein Worker). Schwerer
+  # Container (open3d/ifcopenshell); node-red POSTet Upload-Pfad/URL, pollt, bietet
+  # das IFC als Download an. Faellt er aus, laeuft der Rest der App weiter.
+  m-hub-point2ifc:
+    image: m-hub-point2ifc
+    build:
+      context: ./m-hub-processing/point2ifc
+    ports:
+      - "127.0.0.1:8972:8972"
+    volumes:
+      - point2ifc_data:/data/point2ifc
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8972/health').read()"
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 30
+      start_period: 40s
+    restart: unless-stopped
+
 volumes:
   # declare named value
   pgdata:
   seaweed_data:
   m-hub-backend-deps:
   upload_tmp:
+  point2ifc_data:
