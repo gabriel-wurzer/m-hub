@@ -73,6 +73,7 @@ export type ReserveDocumentPayload = {
     is_public: boolean;
     file_type?: FileType;
     file_original_name?: string;
+    file_size?: number; // Bytes; ermoeglicht idempotenten reserve (Upload-Resume)
 };
 
 /** Short-lived ticket the backend hands out to stream the file to the upload service. */

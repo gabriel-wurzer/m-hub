@@ -24,6 +24,9 @@ CREATE TABLE IF NOT EXISTS documents (
     p2i_error TEXT,
     p2i_started_at TIMESTAMPTZ,
     p2i_updated_at TIMESTAMPTZ,
+    -- Upload-Resume (siehe migrations/2026-08_upload_resume.sql)
+    file_original_name TEXT,
+    file_size BIGINT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT documents_building_id_not_blank CHECK (btrim(building_id) <> ''),
@@ -118,3 +121,8 @@ EXECUTE FUNCTION update_documents_updated_at();
 -- Poller fragt nur die aktiven Point2IFC-Jobs ab -> partieller Index.
 CREATE INDEX IF NOT EXISTS idx_documents_p2i_active
   ON documents (p2i_status) WHERE p2i_status IN ('queued','running');
+
+-- Upload-Resume: hoechstens EINE offene Reservierung pro (owner, gebaeude, dateiname, groesse).
+CREATE UNIQUE INDEX IF NOT EXISTS uq_documents_open_reservation
+  ON documents (owner_id, user_building_id, file_original_name, file_size)
+  WHERE file_url IS NULL AND file_original_name IS NOT NULL AND file_size IS NOT NULL;

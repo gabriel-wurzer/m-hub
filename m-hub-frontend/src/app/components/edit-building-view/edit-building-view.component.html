@@ -163,7 +163,7 @@
 
                         <div class="upload-progress" *ngIf="documentUploadProgress !== null">
                             <mat-icon>cloud_upload</mat-icon>
-                            <span>Große Datei wird hochgeladen… {{ documentUploadProgress }}%</span>
+                            <span>Große Datei wird hochgeladen… {{ documentUploadProgress }}%<ng-container *ngIf="documentUploadMb"> ({{ documentUploadMb }})</ng-container></span>
                         </div>
 
                         <div class="custom-list scroll-list">

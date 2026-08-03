@@ -75,13 +75,18 @@ export class DocumentService {
   uploadResumable(
     file: File,
     meta: ReserveDocumentPayload,
-    onProgress?: (percent: number) => void
+    onProgress?: (percent: number, sentBytes: number, totalBytes: number) => void
   ): Observable<Document> {
     return new Observable<Document>(subscriber => {
       let upload: tus.Upload | null = null;
       let aborted = false;
 
-      const sub = this.reserveDocument(meta).subscribe({
+      // file_size mitschicken: der reserve-Endpoint ist idempotent (UPSERT auf
+      // owner+gebaeude+dateiname+groesse), damit ein abgebrochener Upload beim
+      // Fortsetzen dieselbe document-Zeile trifft statt neue Waisen zu erzeugen.
+      const reserveMeta: ReserveDocumentPayload = { ...meta, file_size: file.size };
+
+      const sub = this.reserveDocument(reserveMeta).subscribe({
         next: reserved => {
           if (aborted) return;
           const { document, upload: ticket } = reserved;
@@ -94,13 +99,13 @@ export class DocumentService {
 
           upload = new tus.Upload(file, {
             endpoint: ticket.endpoint,
-            chunkSize: 50 * 1024 * 1024, // 50 MB chunks: resumable + bounded memory
-            retryDelays: [0, 1000, 3000, 5000, 10000],
+            chunkSize: 16 * 1024 * 1024, // 16 MB: kuerzere PATCHes -> ein Chunk kommt eher vor dem naechsten Leitungsabriss durch
+            retryDelays: [0, 1000, 3000, 5000, 10000, 30000],
             removeFingerprintOnSuccess: true,
             headers: { Authorization: `Bearer ${ticket.token}` },
             metadata: m as unknown as Record<string, string>,
             onProgress: (sent, total) => {
-              if (onProgress && total > 0) onProgress(Math.round((sent / total) * 100));
+              if (onProgress && total > 0) onProgress(Math.round((sent / total) * 100), sent, total);
             },
             onError: err => subscriber.error(err),
             onSuccess: () => {
@@ -113,7 +118,18 @@ export class DocumentService {
               });
             }
           });
-          upload.start();
+
+          // Wackelige Leitung: bei erneutem Versuch mit derselben Datei den zuvor
+          // abgebrochenen Upload per tus-Fingerprint fortsetzen (ab dem Offset)
+          // statt bei 0 zu beginnen. tus persistiert die Upload-URL in localStorage.
+          const u = upload;
+          u.findPreviousUploads()
+            .then(prev => {
+              if (aborted) return;
+              if (prev.length > 0) u.resumeFromPreviousUpload(prev[0]);
+              u.start();
+            })
+            .catch(() => { if (!aborted) u.start(); });
         },
         error: err => subscriber.error(err)
       });

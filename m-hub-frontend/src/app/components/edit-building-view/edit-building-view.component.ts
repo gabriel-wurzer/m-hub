@@ -124,6 +124,7 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
 
   isLoadingDocuments = false;
   documentUploadProgress: number | null = null; // 0..100 while a big file streams via resumable upload
+  documentUploadMb: string | null = null; // "12.3 / 45.6 MB" waehrend des Uploads
   isLoadingObjects = false;
   isLoadingParts = false;
 
@@ -724,10 +725,14 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
         file_original_name: result.fileName
       };
 
-      this.documentService.uploadResumable(result.file, meta, pct => (this.documentUploadProgress = pct))
+      this.documentService.uploadResumable(result.file, meta, (pct, sent, total) => {
+        this.documentUploadProgress = pct;
+        this.documentUploadMb = total > 0 ? `${(sent / 1048576).toFixed(1)} / ${(total / 1048576).toFixed(1)} MB` : null;
+      })
         .pipe(finalize(() => {
           this.isLoadingDocuments = false;
           this.documentUploadProgress = null;
+          this.documentUploadMb = null;
         }))
         .subscribe({ next: onCreated, complete: onSuccess, error: onError });
     });
