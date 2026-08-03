@@ -188,6 +188,9 @@
                                         <button *ngIf="isEvaluablePlan(doc)" mat-icon-button color="primary" matTooltip="Plan auswerten" (click)="evaluatePlan(doc)">
                                             <mat-icon>architecture</mat-icon>
                                         </button>
+                                        <button *ngIf="canReduceToIfc(doc)" mat-icon-button color="primary" matTooltip="Reduziertes IFC aus Punktwolke erzeugen" (click)="generateReducedIfc(doc, $event)">
+                                            <mat-icon>3d_rotation</mat-icon>
+                                        </button>
                                         <button mat-icon-button color="primary" matTooltip="Informationen" (click)="openEntityInfoDialog(doc)">
                                             <mat-icon>info_outline</mat-icon>
                                         </button>

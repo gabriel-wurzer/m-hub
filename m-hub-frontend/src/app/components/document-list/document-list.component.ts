@@ -16,7 +16,6 @@ import { AuthenticationService } from '../../services/authentication/authenticat
 import { Subscription } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { FileType } from '../../enums/file-type.enum';
-import { Point2ifcService } from '../../services/point2ifc/point2ifc.service';
 
 type DocumentListItem = DocumentSummaryDto & {
   canRead: boolean;
@@ -53,16 +52,11 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
   private authInitialized = false;
   private loadingDocumentIds = new Set<string>();
 
-  // Point2IFC: Punktwolke -> reduziertes IFC. Der Job laeuft im Hintergrund; das fertige
-  // IFC erscheint als eigenes Dokument (per Reload sichtbar). Kein Live-Poll/Spinner noetig.
-  readonly pointCloudTypes = new Set<string>(['e57', 'ply', 'las', 'laz']);
-
   constructor(
     private documentService: DocumentService,
     private dialog: MatDialog,
     private authService: AuthenticationService,
-    private snackBar: MatSnackBar,
-    private point2ifc: Point2ifcService
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {
@@ -159,26 +153,7 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
 
-  isPointCloud(doc: DocumentListItem): boolean {
-    const ft = (doc.fileType ?? doc.file_type ?? '').toString().toLowerCase();
-    return this.pointCloudTypes.has(ft);
-  }
-
-  /** Punktwolke -> reduziertes IFC im Hintergrund erzeugen. Das Ergebnis erscheint als
-   *  eigenes IFC-Dokument in der Liste (per Reload sichtbar) - kein Live-Poll/Spinner. */
-  startReducedIfc(doc: DocumentListItem, event: Event): void {
-    event.stopPropagation();
-    if (!doc.id) return;
-    this.point2ifc.startJob(doc.id).subscribe({
-      next: () => this.snackBar.open(
-        'Reduziertes IFC wird im Hintergrund erstellt. Es erscheint als eigenes Dokument — mit Neu laden aktualisieren.',
-        'OK', { duration: 8000, verticalPosition: 'top' }),
-      error: () => this.snackBar.open('Point2IFC-Job konnte nicht gestartet werden.', 'OK',
-        { duration: 5000, verticalPosition: 'top' })
-    });
-  }
-
-  /** Dokumentliste neu laden (z.B. um das fertige reduzierte IFC anzuzeigen). */
+  /** Dokumentliste neu laden (z.B. um ein neues Dokument anzuzeigen). */
   reload(): void {
     if (this.entity && !this.skipFetch) this.loadDocumentsForEntity(this.entity);
   }

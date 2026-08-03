@@ -343,6 +343,24 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
     if (this.userBuilding) this.fetchDocuments(this.userBuilding);
   }
 
+  canReduceToIfc(doc: Document): boolean {
+    return this.pointCloudTypes.has(String(doc.file_type ?? '').toLowerCase());
+  }
+
+  /** Punktwolke -> reduziertes IFC im Hintergrund erzeugen (Edit-Aktion, nicht im Read-View).
+   *  Das Ergebnis erscheint als eigenes IFC-Dokument (per Neu laden sichtbar). */
+  generateReducedIfc(doc: Document, event: Event): void {
+    event.stopPropagation();
+    if (!doc.id) return;
+    this.point2ifc.startJob(doc.id).subscribe({
+      next: () => this.snackBar.open(
+        'Reduziertes IFC wird im Hintergrund erstellt. Es erscheint als eigenes Dokument — mit „Neu laden" aktualisieren.',
+        'OK', { duration: 8000, verticalPosition: 'top' }),
+      error: () => this.snackBar.open('Point2IFC-Job konnte nicht gestartet werden.', 'OK',
+        { duration: 5000, verticalPosition: 'top' })
+    });
+  }
+
   private fetchBuildingParts(building: UserBuilding): void {
     if (!building?.id) return;
 
