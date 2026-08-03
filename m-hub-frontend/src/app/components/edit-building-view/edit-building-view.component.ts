@@ -338,6 +338,11 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
 
+  /** Dokumentliste neu laden (z.B. um das fertige reduzierte IFC anzuzeigen). */
+  reloadDocuments(): void {
+    if (this.userBuilding) this.fetchDocuments(this.userBuilding);
+  }
+
   private fetchBuildingParts(building: UserBuilding): void {
     if (!building?.id) return;
 
@@ -754,7 +759,7 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
           // Punktwolke: reduziertes IFC gleich im Hintergrund erzeugen (durabler Status, Schritt 1).
           this.point2ifc.startJob(res.document.id).subscribe({ next: () => {}, error: () => {} });
           this.snackBar.open(
-            'Hochgeladen. Das reduzierte IFC wird im Hintergrund erstellt — Download erscheint in der Dokumentliste, sobald es fertig ist.',
+            'Hochgeladen. Das reduzierte IFC wird im Hintergrund erstellt und erscheint als eigenes Dokument — mit „Neu laden" aktualisieren.',
             'OK', { duration: 8000, verticalPosition: 'top' }
           );
         } else {

@@ -209,6 +209,9 @@ services:
     image: m-hub-point2ifc
     build:
       context: ./m-hub-processing/point2ifc
+    environment:
+      # Damit point2ifc das fertige IFC selbst in seaweed ablegt -> node-red registriert es als Dokument.
+      - SEAWEED_FILER_INTERNAL_URL=${SEAWEED_FILER_INTERNAL_URL:-http://seaweed-filer:8888}
     ports:
       - "127.0.0.1:8972:8972"
     volumes:

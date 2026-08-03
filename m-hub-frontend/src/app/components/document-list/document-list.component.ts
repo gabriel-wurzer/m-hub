@@ -13,7 +13,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { EntityInfoDialogComponent } from '../dialogs/entity-info-dialog/entity-info-dialog.component';
 import { AuthenticationService } from '../../services/authentication/authentication.service';
-import { Subscription, interval, switchMap } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { FileType } from '../../enums/file-type.enum';
 import { Point2ifcService } from '../../services/point2ifc/point2ifc.service';
@@ -53,10 +53,9 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
   private authInitialized = false;
   private loadingDocumentIds = new Set<string>();
 
-  // Point2IFC: Punktwolke -> reduziertes IFC. Wahrheit ist der persistierte Status
-  // aus der documents-Zeile (doc.p2i_*); hier nur ein leiser Refresh solange ein Job laeuft.
+  // Point2IFC: Punktwolke -> reduziertes IFC. Der Job laeuft im Hintergrund; das fertige
+  // IFC erscheint als eigenes Dokument (per Reload sichtbar). Kein Live-Poll/Spinner noetig.
   readonly pointCloudTypes = new Set<string>(['e57', 'ply', 'las', 'laz']);
-  private refreshSub?: Subscription;
 
   constructor(
     private documentService: DocumentService,
@@ -93,7 +92,6 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.authSubscription?.unsubscribe();
-    this.refreshSub?.unsubscribe();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -123,7 +121,6 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
             ? 'No documents found for this building.'
             : 'No documents found for this building component.'
           : '';
-        this.ensureP2iRefresh();
       },
       error: (error) => {
         console.error('Error loading documents:', error);
@@ -167,86 +164,23 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
     return this.pointCloudTypes.has(ft);
   }
 
-  p2iStatus(doc: DocumentListItem): '' | 'queued' | 'running' | 'done' | 'error' {
-    return doc.p2i_status || '';
-  }
-
-  p2iSummary(doc: DocumentListItem): string {
-    const r = doc.p2i_result;
-    return r ? `${r.storeys ?? '?'} Gesch. · ${r.walls ?? '?'} Wände · ${r.openings ?? '?'} Öffn.` : '';
-  }
-
-  p2iError(doc: DocumentListItem): string {
-    return doc.p2i_error || '';
-  }
-
+  /** Punktwolke -> reduziertes IFC im Hintergrund erzeugen. Das Ergebnis erscheint als
+   *  eigenes IFC-Dokument in der Liste (per Reload sichtbar) - kein Live-Poll/Spinner. */
   startReducedIfc(doc: DocumentListItem, event: Event): void {
     event.stopPropagation();
-    const id = doc.id;
-    if (!id || doc.p2i_status === 'queued' || doc.p2i_status === 'running') return;
-    doc.p2i_status = 'queued';
-    doc.p2i_error = null;
-    this.point2ifc.startJob(id).subscribe({
-      next: (start) => {
-        doc.p2i_job_id = start.job_id;
-        doc.p2i_status = (start.status as DocumentListItem['p2i_status']) || 'queued';
-        this.ensureP2iRefresh();
-      },
-      error: () => {
-        doc.p2i_status = 'error';
-        this.snackBar.open('Point2IFC-Job konnte nicht gestartet werden.', 'OK', { duration: 5000, verticalPosition: 'top' });
-      }
+    if (!doc.id) return;
+    this.point2ifc.startJob(doc.id).subscribe({
+      next: () => this.snackBar.open(
+        'Reduziertes IFC wird im Hintergrund erstellt. Es erscheint als eigenes Dokument — mit Neu laden aktualisieren.',
+        'OK', { duration: 8000, verticalPosition: 'top' }),
+      error: () => this.snackBar.open('Point2IFC-Job konnte nicht gestartet werden.', 'OK',
+        { duration: 5000, verticalPosition: 'top' })
     });
   }
 
-  downloadReducedIfc(doc: DocumentListItem, event: Event): void {
-    event.stopPropagation();
-    const jobId = doc.p2i_job_id;
-    if (!jobId) return;
-    this.point2ifc.getIfc(jobId).subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${doc.name || 'reduced'}.ifc`;
-        a.click();
-        URL.revokeObjectURL(url);
-      },
-      error: () => this.snackBar.open('IFC-Download fehlgeschlagen.', 'OK', { duration: 5000, verticalPosition: 'top' })
-    });
-  }
-
-  /** Wahrheit ist der DB-Status. Solange ein Job laeuft, still die Summaries neu
-   *  laden und die p2i_*-Felder mergen (kein Babysitten der Leitung noetig). */
-  private anyP2iActive(): boolean {
-    return this.documents.some((d) => d.p2i_status === 'queued' || d.p2i_status === 'running');
-  }
-
-  private ensureP2iRefresh(): void {
-    if (this.refreshSub || !this.entity || this.skipFetch || !this.anyP2iActive()) return;
-    const entity = this.entity;
-    const buildingId = isBuilding(entity) ? entity.bw_geb_id : entity.building_id;
-    const componentId = isBuilding(entity) ? undefined : entity.id;
-    this.refreshSub = interval(8000)
-      .pipe(switchMap(() => this.documentService.getDocumentSummariesByBuilding(buildingId, componentId)))
-      .subscribe({
-        next: (fresh) => {
-          const byId = new Map(fresh.map((d) => [d.id, d]));
-          for (const d of this.documents) {
-            const f = d.id ? byId.get(d.id) : undefined;
-            if (!f) continue;
-            d.p2i_status = f.p2i_status;
-            d.p2i_job_id = f.p2i_job_id;
-            d.p2i_result = f.p2i_result;
-            d.p2i_error = f.p2i_error;
-          }
-          if (!this.anyP2iActive()) {
-            this.refreshSub?.unsubscribe();
-            this.refreshSub = undefined;
-          }
-        },
-        error: () => { /* transient, weiter versuchen */ }
-      });
+  /** Dokumentliste neu laden (z.B. um das fertige reduzierte IFC anzuzeigen). */
+  reload(): void {
+    if (this.entity && !this.skipFetch) this.loadDocumentsForEntity(this.entity);
   }
 
   getDocumentIcon(document: DocumentListItem): string {

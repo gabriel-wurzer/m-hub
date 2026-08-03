@@ -52,6 +52,26 @@ def _persist_done(jid: str, result: dict) -> None:
         pass
 
 
+def _store_ifc(jid: str, ifc_path) -> "str | None":
+    """Fertiges IFC in seaweed ablegen, damit node-red es als normales Dokument
+    registrieren kann. Gibt den filer-Pfad zurueck (oder None bei Fehler/kein Filer)."""
+    base = os.environ.get("SEAWEED_FILER_INTERNAL_URL", "").rstrip("/")
+    if not base or not ifc_path or not os.path.isfile(ifc_path):
+        return None
+    rel = f"/mhub/point2ifc/{jid}/{os.path.basename(ifc_path)}"
+    try:
+        with open(ifc_path, "rb") as f:
+            data = f.read()
+        req = urllib.request.Request(base + rel, data=data, method="PUT",
+                                     headers={"Content-Type": "application/octet-stream"})
+        with urllib.request.urlopen(req, timeout=180) as r:
+            r.read()
+        return rel
+    except Exception:
+        print(f"[point2ifc] seaweed store failed for {jid}:\n{traceback.format_exc()}", flush=True)
+        return None
+
+
 def _rehydrate() -> None:
     """Beim Start fertige Jobs aus dem WORK-Verzeichnis wiederherstellen. Nur DONE
     (result.json + IFC liegen da); in-flight Jobs sind nach einem Crash ehrlich
@@ -91,6 +111,9 @@ def _worker():
                 raise FileNotFoundError(f"input not found: {src}")
             result = build_ifc(src, out_dir=os.path.join(WORK, jid, "out"),
                                write_floors=False)
+            ifc_url = _store_ifc(jid, result.get("ifc"))
+            if ifc_url:
+                result["ifc_url"] = ifc_url
             job["result"] = result
             job["status"] = "done"
             _persist_done(jid, result)

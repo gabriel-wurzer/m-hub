@@ -1,4 +1,9 @@
 <div class="list-container">
+    <div class="list-toolbar" *ngIf="!skipFetch">
+        <button mat-icon-button matTooltip="Neu laden" (click)="reload()">
+            <mat-icon>refresh</mat-icon>
+        </button>
+    </div>
     <mat-spinner *ngIf="isLoading" [diameter]="40" [strokeWidth]="3" class="loading-spinner" />
 
     <mat-list *ngIf="!isLoading && documents.length > 0; else noDocsMessage">
@@ -13,22 +18,11 @@
             <span class="list-text">
               {{ doc.name }}<ng-container *ngIf="doc.fileType">.{{ doc.fileType }}</ng-container>
             </span>
-            <ng-container *ngIf="isPointCloud(doc) && doc.canRead">
-              <button mat-icon-button
-                      *ngIf="p2iStatus(doc) === '' || p2iStatus(doc) === 'error'"
-                      [matTooltip]="p2iStatus(doc) === 'error' ? (p2iError(doc) || 'Fehlgeschlagen') + ' – erneut versuchen' : 'Reduziertes IFC aus Punktwolke erzeugen'"
-                      (click)="startReducedIfc(doc, $event)">
-                <mat-icon>architecture</mat-icon>
-              </button>
-              <mat-spinner *ngIf="p2iStatus(doc) === 'running' || p2iStatus(doc) === 'queued'" [diameter]="20" [strokeWidth]="2"
-                           matTooltip="Point2IFC läuft…"></mat-spinner>
-              <button mat-icon-button
-                      *ngIf="p2iStatus(doc) === 'done'"
-                      [matTooltip]="'Reduziertes IFC herunterladen (' + p2iSummary(doc) + ')'"
-                      (click)="downloadReducedIfc(doc, $event)">
-                <mat-icon>download</mat-icon>
-              </button>
-            </ng-container>
+            <button mat-icon-button *ngIf="isPointCloud(doc) && doc.canRead"
+                    matTooltip="Reduziertes IFC aus Punktwolke erzeugen"
+                    (click)="startReducedIfc(doc, $event)">
+              <mat-icon>architecture</mat-icon>
+            </button>
             <mat-icon *ngIf="!doc.canRead" class="lock-icon">lock</mat-icon>
         </mat-list-item>
     </mat-list>
