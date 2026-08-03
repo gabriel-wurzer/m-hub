@@ -16,23 +16,9 @@ export interface Document {
     file_type?: FileType; // Optional file type (e.g., 'pdf', 'jpg', 'e57')
 }
 
-/** Zusammenfassung eines Point2IFC-Laufs (persistierter Job-Status). */
-export type Point2ifcSummary = {
-    storeys?: number;
-    walls?: number;
-    openings?: number;
-    slabs?: number;
-    roofs?: number;
-};
-
 export type DocumentSummaryDto = Pick<Document, 'id' | 'name' | 'file_type' | 'component_id'> & {
     can_read?: boolean;
     canRead?: boolean;
-    // Point2IFC: durabler Job-Status, kommt aus der documents-Zeile (Backend ist die Wahrheit).
-    p2i_status?: 'queued' | 'running' | 'done' | 'error' | null;
-    p2i_job_id?: string | null;
-    p2i_result?: Point2ifcSummary | null;
-    p2i_error?: string | null;
 };
 
 export type CreateDocumentPayload = {
