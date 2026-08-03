@@ -80,6 +80,7 @@ export class DocumentService {
     return new Observable<Document>(subscriber => {
       let upload: tus.Upload | null = null;
       let aborted = false;
+      let triedFresh = false;
 
       // file_size mitschicken: der reserve-Endpoint ist idempotent (UPSERT auf
       // owner+gebaeude+dateiname+groesse), damit ein abgebrochener Upload beim
@@ -92,41 +93,57 @@ export class DocumentService {
           const { document, upload: ticket } = reserved;
           const m = ticket.metadata;
           // The upload service stores at this deterministic path (built from the
-          // same signed-token claims), so we attach with it directly. (The
-          // service also returns X-Stored-Path, but browsers block reading that
-          // non-safelisted header, and it would be identical anyway.)
+          // same signed-token claims), so we attach with it directly.
           const storedPath = `/mhub/documents/${m.user_building_id}/${m.document_id}/${m.filename}`;
 
-          upload = new tus.Upload(file, {
+          // Frischer Upload ab 0 (kein Resume) — Fallback wenn ein Resume scheitert.
+          const startFresh = () => {
+            if (aborted) return;
+            upload = new tus.Upload(file, options);
+            upload.start();
+          };
+
+          const options = {
             endpoint: ticket.endpoint,
             chunkSize: 16 * 1024 * 1024, // 16 MB: kuerzere PATCHes -> ein Chunk kommt eher vor dem naechsten Leitungsabriss durch
             retryDelays: [0, 1000, 3000, 5000, 10000, 30000],
             removeFingerprintOnSuccess: true,
             headers: { Authorization: `Bearer ${ticket.token}` },
             metadata: m as unknown as Record<string, string>,
-            onProgress: (sent, total) => {
+            onProgress: (sent: number, total: number) => {
               if (onProgress && total > 0) onProgress(Math.round((sent / total) * 100), sent, total);
             },
-            onError: err => subscriber.error(err),
+            onError: (err: Error) => {
+              // Ein veralteter/kaputter Resume-Eintrag (altes Partial geloescht, oder
+              // eine http-URL aus der Zeit vor dem relativeLocation-Fix -> Mixed Content)
+              // darf den Upload NICHT hart killen: genau einmal sauber von vorne starten.
+              if (!triedFresh && !aborted) { triedFresh = true; startFresh(); return; }
+              subscriber.error(err);
+            },
             onSuccess: () => {
               this.attachDocument(document.id, storedPath).subscribe({
                 next: doc => {
                   subscriber.next(doc);
                   subscriber.complete();
                 },
-                error: err => subscriber.error(err)
+                error: (err: unknown) => subscriber.error(err)
               });
             }
-          });
+          };
 
-          // Wackelige Leitung: bei erneutem Versuch mit derselben Datei den zuvor
-          // abgebrochenen Upload per tus-Fingerprint fortsetzen (ab dem Offset)
-          // statt bei 0 zu beginnen. tus persistiert die Upload-URL in localStorage.
+          // Erster Versuch: fortsetzen, aber NUR gegen einen brauchbaren Eintrag
+          // (https, sonst blockt Mixed Content). Sonst normal frisch hochladen.
+          upload = new tus.Upload(file, options);
           const u = upload;
           u.findPreviousUploads()
             .then(prev => {
               if (aborted) return;
-              if (prev.length > 0) u.resumeFromPreviousUpload(prev[0]);
+              const usable = prev.filter(p => {
+                if (!p.uploadUrl) return false;
+                try { return new URL(p.uploadUrl, window.location.origin).protocol === 'https:'; }
+                catch { return false; }
+              });
+              if (usable.length > 0) u.resumeFromPreviousUpload(usable[0]);
               u.start();
             })
             .catch(() => { if (!aborted) u.start(); });
