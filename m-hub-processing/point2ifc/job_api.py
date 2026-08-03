@@ -19,6 +19,7 @@ import queue
 import re
 import threading
 import traceback
+import urllib.parse
 import urllib.request
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -52,13 +53,19 @@ def _persist_done(jid: str, result: dict) -> None:
         pass
 
 
-def _store_ifc(jid: str, ifc_path) -> "str | None":
+def _store_ifc(jid: str, ifc_path, source=None) -> "str | None":
     """Fertiges IFC in seaweed ablegen, damit node-red es als normales Dokument
-    registrieren kann. Gibt den filer-Pfad zurueck (oder None bei Fehler/kein Filer)."""
+    registrieren kann. Gibt den filer-Pfad zurueck (oder None bei Fehler/kein Filer).
+    Der Download-Name wird aus dem QUELL-Dateinamen abgeleitet, nicht 'input.ifc'."""
     base = os.environ.get("SEAWEED_FILER_INTERNAL_URL", "").rstrip("/")
     if not base or not ifc_path or not os.path.isfile(ifc_path):
         return None
-    rel = f"/mhub/point2ifc/{jid}/{os.path.basename(ifc_path)}"
+    stem = ""
+    if source:
+        raw = os.path.basename(urllib.parse.unquote(urllib.parse.urlparse(source).path)) if "://" in source else os.path.basename(source)
+        stem = re.sub(r"[^A-Za-z0-9._-]", "_", os.path.splitext(raw)[0]).strip("_")
+    name = (stem or "reduziert") + ".ifc"
+    rel = f"/mhub/point2ifc/{jid}/{name}"
     try:
         with open(ifc_path, "rb") as f:
             data = f.read()
@@ -111,7 +118,7 @@ def _worker():
                 raise FileNotFoundError(f"input not found: {src}")
             result = build_ifc(src, out_dir=os.path.join(WORK, jid, "out"),
                                write_floors=False)
-            ifc_url = _store_ifc(jid, result.get("ifc"))
+            ifc_url = _store_ifc(jid, result.get("ifc"), job["input"])
             if ifc_url:
                 result["ifc_url"] = ifc_url
             job["result"] = result
