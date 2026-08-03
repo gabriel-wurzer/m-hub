@@ -155,9 +155,15 @@ mat-dialog-content {
   color: mat.get-color-from-palette(vars.$my-primary, 700);
 }
 
+.document-image-link {
+  display: block;
+  width: 100%;
+}
+
 .document-image-preview {
   display: block;
   width: 100%;
+  height: auto;
   max-height: 340px;
   border-radius: 8px;
   border: 1px solid rgba(0, 0, 0, 0.12);
@@ -200,11 +206,6 @@ mat-dialog-content {
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.04em;
-}
-
-.document-icon-hint {
-  font-size: 1rem;
-  color: rgba(0, 0, 0, 0.65);
 }
 
 .image-wrapper {

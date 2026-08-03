@@ -42,11 +42,14 @@
 
   <div class="document-preview-wrapper" *ngIf="isDocument() && getDocumentUrl() as documentUrl">
     <ng-container *ngIf="isDocumentImagePreviewable(documentUrl); else nonImageDocumentPreview">
-      <a [href]="documentUrl" target="_blank" rel="noopener noreferrer" class="document-open-link">
+      <a [href]="documentUrl" target="_blank" rel="noopener noreferrer" class="document-open-link document-image-link">
         <img [src]="documentUrl" alt="Dokumentvorschau" class="document-image-preview" />
       </a>
       <a [href]="documentUrl" target="_blank" rel="noopener noreferrer" class="document-open-link text-link">
         Bild in neuem Tab öffnen
+      </a>
+      <a [href]="getDocumentDownloadUrl(documentUrl)" download class="document-open-link text-link">
+        Datei herunterladen
       </a>
     </ng-container>
 
@@ -61,20 +64,28 @@
         <a [href]="documentUrl" target="_blank" rel="noopener noreferrer" class="document-open-link text-link">
           Dokument in neuem Tab öffnen
         </a>
+        <a [href]="getDocumentDownloadUrl(documentUrl)" download class="document-open-link text-link">
+          Herunterladen
+        </a>
       </ng-container>
     </ng-template>
 
     <ng-template #iconDocumentPreview>
+      <div class="document-icon-card">
+        <mat-icon class="document-icon">{{ getDocumentPreviewIcon(documentUrl) }}</mat-icon>
+        <div class="document-icon-label">{{ getDocumentPreviewLabel(documentUrl) }}</div>
+      </div>
       <a
+        *ngIf="!isDocumentDownloadOnly(documentUrl)"
         [href]="documentUrl"
         target="_blank"
         rel="noopener noreferrer"
-        class="document-icon-card"
-        [attr.download]="isDocumentDownloadOnly(documentUrl) ? '' : null"
+        class="document-open-link text-link"
       >
-        <mat-icon class="document-icon">{{ getDocumentPreviewIcon(documentUrl) }}</mat-icon>
-        <div class="document-icon-label">{{ getDocumentPreviewLabel(documentUrl) }}</div>
-        <div class="document-icon-hint">{{ getDocumentActionHint(documentUrl) }}</div>
+        Datei in neuem Tab öffnen
+      </a>
+      <a [href]="getDocumentDownloadUrl(documentUrl)" download class="document-open-link text-link">
+        Herunterladen
       </a>
     </ng-template>
   </div>

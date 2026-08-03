@@ -53,7 +53,7 @@ type ObjectImageVm = {
 })
 export class EntityInfoDialogComponent {
   private readonly documentImageTypes = new Set(['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'svg', 'webp']);
-  private readonly documentDownloadOnlyTypes = new Set(['csv', 'xlsx', 'xlsm', 'doc', 'docx', 'txt', 'html', 'rtf', 'odt', 'html', 'md']);
+  private readonly documentDownloadOnlyTypes = new Set(['csv', 'xlsx', 'xlsm', 'doc', 'docx', 'txt', 'html', 'rtf', 'odt', 'html', 'md', 'e57', 'obj', 'stl', 'ply', 'glb', 'gltf', 'fbx', 'ifc']);
   private readonly documentIconByType: Record<string, string> = {
     pdf: 'picture_as_pdf',
     csv: 'table_chart',
@@ -388,8 +388,19 @@ export class EntityInfoDialogComponent {
     return !!type && this.documentDownloadOnlyTypes.has(type);
   }
 
-  getDocumentActionHint(documentUrl: string): string {
-    return this.isDocumentDownloadOnly(documentUrl) ? 'Herunterladen' : 'In neuem Tab öffnen';
+  getDocumentDownloadUrl(documentUrl: string): string {
+    try {
+      const parsedUrl = new URL(documentUrl, window.location.origin);
+      const storagePathStart = parsedUrl.pathname.indexOf('/mhub/');
+
+      if (storagePathStart >= 0) {
+        return `/files${parsedUrl.pathname.slice(storagePathStart)}${parsedUrl.search}`;
+      }
+    } catch {
+      // Keep non-URL values unchanged and let the browser resolve the href.
+    }
+
+    return documentUrl;
   }
 
   private resolveDocumentType(documentUrl: string): string | null {

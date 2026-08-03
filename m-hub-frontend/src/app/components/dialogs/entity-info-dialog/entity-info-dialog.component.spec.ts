@@ -103,4 +103,51 @@ describe('EntityInfoDialogComponent', () => {
     expect(nextActiveImage?.getAttribute('src')).toBe('https://example.com/object-image.jpg');
     expect(nativeElement.textContent).toContain('2 / 2');
   });
+
+  it('offers opening and downloading for previewable documents', () => {
+    component.entity = {
+      id: 'document-1',
+      name: 'Fassadenfoto',
+      file_type: 'jpg',
+      file_url: '/files/facade.jpg'
+    };
+    fixture.detectChanges();
+
+    const nativeElement = fixture.nativeElement as HTMLElement;
+    const actionLinks = Array.from(nativeElement.querySelectorAll<HTMLAnchorElement>('.document-open-link.text-link'));
+    const downloadLink = actionLinks.find(link => link.textContent?.includes('Datei herunterladen'));
+
+    expect(nativeElement.querySelector('.document-image-link')).not.toBeNull();
+    expect(actionLinks.some(link => link.textContent?.includes('Bild in neuem Tab öffnen'))).toBeTrue();
+    expect(downloadLink).toBeDefined();
+    expect(downloadLink?.hasAttribute('download')).toBeTrue();
+  });
+
+  it('routes stored files through the same-origin download proxy', () => {
+    expect(component.getDocumentDownloadUrl(
+      'http://localhost:8888/mhub/documents/building/document/model.ifc'
+    )).toBe('/files/mhub/documents/building/document/model.ifc');
+    expect(component.getDocumentDownloadUrl('/files/mhub/documents/building/document/model.ifc'))
+      .toBe('/files/mhub/documents/building/document/model.ifc');
+  });
+
+  it('shows download-only document actions outside the icon card', () => {
+    component.entity = {
+      id: 'document-2',
+      name: 'Gebäudemodell',
+      file_type: 'ifc',
+      file_url: '/files/building.ifc'
+    };
+    fixture.detectChanges();
+
+    const nativeElement = fixture.nativeElement as HTMLElement;
+    const iconCard = nativeElement.querySelector('.document-icon-card');
+    const actionLinks = Array.from(nativeElement.querySelectorAll<HTMLAnchorElement>('.document-open-link.text-link'));
+
+    expect(iconCard).not.toBeNull();
+    expect(iconCard?.textContent).not.toContain('Herunterladen');
+    expect(actionLinks.length).toBe(1);
+    expect(actionLinks[0].textContent).toContain('Datei herunterladen');
+    expect(actionLinks[0].hasAttribute('download')).toBeTrue();
+  });
 });
