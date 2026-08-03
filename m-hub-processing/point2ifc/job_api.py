@@ -6,11 +6,11 @@ sondern ein Hintergrund-Job (ein Worker, Jobs serialisiert -> kein OOM).
   POST /point2ifc      {"input": "<lokaler Pfad ODER http(s)-URL zu .laz/.las/.ply/.pcd>"}
                        -> {"job_id", "status":"queued"}
   GET  /point2ifc/<id> -> {"status": queued|running|done|error, "result"|"error"}
-  GET  /point2ifc/<id>/ifc  -> das reduzierte IFC (application/octet-stream)
   GET  /health         -> {"status":"ok"}
 
 Integration m-hub: node-red laedt die Punktwolke (SeaweedFS/Upload) und POSTet deren
-Pfad/URL hierher; pollt /point2ifc/<id>; bietet /ifc als Download an.
+Pfad/URL hierher; pollt /point2ifc/<id>. Das fertige IFC legt der Worker selbst in seaweed
+ab (result.ifc_url) -> node-red registriert es als Dokument.
 Start:  cd point2ifc && python job_api.py   (0.0.0.0:8972)
 """
 import json
@@ -172,19 +172,6 @@ class Handler(BaseHTTPRequestHandler):
             if len(parts) == 2:
                 return self._send(200, {"status": job["status"],
                                         "result": job["result"], "error": job["error"]})
-            if len(parts) == 3 and parts[2] == "ifc":
-                if job["status"] != "done":
-                    return self._send(409, {"error": f"job not done ({job['status']})"})
-                path = job["result"]["ifc"]
-                data = open(path, "rb").read()
-                self.send_response(200)
-                self.send_header("Content-Type", "application/octet-stream")
-                self.send_header("Content-Disposition",
-                                 f'attachment; filename="{os.path.basename(path)}"')
-                self.send_header("Content-Length", str(len(data)))
-                self.end_headers()
-                self.wfile.write(data)
-                return
         self._send(404, {"error": "not found"})
 
     def log_message(self, *a):
