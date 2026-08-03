@@ -1,0 +1,21 @@
+<h2 mat-dialog-title>Datei wird hochgeladen</h2>
+
+<mat-dialog-content>
+  <ng-container *ngIf="!errored; else errorTpl">
+    <p class="filename">{{ data.file.name }}</p>
+    <mat-progress-bar mode="determinate" [value]="percent"></mat-progress-bar>
+    <p class="status">{{ percent }}%<ng-container *ngIf="mb"> · {{ mb }}</ng-container></p>
+    <p class="hint">Bitte dieses Fenster geöffnet lassen, bis der Upload fertig ist.</p>
+  </ng-container>
+  <ng-template #errorTpl>
+    <p class="error">
+      <mat-icon>error_outline</mat-icon>
+      <span>Upload fehlgeschlagen. Bei einem erneuten Versuch mit derselben Datei wird ab dem erreichten Stand fortgesetzt.</span>
+    </p>
+  </ng-template>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button *ngIf="!errored" (click)="cancel()">Abbrechen</button>
+  <button mat-button *ngIf="errored" (click)="closeError()">Schließen</button>
+</mat-dialog-actions>

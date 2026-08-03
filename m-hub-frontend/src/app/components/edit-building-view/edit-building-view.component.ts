@@ -31,6 +31,7 @@ import {
   UpdateObjektPayload
 } from '../../models/building-component';
 import { Document, CreateDocumentPayload, ReserveDocumentPayload, UpdateDocumentPayload } from '../../models/document';
+import { Point2ifcService } from '../../services/point2ifc/point2ifc.service';
 import { Floor } from '../../models/floor';
 import { FloorType } from '../../enums/floor-type.enum';
 import { RoofType } from '../../enums/roof-type.enum';
@@ -46,6 +47,7 @@ import { EditPartDialogComponent, EditPartDialogData, EditPartDialogResult } fro
 import { AddObjectDialogComponent, AddObjectDialogResult } from '../dialogs/add-object-dialog/add-object-dialog.component';
 import { EditObjectDialogComponent, EditObjectDialogData, EditObjectDialogResult } from '../dialogs/edit-object-dialog/edit-object-dialog.component';
 import { AddDocumentDialogComponent, AddDocumentDialogData, AddDocumentDialogResult } from '../dialogs/add-document-dialog/add-document-dialog.component';
+import { UploadProgressDialogComponent, UploadProgressDialogData, UploadProgressDialogResult } from '../dialogs/upload-progress-dialog/upload-progress-dialog.component';
 import { EditDocumentDialogComponent, EditDocumentDialogData, EditDocumentDialogResult } from '../dialogs/edit-document-dialog/edit-document-dialog.component';
 import { AddListingDialogComponent, AddListingDialogData, AddListingDialogResult } from '../dialogs/add-listing-dialog/add-listing-dialog.component';
 import { EntityInfoDialogComponent } from '../dialogs/entity-info-dialog/entity-info-dialog.component';
@@ -123,8 +125,7 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
   suppressStructureAnimations = false;
 
   isLoadingDocuments = false;
-  documentUploadProgress: number | null = null; // 0..100 while a big file streams via resumable upload
-  documentUploadMb: string | null = null; // "12.3 / 45.6 MB" waehrend des Uploads
+  private readonly pointCloudTypes = new Set<string>(['e57', 'ply', 'las', 'laz']);
   isLoadingObjects = false;
   isLoadingParts = false;
 
@@ -138,6 +139,7 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
     private userService: UserService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
+    private point2ifc: Point2ifcService,
     private auth: AuthenticationService
   ) {}
 
@@ -713,7 +715,6 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
         return;
       }
 
-      this.documentUploadProgress = 0;
       const meta: ReserveDocumentPayload = {
         building_id: userBuilding.building_id,
         user_building_id: userBuilding.id,
@@ -725,16 +726,41 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
         file_original_name: result.fileName
       };
 
-      this.documentService.uploadResumable(result.file, meta, (pct, sent, total) => {
-        this.documentUploadProgress = pct;
-        this.documentUploadMb = total > 0 ? `${(sent / 1048576).toFixed(1)} / ${(total / 1048576).toFixed(1)} MB` : null;
-      })
-        .pipe(finalize(() => {
-          this.isLoadingDocuments = false;
-          this.documentUploadProgress = null;
-          this.documentUploadMb = null;
-        }))
-        .subscribe({ next: onCreated, complete: onSuccess, error: onError });
+      // Großer Upload läuft in einem blockierenden Dialog: der besitzt den Lebenszyklus
+      // (Fortschritt sichtbar, Abbrechen sauber, kein Wegnavigieren/Leck).
+      const progressRef = this.dialog.open<
+        UploadProgressDialogComponent, UploadProgressDialogData, UploadProgressDialogResult
+      >(UploadProgressDialogComponent, {
+        panelClass: 'custom-dialog',
+        disableClose: true,
+        autoFocus: false,
+        data: { file: result.file, meta }
+      });
+
+      progressRef.afterClosed().subscribe(res => {
+        this.isLoadingDocuments = false;
+        if (!res || res.status === 'cancelled') {
+          if (res?.status === 'cancelled') {
+            this.snackBar.open('Upload abgebrochen.', 'OK', { duration: 3000, verticalPosition: 'top' });
+          }
+          return;
+        }
+        if (res.status === 'error') {
+          onError('upload failed');
+          return;
+        }
+        onCreated(res.document);
+        if (this.pointCloudTypes.has(String(result.fileType).toLowerCase())) {
+          // Punktwolke: reduziertes IFC gleich im Hintergrund erzeugen (durabler Status, Schritt 1).
+          this.point2ifc.startJob(res.document.id).subscribe({ next: () => {}, error: () => {} });
+          this.snackBar.open(
+            'Hochgeladen. Das reduzierte IFC wird im Hintergrund erstellt — Download erscheint in der Dokumentliste, sobald es fertig ist.',
+            'OK', { duration: 8000, verticalPosition: 'top' }
+          );
+        } else {
+          onSuccess();
+        }
+      });
     });
   }
 

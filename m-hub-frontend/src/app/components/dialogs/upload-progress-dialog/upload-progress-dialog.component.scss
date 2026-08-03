@@ -1,0 +1,27 @@
+mat-dialog-content {
+  min-width: 320px;
+}
+
+.filename {
+  margin: 0 0 12px;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.status {
+  margin: 8px 0 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  margin: 12px 0 0;
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #b3261e;
+}
