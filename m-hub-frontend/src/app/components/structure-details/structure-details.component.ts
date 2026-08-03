@@ -116,25 +116,25 @@ export class StructureDetailsComponent implements OnChanges {
   get periodLabel(): string {
     if (this.building && this.building.bp_best_guess != null){
       const bpValue = Number(this.building.bp_best_guess);
-      return (!isNaN(bpValue) && this.periodLabels[bpValue]) ? this.periodLabels[bpValue] : 'Bauperiode unbekannt';
+      return (!isNaN(bpValue) && this.periodLabels[bpValue]) ? this.periodLabels[bpValue] : 'unbekannt';
     }
     //fallback to old bp list - deprecated
     else if (this.building && this.building.bp) {
       const bpValues = this.building.bp.split(',').map(val => val.trim());
       const labels = bpValues.map(bpStr => {
         const bpValue = Number(bpStr);
-        return (!isNaN(bpValue) && this.periodLabels[bpValue]) ? this.periodLabels[bpValue] : 'Bauperiode unbekannt';
+        return (!isNaN(bpValue) && this.periodLabels[bpValue]) ? this.periodLabels[bpValue] : 'unbekannt';
       });
       return labels.join(', ');
     }
-    return 'Bauperiode unbekannt';
+    return 'unbekannt';
   }
   
   get usageLabel(): string {
     if (this.building && this.building.dom_nutzung != null) {
-      return this.usageLabels[this.building.dom_nutzung] || 'Nutzung unbekannt';
+      return this.usageLabels[this.building.dom_nutzung] || 'unbekannt';
     }
-    return 'Nutzung unbekannt';
+    return 'unbekannt';
   }
 
   #updateUsagePieChart() {
