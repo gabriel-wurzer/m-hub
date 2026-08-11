@@ -4,6 +4,7 @@ name: m-hub
 services:
   seaweed-filer:
     image: chrislusf/seaweedfs:3.93
+    restart: unless-stopped
     command: server -ip=seaweed-filer -dir=/data -filer=true -volume.max=${SEAWEED_VOLUME_MAX:-0}
     ports:
       - "127.0.0.1:${SEAWEED_MASTER_PORT:-9333}:9333"
@@ -19,6 +20,7 @@ services:
 
   m-hub-db:
     image: m-hub-db
+    restart: unless-stopped
     build: ./m-hub-db
     platform: ${DOCKER_PLATFORM:-}
     ports:
@@ -67,6 +69,7 @@ services:
 
   m-hub-postgis-api:
     image: m-hub-postgis-api
+    restart: unless-stopped
     build: ./m-hub-postgis-api
     # Expose port 3000 from the container to the host port 3002
     ports:
@@ -93,6 +96,7 @@ services:
 
   m-hub-backend:
     image: m-hub-backend
+    restart: unless-stopped
     build:
       context: ./m-hub-backend
     ports:
@@ -133,6 +137,7 @@ services:
 
   m-hub-upload:
     image: m-hub-upload
+    restart: unless-stopped
     build: ./m-hub-upload
     # Resumable big-file upload (tus). Streams straight to the seaweed filer,
     # bypassing node-red/base64. Verifies the same JWT node-red signs.
@@ -161,6 +166,7 @@ services:
 
   m-hub-frontend:
     image: m-hub-frontend
+    restart: unless-stopped
     build:
       context: ./m-hub-frontend
       args:
@@ -187,6 +193,7 @@ services:
   # Ampel bleibt stumm.
   m-hub-plausibility:
     image: m-hub-plausibility
+    restart: unless-stopped
     build:
       context: ./m-hub-processing
     healthcheck:
