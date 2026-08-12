@@ -91,6 +91,18 @@ export enum WallPartType {
   Attika = 'Attika',
 }
 
+/**
+ * Nur bei Außenwand: freistehend oder an den Nachbarn grenzend. m-hubs part_type
+ * kennt die Unterscheidung nicht, das parametrische Modell dagegen schon
+ * (aussenwand_frei vs. aussenwand_beruehrend, Kalibrierung der lfm je Typ).
+ * Wandert deshalb als Zusatzschluessel in part_structure, das ist jsonb —
+ * kostet in m-hub keine Schemaaenderung.
+ */
+export enum WallContact {
+  frei = 'frei',
+  beruehrend = 'beruehrend',
+}
+
 /** Slab subtypes. */
 export enum SlabPartType {
   Bodenaufbau = 'Bodenaufbau',
@@ -163,6 +175,10 @@ export interface WallBuildup {
   /** Σ of member run lengths, in mm (geometry already reduced + calibrated). */
   totalLengthMm: number;
   layers: MhubLayer[];
+  /** Eingetragene Dicke = nur Kern (ohne Putz/Gips, mit Dämmung + Tragschicht). */
+  kernDicke?: boolean;
+  /** Nur bei Außenwand. */
+  wandKontakt?: WallContact;
 }
 
 export interface SlabBuildup {
@@ -207,6 +223,12 @@ export function wallBuildupToPayload(
       type: 'wall',
       length: round(b.totalLengthMm / 1000, 3), // mm → m
       layers: normalizeLayers(b.layers),
+      // Zusatzangaben fuer das Materialmodell. Nur schreiben wenn gesetzt, damit
+      // Bauteile ohne die Angaben aussehen wie bisher.
+      ...(b.kernDicke ? { kerndicke: true } : {}),
+      ...(b.partType === WallPartType['Außenwand'] && b.wandKontakt
+        ? { wandkontakt: b.wandKontakt }
+        : {}),
     },
   };
 }

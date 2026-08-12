@@ -17,7 +17,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatDividerModule } from '@angular/material/divider';
 import { WallGroup } from '../../models/plan.model';
 import {
-  LAYER_MATERIAL_OPTIONS, LayerMaterial, MhubLayer, WallPartType,
+  LAYER_MATERIAL_OPTIONS, LayerMaterial, MhubLayer, WallContact, WallPartType,
   buildupThicknessMm, isConnection,
 } from '../../models/mhub.model';
 import { MaterialPresetService } from '../../services/material-presets.service';
@@ -61,9 +61,24 @@ import { MaterialPresetService } from '../../services/material-presets.service';
           </mat-select>
         </mat-form-field>
 
+        @if (group.partType === outerWall) {
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Lage der Außenwand</mat-label>
+            <mat-select [value]="group.wandKontakt ?? contact.frei"
+                        (selectionChange)="setContact($event.value)">
+              <mat-option [value]="contact.frei">freistehend</mat-option>
+              <mat-option [value]="contact.beruehrend">grenzt an Nachbargebäude</mat-option>
+            </mat-select>
+          </mat-form-field>
+        }
+
         <div class="flags">
           <mat-checkbox [checked]="group.is_public" (change)="setPublic($event.checked)">Öffentlich</mat-checkbox>
           <mat-checkbox [checked]="group.is_hazardous" (change)="setHazardous($event.checked)">Gefahrenstoff</mat-checkbox>
+          <mat-checkbox [checked]="!!group.kernDicke" (change)="setKernDicke($event.checked)"
+                        matTooltip="Kern = ohne Putz und Gips, aber inklusive Dämmung und Tragschicht">
+            nur Rohbau/Kern ohne Putz
+          </mat-checkbox>
         </div>
 
         <mat-divider />
@@ -181,6 +196,8 @@ export class MaterialPanelComponent implements OnChanges {
   private filterText = signal('');
   private justSelected = false;
   partTypes = Object.values(WallPartType);
+  contact = WallContact;
+  outerWall = WallPartType['Außenwand'];
   isConnection = isConnection;
 
   constructor() {
@@ -224,6 +241,8 @@ export class MaterialPanelComponent implements OnChanges {
   setPartType(pt: WallPartType) { this.emit({ partType: pt }); }
   setPublic(v: boolean) { this.emit({ is_public: v }); }
   setHazardous(v: boolean) { this.emit({ is_hazardous: v }); }
+  setKernDicke(v: boolean) { this.emit({ kernDicke: v }); }
+  setContact(v: WallContact) { this.emit({ wandKontakt: v }); }
 
   /** Autocomplete select: complete the last token in the line (no commit). */
   pickMaterial(ev: MatAutocompleteSelectedEvent) {

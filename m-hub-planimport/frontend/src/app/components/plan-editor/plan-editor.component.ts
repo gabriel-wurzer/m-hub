@@ -993,6 +993,7 @@ export class PlanEditorComponent implements OnDestroy {
           partType: g.partType, name: g.name || `Wand ${g.id.slice(0, 6)}`,
           description: g.description, is_public: g.is_public, is_hazardous: g.is_hazardous,
           totalLengthMm, layers: g.layers,
+          kernDicke: g.kernDicke, wandKontakt: g.wandKontakt,
         });
       }
       for (const poly of p.polygons) {
@@ -1078,10 +1079,17 @@ export class PlanEditorComponent implements OnDestroy {
       for (const packet of packets) {
         await firstValueFrom(this.planSvc.submitImport(ctx.submitUrl, ctx.token, packet));
       }
-      this.snack.open(
-        `Übergeben: ${probe.bauteile.length} Bauteil(e), ${probe.objekte.length} Objekt(e) × ${locations.length} Geschoss(e)`,
-        'OK', { duration: 3500 },
-      );
+      // Rücksprung anbieten statt den Benutzer im Tool stehen zu lassen. m-hub hat
+      // keine Route je Gebäude, die Bestandsverwaltung ist der richtige Landeplatz.
+      // Origin aus der submit_url, das ist die einzige m-hub-Adresse, die wir kennen.
+      const back = new URL(ctx.submitUrl, window.location.origin).origin + '/bestandsverwaltung';
+      this.snack
+        .open(
+          `Übergeben: ${probe.bauteile.length} Bauteil(e), ${probe.objekte.length} Objekt(e) × ${locations.length} Geschoss(e)`,
+          'Zurück zu m-hub', { duration: 12000 },
+        )
+        .onAction()
+        .subscribe(() => { window.location.href = back; });
     } catch (e) {
       const msg = (e as { error?: { error?: string } })?.error?.error;
       this.snack.open(msg ?? 'Übergabe fehlgeschlagen', 'OK', { duration: 4000 });
