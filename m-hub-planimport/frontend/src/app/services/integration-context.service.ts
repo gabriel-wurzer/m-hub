@@ -21,9 +21,13 @@ export interface IntegrationContext {
   documentId?: string;
 }
 
+/** sessionStorage-Schluessel. Pro Tab, stirbt mit dem Tab — genau die Lebensdauer
+ *  eines Absprungs. Das Token steht ohnehin schon in der Adresszeile. */
+const STORAGE_KEY = 'mhub.integrationContext';
+
 @Injectable({ providedIn: 'root' })
 export class IntegrationContextService {
-  readonly context: IntegrationContext | null = this.read();
+  readonly context: IntegrationContext | null = this.read() ?? this.restore();
 
   get integrated(): boolean { return this.context !== null; }
 
@@ -34,7 +38,7 @@ export class IntegrationContextService {
       const submitUrl = q.get('submit_url');
       const token = q.get('token');
       if (!buildingId || !submitUrl || !token) return null;
-      return {
+      return this.remember({
         buildingId,
         userBuildingId: q.get('user_building_id') ?? '',
         ownerId: q.get('owner_id') ?? '',
@@ -43,7 +47,34 @@ export class IntegrationContextService {
         storeys: (q.get('storeys') ?? '').split(',').map((s) => s.trim()).filter(Boolean),
         pdfUrl: q.get('pdf_url') ?? undefined,
         documentId: q.get('document_id') ?? undefined,
-      };
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  /** Kontext merken, damit er einen Reload ueberlebt. Ohne das faellt das Tool
+   *  nach jedem F5 in den Stand-alone-Modus und "Uebergeben" wird zu
+   *  "Packet herunterladen" — die Absprung-Parameter stehen nur beim ersten
+   *  Aufruf in der Adresszeile, danach ist die Route /plan/<id>. */
+  private remember(ctx: IntegrationContext): IntegrationContext {
+    try {
+      // pdfUrl NICHT mitspeichern: sonst legt die Planliste bei jedem Reload
+      // erneut einen Plan aus demselben PDF an.
+      const { pdfUrl: _drop, ...rest } = ctx;
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
+    } catch {
+      /* privater Modus o.ae. — dann eben nur fuer diesen Seitenaufbau */
+    }
+    return ctx;
+  }
+
+  private restore(): IntegrationContext | null {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const ctx = JSON.parse(raw) as IntegrationContext;
+      return ctx.buildingId && ctx.submitUrl && ctx.token ? ctx : null;
     } catch {
       return null;
     }

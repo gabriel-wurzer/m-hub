@@ -105,8 +105,10 @@ export class PlanListComponent {
   error = signal<string | null>(null);
 
   constructor() {
-    // Auto-launch: m-hub opened us with a PDF to evaluate — fetch it and go
-    // straight into the editor (the integration context persists for hand-off).
+    // Auto-launch: m-hub opened us with a PDF to evaluate — fetch it, then the
+    // SAME setup dialog as after an upload (Wandfarbe + Maßstab), and von dort
+    // in den Editor. Ohne den Dialog gäbe es auf diesem Weg keine Wanderkennung:
+    // der Editor hat dafür keinen Einstieg, der Plan bliebe bei 0 Segmenten.
     const ctx = this.ctxSvc.context;
     if (ctx?.pdfUrl) {
       this.uploading.set(true);
@@ -114,7 +116,7 @@ export class PlanListComponent {
       this.planSvc.createFromUrl(ctx.pdfUrl, filename, ctx.token).subscribe({
         next: (plan) => {
           this.uploading.set(false);
-          this.router.navigate(['/plan', plan.id]);
+          this.openSetupDialog(plan);
         },
         error: (e) => {
           this.uploading.set(false);
