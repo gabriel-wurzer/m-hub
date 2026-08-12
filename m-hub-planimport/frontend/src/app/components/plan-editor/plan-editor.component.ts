@@ -29,6 +29,7 @@ import { ObjectPanelComponent } from '../object-panel/object-panel.component';
 import { FloorPanelComponent } from '../floor-panel/floor-panel.component';
 import { IntegrationContextService } from '../../services/integration-context.service';
 import { HandoffDialogComponent } from '../dialogs/handoff-dialog/handoff-dialog.component';
+import { PlanSetupDialogComponent, SetupDialogData } from '../plan-setup/plan-setup-dialog.component';
 
 /** True when a keyboard event originates from a text-entry field. */
 function isEditableTarget(t: EventTarget | null): boolean {
@@ -201,6 +202,11 @@ interface UndoEntry {
         </mat-menu>
 
         <span class="spacer"></span>
+
+        <button mat-stroked-button (click)="openSetup()"
+                matTooltip="Wandfarbe und Maßstab ändern, Wände neu erkennen">
+          <mat-icon>colorize</mat-icon> Erkennung
+        </button>
 
         <button mat-stroked-button (click)="toggleDespeckle()"
                 [class.despeckle-on]="despeckleActive()"
@@ -569,6 +575,37 @@ export class PlanEditorComponent implements OnDestroy {
   openReport() {
     const p = this.plan();
     if (p) this.router.navigate(['/report', p.id]);
+  }
+
+  /** Wandfarbe/Maßstab nachjustieren und neu erkennen — derselbe Dialog wie beim
+   *  Import. Ohne diesen Einstieg waere ein danebengegriffener Farbtupfer eine
+   *  Sackgasse: der Editor kann Erkennung sonst nicht ausloesen.
+   *  Die Erkennung liefert frische Segmente, der Server verwirft dabei die
+   *  Aufbau-Zuweisungen (redetectWalls). Der Dialog warnt entsprechend, hier
+   *  werden zusaetzlich Auswahl und Undo-Historie zurueckgesetzt — sie zeigen
+   *  sonst auf Segment-Ids, die es nicht mehr gibt. */
+  openSetup() {
+    const p = this.plan();
+    if (!p) return;
+    const ref = this.dialog.open(PlanSetupDialogComponent, {
+      data: { plan: p, assignedBuildups: p.wallGroups?.length ?? 0 } as SetupDialogData,
+      disableClose: true,
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      panelClass: 'setup-dialog-panel',
+    });
+    ref.afterClosed().subscribe((result: PlanDoc | null) => {
+      if (!result) return;
+      this.plan.set(result);
+      this.selection.set([]);
+      this.selectedPlacemarkId.set(null);
+      this.selectedPolygonId.set(null);
+      this.undoStack = [];
+      this.redoStack = [];
+      this.snack.open(
+        `${result.wallSegments.length} Segment(e) erkannt`, 'OK', { duration: 3000 },
+      );
+    });
   }
 
   back() {

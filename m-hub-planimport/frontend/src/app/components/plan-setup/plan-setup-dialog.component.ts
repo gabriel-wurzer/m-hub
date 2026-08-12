@@ -24,6 +24,9 @@ import { DetectRegion, PlanDoc } from '../../models/plan.model';
 
 export interface SetupDialogData {
   plan: PlanDoc;
+  /** Anzahl bereits zugewiesener Aufbauten. Beim erneuten Erkennen aus dem Editor
+   *  gesetzt: die Erkennung erzeugt frische Segmente und verwirft die Zuweisungen. */
+  assignedBuildups?: number;
 }
 
 function rgbCss(c: [number, number, number]): string {
@@ -144,6 +147,14 @@ function rgbCss(c: [number, number, number]): string {
             }
           </div>
 
+          @if (data.assignedBuildups) {
+            <div class="warn">
+              <mat-icon>warning</mat-icon>
+              Erneutes Erkennen erzeugt frische Segmente und verwirft dabei
+              {{ data.assignedBuildups }} bereits zugewiesene(n) Aufbau(ten).
+            </div>
+          }
+
           @if (error()) {
             <div class="error">{{ error() }}</div>
           }
@@ -215,6 +226,11 @@ function rgbCss(c: [number, number, number]): string {
     }
     .empty-palette mat-icon { font-size: 32px; width: 32px; height: 32px; }
     .error { color: #c62828; font-size: 13px; padding: 8px; background: #fbe9e7; border-radius: 6px; }
+    .warn {
+      display: flex; align-items: flex-start; gap: 6px; color: #8a5300; font-size: 13px;
+      padding: 8px; background: #fff4e0; border-radius: 6px; line-height: 1.4;
+    }
+    .warn mat-icon { font-size: 18px; width: 18px; height: 18px; flex: none; }
 
     .actions { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
     .full-btn { width: 100%; }
