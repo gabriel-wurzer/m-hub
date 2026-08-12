@@ -60,6 +60,17 @@ CREATE TABLE IF NOT EXISTS documents (
 
 
 -- ===============================================
+--  KEINE INITIAL DATA INSERTS
+--  Frueher wurden hier sechs Dokumente mit https://example.com/*.pdf geseedet
+--  (von Lukas entfernt, 4808174). Sie bleiben draussen, weil die Dateien nicht
+--  existieren: an jedem Dokument mit file_type='pdf' bietet das Frontend
+--  "Plan auswerten" an, das Plantool holt das PDF dann serverseitig und laeuft
+--  ins Leere -> eine frische Installation sieht kaputt aus.
+--  Stattdessen nach dem Deployment einmal einen echten (Vektor-)Plan hochladen;
+--  der ist zugleich das Demo-Objekt fuer das Plantool.
+-- ===============================================
+
+-- ===============================================
 --  UPDATE TRIGGER LOGIC
 -- ===============================================
 CREATE OR REPLACE FUNCTION update_documents_updated_at()
