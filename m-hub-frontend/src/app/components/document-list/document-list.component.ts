@@ -205,10 +205,11 @@ export class DocumentListComponent implements OnInit, OnChanges, OnDestroy {
 
   private openEntityInfoDialog(entity: Document): void {
     this.dialog.open(EntityInfoDialogComponent, {
-      width: '90%',
-      maxWidth: '620px',
+      width: '95%',
+      maxWidth: '800px',
       maxHeight: '90vh',
       autoFocus: false,
+      panelClass: 'entity-info-dialog-panel',
       data: { entity }
     });
   }

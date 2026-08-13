@@ -850,10 +850,11 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
 
   openEntityInfoDialog(entity: Bauteil | Objekt | Document): void {
     this.dialog.open(EntityInfoDialogComponent, {
-      width: '90%',
-      maxWidth: '620px',
+      width: '95%',
+      maxWidth: '800px',
       maxHeight: '90vh',
       autoFocus: false,
+      panelClass: 'entity-info-dialog-panel',
       data: {
         entity,
         structure: this.structure
