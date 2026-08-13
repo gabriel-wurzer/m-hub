@@ -1,9 +1,9 @@
 <div class="list-container">
-    <div class="list-toolbar" *ngIf="!skipFetch">
+    <!-- <div class="list-toolbar" *ngIf="!skipFetch">
         <button mat-icon-button matTooltip="Neu laden" (click)="reload()">
             <mat-icon>refresh</mat-icon>
         </button>
-    </div>
+    </div> -->
     <mat-spinner *ngIf="isLoading" [diameter]="40" [strokeWidth]="3" class="loading-spinner" />
 
     <mat-list *ngIf="!isLoading && documents.length > 0; else noDocsMessage">
