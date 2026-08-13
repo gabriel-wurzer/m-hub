@@ -16,6 +16,7 @@ import {
 import { animate, style, transition, trigger } from '@angular/animations';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -23,7 +24,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PartType } from '../../enums/part-type.enum';
 import { MaterialType } from '../../enums/material-type.enum';
-import { PartStructure, Layer } from '../../models/part-structure';
+import { PartStructure, Layer, WallStructure } from '../../models/part-structure';
 import { LayerMaterial, LAYER_MATERIAL_OPTIONS } from '../../models/layer-material';
 import { Subject, Subscription, of } from 'rxjs';
 import { catchError, debounceTime, switchMap } from 'rxjs/operators';
@@ -51,6 +52,7 @@ type StructureType = PartStructure['type'];
     CommonModule,
     FormsModule,
     MatButtonModule,
+    MatCheckboxModule,
     MatIconModule,
     MatInputModule,
     MatFormFieldModule,
@@ -186,6 +188,8 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
   structureType: StructureType | null = null;
   layers: EditablePartLayer[] = [];
   structureMeasure: number | null = null;
+  /** Nur bei Wänden relevant, siehe isWallStructure-Guard im Template. */
+  kernDicke = false;
   animationsDisabled = true;
   isCompactViewport = false;
   isLayerChipCompact = false;
@@ -380,6 +384,11 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
     this.emitChanges();
   }
 
+  onKernDickeChange(value: boolean): void {
+    this.kernDicke = value;
+    this.emitChanges();
+  }
+
   isThicknessDisabled(layer: EditablePartLayer): boolean {
     return this.requiresFixedZeroThickness(layer.material);
   }
@@ -420,6 +429,7 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
     if (!nextStructureType) {
       this.layers = [];
       this.structureMeasure = null;
+      this.kernDicke = false;
       this.emitChangesDeferred();
       return;
     }
@@ -428,8 +438,9 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
       const normalizedLayers = this.structure.layers.map((layer, index) => this.normalizeIncomingLayer(layer, index + 1));
       normalizedLayers.forEach((layer) => this.enforceLayerThicknessRule(layer));
       const normalizedMeasure = this.normalizeIncomingStructureMeasure(this.structure);
+      const incomingKernDicke = nextStructureType === 'wall' ? !!(this.structure as WallStructure).kerndicke : false;
 
-      const incomingStructureJson = JSON.stringify(this.buildStructure(normalizedLayers, normalizedMeasure));
+      const incomingStructureJson = JSON.stringify(this.buildStructure(normalizedLayers, normalizedMeasure, incomingKernDicke));
       const currentStructureJson = this.getCurrentStructureJson();
       const shouldApplyIncomingStructure =
         this.layers.length === 0 ||
@@ -439,6 +450,7 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
       if (shouldApplyIncomingStructure) {
         this.layers = normalizedLayers;
         this.structureMeasure = normalizedMeasure;
+        this.kernDicke = incomingKernDicke;
       }
 
       this.emitChangesDeferred();
@@ -447,6 +459,7 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
 
     this.layers = [this.createEmptyLayer(1)];
     this.structureMeasure = null;
+    this.kernDicke = false;
     this.emitChangesDeferred();
   }
 
@@ -544,7 +557,11 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
     return structure ? JSON.stringify(structure) : null;
   }
 
-  private buildStructure(layers: EditablePartLayer[], measure: number | null): PartStructure | null {
+  private buildStructure(
+    layers: EditablePartLayer[],
+    measure: number | null,
+    kernDicke: boolean = this.kernDicke
+  ): PartStructure | null {
     if (this.structureType === 'wall') {
       return {
         type: 'wall',
@@ -553,7 +570,8 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
           layer_index: index + 1,
           material: layer.material ?? null,
           thickness: this.normalizeNumber(layer.thickness)
-        }))
+        })),
+         ...(kernDicke ? { kerndicke: true } : {})
       };
     }
 

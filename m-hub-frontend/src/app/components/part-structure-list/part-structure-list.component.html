@@ -41,6 +41,19 @@
     </div>
   </div>
 
+  <div class="kern-toggle-row" *ngIf="isWallStructure">
+    <mat-checkbox class="kern-toggle" [(ngModel)]="kernDicke" (ngModelChange)="onKernDickeChange($event)">
+      Ist Kernaufbau
+      <mat-icon
+        class="info-icon"
+        aria-label="Information zu Kernaufbau"
+        matTooltip="Eingetragene Dicke = nur Kernaufbau (ohne Putz und Gips, aber inklusive Dämmung und Tragschicht). Sonst gilt die Dicke als Gesamtdicke."
+      >
+        info
+      </mat-icon>
+    </mat-checkbox>
+  </div>
+
   <div
     class="plausibility-banner"
     *ngIf="plausibility"

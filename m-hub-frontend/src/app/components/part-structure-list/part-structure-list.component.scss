@@ -50,6 +50,20 @@
   margin: 0 0 6px;
 }
 
+.kern-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.info-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  vertical-align: top;
+  color: mat.get-color-from-palette(vars.$my-primary, 500);
+}
+
 .orientation-hint {
   font-size: 15px;
   color: rgba(0, 0, 0, 0.62);

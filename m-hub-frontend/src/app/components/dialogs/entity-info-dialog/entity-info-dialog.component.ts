@@ -479,7 +479,8 @@ export class EntityInfoDialogComponent {
       return {
         type: 'wall',
         length: this.normalizeNumber(structure.length),
-        layers
+        layers,
+        kerndicke: structure.kerndicke === true
       };
     }
 

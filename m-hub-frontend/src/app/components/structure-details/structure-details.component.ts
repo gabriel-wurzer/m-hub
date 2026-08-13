@@ -555,7 +555,8 @@ export class StructureDetailsComponent implements OnChanges {
       return {
         type: 'wall',
         length: this.normalizeNumber(structure.length),
-        layers
+        layers,
+        kerndicke: structure.kerndicke === true
       };
     }
 

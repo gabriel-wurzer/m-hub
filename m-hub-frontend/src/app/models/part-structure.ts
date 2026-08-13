@@ -10,6 +10,7 @@ export interface WallStructure {
   type: 'wall';
   length: number | null;
   layers: Layer[];
+  kerndicke?: boolean;
 }
 
 export interface SlabStructure {
