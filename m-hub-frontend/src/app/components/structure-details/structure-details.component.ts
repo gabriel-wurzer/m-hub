@@ -480,7 +480,8 @@ export class StructureDetailsComponent implements OnChanges {
       case PartType.DA:
         return 'Dachaufbau';
       default:
-        return structure.type === 'slab' ? 'Deckenaufbau' : 'Wandaufbau';
+        if (structure.type === 'slab') return 'Deckenaufbau';
+        return structure.kerndicke ? 'Wandaufbau (Kern)' : 'Wandaufbau';
     }
   }
 

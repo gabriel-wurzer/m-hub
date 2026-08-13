@@ -198,7 +198,7 @@ export class EntityInfoDialogComponent {
       case PartType.DA:
         return 'Dachaufbau';
       default:
-        return 'Wandaufbau';
+        return structure.type === 'wall' && structure.kerndicke ? 'Wandaufbau (Kern)' : 'Wandaufbau';
     }
   }
 
