@@ -2,7 +2,7 @@
 // The m-hub vocabularies + payload live in mhub.model.ts; here we describe the
 // plan's geometry and the buildups the user assigns.
 
-import { MhubLayer, ObjectType, SlabPartType, WallContact, WallPartType } from './mhub.model';
+import { MhubLayer, ObjectType, SlabPartType, WallPartType } from './mhub.model';
 
 export interface WallSegment {
   id: string;
@@ -27,8 +27,6 @@ export interface WallGroup {
   /** Die eingetragene Dicke meint nur den Kern (Rohbau ohne Putz/Gips, aber
    *  inklusive Dämmung und Tragschicht). Sonst gilt sie als Gesamtdicke. */
   kernDicke?: boolean;
-  /** Nur bei Außenwand: freistehend oder an den Nachbarn grenzend. */
-  wandKontakt?: WallContact;
 }
 
 export interface FloorPolygon {

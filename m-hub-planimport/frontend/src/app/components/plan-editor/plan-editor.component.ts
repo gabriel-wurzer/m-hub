@@ -992,8 +992,7 @@ export class PlanEditorComponent implements OnDestroy {
         walls.push({
           partType: g.partType, name: g.name || `Wand ${g.id.slice(0, 6)}`,
           description: g.description, is_public: g.is_public, is_hazardous: g.is_hazardous,
-          totalLengthMm, layers: g.layers,
-          kernDicke: g.kernDicke, wandKontakt: g.wandKontakt,
+          totalLengthMm, layers: g.layers, kernDicke: g.kernDicke,
         });
       }
       for (const poly of p.polygons) {

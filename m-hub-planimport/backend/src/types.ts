@@ -42,8 +42,6 @@ export interface WallGroup {
   layers: MhubLayer[];
   /** Eingetragene Dicke = nur Kern (ohne Putz/Gips, mit Daemmung + Tragschicht). */
   kernDicke?: boolean;
-  /** Nur bei Aussenwand: 'frei' | 'beruehrend'. */
-  wandKontakt?: string;
 }
 
 /** Object placemark (Objekt). Position is tool-side only; not stored by m-hub. */

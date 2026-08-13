@@ -61,13 +61,14 @@ import { MaterialPresetService } from '../../services/material-presets.service';
           </mat-select>
         </mat-form-field>
 
-        @if (group.partType === outerWall) {
+        @if (showsContact(group.partType)) {
           <mat-form-field appearance="outline" class="full">
             <mat-label>Lage der Außenwand</mat-label>
-            <mat-select [value]="group.wandKontakt ?? contact.frei"
-                        (selectionChange)="setContact($event.value)">
-              <mat-option [value]="contact.frei">freistehend</mat-option>
-              <mat-option [value]="contact.beruehrend">grenzt an Nachbargebäude</mat-option>
+            <mat-select [value]="contactOf(group.partType)"
+                        (selectionChange)="setContact($event.value)"
+                        matTooltip="Setzt den Bauteiltyp. Berührend heißt in m-hub Brandwand, also die Feuermauer zum Nachbarn.">
+              <mat-option [value]="contact.frei">freistehend (Außenwand)</mat-option>
+              <mat-option [value]="contact.beruehrend">grenzt an Nachbargebäude (Brandwand)</mat-option>
             </mat-select>
           </mat-form-field>
         }
@@ -197,7 +198,6 @@ export class MaterialPanelComponent implements OnChanges {
   private justSelected = false;
   partTypes = Object.values(WallPartType);
   contact = WallContact;
-  outerWall = WallPartType['Außenwand'];
   isConnection = isConnection;
 
   constructor() {
@@ -242,7 +242,18 @@ export class MaterialPanelComponent implements OnChanges {
   setPublic(v: boolean) { this.emit({ is_public: v }); }
   setHazardous(v: boolean) { this.emit({ is_hazardous: v }); }
   setKernDicke(v: boolean) { this.emit({ kernDicke: v }); }
-  setContact(v: WallContact) { this.emit({ wandKontakt: v }); }
+
+  /** Die Auswahl "Lage" ist nur eine zweite Sicht auf den Bauteiltyp: m-hub kodiert
+   *  die Berührung als Brandwand. Deshalb kein eigenes Feld, sondern partType setzen. */
+  setContact(v: WallContact) {
+    this.emit({ partType: v === WallContact.beruehrend ? WallPartType.Brandwand : WallPartType['Außenwand'] });
+  }
+  showsContact(pt: WallPartType) {
+    return pt === WallPartType['Außenwand'] || pt === WallPartType.Brandwand;
+  }
+  contactOf(pt: WallPartType) {
+    return pt === WallPartType.Brandwand ? WallContact.beruehrend : WallContact.frei;
+  }
 
   /** Autocomplete select: complete the last token in the line (no commit). */
   pickMaterial(ev: MatAutocompleteSelectedEvent) {

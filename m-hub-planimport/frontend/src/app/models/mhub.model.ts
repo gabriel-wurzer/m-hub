@@ -92,11 +92,11 @@ export enum WallPartType {
 }
 
 /**
- * Nur bei Außenwand: freistehend oder an den Nachbarn grenzend. m-hubs part_type
- * kennt die Unterscheidung nicht, das parametrische Modell dagegen schon
- * (aussenwand_frei vs. aussenwand_beruehrend, Kalibrierung der lfm je Typ).
- * Wandert deshalb als Zusatzschluessel in part_structure, das ist jsonb —
- * kostet in m-hub keine Schemaaenderung.
+ * Freistehend oder an den Nachbarn grenzend — NUR eine freundlichere Sicht auf
+ * part_type, kein eigenes Feld. m-hub kodiert die Berührung im Bauteiltyp:
+ * Brandwand = Außenwand mit Kontakt (Projektkonvention, Feuermauer zum Nachbarn;
+ * bestätigt von Lukas Rast 2026-08-13). Zwei Felder für dieselbe Sache wären
+ * eines zu viel, deshalb steht der Wert nicht im Payload.
  */
 export enum WallContact {
   frei = 'frei',
@@ -177,8 +177,6 @@ export interface WallBuildup {
   layers: MhubLayer[];
   /** Eingetragene Dicke = nur Kern (ohne Putz/Gips, mit Dämmung + Tragschicht). */
   kernDicke?: boolean;
-  /** Nur bei Außenwand. */
-  wandKontakt?: WallContact;
 }
 
 export interface SlabBuildup {
@@ -223,12 +221,10 @@ export function wallBuildupToPayload(
       type: 'wall',
       length: round(b.totalLengthMm / 1000, 3), // mm → m
       layers: normalizeLayers(b.layers),
-      // Zusatzangaben fuer das Materialmodell. Nur schreiben wenn gesetzt, damit
-      // Bauteile ohne die Angaben aussehen wie bisher.
+      // Zusatzangabe fuer das Materialmodell. Nur schreiben wenn gesetzt, damit
+      // Bauteile ohne die Angabe aussehen wie bisher. Die Beruehrung steht NICHT
+      // hier, die traegt part_type (Brandwand), siehe WallContact.
       ...(b.kernDicke ? { kerndicke: true } : {}),
-      ...(b.partType === WallPartType['Außenwand'] && b.wandKontakt
-        ? { wandkontakt: b.wandKontakt }
-        : {}),
     },
   };
 }
