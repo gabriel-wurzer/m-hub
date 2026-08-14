@@ -19,8 +19,9 @@ import test_upload_resume
 import test_point2ifc_job
 import test_ifc_document
 import test_plausibility
+import test_wandkontakt
 
-SUITES = (test_upload_resume, test_point2ifc_job, test_ifc_document, test_plausibility)
+SUITES = (test_upload_resume, test_point2ifc_job, test_ifc_document, test_plausibility, test_wandkontakt)
 
 
 def main():
