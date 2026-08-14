@@ -190,6 +190,8 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
   structureMeasure: number | null = null;
   /** Nur bei Wänden relevant, siehe isWallStructure-Guard im Template. */
   kernDicke = false;
+  /** Nur bei Außen-/Brandwand relevant (Kontakt zu Nachbargebäude). */
+  nachbarkontakt = false;
   animationsDisabled = true;
   isCompactViewport = false;
   isLayerChipCompact = false;
@@ -236,6 +238,11 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
 
   get isWallStructure(): boolean {
     return this.structureType === 'wall';
+  }
+
+  /** "Kontakt zu Nachbargebäude" gibt es nur für Außen- und Brandwand. */
+  get showsNeighborContact(): boolean {
+    return this.partType === PartType.AW || this.partType === PartType.BW;
   }
 
   get plausibilityIcon(): string {
@@ -389,6 +396,11 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
     this.emitChanges();
   }
 
+  onNachbarkontaktChange(value: boolean): void {
+    this.nachbarkontakt = value;
+    this.emitChanges();
+  }
+
   isThicknessDisabled(layer: EditablePartLayer): boolean {
     return this.requiresFixedZeroThickness(layer.material);
   }
@@ -430,6 +442,7 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
       this.layers = [];
       this.structureMeasure = null;
       this.kernDicke = false;
+      this.nachbarkontakt = false;
       this.emitChangesDeferred();
       return;
     }
@@ -439,8 +452,9 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
       normalizedLayers.forEach((layer) => this.enforceLayerThicknessRule(layer));
       const normalizedMeasure = this.normalizeIncomingStructureMeasure(this.structure);
       const incomingKernDicke = nextStructureType === 'wall' ? !!(this.structure as WallStructure).kerndicke : false;
+      const incomingNachbarkontakt = this.showsNeighborContact ? !!(this.structure as WallStructure).nachbarkontakt : false;
 
-      const incomingStructureJson = JSON.stringify(this.buildStructure(normalizedLayers, normalizedMeasure, incomingKernDicke));
+      const incomingStructureJson = JSON.stringify(this.buildStructure(normalizedLayers, normalizedMeasure, incomingKernDicke, incomingNachbarkontakt));
       const currentStructureJson = this.getCurrentStructureJson();
       const shouldApplyIncomingStructure =
         this.layers.length === 0 ||
@@ -451,6 +465,7 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
         this.layers = normalizedLayers;
         this.structureMeasure = normalizedMeasure;
         this.kernDicke = incomingKernDicke;
+        this.nachbarkontakt = incomingNachbarkontakt;
       }
 
       this.emitChangesDeferred();
@@ -460,6 +475,7 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
     this.layers = [this.createEmptyLayer(1)];
     this.structureMeasure = null;
     this.kernDicke = false;
+    this.nachbarkontakt = false;
     this.emitChangesDeferred();
   }
 
@@ -560,7 +576,8 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
   private buildStructure(
     layers: EditablePartLayer[],
     measure: number | null,
-    kernDicke: boolean = this.kernDicke
+    kernDicke: boolean = this.kernDicke,
+    nachbarkontakt: boolean = this.nachbarkontakt
   ): PartStructure | null {
     if (this.structureType === 'wall') {
       return {
@@ -571,7 +588,8 @@ export class PartStructureListComponent implements OnInit, OnChanges, AfterViewI
           material: layer.material ?? null,
           thickness: this.normalizeNumber(layer.thickness)
         })),
-         ...(kernDicke ? { kerndicke: true } : {})
+         ...(kernDicke ? { kerndicke: true } : {}),
+         ...(nachbarkontakt && this.showsNeighborContact ? { nachbarkontakt: true } : {})
       };
     }
 

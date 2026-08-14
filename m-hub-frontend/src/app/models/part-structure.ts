@@ -11,6 +11,9 @@ export interface WallStructure {
   length: number | null;
   layers: Layer[];
   kerndicke?: boolean;
+  /** Kontakt zu Nachbargebaeude (geteilte/beruehrende Wand); nur Aussen-/Brandwand.
+   *  Trainings-Feature fuers Materialmodell — entkoppelt vom Bauteiltyp. */
+  nachbarkontakt?: boolean;
 }
 
 export interface SlabStructure {

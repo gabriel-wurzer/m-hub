@@ -54,6 +54,19 @@
     </mat-checkbox>
   </div>
 
+  <div class="kern-toggle-row" *ngIf="showsNeighborContact">
+    <mat-checkbox class="kern-toggle" [(ngModel)]="nachbarkontakt" (ngModelChange)="onNachbarkontaktChange($event)">
+      Kontakt zu Nachbargebäude
+      <mat-icon
+        class="info-icon"
+        aria-label="Information zu Kontakt zu Nachbargebäude"
+        matTooltip="Diese Wand grenzt an ein Nachbargebäude (geteilte/berührende Wand). Nur für Außen- und Brandwand."
+      >
+        info
+      </mat-icon>
+    </mat-checkbox>
+  </div>
+
   <div
     class="plausibility-banner"
     *ngIf="plausibility"

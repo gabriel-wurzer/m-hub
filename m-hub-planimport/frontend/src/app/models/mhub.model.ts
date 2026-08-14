@@ -92,11 +92,11 @@ export enum WallPartType {
 }
 
 /**
- * Freistehend oder an den Nachbarn grenzend — NUR eine freundlichere Sicht auf
- * part_type, kein eigenes Feld. m-hub kodiert die Berührung im Bauteiltyp:
- * Brandwand = Außenwand mit Kontakt (Projektkonvention, Feuermauer zum Nachbarn;
- * bestätigt von Lukas Rast 2026-08-13). Zwei Felder für dieselbe Sache wären
- * eines zu viel, deshalb steht der Wert nicht im Payload.
+ * Freistehend oder an den Nachbarn grenzend. Im Plan-Import weiterhin über den
+ * Bauteiltyp gewählt (berührend = Brandwand). Zusätzlich wird die Berührung seit
+ * 2026-08-14 (Lukas) als `nachbarkontakt`-Flag im part_structure gespiegelt —
+ * Trainings-Feature fürs Materialmodell, das den Kontakt vom Typ entkoppelt (im
+ * m-hub-Editor auch für eine Außenwand setzbar). Der Bauteiltyp bleibt unverändert.
  */
 export enum WallContact {
   frei = 'frei',
@@ -221,10 +221,12 @@ export function wallBuildupToPayload(
       type: 'wall',
       length: round(b.totalLengthMm / 1000, 3), // mm → m
       layers: normalizeLayers(b.layers),
-      // Zusatzangabe fuer das Materialmodell. Nur schreiben wenn gesetzt, damit
-      // Bauteile ohne die Angabe aussehen wie bisher. Die Beruehrung steht NICHT
-      // hier, die traegt part_type (Brandwand), siehe WallContact.
+      // Zusatzangaben fuers Materialmodell. Nur schreiben wenn gesetzt, damit
+      // Bauteile ohne die Angabe aussehen wie bisher.
       ...(b.kernDicke ? { kerndicke: true } : {}),
+      // Kontakt zu Nachbargebaeude: die beruehrende Wand ist im Plan-Import genau die
+      // Brandwand (Lage-Auswahl). Als Flag gespiegelt (Trainings-Feature), Typ bleibt.
+      ...(b.partType === WallPartType.Brandwand ? { nachbarkontakt: true } : {}),
     },
   };
 }
