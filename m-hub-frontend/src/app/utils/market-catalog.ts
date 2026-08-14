@@ -128,6 +128,28 @@ function createPreviewImage(theme: MarketPreviewTheme, motif: MarketPreviewMotif
 }
 
 function renderPreviewArt(motif: MarketPreviewMotif, theme: MarketPreviewTheme): string {
+  const offsets: Partial<Record<MarketPreviewMotif, { dx?: number; dy?: number }>> = {
+    mineralik: { dx: 18 },
+    metals: { dy: 12 },
+    biomass: { dy: 20 },
+    plastics: { dy: 18 },
+    ceiling: { dy: 16 },
+    door: { dy: 18 },
+    frame: { dy: 18 },
+    window: { dy: 16 },
+    radiator: { dy: 26 },
+    pipes: { dy: 24 },
+    misc: { dy: 20 },
+    cables: { dy: -22 }
+  };
+
+  const art = renderPreviewArtShapes(motif, theme);
+  const offset = offsets[motif];
+
+  return offset ? `<g transform="translate(${offset.dx ?? 0}, ${offset.dy ?? 0})">${art}</g>` : art;
+}
+
+function renderPreviewArtShapes(motif: MarketPreviewMotif, theme: MarketPreviewTheme): string {
   switch (motif) {
     case 'mineralik':
       return `
@@ -217,6 +239,7 @@ function renderPreviewArt(motif: MarketPreviewMotif, theme: MarketPreviewTheme):
       `;
     case 'radiator':
       return `
+        <rect x="170" y="80" width="286" height="16" rx="8" fill="${theme.ink}" fill-opacity="0.18"/>
         <rect x="176" y="104" width="32" height="108" rx="12" fill="${theme.accent}"/>
         <rect x="224" y="96" width="32" height="116" rx="12" fill="${theme.accentSoft}"/>
         <rect x="272" y="104" width="32" height="108" rx="12" fill="${theme.accent}"/>
