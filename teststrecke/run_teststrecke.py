@@ -21,8 +21,9 @@ import test_ifc_document
 import test_plausibility
 import test_wandkontakt
 import test_endpoint_hardening
+import test_ownership
 
-SUITES = (test_upload_resume, test_point2ifc_job, test_ifc_document, test_plausibility, test_wandkontakt, test_endpoint_hardening)
+SUITES = (test_upload_resume, test_point2ifc_job, test_ifc_document, test_plausibility, test_wandkontakt, test_endpoint_hardening, test_ownership)
 
 
 def main():
