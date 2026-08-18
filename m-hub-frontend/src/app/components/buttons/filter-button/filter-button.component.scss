@@ -1,3 +1,6 @@
+@use '@angular/material' as mat;
+@use '../../../../theme-setup' as vars;
+
 .leaflet-control-filter {
     width: 34px;
     height: 34px;
@@ -19,7 +22,7 @@
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background-color: #1976d2;
+    background-color: mat.get-color-from-palette(vars.$my-primary, 500);
     box-shadow: 0 0 0 1.5px #fff;
     pointer-events: none;
 }
