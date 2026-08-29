@@ -43,6 +43,14 @@ def run(r):
     r.check("erfundenes material -> stufe 2 unbekannt",
             sc == 200 and res.get("stufe") == 2 and "Karton" in res.get("detail", ""), f"res={res}")
 
+    # Wolfgang 2026-08: nie gesehene Folge aus BEKANNTEN Materialien -> Stufe 2 (bestaetigen),
+    # nicht mehr Stufe 1. Gruenderzeit-Aussenwand mit Innendaemmung kam in den 11 nie vor.
+    sc, res = _check({"period": "bis 1918", "floor_type": "RG", "part_type": "AW",
+                      "materials": ["Putz", "Mineralwolle", "Ziegel"]})
+    r.check("nie gesehene folge aus bekannten materialien -> stufe 2 (nicht 1)",
+            sc == 200 and res.get("stufe") == 2 and res.get("umgekehrt") is False
+            and "unbekannt" not in res.get("label", "").lower(), f"res={res}")
+
     # node-red baut materials[] auch aus layers[] (so schickt es das Frontend).
     sc, res = _check({**aw, "layers": [{"layer_index": 1, "material": "Beton", "thickness": 200},
                                        {"layer_index": 2, "material": "Styropor", "thickness": 80},

@@ -159,8 +159,10 @@ def check(seq, bp, ort, art, rev_factor=3.0):
     """
     Bewertet einen eingegebenen Aufbau:
       Stufe 3 = passt ins übliche Bild (im Referenzbereich)
-      Stufe 2 = divergent, bitte bestätigen (unbekanntes Material / umgekehrt / ungewöhnlich)
-      Stufe 1 = unplausibel (nie gesehene Materialfolge, Umkehrung rettet nicht)
+      Stufe 2 = divergent, bitte bestätigen (unbekanntes Material / umgekehrt /
+                nie gesehene Folge aus bekannten Materialien)
+      Stufe 1 = echter Widerspruch (reserviert). Mit 11 Vermessungen ist "nie gesehen"
+                nicht "gibt es nicht", daher aktuell nicht ausgelöst (Wolfgang 2026-08)
     """
     seq = list(seq)
     unknown = [m for m in seq if m not in VOCAB]
@@ -177,8 +179,12 @@ def check(seq, bp, ort, art, rev_factor=3.0):
         return dict(tier=2, label="vermutlich UMGEKEHRT eingegeben",
                     detail="die Umkehrung ergibt einen typischen Aufbau", fwd=fwd, rev=rev, n_ref=n_ref)
     if fwd <= 0.0:
-        return dict(tier=1, label="unplausibel",
-                    detail="enthält eine nie gesehene Materialfolge", fwd=fwd, rev=rev, n_ref=n_ref)
+        # Bekannte Materialien (unknown ist oben abgefangen), aber diese Folge kam in den
+        # 11 Vermessungen nie vor. Wolfgang 2026-08: "nie gesehen" ist nicht "gibt es nicht",
+        # also bestätigen lassen (Stufe 2). Stufe 1 bleibt echten Widersprüchen vorbehalten.
+        return dict(tier=2, label="nie gesehene Materialfolge",
+                    detail="aus bekannten Materialien, in den Referenzdaten aber nie gesehen, bitte bestätigen",
+                    fwd=fwd, rev=rev, n_ref=n_ref)
     if n_ref and fwd >= floor:
         return dict(tier=3, label="passt ins übliche Bild",
                     detail="im Referenzbereich", fwd=fwd, rev=rev, n_ref=n_ref)
@@ -217,7 +223,8 @@ if __name__ == "__main__":
         ("1980-1999", "RG", "AW", ["STB", "Styropor", "Putz"], "korrekt"),
         ("1980-1999", "RG", "AW", ["Putz", "Styropor", "STB"], "umgekehrt eingegeben"),
         ("1980-1999", "RG", "AW", ["STB", "Karton", "Putz"], "erfundenes Material"),
-        ("1980-1999", "RG", "AW", ["Latten", "Sparren", "Ziegel"], "wirre Folge"),
+        ("1980-1999", "RG", "AW", ["Latten", "Sparren", "Ziegel"], "wirre Folge (bekannte Materialien -> jetzt Stufe 2)"),
+        ("bis 1918", "RG", "AW", ["Putz", "Dämmung-weich", "Ziegel"], "Gründerzeit-Innendämmung, nie gesehen -> Stufe 2"),
         ("bis 1918", "RG", "AW", ["Putz", "Ziegel", "Putz"], "korrekt (symmetrisch)"),
     ]
     for bp, ort, art, seq, note in tests:
