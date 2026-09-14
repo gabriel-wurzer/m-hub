@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SparkJS Gaussian Splat Webviewer</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./vendor/three.module.js",
+          "three/addons/": "./vendor/addons/",
+          "@sparkjsdev/spark": "./vendor/spark.module.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main class="app">
+      <section class="viewport" aria-label="Gaussian splat viewer">
+        <div id="viewer" class="viewer"></div>
+        <div id="status" class="status" role="status">Loading assets...</div>
+      </section>
+
+      <aside class="panel" aria-label="Viewer controls">
+        <header>
+          <h1>m-Hub Gaussian Splat Webviewer</h1>
+        </header>
+
+        <div class="control-group">
+          <label for="assetSelect">Asset</label>
+          <select id="assetSelect" name="assetSelect"></select>
+        </div>
+
+        <div class="controls-grid main-controls">
+          <button id="resetCamera" type="button">Reset view</button>
+          <button id="centerSplat" type="button">Center splat</button>
+          <button id="toggleSpin" type="button" aria-pressed="false">Spin off</button>
+          <button id="toggleGrid" type="button" aria-pressed="true">Grid on</button>
+          <button id="toggleBounds" type="button" aria-pressed="false">Bounds off</button>
+          <button id="toggleDimensions" type="button" aria-pressed="false">Scales off</button>
+        </div>
+
+        <div class="slider-group">
+          <label for="splatScale">
+            Scale
+            <output id="scaleValue">1.00x</output>
+          </label>
+          <input id="splatScale" type="range" min="0.05" max="5" step="0.05" value="1" />
+        </div>
+
+        <div class="slider-group">
+          <label for="opacity">
+            Opacity
+            <output id="opacityValue">100%</output>
+          </label>
+          <input id="opacity" type="range" min="0.05" max="1" step="0.05" value="1" />
+        </div>
+
+        <div class="control-group">
+          <label for="qualityPreset">Performance / Quality</label>
+          <select id="qualityPreset" name="qualityPreset">
+            <option value="10">Fast preview</option>
+            <option value="25">Fast</option>
+            <option value="50" selected>Balanced</option>
+            <option value="75">High quality</option>
+            <option value="100">Full quality</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+
+        <div class="slider-group">
+          <label for="lodScale">
+            Quality
+            <output id="lodScaleValue">50%</output>
+          </label>
+          <input id="lodScale" type="range" min="1" max="100" step="1" value="50" />
+        </div>
+
+        <div class="control-group">
+          <label for="assetCenterMode">Asset Center Setting</label>
+          <select id="assetCenterMode" name="assetCenterMode">
+            <option value="pivot">Pivot point</option>
+            <option value="bounds">Bounding box center</option>
+          </select>
+        </div>
+
+        <section class="transform-panel" aria-label="Transform controls">
+          <label>Transform</label>
+          <div class="transform-row">
+            <button id="moveMode" type="button" aria-pressed="false">Move</button>
+            <button id="rotateMode" type="button" aria-pressed="false">Rotate</button>
+            <button id="scaleMode" type="button" aria-pressed="false">Scale</button>
+          </div>
+          <button id="resetTransform" type="button">Reset transform</button>
+        </section>
+
+        <section class="transform-panel" aria-label="Camera controls">
+          <label>Camera</label>
+          <div class="transform-row camera-mode-row">
+            <button id="perspectiveMode" type="button" aria-pressed="true">Perspective</button>
+            <button id="orthoMode" type="button" aria-pressed="false">Ortho</button>
+          </div>
+          <div class="slider-group">
+            <label for="fovSlider">
+              FOV
+              <output id="fovValue">55 deg</output>
+            </label>
+            <input id="fovSlider" type="range" min="15" max="90" step="1" value="55" />
+          </div>
+        </section>
+
+        <section class="transform-panel" aria-label="Download controls">
+          <label>Download</label>
+          <div class="transform-row">
+            <button id="downloadOriginal" type="button">Splat</button>
+            <button id="downloadXYZRGB" type="button">Rhino Point cloud</button>
+            <button id="downloadArchicadXYZ" type="button">Archicad XYZ</button>
+          </div>
+          <div class="control-group">
+            <label for="pointCloudUpAxis">Point cloud up axis</label>
+            <select id="pointCloudUpAxis" name="pointCloudUpAxis">
+              <option value="z" selected>Z up</option>
+              <option value="y">Y up</option>
+            </select>
+          </div>
+        </section>
+
+        <dl class="meta">
+          <div>
+            <dt>Format</dt>
+            <dd id="formatValue">SPZ</dd>
+          </div>
+          <div>
+            <dt>Source</dt>
+            <dd id="sourceValue">Demo</dd>
+          </div>
+        </dl>
+
+        <dl class="meta stats" aria-label="Loaded asset statistics">
+          <div>
+            <dt>Splats</dt>
+            <dd id="splatCountValue">-</dd>
+          </div>
+          <div>
+            <dt>File size</dt>
+            <dd id="fileSizeValue">-</dd>
+          </div>
+          <div>
+            <dt>Bounds</dt>
+            <dd id="boundsSizeValue">-</dd>
+          </div>
+          <div>
+            <dt>Center</dt>
+            <dd id="boundsCenterValue">-</dd>
+          </div>
+          <div>
+            <dt>Density</dt>
+            <dd id="densityValue">-</dd>
+          </div>
+          <div>
+            <dt>LoD budget</dt>
+            <dd id="lodBudgetValue">400k</dd>
+          </div>
+          <div>
+            <dt>Load time</dt>
+            <dd id="loadTimeValue">-</dd>
+          </div>
+        </dl>
+      </aside>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

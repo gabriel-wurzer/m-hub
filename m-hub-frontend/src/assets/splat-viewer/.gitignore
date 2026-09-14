@@ -1,0 +1,6 @@
+# Splat-/Punktwolken-Daten sind Laufzeit-Dokumente (kommen per ?src=), nie ins Repo.
+*.ply
+*.spz
+*.splat
+*.ksplat
+*.sog
