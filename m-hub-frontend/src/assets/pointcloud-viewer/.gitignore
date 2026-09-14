@@ -1,0 +1,7 @@
+# Punktwolken sind Laufzeit-Dokumente (kommen per ?src=), nie ins Repo.
+*.ply
+*.xyz
+*.pts
+*.las
+*.laz
+*.e57

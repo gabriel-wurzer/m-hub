@@ -56,6 +56,7 @@ export class EntityInfoDialogComponent {
   private readonly documentDownloadOnlyTypes = new Set(['csv', 'xlsx', 'xlsm', 'doc', 'docx', 'txt', 'html', 'rtf', 'odt', 'html', 'md', 'e57', 'obj', 'stl', 'ply', 'glb', 'gltf', 'fbx', 'ifc']);
   private readonly splatViewerTypes = new Set(['ply', 'spz', 'splat', 'ksplat', 'sog']);
   private readonly ifcViewerTypes = new Set(['ifc']);
+  private readonly pointCloudViewerTypes = new Set(['xyz', 'pts']);
   private readonly documentIconByType: Record<string, string> = {
     pdf: 'picture_as_pdf',
     csv: 'table_chart',
@@ -407,13 +408,15 @@ export class EntityInfoDialogComponent {
 
   is3dViewable(documentUrl: string): boolean {
     const type = this.resolveDocumentType(documentUrl);
-    return !!type && (this.splatViewerTypes.has(type) || this.ifcViewerTypes.has(type));
+    return !!type && (this.splatViewerTypes.has(type) || this.ifcViewerTypes.has(type) || this.pointCloudViewerTypes.has(type));
   }
 
   get3dViewerUrl(documentUrl: string): string {
     const type = this.resolveDocumentType(documentUrl);
     const served = this.getDocumentDownloadUrl(documentUrl);
-    const viewer = type && this.ifcViewerTypes.has(type) ? 'ifc-viewer' : 'splat-viewer';
+    let viewer = 'splat-viewer';
+    if (type && this.ifcViewerTypes.has(type)) viewer = 'ifc-viewer';
+    else if (type && this.pointCloudViewerTypes.has(type)) viewer = 'pointcloud-viewer';
     return `assets/${viewer}/index.html?src=${encodeURIComponent(served)}`;
   }
 
