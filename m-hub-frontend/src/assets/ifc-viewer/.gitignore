@@ -1,0 +1,3 @@
+# IFC-Modelle sind Laufzeit-Dokumente (kommen per ?src=), nie ins Repo.
+*.ifc
+*.ifczip

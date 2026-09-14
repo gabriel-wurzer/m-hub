@@ -76,13 +76,13 @@
         <div class="document-icon-label">{{ getDocumentPreviewLabel(documentUrl) }}</div>
       </div>
       <a
-        *ngIf="isSplatViewable(documentUrl)"
-        [href]="getSplatViewerUrl(documentUrl)"
+        *ngIf="is3dViewable(documentUrl)"
+        [href]="get3dViewerUrl(documentUrl)"
         target="_blank"
         rel="noopener noreferrer"
         class="document-open-link text-link"
       >
-        3D ansehen (Splat)
+        3D ansehen
       </a>
       <a
         *ngIf="!isDocumentDownloadOnly(documentUrl)"

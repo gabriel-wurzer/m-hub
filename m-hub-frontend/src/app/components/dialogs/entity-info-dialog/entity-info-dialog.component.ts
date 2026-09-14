@@ -55,6 +55,7 @@ export class EntityInfoDialogComponent {
   private readonly documentImageTypes = new Set(['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'svg', 'webp']);
   private readonly documentDownloadOnlyTypes = new Set(['csv', 'xlsx', 'xlsm', 'doc', 'docx', 'txt', 'html', 'rtf', 'odt', 'html', 'md', 'e57', 'obj', 'stl', 'ply', 'glb', 'gltf', 'fbx', 'ifc']);
   private readonly splatViewerTypes = new Set(['ply', 'spz', 'splat', 'ksplat', 'sog']);
+  private readonly ifcViewerTypes = new Set(['ifc']);
   private readonly documentIconByType: Record<string, string> = {
     pdf: 'picture_as_pdf',
     csv: 'table_chart',
@@ -404,14 +405,16 @@ export class EntityInfoDialogComponent {
     return documentUrl;
   }
 
-  isSplatViewable(documentUrl: string): boolean {
+  is3dViewable(documentUrl: string): boolean {
     const type = this.resolveDocumentType(documentUrl);
-    return !!type && this.splatViewerTypes.has(type);
+    return !!type && (this.splatViewerTypes.has(type) || this.ifcViewerTypes.has(type));
   }
 
-  getSplatViewerUrl(documentUrl: string): string {
+  get3dViewerUrl(documentUrl: string): string {
+    const type = this.resolveDocumentType(documentUrl);
     const served = this.getDocumentDownloadUrl(documentUrl);
-    return `assets/splat-viewer/index.html?src=${encodeURIComponent(served)}`;
+    const viewer = type && this.ifcViewerTypes.has(type) ? 'ifc-viewer' : 'splat-viewer';
+    return `assets/${viewer}/index.html?src=${encodeURIComponent(served)}`;
   }
 
   private resolveDocumentType(documentUrl: string): string | null {

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>m-Hub IFC Viewer</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #101114; color: #cdd3dc;
+        font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
+      #viewer { position: fixed; inset: 0; }
+      #title { position: fixed; left: 14px; top: 12px; font-weight: 600; letter-spacing: .2px; }
+      #status { position: fixed; left: 14px; bottom: 12px; background: rgba(16,17,20,.82);
+        padding: 6px 10px; border-radius: 6px; font-size: 13px; }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./vendor/three.module.js",
+          "three/addons/": "./vendor/addons/",
+          "web-ifc": "./vendor/web-ifc/web-ifc-api.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="viewer"></div>
+    <div id="title">m-Hub IFC Viewer</div>
+    <div id="status">Bereit.</div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
