@@ -1,0 +1,10 @@
+bauperiode,ort,art,mat,nettoflaeche,anteil,pct_po,stk,staerke
+ab 2000,RG,AW,"(Putz, 0.015; Beton, 0.200; Fliesenkleber, 0.005; Styropor, 0.160; Putz, 0.005)",85,34.0,,,
+ab 2000,RG,AW,"(Putz, 0.015; Ziegel, 0.250; Fliesenkleber, 0.005; Styropor, 0.140; Putz, 0.005)",15,6.0,,,
+ab 2000,RG,IW,"(Putz, 0.015; Beton, 0.200; Putz, 0.015)",40,11.2,,,
+ab 2000,RG,IW,"(Rigips, 0.025; Mineralwolle, 0.075; Rigips, 0.025)",60,16.8,,,
+ab 2000,DG,D,"(Schüttung, 0.080; Styropor, 0.220; Bitumen, 0.005; Beton, 0.220; Putz, 0.010)",80,11.2,,,
+ab 2000,DG,D,"(Stahl, 0.030; Holz, 0.024; Mineralwolle, 0.220; Styropor, 0.060; Bitumen, 0.002; Rigips, 0.015)",20,2.8,,,
+ab 2000,KG,AW,"(Diverse Kunststoffe, 0.010; Styropor, 0.120; Bitumen, 0.005; Beton, 0.300; Putz, 0.015)",100,6.0,,,
+ab 2000,KG,FB,"(Estrich, 0.030; Styropor, 0.100; Bitumen, 0.005; Beton, 0.300; Schüttung, 0.100)",100,6.0,,,
+ab 2000,DG,FB,"(Holz, 0.015; Estrich, 0.060; Diverse Kunststoffe, 0.001; Mineralwolle, 0.035; Schüttung, 0.060; Beton, 0.220; Putz, 0.010)",100,6.0,,,

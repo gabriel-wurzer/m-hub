@@ -16,32 +16,45 @@ the rare tail are the gap an offline LLM (fable) fills during development.
 """
 import math
 import os
+import re
 from collections import defaultdict
 
 import pandas as pd
 
 # Katalog liegt gebuendelt beim Service. Skript-relativ, damit CWD egal ist:
 # lokal aus m-hub-processing/, im Container aus /app.
-SRC = os.path.join(os.path.dirname(__file__), "data", "aufbauten_katalog.xlsx")   # Wolfgangs MitStärke-Katalog (Stand 2026-07-25)
+SRC = os.path.join(os.path.dirname(__file__), "data", "aufbauten_katalog.xlsx")   # Wolfgangs Kategorie-Katalog bp1-4 (gemessen, 11 Vermessungen)
+BP5 = os.path.join(os.path.dirname(__file__), "data", "bp5_referenz.csv")          # ab 2000: Wolfgang-Referenz (KI-Vorschlag, keine Messung)
 S, E = "<S>", "<E>"
 
 
 def parse_materials(mat):
-    """'(Putz, 0.015; Ziegel, 0.16; Putz, 0.025)' -> ['Putz', 'Ziegel', 'Putz'].
-    Balken/Linien-Zeilen (LxW-Schema, z.B. 'IPE, 30.00x14.20') werden uebersprungen."""
+    """'(Putz, 0.015; Holz (Stk), 0.05; Stahl (Stk) + Mineralwolle, 0.08)'
+       -> ['Putz', 'Holz', 'Stahl', 'Mineralwolle'].
+    '(Stk)' markiert ein Stueck-Material (nicht flaechig) -> Marker weg, Material bleibt.
+    'A + B' ist eine Ebene mit zwei Materialien (Stahlprofile mit Mineralwolle dazwischen) -> beide.
+    LxW-Balkenzeilen (z.B. 'IPE, 30.00x14.20') werden uebersprungen."""
     out = []
     for lay in str(mat).strip().strip("()").split(";"):
         parts = [p.strip() for p in lay.split(",")]
         name = parts[0]
-        if not name or "x" in ",".join(parts[1:]):   # 'x' -> LxW-Balken, kein Flaechen-Layer
+        if not name or "x" in ",".join(parts[1:]):
             continue
-        out.append(name)
+        for piece in name.split("+"):
+            m = re.sub(r"\s*\(stk\)\s*", " ", piece, flags=re.I).strip()
+            m = re.sub(r"\s+", " ", m)
+            if m == "Stahl Verkleidung":
+                m = "Stahl"
+            if m:
+                out.append(m)
     return out
 
 
 df = pd.read_excel(SRC, sheet_name="Ergebnis")
 df.columns = ["bauperiode", "ort", "art", "mat", "nettoflaeche",
               "anteil", "pct_po", "stk", "staerke"]
+if os.path.exists(BP5):
+    df = pd.concat([df, pd.read_csv(BP5)], ignore_index=True)   # ab-2000-Referenzzeilen dazu
 df = df.dropna(subset=["mat"]).copy()
 df["seq"] = df["mat"].map(parse_materials)
 df = df[df["seq"].map(len) > 0].copy()   # reine Balken-Zeilen (leere Folge) raus
@@ -220,11 +233,12 @@ if __name__ == "__main__":
     print("\n" + "#" * 64)
     print("PLAUSIBILITAETSCHECK (Demo)")
     tests = [
-        ("1980-1999", "RG", "AW", ["STB", "Styropor", "Putz"], "korrekt"),
-        ("1980-1999", "RG", "AW", ["Putz", "Styropor", "STB"], "umgekehrt eingegeben"),
-        ("1980-1999", "RG", "AW", ["STB", "Karton", "Putz"], "erfundenes Material"),
-        ("1980-1999", "RG", "AW", ["Latten", "Sparren", "Ziegel"], "wirre Folge (bekannte Materialien -> jetzt Stufe 2)"),
-        ("bis 1918", "RG", "AW", ["Putz", "Dämmung-weich", "Ziegel"], "Gründerzeit-Innendämmung, nie gesehen -> Stufe 2"),
+        ("1980-1999", "RG", "AW", ["Beton", "Styropor", "Putz"], "korrekt"),
+        ("1980-1999", "RG", "AW", ["Putz", "Styropor", "Beton"], "umgekehrt eingegeben"),
+        ("1980-1999", "RG", "AW", ["Beton", "Karton", "Putz"], "erfundenes Material"),
+        ("1980-1999", "RG", "AW", ["Holz", "Stahl", "Ziegel"], "nie gesehene Folge aus bekannten Materialien -> Stufe 2"),
+        ("bis 1918", "RG", "AW", ["Putz", "Mineralwolle", "Ziegel"], "Gründerzeit-Innendämmung, nie gesehen -> Stufe 2"),
+        ("ab 2000", "RG", "AW", ["Putz", "Beton", "Fliesenkleber", "Styropor", "Putz"], "ab-2000 WDVS (bp5-Referenz)"),
         ("bis 1918", "RG", "AW", ["Putz", "Ziegel", "Putz"], "korrekt (symmetrisch)"),
     ]
     for bp, ort, art, seq, note in tests:

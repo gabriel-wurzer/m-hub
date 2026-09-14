@@ -11,10 +11,10 @@ Nutzt material_markov.check() (Markov + Referenzbereich + Umkehr-Erkennung). Zer
 der Processing-Core; spaeter ggf. FastAPI, wenn Point-Cloud-Endpoints dazukommen.
 
 Der Service spricht AUSSEN m-hubs Materialvokabular (MaterialType, 38 Werte) und
-INNEN Wolfgangs Katalogvokabular (58 Begriffe). Ohne Uebersetzung ueberschneiden
-sich die beiden nur in 14 Begriffen, und der Check schlaegt bei voellig normalen
-Eingaben Fehlalarm (m-hub kennt nur "Beton", der Katalog nennt die tragende
-Stahlbetonwand "STB" -> Beton/Styropor/Putz kam als "unplausibel" zurueck).
+INNEN Wolfgangs Kategorie-Katalog (32 Begriffe). Seit der Kategorie-Umstellung tragen
+beide fast dieselben Begriffe (Beton, Ziegel, Mineralwolle ...), die Uebersetzung ist
+darum auf wenige Faelle geschrumpft. Frueher hiess die tragende Wand im Katalog "STB",
+m-hub nur "Beton" -> Fehlalarm; mit dem neuen Katalog ist das weg.
 
 Start:  cd m-hub-processing && python plausibility_api.py   (lauscht auf 127.0.0.1:8971)
 """
@@ -42,32 +42,15 @@ BP = {"unbekannt": "unbekannt", "vor 1919": "bis 1918", "bis 1918": "bis 1918",
 
 # --- m-hub MaterialType -> Katalogbegriffe (Kandidaten, bester gewinnt) ---
 # Quelle links: m-hub-frontend/src/app/enums/material-type.enum.ts (38 Werte).
-# Quelle rechts: mk.VOCAB aus Wolfgangs Katalog. Ein m-hub-Begriff ist teils
-# groeber als der Katalog (m-hub "Beton" = Katalog "STB" ODER "Beton"), deshalb
-# Kandidatenlisten und nicht 1:1. Nicht gelistete Materialien gehen unveraendert
-# durch: stehen sie im Katalog, passt es; sonst meldet der Check sie ehrlich als
-# unbekannt (Estrichbelaege wie Teppich/Laminat/PVC kommen im Katalog schlicht
-# nicht vor).
+# Quelle rechts: mk.VOCAB aus Wolfgangs Kategorie-Katalog. Der traegt die m-hub-Begriffe
+# fast direkt, darum bleiben nur die Faelle wo m-hub anders heisst als die Kategorie.
+# Nicht gelistete gehen unveraendert durch; fehlt die Kategorie (Blei, Messing, Moertel,
+# Papier), meldet der Check sie ehrlich als unbekannt.
 ALIAS = {
-    "Beton": ("STB", "Beton", "Betonfertigteil"),
-    "Blähbeton": ("Leichtbeton",),
-    "Ytong": ("Leichtbeton",),          # Porenbeton; naechster Katalogbegriff
-    "Mineralwolle": ("Dämmung-weich",),
-    "Mineralfaser": ("Dämmung-weich",),
-    "Styropor": ("Styropor", "Dämmung-hart"),
-    "Rigips": ("Gips", "Rigipswand"),
-    "Naturstein": ("Stein",),
-    "Eternit": ("Faserzement",),        # Eternit IST Faserzement
-    "Fliesen": ("Keramik",),
-    "Steinzeug": ("Keramik",),
-    "Bitumen": ("Bitumen", "Abdichtung"),
-    "Asphalt": ("Abdichtung",),
-    "Heraklith": ("Heraklith", "Heraklith/Holz"),
-    "Stahl": ("Stahl", "Stahlträger", "Metall"),
-    "Aluminium": ("Aluminium", "Metall"),
-    "Kupfer": ("Metall",),
-    "Messing": ("Metall",),
-    "Blei": ("Metall",),
+    "Linol": ("Linoleum",),
+    "Mineralfaser": ("Mineralwolle",),
+    "Terrazzo": ("Kunststein",),
+    "Keramik": ("Fliesen", "Steinzeug"),
 }
 
 # Nur fuer den /vocab-Report: m-hubs geschlossenes Materialvokabular.

@@ -6,7 +6,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir pandas openpyxl
 
 COPY material_markov.py plausibility_api.py ./
-COPY data/aufbauten_katalog.xlsx ./data/aufbauten_katalog.xlsx
+COPY data/aufbauten_katalog.xlsx data/bp5_referenz.csv ./data/
 
 ENV PLAUSIBILITY_HOST=0.0.0.0
 EXPOSE 8971

@@ -1,9 +1,9 @@
 """Suite: Plausibilitaetscheck (node-red /api/plausibility -> Python-Service -> Markov).
 
-Prueft die Kette bis ins Modell und vor allem die Vokabular-Uebersetzung: m-hub kennt
-nur "Beton", der Katalog nennt die tragende Wand "STB". Ohne Uebersetzung kam die
-haeufigste Nachkriegs-Aussenwand als "unplausibel" zurueck (Fehlalarm im zugesagten
-Deliverable). Braucht nur den laufenden Stack, keine Testdaten.
+Prueft die Kette bis ins Modell. Seit Wolfgangs Kategorie-Katalog traegt das Modell die
+m-hub-Begriffe direkt (Beton statt STB), die Uebersetzung ist auf wenige Faelle
+geschrumpft. Deckt ab: direkte Erkennung, Umkehr, ab-2000 (bp5-Referenz), unbekanntes
+Material und nie-gesehene-Folge (Stufe 2). Braucht nur den laufenden Stack, keine Testdaten.
 """
 import json
 
@@ -21,25 +21,27 @@ def _check(payload):
 def run(r):
     aw = {"period": "1980-1999", "floor_type": "RG", "part_type": "AW"}
 
-    sc, res = _check({**aw, "materials": ["STB", "Styropor", "Putz"]})
-    r.check("route erreichbar + katalog-schreibweise passt (stufe 3)",
-            sc == 200 and res.get("stufe") == 3, f"sc={sc} res={res}")
-
+    # Beton wird jetzt direkt erkannt (Kategorie-Katalog), keine Uebersetzung mehr noetig.
     sc, res = _check({**aw, "materials": ["Beton", "Styropor", "Putz"]})
-    r.check("m-hub-schreibweise 'Beton' wird als STB gelesen (stufe 3)",
-            sc == 200 and res.get("stufe") == 3 and res.get("gelesen_als", [None])[0] == "STB",
-            f"sc={sc} res={res}")
+    r.check("'Beton' direkt erkannt (stufe 3, keine uebersetzung)",
+            sc == 200 and res.get("stufe") == 3 and "gelesen_als" not in res, f"sc={sc} res={res}")
 
     sc, res = _check({**aw, "materials": ["Putz", "Styropor", "Beton"]})
-    r.check("umgekehrt eingegeben wird trotz uebersetzung erkannt",
+    r.check("umgekehrt eingegeben wird erkannt (stufe 2)",
             sc == 200 and res.get("stufe") == 2 and res.get("umgekehrt") is True, f"res={res}")
 
     sc, res = _check({"period": "bis 1918", "floor_type": "RG", "part_type": "AW",
                       "materials": ["Putz", "Ziegel", "Putz"]})
-    r.check("gruenderzeit Putz+Ziegel+Putz passt (stufe 3, keine falsche umkehr-warnung)",
+    r.check("gruenderzeit Putz+Ziegel+Putz passt (stufe 3, keine falsche umkehr)",
             sc == 200 and res.get("stufe") == 3 and res.get("umgekehrt") is False, f"res={res}")
 
-    sc, res = _check({**aw, "materials": ["STB", "Karton", "Putz"]})
+    # ab 2000 ist jetzt abgedeckt (bp5-Referenz): Stahlbeton-WDVS-Aussenwand.
+    sc, res = _check({"period": "ab 2000", "floor_type": "RG", "part_type": "AW",
+                      "materials": ["Putz", "Beton", "Fliesenkleber", "Styropor", "Putz"]})
+    r.check("ab-2000 WDVS-wand abgedeckt (stufe 3, bp5-referenz)",
+            sc == 200 and res.get("stufe") == 3, f"res={res}")
+
+    sc, res = _check({**aw, "materials": ["Beton", "Karton", "Putz"]})
     r.check("erfundenes material -> stufe 2 unbekannt",
             sc == 200 and res.get("stufe") == 2 and "Karton" in res.get("detail", ""), f"res={res}")
 
