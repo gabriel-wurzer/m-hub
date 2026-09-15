@@ -115,6 +115,42 @@ def vocab_report():
             "direkt": direkt, "uebersetzt": uebersetzt, "ohne_entsprechung": ohne}
 
 
+# --- Aufbauten-Katalog: typische Schichtfolgen je (Bauperiode, Ort, Art) ---------
+# Das "errechnete Buch": pro Zelle die gemessenen typischen Aufbauten mit Anteil.
+CAT_PERIOD_ORDER = ["bis 1918", "1919-1944", "1945-1979", "1980-1999", "ab 2000", "unbekannt"]
+CAT_ORT_ORDER = ["KG", "RG", "DG"]
+CAT_ART_ORDER = ["AW", "IW", "FB", "D"]
+CAT_ORT_LABEL = {"KG": "Keller", "RG": "Regelgeschoss", "DG": "Dachgeschoss"}
+CAT_ART_LABEL = {"AW": "Außenwand", "IW": "Innenwand", "FB": "Boden", "D": "Dach"}
+
+
+def _cat_idx(order, v):
+    return order.index(v) if v in order else len(order)
+
+
+def catalog(k=3):
+    """Voller Aufbauten-Katalog: je (Bauperiode, Ort, Art) die top-k gemessenen
+    typischen Aufbauten (Schichtfolge + Anteil). Basis fuer alle drei Ebenen
+    (ganz Wien / eigener Bestand / einzelnes Gebaeude filtern nach Bauperiode)."""
+    seen = mk.df.groupby(["bauperiode", "ort", "art"]).size().reset_index(name="n")
+    cells = []
+    for _, r in seen.iterrows():
+        tops = mk.observed_top(r.bauperiode, r.ort, r.art, k)
+        cells.append({
+            "bauperiode": r.bauperiode, "ort": r.ort, "art": r.art,
+            "ort_label": CAT_ORT_LABEL.get(r.ort, r.ort),
+            "art_label": CAT_ART_LABEL.get(r.art, r.art),
+            "n": int(r.n),
+            "aufbauten": [{"folge": mats, "anteil": round(float(share), 4)}
+                          for mats, share in tops],
+        })
+    cells.sort(key=lambda c: (_cat_idx(CAT_PERIOD_ORDER, c["bauperiode"]),
+                              _cat_idx(CAT_ORT_ORDER, c["ort"]),
+                              _cat_idx(CAT_ART_ORDER, c["art"])))
+    return {"cells": cells, "period_order": CAT_PERIOD_ORDER,
+            "ort_order": CAT_ORT_ORDER, "art_order": CAT_ART_ORDER}
+
+
 class Handler(BaseHTTPRequestHandler):
     def _send(self, code, obj):
         body = json.dumps(obj, ensure_ascii=False).encode("utf-8")
@@ -146,6 +182,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         if p == "/vocab":
             self._send(200, vocab_report())
+            return
+        if p == "/catalog":
+            self._send(200, catalog())
             return
         self._send(404, {"error": "not found"})
 
