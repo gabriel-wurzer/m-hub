@@ -6,6 +6,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { FormsModule } from '@angular/forms';
 
 import { EChartsOption } from 'echarts';
 import { NgxEchartsModule } from 'ngx-echarts';
@@ -28,10 +31,13 @@ interface StockRow {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    MatFormFieldModule,
+    MatSelectModule,
     NgxEchartsModule
   ],
   templateUrl: './urban-stock.component.html',
@@ -43,6 +49,8 @@ export class UrbanStockComponent implements OnInit {
   total: StockRow | null = null;
 
   materialsPieChartOptions: EChartsOption = {};
+  /** 'gesamt' oder eine Bauperiode (row.period) — steuert die Pie. */
+  selectedPeriod = 'gesamt';
 
   isLoading = false;
   isDownloading = false;
@@ -124,24 +132,35 @@ export class UrbanStockComponent implements OnInit {
         this.rows.push(row);
       }
     }
-    this.buildPie();
+    this.selectedPeriod = 'gesamt';
+    this.applyPeriod();
   }
 
-  /** Pie der Gesamt-Materialzusammensetzung — gespiegelt zu Lukas' Gebäude-Chart. */
-  private buildPie(): void {
-    if (!this.total) {
+  /** Pie auf die gewählte Bauperiode (oder Gesamt) umstellen. */
+  applyPeriod(): void {
+    if (this.selectedPeriod === 'gesamt' || !this.selectedPeriod) {
+      this.buildPie(this.total?.values ?? [], 'gesamter Wiener Gebäudebestand');
+      return;
+    }
+    const row = this.rows.find(r => r.period === this.selectedPeriod);
+    this.buildPie(row?.values ?? [], `Bauperiode ${this.selectedPeriod}`);
+  }
+
+  /** Pie der Materialzusammensetzung — gespiegelt zu Lukas' Gebäude-Chart. */
+  private buildPie(values: number[], subtitle: string): void {
+    if (!values.length) {
       this.materialsPieChartOptions = {};
       return;
     }
     const data = this.groupLabels
-      .map((name, i) => ({ name, value: this.total!.values[i] ?? 0 }))
+      .map((name, i) => ({ name, value: values[i] ?? 0 }))
       .filter(d => d.value > 0);
 
     this.materialsPieChartOptions = {
       title: {
         left: 'center',
         text: 'Baumaterialgruppen',
-        subtext: 'gesamter Wiener Gebäudebestand',
+        subtext: subtitle,
         subtextStyle: { fontSize: 13 }
       },
       tooltip: {

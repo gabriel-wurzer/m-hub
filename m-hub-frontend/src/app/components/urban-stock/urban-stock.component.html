@@ -27,6 +27,13 @@
   <p *ngIf="errorMessage && !isLoading" class="us-error">{{ errorMessage }}</p>
 
   <div *ngIf="!isLoading && !errorMessage && total" class="us-pie-wrap">
+    <mat-form-field class="us-period-select" appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Bauperiode</mat-label>
+      <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="applyPeriod()">
+        <mat-option value="gesamt">Gesamt (alle Perioden)</mat-option>
+        <mat-option *ngFor="let r of rows" [value]="r.period">{{ r.period }}</mat-option>
+      </mat-select>
+    </mat-form-field>
     <div echarts [options]="materialsPieChartOptions" class="us-pie"></div>
   </div>
 

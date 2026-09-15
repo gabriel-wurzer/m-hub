@@ -57,8 +57,15 @@
 .us-pie-wrap {
   width: 100%;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   margin: 4px 0 28px;
+}
+
+.us-period-select {
+  width: 280px;
+  max-width: 90%;
+  margin-bottom: 4px;
 }
 
 .us-pie {
