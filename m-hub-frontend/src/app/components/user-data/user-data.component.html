@@ -5,22 +5,23 @@
         <header class="user-data-header">
             <h1>Gebäudeliste</h1>
             <div class="mgp-actions">
+              <span class="mgp-label">Materieller Gebäudepass (MGP)</span>
               <button
                 mat-stroked-button
                 color="primary"
-                matTooltip="Materialbilanz aller eigenen Objekte, nach Bauperiode (CSV)"
+                matTooltip="Materieller Gebäudepass: Materialbilanz aller eigenen Objekte, nach Bauperiode (CSV)"
                 [disabled]="isMgpBusy('my') || isLoading || userBuildings.length === 0"
                 (click)="downloadMyMgp()">
                 <mat-icon>summarize</mat-icon>
-                Meine Objekte (MGP)
+                Meine Objekte
               </button>
               <button
                 mat-stroked-button
-                matTooltip="Materialbilanz des gesamten Wiener Gebäudebestands, nach Bauperiode (CSV)"
+                matTooltip="Materieller Gebäudepass: Materialbilanz des gesamten Wiener Gebäudebestands, nach Bauperiode (CSV)"
                 [disabled]="isMgpBusy('city')"
                 (click)="downloadCityMgp()">
                 <mat-icon>public</mat-icon>
-                Stadt Wien (MGP)
+                Stadt Wien
               </button>
             </div>
         </header>

@@ -71,11 +71,20 @@ main {
     margin-left: auto;
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 8px;
 
     button mat-icon {
         margin-right: 6px;
     }
+}
+
+.mgp-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: mat.get-color-from-palette(vars.$my-secondary, 700);
+    white-space: nowrap;
+    margin-right: 4px;
 }
 
 .user-data-content {
