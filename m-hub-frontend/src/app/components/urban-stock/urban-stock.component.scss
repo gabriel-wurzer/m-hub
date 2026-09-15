@@ -1,0 +1,115 @@
+.urban-stock {
+  display: block;
+  padding: 28px 36px;
+  box-sizing: border-box;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.us-header {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  margin-bottom: 20px;
+}
+
+.us-title {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.us-title h1 {
+  margin: 0 0 6px;
+  font-size: 1.7rem;
+  line-height: 1.2;
+}
+
+.us-sub {
+  margin: 0;
+  max-width: 68ch;
+  color: #555b63;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.us-download {
+  flex: 0 0 auto;
+  white-space: nowrap;
+
+  mat-icon {
+    margin-right: 6px;
+  }
+}
+
+.us-state {
+  display: flex;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+.us-error {
+  color: #b3261e;
+  font-weight: 600;
+}
+
+.us-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.us-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 760px;
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+
+  th,
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #e4e7ea;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    background: #f4f6f7;
+    text-align: right;
+    font-weight: 600;
+    vertical-align: bottom;
+    z-index: 1;
+  }
+
+  .col-period {
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  thead .col-period {
+    text-align: left;
+  }
+
+  .col-num {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .unit {
+    display: block;
+    font-weight: 400;
+    font-size: 0.72rem;
+    color: #7a828b;
+  }
+
+  tbody tr:hover {
+    background: #fafbfc;
+  }
+
+  .us-total td {
+    border-top: 2px solid #c7ccd1;
+    border-bottom: none;
+    font-weight: 700;
+  }
+}

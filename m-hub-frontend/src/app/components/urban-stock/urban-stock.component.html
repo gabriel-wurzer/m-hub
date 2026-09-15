@@ -1,0 +1,54 @@
+<main class="urban-stock">
+  <header class="us-header">
+    <div class="us-title">
+      <h1>Materialzusammensetzung des Wiener Gebäudebestands</h1>
+      <p class="us-sub">
+        Geschätzter Materialbestand von rund 165.000 Gebäuden (M-DAB), aufgeschlüsselt nach
+        Bauperiode und Materialgruppe. Angaben in Millionen Tonnen. Datengrundlage: materieller
+        Gebäudepass (MGP).
+      </p>
+    </div>
+    <button
+      mat-flat-button
+      color="primary"
+      class="us-download"
+      matTooltip="Materieller Gebäudepass: stadtweite Materialbilanz, nach Bauperiode (CSV)"
+      [disabled]="isDownloading || isLoading || !!errorMessage"
+      (click)="downloadCsv()">
+      <mat-icon>download</mat-icon>
+      Als CSV herunterladen
+    </button>
+  </header>
+
+  <div *ngIf="isLoading" class="us-state">
+    <mat-spinner [diameter]="72" [strokeWidth]="5" />
+  </div>
+
+  <p *ngIf="errorMessage && !isLoading" class="us-error">{{ errorMessage }}</p>
+
+  <div *ngIf="!isLoading && !errorMessage" class="us-table-wrap">
+    <table class="us-table">
+      <thead>
+        <tr>
+          <th class="col-period">Bauperiode</th>
+          <th class="col-num">Gebäude</th>
+          <th class="col-num" *ngFor="let g of groupLabels">{{ g }}<span class="unit"> [Mio t]</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of rows">
+          <td class="col-period">{{ row.period }}</td>
+          <td class="col-num">{{ formatCount(row.count) }}</td>
+          <td class="col-num" *ngFor="let v of row.values">{{ toMioT(v) }}</td>
+        </tr>
+      </tbody>
+      <tfoot *ngIf="total">
+        <tr class="us-total">
+          <td class="col-period">{{ total.period }}</td>
+          <td class="col-num">{{ formatCount(total.count) }}</td>
+          <td class="col-num" *ngFor="let v of total.values">{{ toMioT(v) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</main>

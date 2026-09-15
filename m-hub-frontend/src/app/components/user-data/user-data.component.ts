@@ -295,17 +295,6 @@ export class UserDataComponent implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
-  downloadCityMgp(): void {
-    if (this.mgpBusy.has('city')) return;
-    this.mgpBusy.add('city');
-    this.materialPass.downloadCityPassport()
-      .pipe(finalize(() => this.mgpBusy.delete('city')))
-      .subscribe({
-        next: blob => this.materialPass.saveBlob(blob, 'mgp_stadt-wien.csv'),
-        error: () => this.notifyMgpError()
-      });
-  }
-
   private notifyMgpError(): void {
     this.snackBar.open('Materieller Gebäudepass konnte nicht erstellt werden.', 'OK', {
       duration: 6000,

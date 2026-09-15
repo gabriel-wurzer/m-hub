@@ -32,6 +32,11 @@ export class MaterialPassService {
     return this.http.get(this.cityUrl, { responseType: 'blob' });
   }
 
+  /** Dasselbe City-CSV als Text — Quelle fuer die Statistik-Tabelle. */
+  fetchCityCsv(): Observable<string> {
+    return this.http.get(this.cityUrl, { responseType: 'text' });
+  }
+
   /** Blob als Datei speichern (Browser-Download). */
   saveBlob(blob: Blob, filename: string): void {
     const url = URL.createObjectURL(blob);
