@@ -7680,5 +7680,88 @@
                 "8564556541d3259d"
             ]
         ]
+    },
+    {
+        "id": "ae5c5f18b18dc916",
+        "type": "comment",
+        "z": "b1a05ec4a1000001",
+        "name": "http://localhost:1880/api/aufbauten-katalog",
+        "info": "",
+        "x": 220,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "bfa0d80f6e2b4675",
+        "type": "http in",
+        "z": "b1a05ec4a1000001",
+        "name": "GET aufbauten-katalog",
+        "url": "/api/aufbauten-katalog",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 180,
+        "y": 300,
+        "wires": [
+            [
+                "6ae05b5bcdd60b05"
+            ]
+        ]
+    },
+    {
+        "id": "6ae05b5bcdd60b05",
+        "type": "function",
+        "z": "b1a05ec4a1000001",
+        "name": "build catalog request",
+        "func": "// Aufbauten-Katalog vom Python-Service holen (GET, kein Body).\nmsg.method = 'GET';\nmsg.headers = {};\nmsg.payload = '';\nmsg.url = (env.get('PLAUSIBILITY_URL') || 'http://127.0.0.1:8971') + '/catalog';\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 300,
+        "wires": [
+            [
+                "fbb46c0b13f9141f"
+            ]
+        ]
+    },
+    {
+        "id": "fbb46c0b13f9141f",
+        "type": "http request",
+        "z": "b1a05ec4a1000001",
+        "name": "catalog service",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 660,
+        "y": 300,
+        "wires": [
+            [
+                "5232193ebfdbfd4b"
+            ]
+        ]
+    },
+    {
+        "id": "5232193ebfdbfd4b",
+        "type": "http response",
+        "z": "b1a05ec4a1000001",
+        "name": "catalog response",
+        "statusCode": "",
+        "headers": {},
+        "x": 900,
+        "y": 300,
+        "wires": []
     }
 ]
