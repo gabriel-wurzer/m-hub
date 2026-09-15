@@ -74,6 +74,74 @@ mat-expansion-panel-header {
     }
 }
 
+.typical-aufbau {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #f4f6f7;
+    border: 1px dashed #d3d9de;
+
+    .typical-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        h4 {
+            margin: 0;
+            font-size: 0.95rem;
+        }
+    }
+
+    .typical-context {
+        margin: 2px 0 8px;
+        color: #7a828b;
+        font-size: 0.8rem;
+    }
+
+    .typical-item {
+        display: flex;
+        gap: 10px;
+        padding: 3px 0;
+        font-size: 0.88rem;
+    }
+
+    .typical-item + .typical-item {
+        border-top: 1px dashed #e4e7ea;
+    }
+
+    .typical-anteil {
+        flex: 0 0 auto;
+        min-width: 44px;
+        text-align: right;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: #37474f;
+    }
+}
+
+.typical-note {
+    margin-top: 12px;
+    color: #7a828b;
+    font-size: 0.82rem;
+}
+
+.quelle-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.5;
+    padding: 0 7px;
+    border-radius: 10px;
+    background: #e3f1e7;
+    color: #0d612e;
+    white-space: nowrap;
+
+    &.modell {
+        background: #e6eef7;
+        color: #1e5794;
+    }
+}
+
 .custom-legend-container {
     display: flex;
     flex-direction: row-reverse;

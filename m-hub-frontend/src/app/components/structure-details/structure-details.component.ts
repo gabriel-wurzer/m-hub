@@ -14,6 +14,8 @@ import { EChartsOption } from 'echarts';
 import { NgxEchartsModule } from 'ngx-echarts';
 
 import { MaterialPassService } from '../../services/material-pass/material-pass.service';
+import { BuildingService } from '../../services/building/building.service';
+import { AufbautenKatalogService, CatalogCell } from '../../services/aufbauten-katalog/aufbauten-katalog.service';
 
 import { Building } from '../../models/building';
 import { Period, PeriodLabels } from '../../enums/period.enum';
@@ -78,10 +80,61 @@ export class StructureDetailsComponent implements OnChanges {
 
   mgpBusy = false;
 
+  // Vergleich: der typische Aufbau aus dem Katalog fuer (Periode, Ort, Art) des Bauteils.
+  typicalCell: CatalogCell | null = null;
+  typicalUnknownPeriod = false;
+
+  private readonly artFromPartType: Record<string, string> = {
+    'Innenwand': 'IW', 'Außenwand': 'AW', 'Brandwand': 'AW',
+    'Bodenaufbau': 'FB', 'Dachaufbau': 'D', 'Kniestock': 'AW', 'Attika': 'AW'
+  };
+
   constructor(
     private materialPass: MaterialPassService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private buildingService: BuildingService,
+    private katalog: AufbautenKatalogService
   ) {}
+
+  pctLabel(anteil: number): string {
+    return (anteil * 100).toLocaleString('de-AT', { maximumFractionDigits: 0 });
+  }
+
+  private ortFromLocation(location: string | null | undefined): string | null {
+    const seg = (this.getLocationSegments(location ?? '')[0]?.main ?? '').trim();
+    if (seg.startsWith('Keller')) return 'KG';
+    if (seg.startsWith('Regelgeschoss')) return 'RG';
+    if (seg.startsWith('Dach')) return 'DG';
+    return null;
+  }
+
+  /** Typischen Aufbau (Katalog) fuer dieses Bauteil laden: Periode vom Gebaeude,
+   *  Ort aus location, Art aus part_type. */
+  private loadTypicalAufbau(): void {
+    this.typicalCell = null;
+    this.typicalUnknownPeriod = false;
+    if (!this.isBauteil || !this.buildingComponent) return;
+    const comp = this.buildingComponent as unknown as { part_type?: string; location?: string; building_id?: string };
+    const art = comp.part_type ? this.artFromPartType[comp.part_type] : undefined;
+    if (!art || !comp.building_id) return;
+    const ort = this.ortFromLocation(comp.location) ?? 'RG'; // RG als Repraesentant, wenn Lage unklar
+    this.buildingService.getBuildingById(comp.building_id).subscribe({
+      next: b => {
+        const bp = b?.bp_best_guess;
+        if (bp == null || bp === 0) { this.typicalUnknownPeriod = true; return; }
+        const period = PeriodLabels[bp];
+        this.katalog.getCatalog().subscribe({
+          next: cat => {
+            this.typicalCell =
+              cat.cells.find(c => c.bauperiode === period && c.art === art && c.ort === ort) ??
+              cat.cells.find(c => c.bauperiode === period && c.art === art) ?? null;
+          },
+          error: () => { /* still ok, Vergleich bleibt aus */ }
+        });
+      },
+      error: () => { /* Gebaeude nicht ladbar -> kein Vergleich */ }
+    });
+  }
 
   /** Materieller Gebäudepass dieses Gebäudes als CSV. */
   downloadMgp(): void {
@@ -133,7 +186,7 @@ export class StructureDetailsComponent implements OnChanges {
       this.activeObjectImageIndex = 0;
       // console.log("Current building component: ", this.buildingComponent);
 
-      // TODO: add Chart options call here
+      this.loadTypicalAufbau();
     }
 
     this.setLoading(false)

@@ -145,6 +145,22 @@
                   <div class="structure-raw-value">{{ rawPartStructure | json }}</div>
                 </ng-template>
               </div>
+
+              <div class="typical-aufbau" *ngIf="typicalCell as tc">
+                <div class="typical-header">
+                  <h4>Typischer Aufbau</h4>
+                  <span class="quelle-badge" [class.modell]="tc.quelle === 'modell'">{{ tc.quelle === 'modell' ? 'Modell' : 'gemessen' }}</span>
+                </div>
+                <p class="typical-context">{{ tc.bauperiode }} · {{ tc.ort_label }} · {{ tc.art_label }}</p>
+                <div class="typical-item" *ngFor="let a of tc.aufbauten">
+                  <span class="typical-anteil">{{ pctLabel(a.anteil) }} %</span>
+                  <span class="typical-folge">{{ a.folge.join(' → ') }}</span>
+                </div>
+              </div>
+
+              <p *ngIf="typicalUnknownPeriod" class="typical-note">
+                Bauperiode des Gebäudes unbekannt — kein typischer Aufbau zum Vergleich.
+              </p>
             </div>
           </mat-expansion-panel>
 
