@@ -1,0 +1,148 @@
+.katalog {
+  display: block;
+  padding: 28px 36px;
+  box-sizing: border-box;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.k-header {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  margin-bottom: 12px;
+}
+
+.k-title {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.k-title h1 {
+  margin: 0 0 6px;
+  font-size: 1.7rem;
+  line-height: 1.2;
+}
+
+.k-sub {
+  margin: 0;
+  max-width: 72ch;
+  color: #555b63;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.k-download {
+  flex: 0 0 auto;
+  white-space: nowrap;
+
+  mat-icon {
+    margin-right: 6px;
+  }
+}
+
+.k-state {
+  display: flex;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+.k-error {
+  color: #b3261e;
+  font-weight: 600;
+}
+
+.k-empty {
+  color: #555b63;
+}
+
+.k-legend {
+  margin: 0 0 20px;
+  color: #7a828b;
+  font-size: 0.82rem;
+}
+
+.k-chapter {
+  margin-bottom: 30px;
+}
+
+.k-chapter-title {
+  margin: 0 0 10px;
+  font-size: 1.2rem;
+  color: #0d612e;
+  border-bottom: 2px solid #e4e7ea;
+  padding-bottom: 4px;
+}
+
+.k-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.k-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 640px;
+  font-size: 0.88rem;
+
+  th,
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #eceff1;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  thead th {
+    background: #f4f6f7;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .col-lage {
+    white-space: nowrap;
+    width: 130px;
+  }
+
+  .col-bauteil {
+    white-space: nowrap;
+    width: 170px;
+  }
+
+  .orient {
+    display: block;
+    color: #9aa1a8;
+    font-size: 0.72rem;
+  }
+
+  tbody tr:hover {
+    background: #fafbfc;
+  }
+}
+
+.aufbau {
+  display: flex;
+  gap: 10px;
+  padding: 2px 0;
+}
+
+.aufbau + .aufbau {
+  border-top: 1px dashed #eceff1;
+  margin-top: 2px;
+  padding-top: 4px;
+}
+
+.anteil {
+  flex: 0 0 auto;
+  min-width: 48px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: #37474f;
+}
+
+.folge {
+  flex: 1 1 auto;
+}

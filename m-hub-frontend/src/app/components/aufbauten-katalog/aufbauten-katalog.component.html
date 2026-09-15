@@ -1,0 +1,62 @@
+<main class="katalog">
+  <header class="k-header">
+    <div class="k-title">
+      <h1>{{ heading }}</h1>
+      <p class="k-sub">{{ subheading }}</p>
+    </div>
+    <button
+      mat-flat-button
+      color="primary"
+      class="k-download"
+      matTooltip="Aufbauten-Katalog als CSV"
+      [disabled]="isLoading || !!errorMessage || chapters.length === 0"
+      (click)="downloadCsv()">
+      <mat-icon>download</mat-icon>
+      Als CSV herunterladen
+    </button>
+  </header>
+
+  <div *ngIf="isLoading" class="k-state">
+    <mat-spinner [diameter]="72" [strokeWidth]="5" />
+  </div>
+
+  <p *ngIf="errorMessage && !isLoading" class="k-error">{{ errorMessage }}</p>
+
+  <p *ngIf="!isLoading && !errorMessage && chapters.length === 0" class="k-empty">
+    Für diese Auswahl liegen keine typischen Aufbauten vor.
+  </p>
+
+  <div *ngIf="!isLoading && !errorMessage && chapters.length > 0">
+    <p class="k-legend">Leserichtung: Wände innen → außen, Böden und Dächer oben → unten. Anteil = Häufigkeit unter den erhobenen Aufbauten.</p>
+
+    <section class="k-chapter" *ngFor="let ch of chapters">
+      <h2 class="k-chapter-title">{{ ch.period }}</h2>
+      <div class="k-table-wrap">
+        <table class="k-table">
+          <thead>
+            <tr>
+              <th class="col-lage">Lage</th>
+              <th class="col-bauteil">Bauteil</th>
+              <th class="col-aufbau">Typische Aufbauten (Anteil)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let cell of ch.cells">
+              <td class="col-lage">{{ cell.ort_label }}</td>
+              <td class="col-bauteil">
+                {{ cell.art_label }}
+                <span class="orient">{{ orientationHint(cell.art) }}</span>
+              </td>
+              <td class="col-aufbau">
+                <div class="aufbau" *ngFor="let a of cell.aufbauten">
+                  <span class="anteil">{{ pct(a.anteil) }} %</span>
+                  <span class="folge">{{ a.folge.join(' → ') }}</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>

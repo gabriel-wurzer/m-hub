@@ -25,6 +25,9 @@
       <button mat-icon-button matTooltip="Statistik" matTooltipPosition="after" matTooltipShowDelay="500" (click)="onMenuClick('statistik')" [ngClass]="{'active': currentRoute.includes('/statistik')}">
         <mat-icon>bar_chart</mat-icon>
       </button>
+      <button mat-icon-button matTooltip="Aufbauten-Katalog" matTooltipPosition="after" matTooltipShowDelay="500" (click)="onMenuClick('katalog')" [ngClass]="{'active': currentRoute.includes('/katalog')}">
+        <mat-icon>menu_book</mat-icon>
+      </button>
       <button
         mat-icon-button
         [disableRipple]="!(user$ | async)"
@@ -101,6 +104,13 @@
           <mat-icon>bar_chart</mat-icon>
         </button>
         <span>Statistik</span>
+      </div>
+
+      <div class="menu-item" (click)="onMenuClick('katalog')">
+        <button mat-menu-item disableRipple >
+          <mat-icon>menu_book</mat-icon>
+        </button>
+        <span>Katalog</span>
       </div>
 
       <ng-container *ngIf="{ user: user$ | async } as auth">
