@@ -29,6 +29,18 @@
           <echarts [options]="usagePieChartOptions" class="e-chart-container"></echarts>
           <echarts [options]="materialsPieChartOptions" class="e-chart-container materials-chart-container"></echarts>
         </div>
+
+        <div class="mgp-download-row">
+          <button
+            mat-stroked-button
+            color="primary"
+            [disabled]="mgpBusy"
+            matTooltip="Materialbilanz dieses Gebäudes nach Materialgruppe (CSV)"
+            (click)="downloadMgp()">
+            <mat-icon>download</mat-icon>
+            Materieller Gebäudepass (CSV)
+          </button>
+        </div>
       </mat-expansion-panel>
 
       <mat-expansion-panel #docPanel [expanded]="true" class="document-container">

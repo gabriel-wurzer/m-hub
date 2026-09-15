@@ -7,9 +7,13 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { finalize } from 'rxjs';
 
 import { EChartsOption } from 'echarts';
 import { NgxEchartsModule } from 'ngx-echarts';
+
+import { MaterialPassService } from '../../services/material-pass/material-pass.service';
 
 import { Building } from '../../models/building';
 import { Period, PeriodLabels } from '../../enums/period.enum';
@@ -41,7 +45,7 @@ type ObjectImageVm = {
 @Component({
   selector: 'app-structure-details',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatButtonModule, MatDividerModule, MatExpansionModule, MatProgressSpinnerModule, MatListModule, MatTooltipModule, DocumentListComponent, NgxEchartsModule],
+  imports: [CommonModule, MatIconModule, MatButtonModule, MatDividerModule, MatExpansionModule, MatProgressSpinnerModule, MatListModule, MatTooltipModule, MatSnackBarModule, DocumentListComponent, NgxEchartsModule],
   templateUrl: './structure-details.component.html',
   styleUrl: './structure-details.component.scss'
 })
@@ -71,6 +75,28 @@ export class StructureDetailsComponent implements OnChanges {
   isLoading = false;
   objectImages: ObjectImageVm[] = [];
   activeObjectImageIndex = 0;
+
+  mgpBusy = false;
+
+  constructor(
+    private materialPass: MaterialPassService,
+    private snackBar: MatSnackBar
+  ) {}
+
+  /** Materieller Gebäudepass dieses Gebäudes als CSV. */
+  downloadMgp(): void {
+    if (!this.building || this.mgpBusy) return;
+    const id = this.building.bw_geb_id;
+    this.mgpBusy = true;
+    this.materialPass.downloadBuildingPassport(id)
+      .pipe(finalize(() => (this.mgpBusy = false)))
+      .subscribe({
+        next: blob => this.materialPass.saveBlob(blob, `mgp_${id}.csv`),
+        error: () => this.snackBar.open(
+          'Materieller Gebäudepass konnte nicht erstellt werden.', 'OK',
+          { duration: 6000, verticalPosition: 'top' })
+      });
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['structure']) {

@@ -64,6 +64,16 @@ mat-expansion-panel-header {
     aspect-ratio: 1 / 1.12;
 }
 
+.mgp-download-row {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+
+    button mat-icon {
+        margin-right: 6px;
+    }
+}
+
 .custom-legend-container {
     display: flex;
     flex-direction: row-reverse;

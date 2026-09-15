@@ -326,15 +326,13 @@ export class UserDataComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe({
         next: b => {
           const period = this.periodLabelFor(b?.bp_best_guess);
-          if (!period) {
-            this.snackBar.open('Bauperiode unbekannt — kein Aufbauten-Katalog verfügbar.', 'OK', {
-              duration: 5000, verticalPosition: 'top'
-            });
-            return;
-          }
-          this.router.navigate(['/katalog'], {
-            queryParams: { bp: period, titel: this.getBuildingDisplayName(building) }
-          });
+          const name = this.getBuildingDisplayName(building);
+          // Bekannte Periode -> gefiltert; unbekannt (die Mehrheit) -> voller
+          // Katalog mit Hinweis statt Sackgasse.
+          const queryParams = period
+            ? { bp: period, titel: name }
+            : { titel: `${name} (Bauperiode unbekannt)` };
+          this.router.navigate(['/katalog'], { queryParams });
         },
         error: () => this.notifyCatalogError()
       });
