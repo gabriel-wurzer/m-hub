@@ -21,6 +21,7 @@ import { StructureViewComponent } from '../structure-view/structure-view.compone
 import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { versionedImageSvgUrl } from '../../utils/asset-url';
+import { MaterialPassService } from '../../services/material-pass/material-pass.service';
 
 
 @Component({
@@ -44,7 +45,7 @@ import { versionedImageSvgUrl } from '../../utils/asset-url';
   styleUrl: './user-data.component.scss'
 })
 export class UserDataComponent implements OnInit, AfterViewInit, OnDestroy {
-  private readonly compactActionWidthPx = 128;
+  private readonly compactActionWidthPx = 172;
 
   @ViewChildren('cardHeader') private cardHeaders!: QueryList<ElementRef<HTMLElement>>;
   readonly houseIconUrl = versionedImageSvgUrl('/assets/images/house_icon.svg');
@@ -69,12 +70,16 @@ export class UserDataComponent implements OnInit, AfterViewInit, OnDestroy {
   private cardHeadersChangeSub?: Subscription;
   private responsiveHeaderUpdateFrame: number | null = null;
 
+  /** laufende MGP-Downloads: 'my' | 'city' | building.id */
+  mgpBusy = new Set<string>();
+
   constructor(
     private authService: AuthenticationService,
     private userService: UserService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
-  ) {    
+    private snackBar: MatSnackBar,
+    private materialPass: MaterialPassService
+  ) {
     this.isLoggedIn$ = this.authService.getUser$().pipe(
       map(user => !!user)
     );
@@ -259,6 +264,53 @@ export class UserDataComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getBuildingDisplayName(building: UserBuilding): string {
     return building.name.trim() || `Gebäude ${building.building_id}`;
+  }
+
+  // --- Materieller Gebäudepass (MGP) — CSV-Downloads ---
+
+  isMgpBusy(key: string): boolean {
+    return this.mgpBusy.has(key);
+  }
+
+  downloadBuildingMgp(building: UserBuilding): void {
+    const key = building.id;
+    if (this.mgpBusy.has(key)) return;
+    this.mgpBusy.add(key);
+    this.materialPass.downloadBuildingPassport(building.building_id)
+      .pipe(finalize(() => this.mgpBusy.delete(key)))
+      .subscribe({
+        next: blob => this.materialPass.saveBlob(blob, `mgp_${building.building_id}.csv`),
+        error: () => this.notifyMgpError()
+      });
+  }
+
+  downloadMyMgp(): void {
+    if (this.mgpBusy.has('my')) return;
+    this.mgpBusy.add('my');
+    this.materialPass.downloadMyPassport()
+      .pipe(finalize(() => this.mgpBusy.delete('my')))
+      .subscribe({
+        next: blob => this.materialPass.saveBlob(blob, 'mgp_meine-objekte.csv'),
+        error: () => this.notifyMgpError()
+      });
+  }
+
+  downloadCityMgp(): void {
+    if (this.mgpBusy.has('city')) return;
+    this.mgpBusy.add('city');
+    this.materialPass.downloadCityPassport()
+      .pipe(finalize(() => this.mgpBusy.delete('city')))
+      .subscribe({
+        next: blob => this.materialPass.saveBlob(blob, 'mgp_stadt-wien.csv'),
+        error: () => this.notifyMgpError()
+      });
+  }
+
+  private notifyMgpError(): void {
+    this.snackBar.open('Materieller Gebäudepass konnte nicht erstellt werden.', 'OK', {
+      duration: 6000,
+      verticalPosition: 'top'
+    });
   }
 
   shouldUseCompactMenu(building: UserBuilding): boolean {

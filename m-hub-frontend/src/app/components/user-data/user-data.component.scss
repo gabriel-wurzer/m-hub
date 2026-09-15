@@ -49,6 +49,9 @@ main {
     display: flex;
     flex-direction: row;
     justify-content: start;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 16px;
     line-height: 1;
 
     h1 {
@@ -61,6 +64,17 @@ main {
         width: 42px;
         height: 42px;
         margin-right: 16px;
+    }
+}
+
+.mgp-actions {
+    margin-left: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    button mat-icon {
+        margin-right: 6px;
     }
 }
 

@@ -4,6 +4,25 @@
 
         <header class="user-data-header">
             <h1>Gebäudeliste</h1>
+            <div class="mgp-actions">
+              <button
+                mat-stroked-button
+                color="primary"
+                matTooltip="Materialbilanz aller eigenen Objekte, nach Bauperiode (CSV)"
+                [disabled]="isMgpBusy('my') || isLoading || userBuildings.length === 0"
+                (click)="downloadMyMgp()">
+                <mat-icon>summarize</mat-icon>
+                Meine Objekte (MGP)
+              </button>
+              <button
+                mat-stroked-button
+                matTooltip="Materialbilanz des gesamten Wiener Gebäudebestands, nach Bauperiode (CSV)"
+                [disabled]="isMgpBusy('city')"
+                (click)="downloadCityMgp()">
+                <mat-icon>public</mat-icon>
+                Stadt Wien (MGP)
+              </button>
+            </div>
         </header>
 
         <mat-divider class="horizontal-divider"/>
@@ -60,6 +79,15 @@
                     </button>
                     <button
                       mat-icon-button
+                      color="primary"
+                      matTooltip="Materieller Gebäudepass (CSV)"
+                      aria-label="Materiellen Gebäudepass herunterladen"
+                      [disabled]="isMgpBusy(building.id)"
+                      (click)="downloadBuildingMgp(building); $event.stopPropagation()">
+                      <mat-icon>download</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
                       color="warn"
                       matTooltip="Löschen"
                       aria-label="Gebäude entfernen"
@@ -86,6 +114,10 @@
                     <button mat-menu-item (click)="editBuilding(building); $event.stopPropagation()">
                       <mat-icon>edit</mat-icon>
                       <span>Bearbeiten</span>
+                    </button>
+                    <button mat-menu-item [disabled]="isMgpBusy(building.id)" (click)="downloadBuildingMgp(building); $event.stopPropagation()">
+                      <mat-icon>download</mat-icon>
+                      <span>Materieller Gebäudepass</span>
                     </button>
                     <button mat-menu-item (click)="deleteBuilding(building); $event.stopPropagation()">
                       <mat-icon>delete_outline</mat-icon>
