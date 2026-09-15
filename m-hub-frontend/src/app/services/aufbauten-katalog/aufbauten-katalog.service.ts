@@ -13,6 +13,7 @@ export interface CatalogCell {
   art: string;
   ort_label: string;
   art_label: string;
+  quelle: 'gemessen' | 'modell' | string;
   n: number;
   aufbauten: Aufbau[];
 }

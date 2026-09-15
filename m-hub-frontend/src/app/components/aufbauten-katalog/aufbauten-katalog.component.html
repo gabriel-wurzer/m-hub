@@ -27,7 +27,11 @@
   </p>
 
   <div *ngIf="!isLoading && !errorMessage && chapters.length > 0">
-    <p class="k-legend">Leserichtung: Wände innen → außen, Böden und Dächer oben → unten. Anteil = Häufigkeit unter den erhobenen Aufbauten.</p>
+    <p class="k-legend">
+      Leserichtung: Wände innen → außen, Böden und Dächer oben → unten. Anteil = Häufigkeit unter den erhobenen Aufbauten.
+      <span class="badge-legend"><span class="quelle-badge">gemessen</span> aus erhobenen Aufbauten,
+      <span class="quelle-badge modell">Modell</span> vom Markov-Modell ergänzt, wo keine Messung vorliegt.</span>
+    </p>
 
     <section class="k-chapter" *ngFor="let ch of chapters">
       <h2 class="k-chapter-title">{{ ch.period }}</h2>
@@ -44,7 +48,8 @@
             <tr *ngFor="let cell of ch.cells">
               <td class="col-lage">{{ cell.ort_label }}</td>
               <td class="col-bauteil">
-                {{ cell.art_label }}
+                <span class="bauteil-name">{{ cell.art_label }}</span>
+                <span class="quelle-badge" [class.modell]="cell.quelle === 'modell'">{{ cell.quelle === 'modell' ? 'Modell' : 'gemessen' }}</span>
                 <span class="orient">{{ orientationHint(cell.art) }}</span>
               </td>
               <td class="col-aufbau">

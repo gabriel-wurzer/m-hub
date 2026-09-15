@@ -106,7 +106,7 @@ export class AufbautenKatalogComponent implements OnInit {
     const lines: string[] = [
       'Aufbauten-Katalog — typische Schichtfolgen (m-hub)',
       '',
-      ['Bauperiode', 'Lage', 'Bauteil', 'Anteil [%]', 'Aufbau (Schichtfolge)'].join(sep)
+      ['Bauperiode', 'Lage', 'Bauteil', 'Quelle', 'Anteil [%]', 'Aufbau (Schichtfolge)'].join(sep)
     ];
     for (const ch of this.chapters) {
       for (const cell of ch.cells) {
@@ -115,6 +115,7 @@ export class AufbautenKatalogComponent implements OnInit {
             ch.period,
             cell.ort_label,
             cell.art_label,
+            cell.quelle === 'modell' ? 'Modell' : 'gemessen',
             this.pct(a.anteil),
             a.folge.join(' → ')
           ].join(sep));

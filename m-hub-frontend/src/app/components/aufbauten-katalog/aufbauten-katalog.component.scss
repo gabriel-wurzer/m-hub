@@ -64,6 +64,29 @@
   font-size: 0.82rem;
 }
 
+.badge-legend {
+  display: block;
+  margin-top: 4px;
+}
+
+.quelle-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.4;
+  padding: 0 7px;
+  border-radius: 10px;
+  background: #e3f1e7;
+  color: #0d612e;
+  vertical-align: middle;
+  white-space: nowrap;
+
+  &.modell {
+    background: #e6eef7;
+    color: #1e5794;
+  }
+}
+
 .k-chapter {
   margin-bottom: 30px;
 }
@@ -115,6 +138,10 @@
     display: block;
     color: #9aa1a8;
     font-size: 0.72rem;
+  }
+
+  .bauteil-name {
+    margin-right: 6px;
   }
 
   tbody tr:hover {
