@@ -128,25 +128,52 @@ def _cat_idx(order, v):
     return order.index(v) if v in order else len(order)
 
 
+def _cat_grid():
+    """Sinnvolle (Bauperiode, Ort, Art)-Zellen: KG/RG/DG mit AW/IW/FB, Dach nur DG."""
+    for bp in CAT_PERIOD_ORDER:
+        if bp == "unbekannt":
+            continue  # keine Vorhersage ohne Periode
+        for ort in CAT_ORT_ORDER:
+            for art in ["AW", "IW", "FB"] + (["D"] if ort == "DG" else []):
+                yield bp, ort, art
+
+
 def catalog(k=3):
-    """Voller Aufbauten-Katalog: je (Bauperiode, Ort, Art) die top-k gemessenen
-    typischen Aufbauten (Schichtfolge + Anteil). Basis fuer alle drei Ebenen
-    (ganz Wien / eigener Bestand / einzelnes Gebaeude filtern nach Bauperiode)."""
-    seen = mk.df.groupby(["bauperiode", "ort", "art"]).size().reset_index(name="n")
+    """VOLLSTAENDIGER Aufbauten-Katalog: jede sinnvolle (Bauperiode, Ort, Art)-Zelle
+    bekommt typische Aufbauten. Wo gemessen -> observed_top (quelle 'gemessen'),
+    sonst fuellt das Markov-Modell per Backoff (quelle 'modell'). Das errechnete
+    'Buch', das es als Referenz nirgends gibt. Basis fuer alle drei Ebenen (ganz
+    Wien / eigener Bestand / einzelnes Gebaeude, gefiltert nach Bauperiode)."""
+    # Vereinigung: das sinnvolle Grid PLUS jede tatsaechlich gemessene Zelle
+    # (damit keine Messung verloren geht, z.B. seltene Ort/Art-Kombis).
+    combos = set(_cat_grid())
+    measured = mk.df.groupby(["bauperiode", "ort", "art"]).size().reset_index(name="n")
+    for _, r in measured.iterrows():
+        combos.add((r.bauperiode, r.ort, r.art))
+    ordered = sorted(combos, key=lambda t: (_cat_idx(CAT_PERIOD_ORDER, t[0]),
+                                            _cat_idx(CAT_ORT_ORDER, t[1]),
+                                            _cat_idx(CAT_ART_ORDER, t[2])))
     cells = []
-    for _, r in seen.iterrows():
-        tops = mk.observed_top(r.bauperiode, r.ort, r.art, k)
+    for bp, ort, art in ordered:
+        tops = mk.observed_top(bp, ort, art, k)
+        if tops:
+            quelle = "gemessen"
+        else:
+            tops = mk.predict(bp, ort, art, k)   # Modell fuellt die Luecke (Backoff)
+            quelle = "modell"
+        if not tops:
+            continue
+        n_mess = int(len(mk.df[(mk.df.bauperiode == bp) & (mk.df.ort == ort) & (mk.df.art == art)]))
         cells.append({
-            "bauperiode": r.bauperiode, "ort": r.ort, "art": r.art,
-            "ort_label": CAT_ORT_LABEL.get(r.ort, r.ort),
-            "art_label": CAT_ART_LABEL.get(r.art, r.art),
-            "n": int(r.n),
+            "bauperiode": bp, "ort": ort, "art": art,
+            "ort_label": CAT_ORT_LABEL.get(ort, ort),
+            "art_label": CAT_ART_LABEL.get(art, art),
+            "quelle": quelle,
+            "n": n_mess,
             "aufbauten": [{"folge": mats, "anteil": round(float(share), 4)}
                           for mats, share in tops],
         })
-    cells.sort(key=lambda c: (_cat_idx(CAT_PERIOD_ORDER, c["bauperiode"]),
-                              _cat_idx(CAT_ORT_ORDER, c["ort"]),
-                              _cat_idx(CAT_ART_ORDER, c["art"])))
+    # _cat_grid liefert schon sortiert (Periode->Ort->Art)
     return {"cells": cells, "period_order": CAT_PERIOD_ORDER,
             "ort_order": CAT_ORT_ORDER, "art_order": CAT_ART_ORDER}
 
