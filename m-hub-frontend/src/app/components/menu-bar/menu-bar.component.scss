@@ -123,36 +123,18 @@
   margin: auto;
   margin-bottom: 3rem;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  font-size: 2.5rem;
-  font-family: "Montserrat", sans-serif;
-  font-weight: 500;
-  font-style: normal;
-  text-transform: uppercase;
   user-select: none;
 
-  p {
-    margin: 0 auto;
+  .wordmark {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 600;
+    font-style: normal;
+    font-size: 1.35rem;
+    letter-spacing: -1px;
     color: vars.$menu-name-color;
-    height: 42px;
-  }
-
-  p:first-of-type {
-    margin: 6px auto;
-  }
-
-  &.long-brand {
-    font-size: 1.55rem;
-
-    p {
-      height: 26px;
-      -webkit-text-stroke-width: 1px;
-    }
-
-    p:first-of-type {
-      margin: 3px auto;
-    }
+    white-space: nowrap;
   }
 }
 
@@ -165,7 +147,7 @@
   font-family: "Montserrat", sans-serif;
   font-weight: 500;
   font-style: normal;
-  text-transform: uppercase;
+  text-transform: none;
   user-select: none;
   letter-spacing: 3px;
   margin: auto;

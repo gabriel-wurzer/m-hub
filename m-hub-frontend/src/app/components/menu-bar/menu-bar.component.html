@@ -7,10 +7,9 @@
         <img [src]="activeBranding.logoPath" [alt]="activeBranding.appName + ' logo'" class="logo" />
       </div>
       <div
-        *ngIf="!hideNameSection && activeBranding.menuLetters.length"
-        class="name-section"
-        [class.long-brand]="activeBranding.menuLetters.length > 5">
-        <p *ngFor="let letter of activeBranding.menuLetters">{{ letter }}</p>
+        *ngIf="!hideNameSection && activeBranding.appName"
+        class="name-section">
+        <span class="wordmark">{{ activeBranding.appName }}</span>
       </div>
     </ng-container>
 
