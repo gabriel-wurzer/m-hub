@@ -7241,5 +7241,444 @@
         "wires": [
             []
         ]
+    },
+    {
+        "id": "mgp_material_pass_tab",
+        "type": "tab",
+        "label": "MGP Material-Pass Download",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "66cf549d6549a2a3",
+        "type": "comment",
+        "z": "mgp_material_pass_tab",
+        "name": "GET /api/buildings/:ID/material-passport",
+        "info": "",
+        "x": 200,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "9d035d77dba628c7",
+        "type": "http in",
+        "z": "mgp_material_pass_tab",
+        "name": "GET building MGP",
+        "url": "/api/buildings/:ID/material-passport",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 120,
+        "y": 100,
+        "wires": [
+            [
+                "7643f7e832a8873c"
+            ]
+        ]
+    },
+    {
+        "id": "283820a53678cba2",
+        "type": "http response",
+        "z": "mgp_material_pass_tab",
+        "name": "GET building MGP response",
+        "statusCode": "",
+        "headers": {},
+        "x": 900,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "303dc4b23e445b2e",
+        "type": "function",
+        "z": "mgp_material_pass_tab",
+        "name": "handle db errors",
+        "func": "const errMsg = msg.error && msg.error.message ? msg.error.message : '';\nmsg.statusCode = 500;\nmsg.payload = { error: 'Database error', details: errMsg };\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 280,
+        "wires": [
+            [
+                "283820a53678cba2"
+            ]
+        ]
+    },
+    {
+        "id": "7e390114687b61f8",
+        "type": "function",
+        "z": "mgp_material_pass_tab",
+        "name": "format csv",
+        "func": "const G=[['bmg1','Beton inkl. Estrich'],['bmg2','Ziegelmauerwerk'],['bmg3','Holz'],['bmg4','Stahl'],['bmg5','Glas'],['bmg6','Mineralwolle'],['bmg7','Polystyrol'],['bmg8','Gipsplatten, Gips'],['bmg9','Sand, Kies, Stein']];\nconst BP={0:'unbekannt',1:'bis 1918',2:'1919-1944',3:'1945-1979',4:'1980-1999',5:'ab 2000'};\nconst num=v=>(v==null?0:Number(v));\nif(!msg.payload||msg.payload.length===0){msg.statusCode=404;msg.headers={'Content-Type':'application/json; charset=utf-8'};msg.payload={error:'Building not found'};return msg;}\nconst r=msg.payload[0];let sum=0;const L=['Materialgruppe;Menge [t]'];\nfor(const [c,label] of G){const v=num(r[c]);sum+=v;L.push(label+';'+v.toFixed(2));}\nL.push('Summe;'+sum.toFixed(2));\nconst head=['Materieller Gebaeudepass (MGP)','Gebaeude-ID;'+r.bw_geb_id,'Bauperiode;'+(BP[r.bp_best_guess]||'unbekannt'),''];\nconst csv='\\uFEFF'+head.concat(L).join('\\r\\n')+'\\r\\n';\nmsg.statusCode=200;\nmsg.headers={'Content-Type':'text/csv; charset=utf-8','Content-Disposition':'attachment; filename=\"mgp_'+r.bw_geb_id+'.csv\"'};\nmsg.payload=csv;return msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 160,
+        "wires": [
+            [
+                "283820a53678cba2"
+            ]
+        ]
+    },
+    {
+        "id": "858a1dbc11540362",
+        "type": "postgresql",
+        "z": "mgp_material_pass_tab",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 420,
+        "y": 220,
+        "wires": [
+            [
+                "7e390114687b61f8"
+            ]
+        ]
+    },
+    {
+        "id": "25a8c3748d2e80f2",
+        "type": "catch",
+        "z": "mgp_material_pass_tab",
+        "name": "",
+        "scope": [
+            "858a1dbc11540362"
+        ],
+        "uncaught": false,
+        "x": 620,
+        "y": 280,
+        "wires": [
+            [
+                "303dc4b23e445b2e"
+            ]
+        ]
+    },
+    {
+        "id": "7643f7e832a8873c",
+        "type": "function",
+        "z": "mgp_material_pass_tab",
+        "name": "build SQL query",
+        "func": "let id = msg.req.params.ID;\nif (id === undefined || id === null) { msg.statusCode=400; msg.payload={error:'Missing ID'}; return [null,msg]; }\nid = String(id).trim();\nif (id.length > 10 || !/^[A-Za-z0-9_\\-]+$/.test(id)) { msg.statusCode=400; msg.payload={error:'Invalid ID'}; return [null,msg]; }\nmsg.query = 'SELECT bw_geb_id, bp_best_guess, bmg1,bmg2,bmg3,bmg4,bmg5,bmg6,bmg7,bmg8,bmg9 FROM buildings_details WHERE bw_geb_id = $1::varchar LIMIT 1;';\nmsg.params = [ id ];\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 160,
+        "wires": [
+            [
+                "858a1dbc11540362"
+            ],
+            [
+                "283820a53678cba2"
+            ]
+        ]
+    },
+    {
+        "id": "714d5d3af9499b30",
+        "type": "comment",
+        "z": "mgp_material_pass_tab",
+        "name": "GET /api/users/me/material-passport",
+        "info": "",
+        "x": 200,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "ad9932c96afd3799",
+        "type": "http in",
+        "z": "mgp_material_pass_tab",
+        "name": "GET my MGP",
+        "url": "/api/users/me/material-passport",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 120,
+        "y": 460,
+        "wires": [
+            [
+                "ecba4265213a660d"
+            ]
+        ]
+    },
+    {
+        "id": "19316bd8b052f775",
+        "type": "http response",
+        "z": "mgp_material_pass_tab",
+        "name": "GET my MGP response",
+        "statusCode": "",
+        "headers": {},
+        "x": 900,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "e0975380bcaf2fb9",
+        "type": "function",
+        "z": "mgp_material_pass_tab",
+        "name": "handle db errors",
+        "func": "const errMsg = msg.error && msg.error.message ? msg.error.message : '';\nmsg.statusCode = 500;\nmsg.payload = { error: 'Database error', details: errMsg };\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 640,
+        "wires": [
+            [
+                "19316bd8b052f775"
+            ]
+        ]
+    },
+    {
+        "id": "2e63fd9aa22b13e9",
+        "type": "function",
+        "z": "mgp_material_pass_tab",
+        "name": "format csv",
+        "func": "const G=[['bmg1','Beton inkl. Estrich'],['bmg2','Ziegelmauerwerk'],['bmg3','Holz'],['bmg4','Stahl'],['bmg5','Glas'],['bmg6','Mineralwolle'],['bmg7','Polystyrol'],['bmg8','Gipsplatten, Gips'],['bmg9','Sand, Kies, Stein']];\nconst BP={0:'unbekannt',1:'bis 1918',2:'1919-1944',3:'1945-1979',4:'1980-1999',5:'ab 2000'};\nconst num=v=>(v==null?0:Number(v));\nconst rows=Array.isArray(msg.payload)?msg.payload:[];\nconst header=['Bauperiode','Gebaeude'].concat(G.map(g=>g[1]+' [t]')).join(';');\nconst L=[header];const tot=new Array(G.length).fill(0);let totN=0;\nfor(const r of rows){const cells=[BP[r.bp]||'unbekannt',num(r.n)];G.forEach((g,i)=>{const v=num(r[g[0]]);tot[i]+=v;cells.push(v.toFixed(2));});totN+=num(r.n);L.push(cells.join(';'));}\nL.push(['Summe',totN].concat(tot.map(v=>v.toFixed(2))).join(';'));\nconst csv='\\uFEFF'+['Materieller Gebaeudepass - meine Objekte (nach Bauperiode)',''].concat(L).join('\\r\\n')+'\\r\\n';\nmsg.statusCode=200;\nmsg.headers={'Content-Type':'text/csv; charset=utf-8','Content-Disposition':'attachment; filename=\"mgp_meine-objekte.csv\"'};\nmsg.payload=csv;return msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 520,
+        "wires": [
+            [
+                "19316bd8b052f775"
+            ]
+        ]
+    },
+    {
+        "id": "c2be6034c377fe8a",
+        "type": "postgresql",
+        "z": "mgp_material_pass_tab",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 420,
+        "y": 580,
+        "wires": [
+            [
+                "2e63fd9aa22b13e9"
+            ]
+        ]
+    },
+    {
+        "id": "2b51cc409036c81f",
+        "type": "catch",
+        "z": "mgp_material_pass_tab",
+        "name": "",
+        "scope": [
+            "c2be6034c377fe8a"
+        ],
+        "uncaught": false,
+        "x": 620,
+        "y": 640,
+        "wires": [
+            [
+                "e0975380bcaf2fb9"
+            ]
+        ]
+    },
+    {
+        "id": "aeb3406b2b213307",
+        "type": "function",
+        "z": "mgp_material_pass_tab",
+        "name": "build SQL query",
+        "func": "const user_id = msg.user.sub;\nif (!user_id) { msg.statusCode=400; msg.payload={error:'Missing userId'}; return [null,msg]; }\nconst uuidRegex=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\nif(!uuidRegex.test(user_id)){ msg.statusCode=400; msg.payload={error:'Invalid userId format (UUID required)'}; return [null,msg]; }\nmsg.query = 'SELECT bd.bp_best_guess AS bp, count(*) AS n, sum(bd.bmg1) AS bmg1, sum(bd.bmg2) AS bmg2, sum(bd.bmg3) AS bmg3, sum(bd.bmg4) AS bmg4, sum(bd.bmg5) AS bmg5, sum(bd.bmg6) AS bmg6, sum(bd.bmg7) AS bmg7, sum(bd.bmg8) AS bmg8, sum(bd.bmg9) AS bmg9 FROM user_buildings ub JOIN buildings_details bd ON bd.bw_geb_id = ub.building_id WHERE ub.user_id = $1::uuid GROUP BY bd.bp_best_guess ORDER BY bd.bp_best_guess;';\nmsg.params=[user_id];\nreturn [msg,null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 520,
+        "wires": [
+            [
+                "c2be6034c377fe8a"
+            ],
+            [
+                "19316bd8b052f775"
+            ]
+        ]
+    },
+    {
+        "id": "ecba4265213a660d",
+        "type": "function",
+        "z": "mgp_material_pass_tab",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET');\n\nif (!secret) {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Server misconfigured: JWT_SECRET missing' };\n    return [null, msg];\n}\n\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg];\n}\n\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\nconst token = parts[1];\n\ntry {\n    const decoded = jwt.verify(token, secret);\n    msg.user = decoded;\n    return [msg, null];\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 180,
+        "y": 520,
+        "wires": [
+            [
+                "aeb3406b2b213307"
+            ],
+            [
+                "19316bd8b052f775"
+            ]
+        ]
+    },
+    {
+        "id": "bac180335a9e6704",
+        "type": "comment",
+        "z": "mgp_material_pass_tab",
+        "name": "GET /api/material-passport/city",
+        "info": "",
+        "x": 200,
+        "y": 780,
+        "wires": []
+    },
+    {
+        "id": "468eca7102fd2811",
+        "type": "http in",
+        "z": "mgp_material_pass_tab",
+        "name": "GET city MGP",
+        "url": "/api/material-passport/city",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 120,
+        "y": 820,
+        "wires": [
+            [
+                "ff01cf3e5cce917c"
+            ]
+        ]
+    },
+    {
+        "id": "fbbd707eb3c6c5a1",
+        "type": "http response",
+        "z": "mgp_material_pass_tab",
+        "name": "GET city MGP response",
+        "statusCode": "",
+        "headers": {},
+        "x": 900,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "b39f861d02fcfc7a",
+        "type": "function",
+        "z": "mgp_material_pass_tab",
+        "name": "handle db errors",
+        "func": "const errMsg = msg.error && msg.error.message ? msg.error.message : '';\nmsg.statusCode = 500;\nmsg.payload = { error: 'Database error', details: errMsg };\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 1000,
+        "wires": [
+            [
+                "fbbd707eb3c6c5a1"
+            ]
+        ]
+    },
+    {
+        "id": "b23d184f17b359a2",
+        "type": "function",
+        "z": "mgp_material_pass_tab",
+        "name": "format csv",
+        "func": "const G=[['bmg1','Beton inkl. Estrich'],['bmg2','Ziegelmauerwerk'],['bmg3','Holz'],['bmg4','Stahl'],['bmg5','Glas'],['bmg6','Mineralwolle'],['bmg7','Polystyrol'],['bmg8','Gipsplatten, Gips'],['bmg9','Sand, Kies, Stein']];\nconst BP={0:'unbekannt',1:'bis 1918',2:'1919-1944',3:'1945-1979',4:'1980-1999',5:'ab 2000'};\nconst num=v=>(v==null?0:Number(v));\nconst rows=Array.isArray(msg.payload)?msg.payload:[];\nconst header=['Bauperiode','Gebaeude'].concat(G.map(g=>g[1]+' [t]')).join(';');\nconst L=[header];const tot=new Array(G.length).fill(0);let totN=0;\nfor(const r of rows){const cells=[BP[r.bp]||'unbekannt',num(r.n)];G.forEach((g,i)=>{const v=num(r[g[0]]);tot[i]+=v;cells.push(v.toFixed(2));});totN+=num(r.n);L.push(cells.join(';'));}\nL.push(['Summe',totN].concat(tot.map(v=>v.toFixed(2))).join(';'));\nconst csv='\\uFEFF'+['Materieller Gebaeudepass - Stadt Wien (nach Bauperiode)',''].concat(L).join('\\r\\n')+'\\r\\n';\nmsg.statusCode=200;\nmsg.headers={'Content-Type':'text/csv; charset=utf-8','Content-Disposition':'attachment; filename=\"mgp_stadt-wien.csv\"'};\nmsg.payload=csv;return msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 880,
+        "wires": [
+            [
+                "fbbd707eb3c6c5a1"
+            ]
+        ]
+    },
+    {
+        "id": "8564556541d3259d",
+        "type": "postgresql",
+        "z": "mgp_material_pass_tab",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 420,
+        "y": 940,
+        "wires": [
+            [
+                "b23d184f17b359a2"
+            ]
+        ]
+    },
+    {
+        "id": "b6187fe34a66a7ce",
+        "type": "catch",
+        "z": "mgp_material_pass_tab",
+        "name": "",
+        "scope": [
+            "8564556541d3259d"
+        ],
+        "uncaught": false,
+        "x": 620,
+        "y": 1000,
+        "wires": [
+            [
+                "b39f861d02fcfc7a"
+            ]
+        ]
+    },
+    {
+        "id": "ff01cf3e5cce917c",
+        "type": "function",
+        "z": "mgp_material_pass_tab",
+        "name": "build SQL query",
+        "func": "msg.query = 'SELECT bp_best_guess AS bp, count(*) AS n, sum(bmg1) AS bmg1, sum(bmg2) AS bmg2, sum(bmg3) AS bmg3, sum(bmg4) AS bmg4, sum(bmg5) AS bmg5, sum(bmg6) AS bmg6, sum(bmg7) AS bmg7, sum(bmg8) AS bmg8, sum(bmg9) AS bmg9 FROM buildings_details GROUP BY bp_best_guess ORDER BY bp_best_guess;';\nmsg.params=[];\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 880,
+        "wires": [
+            [
+                "8564556541d3259d"
+            ]
+        ]
     }
 ]
