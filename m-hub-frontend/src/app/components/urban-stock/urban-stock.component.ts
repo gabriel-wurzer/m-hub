@@ -7,6 +7,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
+import { EChartsOption } from 'echarts';
+import { NgxEchartsModule } from 'ngx-echarts';
+
 import { MaterialPassService } from '../../services/material-pass/material-pass.service';
 
 interface StockRow {
@@ -28,7 +31,8 @@ interface StockRow {
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    NgxEchartsModule
   ],
   templateUrl: './urban-stock.component.html',
   styleUrl: './urban-stock.component.scss'
@@ -37,6 +41,8 @@ export class UrbanStockComponent implements OnInit {
   groupLabels: string[] = [];
   rows: StockRow[] = [];
   total: StockRow | null = null;
+
+  materialsPieChartOptions: EChartsOption = {};
 
   isLoading = false;
   isDownloading = false;
@@ -118,5 +124,65 @@ export class UrbanStockComponent implements OnInit {
         this.rows.push(row);
       }
     }
+    this.buildPie();
+  }
+
+  /** Pie der Gesamt-Materialzusammensetzung — gespiegelt zu Lukas' Gebäude-Chart. */
+  private buildPie(): void {
+    if (!this.total) {
+      this.materialsPieChartOptions = {};
+      return;
+    }
+    const data = this.groupLabels
+      .map((name, i) => ({ name, value: this.total!.values[i] ?? 0 }))
+      .filter(d => d.value > 0);
+
+    this.materialsPieChartOptions = {
+      title: {
+        left: 'center',
+        text: 'Baumaterialgruppen',
+        subtext: 'gesamter Wiener Gebäudebestand',
+        subtextStyle: { fontSize: 13 }
+      },
+      tooltip: {
+        trigger: 'item',
+        confine: true,
+        formatter: (params: any) => {
+          const mioT = (Number(params.value) / 1e6).toLocaleString('de-AT', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
+          return `${params.marker} ${params.name}: <b>${mioT} Mio t</b> (${params.percent} %)`;
+        },
+        textStyle: { fontSize: 15 }
+      },
+      legend: {
+        orient: 'vertical',
+        top: 'bottom',
+        left: 'right',
+        selectedMode: false,
+        type: 'scroll',
+        height: 110,
+        pageButtonPosition: 'start',
+        pageIconSize: 11
+      },
+      series: [
+        {
+          name: 'Baumaterialgruppen',
+          type: 'pie',
+          radius: '60%',
+          center: ['50%', '45%'],
+          data,
+          label: { show: false },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          }
+        }
+      ]
+    };
   }
 }

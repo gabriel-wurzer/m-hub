@@ -26,6 +26,10 @@
 
   <p *ngIf="errorMessage && !isLoading" class="us-error">{{ errorMessage }}</p>
 
+  <div *ngIf="!isLoading && !errorMessage && total" class="us-pie-wrap">
+    <div echarts [options]="materialsPieChartOptions" class="us-pie"></div>
+  </div>
+
   <div *ngIf="!isLoading && !errorMessage" class="us-table-wrap">
     <table class="us-table">
       <thead>

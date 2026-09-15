@@ -54,6 +54,19 @@
   font-weight: 600;
 }
 
+.us-pie-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 28px;
+}
+
+.us-pie {
+  width: 100%;
+  max-width: 560px;
+  height: 360px;
+}
+
 .us-table-wrap {
   width: 100%;
   overflow-x: auto;
