@@ -23,7 +23,7 @@
                   mat-stroked-button
                   color="primary"
                   matTooltip="Typische Schichtfolgen über die Bauperioden deines Bestands"
-                  [disabled]="isLoading || userBuildings.length === 0"
+                  [disabled]="isLoading || userBuildings.length === 0 || isMgpBusy('cat:stock')"
                   (click)="openStockCatalog()">
                   <mat-icon>menu_book</mat-icon>
                   Mein Bestand
@@ -98,6 +98,7 @@
                       color="primary"
                       matTooltip="Aufbauten-Katalog (dieses Gebäude)"
                       aria-label="Aufbauten-Katalog dieses Gebäudes"
+                      [disabled]="isMgpBusy('cat:' + building.id)"
                       (click)="openBuildingCatalog(building); $event.stopPropagation()">
                       <mat-icon>menu_book</mat-icon>
                     </button>
@@ -134,7 +135,7 @@
                       <mat-icon>download</mat-icon>
                       <span>Materieller Gebäudepass</span>
                     </button>
-                    <button mat-menu-item (click)="openBuildingCatalog(building); $event.stopPropagation()">
+                    <button mat-menu-item [disabled]="isMgpBusy('cat:' + building.id)" (click)="openBuildingCatalog(building); $event.stopPropagation()">
                       <mat-icon>menu_book</mat-icon>
                       <span>Aufbauten-Katalog</span>
                     </button>

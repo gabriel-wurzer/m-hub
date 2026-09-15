@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { finalize, map, Observable, Subscription } from 'rxjs';
+import { finalize, forkJoin, map, Observable, Subscription } from 'rxjs';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,7 +12,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { UserService } from '../../services/user/user.service';
-import { UserBuilding } from '../../models/building';
+import { BuildingService } from '../../services/building/building.service';
+import { Building, UserBuilding } from '../../models/building';
 import { Floor } from '../../models/floor';
 import { EditBuildingViewComponent } from '../edit-building-view/edit-building-view.component';
 import { AuthenticationService } from '../../services/authentication/authentication.service';
@@ -81,6 +82,7 @@ export class UserDataComponent implements OnInit, AfterViewInit, OnDestroy {
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private materialPass: MaterialPassService,
+    private buildingService: BuildingService,
     private router: Router
   ) {
     this.isLoggedIn$ = this.authService.getUser$().pipe(
@@ -306,46 +308,68 @@ export class UserDataComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // --- Aufbauten-Katalog (typische Schichtfolgen) ---
+  // Die Bauperiode kommt aus den Geo-Basisdaten (buildings_details), erreichbar
+  // über /api/buildings/:ID. Bewusst NICHT in /api/users/me/buildings gejoint,
+  // damit dieser Endpoint hermetisch testbar bleibt (Test-DB hat keine Geodaten).
 
-  private buildingPeriodLabel(building: UserBuilding): string | null {
-    const bp = building.bp_best_guess;
+  private periodLabelFor(bp: number | null | undefined): string | null {
     if (bp == null || bp === 0) return null; // 0 = unbekannt -> kein Katalog
     return PeriodLabels[bp] ?? null;
   }
 
   /** Aufbauten-Katalog gefiltert auf die Bauperiode dieses Gebäudes. */
   openBuildingCatalog(building: UserBuilding): void {
-    const period = this.buildingPeriodLabel(building);
-    if (!period) {
-      this.snackBar.open('Bauperiode unbekannt — kein Aufbauten-Katalog verfügbar.', 'OK', {
-        duration: 5000,
-        verticalPosition: 'top'
+    if (this.mgpBusy.has('cat:' + building.id)) return;
+    this.mgpBusy.add('cat:' + building.id);
+    this.buildingService.getBuildingById(building.building_id)
+      .pipe(finalize(() => this.mgpBusy.delete('cat:' + building.id)))
+      .subscribe({
+        next: b => {
+          const period = this.periodLabelFor(b?.bp_best_guess);
+          if (!period) {
+            this.snackBar.open('Bauperiode unbekannt — kein Aufbauten-Katalog verfügbar.', 'OK', {
+              duration: 5000, verticalPosition: 'top'
+            });
+            return;
+          }
+          this.router.navigate(['/katalog'], {
+            queryParams: { bp: period, titel: this.getBuildingDisplayName(building) }
+          });
+        },
+        error: () => this.notifyCatalogError()
       });
-      return;
-    }
-    this.router.navigate(['/katalog'], {
-      queryParams: { bp: period, titel: this.getBuildingDisplayName(building) }
-    });
   }
 
   /** Aufbauten-Katalog über alle Bauperioden des eigenen Bestands. */
   openStockCatalog(): void {
-    const periods = Array.from(
-      new Set(
-        this.userBuildings
-          .map(b => this.buildingPeriodLabel(b))
-          .filter((p): p is string => !!p)
-      )
-    );
-    if (periods.length === 0) {
-      this.snackBar.open('Für deine Gebäude ist keine Bauperiode bekannt.', 'OK', {
-        duration: 5000,
-        verticalPosition: 'top'
+    if (this.userBuildings.length === 0 || this.mgpBusy.has('cat:stock')) return;
+    this.mgpBusy.add('cat:stock');
+    forkJoin(this.userBuildings.map(b => this.buildingService.getBuildingById(b.building_id)))
+      .pipe(finalize(() => this.mgpBusy.delete('cat:stock')))
+      .subscribe({
+        next: (buildings: Building[]) => {
+          const periods = Array.from(new Set(
+            buildings
+              .map(b => this.periodLabelFor(b?.bp_best_guess))
+              .filter((p): p is string => !!p)
+          ));
+          if (periods.length === 0) {
+            this.snackBar.open('Für deine Gebäude ist keine Bauperiode bekannt.', 'OK', {
+              duration: 5000, verticalPosition: 'top'
+            });
+            return;
+          }
+          this.router.navigate(['/katalog'], {
+            queryParams: { bp: periods.join(','), titel: 'mein Bestand' }
+          });
+        },
+        error: () => this.notifyCatalogError()
       });
-      return;
-    }
-    this.router.navigate(['/katalog'], {
-      queryParams: { bp: periods.join(','), titel: 'mein Bestand' }
+  }
+
+  private notifyCatalogError(): void {
+    this.snackBar.open('Aufbauten-Katalog konnte nicht geöffnet werden.', 'OK', {
+      duration: 6000, verticalPosition: 'top'
     });
   }
 

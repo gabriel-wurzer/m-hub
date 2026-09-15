@@ -872,7 +872,7 @@
         "type": "function",
         "z": "0f9991baea5a014f",
         "name": "build SQL query",
-        "func": "const user_id = msg.user.sub;\n\nif (!user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Missing userId\" };\n    return [null, msg]; // Output 2 (Error)\n}\n\n// Check UUID format\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\nif (!uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid userId format (UUID required)\" };\n    return [null, msg]; // Output 2 (Error)\n}\n\n\nmsg.query = \"SELECT ub.*, bd.bp_best_guess FROM user_buildings ub LEFT JOIN buildings_details bd ON bd.bw_geb_id = ub.building_id WHERE ub.user_id = $1::uuid\";\nmsg.params = [ user_id ];\n\nreturn [msg, null]; // Output 1",
+        "func": "const user_id = msg.user.sub;\n\nif (!user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Missing userId\" };\n    return [null, msg]; // Output 2 (Error)\n}\n\n// Check UUID format\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\nif (!uuidRegex.test(user_id)) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"Invalid userId format (UUID required)\" };\n    return [null, msg]; // Output 2 (Error)\n}\n\n\nmsg.query = \"SELECT * FROM user_buildings WHERE user_id = $1::uuid\";\nmsg.params = [ user_id ];\n\nreturn [msg, null]; // Output 1",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
