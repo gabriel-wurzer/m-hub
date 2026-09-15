@@ -5,16 +5,30 @@
         <header class="user-data-header">
             <h1>Gebäudeliste</h1>
             <div class="mgp-actions">
-              <span class="mgp-label">Materieller Gebäudepass (MGP)</span>
-              <button
-                mat-stroked-button
-                color="primary"
-                matTooltip="Materieller Gebäudepass: Materialbilanz aller eigenen Objekte, nach Bauperiode (CSV)"
-                [disabled]="isMgpBusy('my') || isLoading || userBuildings.length === 0"
-                (click)="downloadMyMgp()">
-                <mat-icon>summarize</mat-icon>
-                Meine Objekte
-              </button>
+              <div class="action-group">
+                <span class="mgp-label">Materieller Gebäudepass (MGP)</span>
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  matTooltip="Materieller Gebäudepass: Materialbilanz aller eigenen Objekte, nach Bauperiode (CSV)"
+                  [disabled]="isMgpBusy('my') || isLoading || userBuildings.length === 0"
+                  (click)="downloadMyMgp()">
+                  <mat-icon>summarize</mat-icon>
+                  Meine Objekte
+                </button>
+              </div>
+              <div class="action-group">
+                <span class="mgp-label">Aufbauten-Katalog</span>
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  matTooltip="Typische Schichtfolgen über die Bauperioden deines Bestands"
+                  [disabled]="isLoading || userBuildings.length === 0"
+                  (click)="openStockCatalog()">
+                  <mat-icon>menu_book</mat-icon>
+                  Mein Bestand
+                </button>
+              </div>
             </div>
         </header>
 
@@ -81,6 +95,14 @@
                     </button>
                     <button
                       mat-icon-button
+                      color="primary"
+                      matTooltip="Aufbauten-Katalog (dieses Gebäude)"
+                      aria-label="Aufbauten-Katalog dieses Gebäudes"
+                      (click)="openBuildingCatalog(building); $event.stopPropagation()">
+                      <mat-icon>menu_book</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
                       color="warn"
                       matTooltip="Löschen"
                       aria-label="Gebäude entfernen"
@@ -111,6 +133,10 @@
                     <button mat-menu-item [disabled]="isMgpBusy(building.id)" (click)="downloadBuildingMgp(building); $event.stopPropagation()">
                       <mat-icon>download</mat-icon>
                       <span>Materieller Gebäudepass</span>
+                    </button>
+                    <button mat-menu-item (click)="openBuildingCatalog(building); $event.stopPropagation()">
+                      <mat-icon>menu_book</mat-icon>
+                      <span>Aufbauten-Katalog</span>
                     </button>
                     <button mat-menu-item (click)="deleteBuilding(building); $event.stopPropagation()">
                       <mat-icon>delete_outline</mat-icon>

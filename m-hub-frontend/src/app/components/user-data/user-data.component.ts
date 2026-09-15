@@ -20,8 +20,10 @@ import { EntityContext } from '../../models/entity-context';
 import { StructureViewComponent } from '../structure-view/structure-view.component';
 import { ConfirmDialogComponent } from '../dialogs/confirm-dialog/confirm-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 import { versionedImageSvgUrl } from '../../utils/asset-url';
 import { MaterialPassService } from '../../services/material-pass/material-pass.service';
+import { PeriodLabels } from '../../enums/period.enum';
 
 
 @Component({
@@ -45,7 +47,7 @@ import { MaterialPassService } from '../../services/material-pass/material-pass.
   styleUrl: './user-data.component.scss'
 })
 export class UserDataComponent implements OnInit, AfterViewInit, OnDestroy {
-  private readonly compactActionWidthPx = 172;
+  private readonly compactActionWidthPx = 212;
 
   @ViewChildren('cardHeader') private cardHeaders!: QueryList<ElementRef<HTMLElement>>;
   readonly houseIconUrl = versionedImageSvgUrl('/assets/images/house_icon.svg');
@@ -78,7 +80,8 @@ export class UserDataComponent implements OnInit, AfterViewInit, OnDestroy {
     private userService: UserService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private materialPass: MaterialPassService
+    private materialPass: MaterialPassService,
+    private router: Router
   ) {
     this.isLoggedIn$ = this.authService.getUser$().pipe(
       map(user => !!user)
@@ -299,6 +302,50 @@ export class UserDataComponent implements OnInit, AfterViewInit, OnDestroy {
     this.snackBar.open('Materieller Gebäudepass konnte nicht erstellt werden.', 'OK', {
       duration: 6000,
       verticalPosition: 'top'
+    });
+  }
+
+  // --- Aufbauten-Katalog (typische Schichtfolgen) ---
+
+  private buildingPeriodLabel(building: UserBuilding): string | null {
+    const bp = building.bp_best_guess;
+    if (bp == null || bp === 0) return null; // 0 = unbekannt -> kein Katalog
+    return PeriodLabels[bp] ?? null;
+  }
+
+  /** Aufbauten-Katalog gefiltert auf die Bauperiode dieses Gebäudes. */
+  openBuildingCatalog(building: UserBuilding): void {
+    const period = this.buildingPeriodLabel(building);
+    if (!period) {
+      this.snackBar.open('Bauperiode unbekannt — kein Aufbauten-Katalog verfügbar.', 'OK', {
+        duration: 5000,
+        verticalPosition: 'top'
+      });
+      return;
+    }
+    this.router.navigate(['/katalog'], {
+      queryParams: { bp: period, titel: this.getBuildingDisplayName(building) }
+    });
+  }
+
+  /** Aufbauten-Katalog über alle Bauperioden des eigenen Bestands. */
+  openStockCatalog(): void {
+    const periods = Array.from(
+      new Set(
+        this.userBuildings
+          .map(b => this.buildingPeriodLabel(b))
+          .filter((p): p is string => !!p)
+      )
+    );
+    if (periods.length === 0) {
+      this.snackBar.open('Für deine Gebäude ist keine Bauperiode bekannt.', 'OK', {
+        duration: 5000,
+        verticalPosition: 'top'
+      });
+      return;
+    }
+    this.router.navigate(['/katalog'], {
+      queryParams: { bp: periods.join(','), titel: 'mein Bestand' }
     });
   }
 

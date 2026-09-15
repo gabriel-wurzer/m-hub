@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -49,9 +50,24 @@ export class AufbautenKatalogComponent implements OnInit {
 
   private response: CatalogResponse | null = null;
 
-  constructor(private katalog: AufbautenKatalogService) {}
+  constructor(
+    private katalog: AufbautenKatalogService,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
+    // Ebene aus Query-Params, wenn nicht per @Input gesetzt (Route /katalog?bp=…&titel=…).
+    const qp = this.route.snapshot.queryParamMap;
+    const bp = qp.get('bp');
+    if (this.periodsFilter == null && bp) {
+      this.periodsFilter = bp.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    const titel = qp.get('titel');
+    if (titel) {
+      this.heading = `Aufbauten-Katalog — ${titel}`;
+      this.subheading =
+        `Typische Schichtfolgen je Bauperiode, Lage und Bauteil (${titel}).`;
+    }
     this.load();
   }
 

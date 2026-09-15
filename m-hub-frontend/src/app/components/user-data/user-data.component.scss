@@ -72,11 +72,18 @@ main {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 8px 20px;
 
     button mat-icon {
         margin-right: 6px;
     }
+}
+
+.action-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .mgp-label {

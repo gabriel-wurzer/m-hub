@@ -42,9 +42,10 @@ export interface UserBuilding {
   id: string;               // user_buildings.id
   user_id: string;          // reference to user
   building_id: string;      // reference to building
+  bp_best_guess?: number;   // Bauperiode aus buildings_details (fuer den Aufbauten-Katalog)
   structure: Floor[];
   name: string;
-  address: string;        
+  address: string;
   documents?: Document[];                       // fetched via relation
   building_components?: BuildingComponent[];    // fetched via relation
 }
