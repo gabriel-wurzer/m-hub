@@ -76,7 +76,11 @@ export class EntityInfoDialogComponent {
     glb: 'view_in_ar',
     gltf: 'view_in_ar',
     fbx: 'view_in_ar',
-    ifc: 'view_in_ar'
+    ifc: 'view_in_ar',
+    las: 'view_in_ar',
+    laz: 'view_in_ar',
+    xyz: 'view_in_ar',
+    pts: 'view_in_ar'
   };
   private readonly trustedDocumentUrlCache = new Map<string, SafeResourceUrl>();
   private readonly floorDescriptionByLocationLabel = new Map<string, string>();
