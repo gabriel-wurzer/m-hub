@@ -34,5 +34,7 @@ export enum FileType {
     FBX = "fbx",
     IFC = "ifc",
     LAS = "las",
-    LAZ = "laz"
+    LAZ = "laz",
+    XYZ = "xyz",
+    PTS = "pts"
 }

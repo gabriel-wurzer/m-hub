@@ -42,7 +42,8 @@ CREATE TABLE IF NOT EXISTS documents (
             'jpg', 'png', 'gif', 'bmp', 'tiff', 'svg', 'webp',
             'pdf', 'doc', 'docx', 'txt', 'rtf', 'odt', 'html', 'md',
             'csv', 'xlsx', 'xlsm',
-            'e57', 'obj', 'stl', 'ply', 'glb', 'gltf', 'fbx', 'ifc', 'las', 'laz'
+            'e57', 'obj', 'stl', 'ply', 'glb', 'gltf', 'fbx', 'ifc', 'las', 'laz',
+            'xyz', 'pts'
         )
     ),
     CONSTRAINT documents_p2i_status_check CHECK (

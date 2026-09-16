@@ -38,6 +38,7 @@ Sie sind hier festgehalten, damit die Herkunft der Abweichungen nachvollziehbar 
 
 | Datum | Wer | Aenderung | Anmerkung |
 |---|---|---|---|
+| 2026-09-16 | Gabriel | `documents_file_type_check` um `'xyz'` und `'pts'` erweitert | **Auf prod noch offen.** SQL im Wortlaut in `migrations/2026-09_document_xyz_type.sql` (Constraint droppen und neu anlegen). Grund: der `pointcloud-viewer` liest genau diese beiden Formate (`parseXyz`), die Typ-Whitelist kannte sie nie, damit liess sich keine ausgeduennte Punktwolken-Vorschau ablegen. |
 | 2026-07-03 | Gabriel | `market_listings.location` auf nullable | Von Hand auf prod, Backup unter `/root/market_listings-backup-*.sql` |
 | Juli 2026 | vermutlich Lukas | Tabelle `building_object_images` angelegt | Fehlte am 06.07. auf prod (Bilderfunktion kaputt), ist seither vorhanden; genauer Zeitpunkt nicht protokolliert |
 | Juli 2026 | vermutlich Lukas | Spalte `market_listings.address` | Fehlte am 06.07. auf prod (Abfrage aehnlicher Inserate kaputt), ist seither vorhanden |
