@@ -11,7 +11,9 @@
 //
 // Aktions-Vokabular je Schritt:
 //   { goto:'/pfad' }                 Seite aufrufen
-//   { caption:'Text' }               Untertitel einblenden ('' blendet aus)
+//   { caption:'Text' }               Sprechtext. Landet in den Folien-Notizen,
+//                                    NICHT im Bild (der Mensch spricht live).
+//                                    Mit DEMO_CAPTIONS=1 zum Pruefen einblenden.
 //   { hold:ms }                      stehenbleiben
 //   { waitFor:'Text|.selector' }     auf Inhalt warten
 //   { click:'.selector' }            klicken
@@ -35,7 +37,7 @@
 import { chromium } from 'playwright';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { readdirSync, renameSync, readFileSync, existsSync, mkdirSync } from 'fs';
+import { readdirSync, renameSync, readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 
 const BASE = process.env.DEMO_BASE || 'http://localhost:8910';
 const VW = { width: 1440, height: 900 };
@@ -45,7 +47,8 @@ const TOKEN =
   process.env.DEMO_TOKEN ||
   (existsSync(join(HERE, '.token')) ? readFileSync(join(HERE, '.token'), 'utf8').trim() : '');
 
-const ADRESSE = 'Schwarzspanierstrasse 18, Wien';
+// Ohne ", Wien" findet der Geocoder dasselbe Gebäude und es tippt sich kürzer.
+const ADRESSE = 'Schwarzspanierstrasse 18';
 
 // Gebaeude-Detail oeffnen. Mehrere Kapitel fangen so an.
 const detailOeffnen = [
@@ -245,8 +248,11 @@ for (const chapter of chapters) {
   const page = await context.newPage();
   const wait = (ms) => page.waitForTimeout(ms);
 
-  const caption = (text) =>
-    page.evaluate((t) => {
+  const gesprochen = [];
+  const caption = (text) => {
+    if (text) gesprochen.push(text);
+    if (process.env.DEMO_CAPTIONS !== '1') return Promise.resolve();
+    return page.evaluate((t) => {
       let el = document.getElementById('__demo_caption');
       if (!el) {
         el = document.createElement('div');
@@ -264,6 +270,7 @@ for (const chapter of chapters) {
       el.textContent = t || '';
       el.style.opacity = t ? '1' : '0';
     }, text).catch(() => {});
+  };
 
   async function dismissDialogs() {
     for (const label of ['Verstanden', 'OK', 'Akzeptieren']) {
@@ -332,6 +339,11 @@ for (const chapter of chapters) {
   await wait(400);
   await page.screenshot({ path: join(OUT, `${chapter.id}.png`) }).catch(() => {});
   await context.close();
+
+  // Sprechtext je Kapitel: wandert in die Notizen der zugehoerigen Folie.
+  const NL = String.fromCharCode(10);
+  const zeilen = [chapter.folie, ''].concat(gesprochen.map((z) => '· ' + z));
+  writeFileSync(join(OUT, chapter.id + '.txt'), zeilen.join(NL) + NL, 'utf8');
 
   const webm = readdirSync(dir).filter((f) => f.endsWith('.webm')).sort();
   if (webm.length) {
