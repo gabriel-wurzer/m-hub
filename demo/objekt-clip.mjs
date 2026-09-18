@@ -80,6 +80,15 @@ async function zeigenUndKlicken(locator, ruhe = 700) {
   await locator.click({ timeout: 10000, force: true });
 }
 
+/** Tippt, ohne das Formular erneut zu verschieben. Fuer Felder, die schon im
+ *  Bild stehen: sonst springt der Dialog bei jedem Feldwechsel. */
+async function tippenRuhig(locator, text, verzoegerung = 30) {
+  await locator.click({ timeout: 8000, force: true });
+  await warte(180);
+  await locator.fill('');
+  await locator.type(text, { delay: verzoegerung });
+}
+
 async function tippen(locator, text, verzoegerung = 30) {
   await zeigenUndKlicken(locator, 220);
   await locator.fill('');
@@ -120,11 +129,11 @@ try {
   takt('dialog offen');
 
   sagen('Name und Adresse');
-  await tippen(feld('Name'), NAME, 22);
+  await tippenRuhig(feld('Name'), NAME, 22);
   await warte(350);
   const adresse = feld('Adresse');
   if (!(await adresse.inputValue().catch(() => ''))) {
-    await tippen(adresse, 'Garnisongasse 7, 1090 Wien', 18);
+    await tippenRuhig(adresse, 'Garnisongasse 7, 1090 Wien', 18);
   }
   await warte(500);
 
@@ -141,6 +150,9 @@ try {
     await warte(500);
   }
 
+  // Einmal zum Geschoss scrollen, danach nur noch tippen.
+  await feld('Anzahl der Geschosse').scrollIntoViewIfNeeded().catch(() => {});
+  await warte(500);
   for (const g of GESCHOSSE) {
     for (const [label, wert] of [
       ['Anzahl der Geschosse', g.anzahl],
@@ -148,8 +160,8 @@ try {
       ['Geschossfläche (m²)', g.flaeche],
     ]) {
       const f = feld(label);
-      if (await f.count().catch(() => 0)) await tippen(f, wert, 45);
-      await warte(300);
+      if (await f.count().catch(() => 0)) await tippenRuhig(f, wert, 45);
+      await warte(350);
     }
   }
   takt('struktur gesetzt');
