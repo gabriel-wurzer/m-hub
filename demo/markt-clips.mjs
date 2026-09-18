@@ -134,23 +134,19 @@ async function abfrage(page, sagen) {
   await warte(3000);
   takt('ziegel offen');
 
-  // "Ansehen" statt Download: PDFs und Bilder zeigt der Browser selbst.
-  const ansehen = page
-    .locator('.listing-media-item:has-text("rezertifizierung") a:has-text("Ansehen")').first();
-  const zertifikat = await ansehen.getAttribute('href', { timeout: 5000 }).catch(() => null);
-  if (zertifikat) {
-    sagen('Welche Normen der Ziegel heute erfüllt, steht im Zertifikat');
-    await ansehen.scrollIntoViewIfNeeded().catch(() => {});
-    await ansehen.hover().catch(() => {});
-    await warte(900);
-    await page.goto(new URL(zertifikat, BASE).toString(), { timeout: 30000 }).catch(() => {});
-    await warte(7000);
-    takt('zertifikat');
-  }
+  // Das Zertifikat nur zeigen, nicht oeffnen: Chromium rendert PDFs in einer
+  // eigenen Schicht, die Playwright nicht aufnehmen kann. Ein Klick darauf
+  // brachte im Clip nur acht Sekunden schwarzes Bild.
+  const zeile = page.locator('.listing-media-item:has-text("rezertifizierung")').first();
+  await zeile.scrollIntoViewIfNeeded().catch(() => {});
+  await zeile.hover().catch(() => {});
+  sagen('Welche Normen der Ziegel heute erfüllt, steht im Zertifikat daneben');
+  await warte(3200);
+  takt('zertifikat gezeigt');
 
   // --- Waschbecken: Splat ---
   sagen('Ein Objekt aus demselben Haus: das Waschbecken');
-  await oeffne('Sonstige', 'Handwaschbecken, Gusseisen emailliert');
+  await oeffne('Sonstige', 'Handwaschbecken Vintage Emaille, ca. 1900');
   await warte(2200);
   takt('waschbecken offen');
 
