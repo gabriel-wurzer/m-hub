@@ -103,6 +103,33 @@
           </div>
         </ng-template>
 
+        <!-- Medien aus dem Gebaeude: Splat, Punktwolke, IFC, PDF. Beim Inserieren kopiert. -->
+        <section class="listing-media" *ngIf="media.length > 0">
+          <h2>Medien</h2>
+          <ul class="listing-media-list">
+            <li *ngFor="let medium of media; trackBy: trackByMediaId" class="listing-media-item">
+              <mat-icon class="listing-media-icon">{{ mediaIcon(medium) }}</mat-icon>
+              <span class="listing-media-name">
+                {{ medium.name }}
+                <span class="listing-media-meta" *ngIf="mediaSize(medium)">{{ mediaSize(medium) }}</span>
+              </span>
+              <a
+                *ngIf="is3dViewable(medium)"
+                [href]="viewerUrl(medium)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="listing-media-link"
+              >3D ansehen</a>
+              <a
+                [href]="mediaUrl(medium)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="listing-media-link"
+              >Herunterladen</a>
+            </li>
+          </ul>
+        </section>
+
         <div class="listing-detail-column">
           <section class="detail-section">
             <h2>Details</h2>

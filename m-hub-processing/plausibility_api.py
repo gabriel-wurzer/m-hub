@@ -21,6 +21,7 @@ Start:  cd m-hub-processing && python plausibility_api.py   (lauscht auf 127.0.0
 import itertools
 import json
 import os
+import urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import material_markov as mk
@@ -178,6 +179,30 @@ def catalog(k=3):
             "ort_order": CAT_ORT_ORDER, "art_order": CAT_ART_ORDER}
 
 
+FILER = os.environ.get("SEAWEED_FILER_INTERNAL_URL", "http://seaweed-filer:8888")
+
+
+def copy_filer(src, dst):
+    """Datei im Filer kopieren, ohne sie ganz in den Speicher zu holen.
+
+    Beim Inserieren wandern Medien als Kopie ans Inserat (Splats sind ein paar
+    hundert MB). Ein Umweg ueber node-red wuerde die Datei komplett puffern,
+    deshalb streamt der Processing-Dienst direkt von Filer zu Filer.
+    """
+    if not src.startswith("/") or not dst.startswith("/"):
+        raise ValueError("src und dst muessen absolute Filer-Pfade sein")
+    with urllib.request.urlopen(FILER + src, timeout=120) as quelle:
+        laenge = quelle.headers.get("Content-Length")
+        typ = quelle.headers.get("Content-Type") or "application/octet-stream"
+        req = urllib.request.Request(FILER + dst, data=quelle, method="PUT")
+        req.add_header("Content-Type", typ)
+        if laenge:
+            req.add_header("Content-Length", laenge)
+        with urllib.request.urlopen(req, timeout=600) as antwort:
+            antwort.read()
+    return int(laenge) if laenge else None
+
+
 class Handler(BaseHTTPRequestHandler):
     def _send(self, code, obj):
         body = json.dumps(obj, ensure_ascii=False).encode("utf-8")
@@ -188,7 +213,34 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_POST(self):
-        if self.path.rstrip("/") != "/check":
+        pfad = self.path.rstrip("/")
+        if pfad == "/copy-batch":
+            # Mehrere Medien auf einmal, damit node-red keine Schleife braucht.
+            try:
+                n = int(self.headers.get("Content-Length", 0) or 0)
+                data = json.loads(self.rfile.read(n) or b"{}")
+                ergebnis = []
+                for eintrag in data.get("items", []):
+                    try:
+                        groesse = copy_filer(eintrag["src"], eintrag["dst"])
+                        ergebnis.append({"dst": eintrag["dst"], "ok": True, "size": groesse})
+                    except Exception as e:
+                        ergebnis.append({"dst": eintrag.get("dst"), "ok": False, "error": str(e)})
+                self._send(200, {"results": ergebnis,
+                                 "ok": all(r["ok"] for r in ergebnis) if ergebnis else True})
+            except Exception as e:
+                self._send(400, {"error": str(e)})
+            return
+        if pfad == "/copy":
+            try:
+                n = int(self.headers.get("Content-Length", 0) or 0)
+                data = json.loads(self.rfile.read(n) or b"{}")
+                groesse = copy_filer(data["src"], data["dst"])
+                self._send(200, {"ok": True, "size": groesse})
+            except Exception as e:
+                self._send(400, {"error": str(e)})
+            return
+        if pfad != "/check":
             self._send(404, {"error": "not found"})
             return
         try:
@@ -223,7 +275,7 @@ if __name__ == "__main__":
     HOST = os.environ.get("PLAUSIBILITY_HOST", "127.0.0.1")   # Container setzt 0.0.0.0
     PORT = int(os.environ.get("PLAUSIBILITY_PORT", "8971"))
     v = vocab_report()
-    print(f"plausibility-service on {HOST}:{PORT}  (POST /check, GET /health, GET /vocab)")
+    print(f"plausibility-service on {HOST}:{PORT}  (POST /check, POST /copy, GET /health, GET /vocab)")
     print(f"  Vokabular: {len(v['direkt'])} von {v['mhub']} m-hub-Materialien direkt im Katalog, "
           f"{len(v['uebersetzt'])} uebersetzt, {len(v['ohne_entsprechung'])} ohne Entsprechung")
     if v["ohne_entsprechung"]:

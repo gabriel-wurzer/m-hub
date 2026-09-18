@@ -538,3 +538,22 @@ mat-error {
     margin-top: 4px;
   }
 }
+
+
+.dialog-section-title {
+  margin: 18px 0 2px;
+  font-size: 1rem;
+}
+
+.dialog-section-hint {
+  margin: 0 0 8px;
+  color: #6b7178;
+  font-size: 0.85rem;
+}
+
+.listing-document-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}

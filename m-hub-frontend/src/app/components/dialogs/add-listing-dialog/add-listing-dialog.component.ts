@@ -9,9 +9,11 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { take } from 'rxjs';
+import { Document } from '../../../models/document';
 import { BuildingComponentCategory } from '../../../enums/component-category';
 import { MarketListingUnit } from '../../../enums/market-listing-unit.enum';
 import { MarketListingStatus } from '../../../enums/market-listing-status';
@@ -24,6 +26,8 @@ import { MHUB_DATE_PROVIDERS } from '../../../utils/mhub-date-adapter';
 
 export type AddListingDialogData = {
   component: Bauteil | Objekt;
+  /** Dokumente des Gebaeudes, aus denen Medien fuer das Inserat gewaehlt werden koennen. */
+  documents?: Document[];
 };
 
 export type AddListingDialogImage = {
@@ -48,6 +52,8 @@ export type AddListingDialogResult = {
   height: number | null;
   contact: string;
   images: AddListingDialogImage[];
+  /** IDs der Gebaeudedokumente, die als Kopie ans Inserat sollen. */
+  documentIds: string[];
 };
 
 type MeasurementInput = number | string | null;
@@ -67,6 +73,7 @@ type MeasurementInput = number | string | null;
     MatIconModule,
     MatInputModule,
     MatSelectModule,
+    MatCheckboxModule,
     MatTooltipModule
   ],
   providers: MHUB_DATE_PROVIDERS,
@@ -314,10 +321,40 @@ export class AddListingDialogComponent {
       width: this.normalizeOptionalMeasurement(this.width),
       height: this.normalizeOptionalMeasurement(this.height),
       contact: this.contact.trim(),
-      images: [...this.selectedImages]
+      images: [...this.selectedImages],
+      documentIds: this.selectedDocumentIds()
     };
 
     this.dialogRef?.close(result);
+  }
+
+  /**
+   * Medien aus dem Gebaeude. Bewusst nichts vorausgewaehlt: am Gebaeude haengen
+   * auch Plaene, die niemand im Markt sehen soll.
+   */
+  readonly documentSelection = new Map<string, boolean>();
+
+  get selectableDocuments(): Document[] {
+    return (this.data?.documents ?? []).filter(d => !!d.id && !!d.file_url);
+  }
+
+  isDocumentSelected(id: string): boolean {
+    return this.documentSelection.get(id) === true;
+  }
+
+  toggleDocument(id: string, selected: boolean): void {
+    this.documentSelection.set(id, selected);
+  }
+
+  selectedDocumentIds(): string[] {
+    return this.selectableDocuments
+      .filter(d => this.isDocumentSelected(d.id!))
+      .map(d => d.id!);
+  }
+
+  documentLabel(document: Document): string {
+    const typ = document.file_type ? `.${document.file_type}` : '';
+    return `${document.name}${typ}`;
   }
 
   close(): void {

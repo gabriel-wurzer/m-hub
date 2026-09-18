@@ -13,7 +13,7 @@ import { BuildingComponentCategory } from '../../enums/component-category';
 import { MarketListingStatus } from '../../enums/market-listing-status';
 import { MarketListingUnit } from '../../enums/market-listing-unit.enum';
 import { MarketListing, SimilarMarketListing } from '../../models/market-listing';
-import { MarketListingService, SimilarMarketListingRadius } from '../../services/market-listing/market-listing.service';
+import { MarketListingMedia, MarketListingService, SimilarMarketListingRadius } from '../../services/market-listing/market-listing.service';
 import { MarketListingMapPreviewComponent } from '../market-listing-map-preview/market-listing-map-preview.component';
 
 type ListingImageVm = {
@@ -42,6 +42,14 @@ type ListingImageVm = {
 })
 export class MarketListingComponent implements OnChanges, OnDestroy {
   @Input() listing: MarketListing | null = null;
+
+  /** Medien am Inserat: Splats, Punktwolken, IFC, PDFs. Bilder laufen weiter ueber listing.images. */
+  media: MarketListingMedia[] = [];
+  private mediaSubscription?: Subscription;
+
+  private readonly splatTypes = new Set(['ply', 'spz', 'splat', 'ksplat', 'sog']);
+  private readonly ifcTypes = new Set(['ifc']);
+  private readonly pointCloudTypes = new Set(['xyz', 'pts']);
   @Input() loading = false;
   @Input() loadError: string | null = null;
   @Output() closeMarketListing = new EventEmitter<void>();
@@ -67,11 +75,61 @@ export class MarketListingComponent implements OnChanges, OnDestroy {
       this.listingImages = this.resolveListingImages();
       this.activeListingImageIndex = 0;
       this.loadSimilarListings();
+      this.loadMedia();
     }
   }
 
   ngOnDestroy(): void {
     this.similarListingsSubscription?.unsubscribe();
+    this.mediaSubscription?.unsubscribe();
+  }
+
+  private loadMedia(): void {
+    this.mediaSubscription?.unsubscribe();
+    this.media = [];
+    const id = this.listing?.id;
+    if (!id) return;
+    this.mediaSubscription = this.marketListingService.getMedia(id).subscribe({
+      next: media => (this.media = media ?? []),
+      error: () => (this.media = [])
+    });
+  }
+
+  /** Ausliefernder Pfad im Filer, gleiche Regel wie in der Gebaeudeansicht. */
+  mediaUrl(medium: MarketListingMedia): string {
+    return `/files${medium.file_path}`;
+  }
+
+  is3dViewable(medium: MarketListingMedia): boolean {
+    const t = (medium.file_type ?? '').toLowerCase();
+    return this.splatTypes.has(t) || this.ifcTypes.has(t) || this.pointCloudTypes.has(t);
+  }
+
+  viewerUrl(medium: MarketListingMedia): string {
+    const t = (medium.file_type ?? '').toLowerCase();
+    let viewer = 'splat-viewer';
+    if (this.ifcTypes.has(t)) viewer = 'ifc-viewer';
+    else if (this.pointCloudTypes.has(t)) viewer = 'pointcloud-viewer';
+    return `assets/${viewer}/index.html?src=${encodeURIComponent(this.mediaUrl(medium))}`;
+  }
+
+  mediaIcon(medium: MarketListingMedia): string {
+    const t = (medium.file_type ?? '').toLowerCase();
+    if (this.is3dViewable(medium)) return 'view_in_ar';
+    if (t === 'pdf') return 'picture_as_pdf';
+    return 'insert_drive_file';
+  }
+
+  mediaSize(medium: MarketListingMedia): string {
+    const b = Number(medium.file_size_bytes ?? 0);
+    if (!b) return '';
+    return b >= 1048576
+      ? `${(b / 1048576).toLocaleString('de-AT', { maximumFractionDigits: 1 })} MB`
+      : `${Math.round(b / 1024)} KB`;
+  }
+
+  trackByMediaId(_: number, medium: MarketListingMedia): string {
+    return medium.id;
   }
 
   get currentListingImage(): ListingImageVm | null {

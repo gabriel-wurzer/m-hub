@@ -182,12 +182,12 @@ const CHAPTERS = [
       ...detailOeffnen,
       { scrollTo: 'text=Dokumente' },
       { hold: 1200 },
-      { caption: 'Aus der Punktwolke wird ein reduziertes IFC' },
+      { caption: 'Das Archicad-Modell des Hauses als IFC' },
       { click: 'mat-list-item:has-text("Gebäudemodell")' },
       { hold: 2600 },
       { followLink: 'a:has-text("3D ansehen")' },
       { hold: 14000 },
-      { caption: 'Bauteile einzeln, mit Materialbilanz je Bauteil' },
+      { caption: 'Bauteile einzeln, Grundlage für die Materialbilanz' },
       { hold: 4000 },
     ],
   },
@@ -205,6 +205,70 @@ const CHAPTERS = [
       { hold: 11000 },
       { caption: 'Fotorealistisch im Browser, Kandidat für den Marktplatz' },
       { hold: 4000 },
+    ],
+  },
+  {
+    id: 'wand',
+    folie: 'Einloggen und eine Wand eintippen',
+    steps: [
+      { goto: '/bestandsverwaltung' },
+      { waitFor: 'Gebäudeliste' },
+      { hold: 1600 },
+      { caption: 'Angemeldet als Demo, eigenes Objekt Schwarzspanierstraße 18' },
+      { click: '.building-card' },
+      { hold: 1400 },
+      { click: 'button:has(mat-icon:text-is("edit"))' },
+      { hold: 2200 },
+      { caption: 'Bauteile: noch keine erfasst' },
+      { hold: 1800 },
+      { click: 'button:has(mat-icon:text-is("add"))' },
+      { hold: 1600 },
+      { caption: 'Aus der Beprobung: Außenwand West' },
+      { type: ['mat-dialog-container input', 'Außenwand West'] },
+      { hold: 900 },
+      { click: 'mat-dialog-container mat-select >> nth=0' },
+      { hold: 900 },
+      { click: 'mat-option:has-text("Regelgeschoss 1")' },
+      { hold: 700 },
+      { press: 'Escape' },
+      { hold: 800 },
+      { click: 'mat-dialog-container mat-select >> nth=1' },
+      { hold: 1000 },
+      { click: 'mat-option:has-text("Außenwand")' },
+      { hold: 1500 },
+      { caption: 'Laufmeter aus dem Aufmaß: 17,30' },
+      { fill: ['mat-form-field:has(mat-label:text-is("Laufmeter (m)")) input', '17.3'] },
+      { hold: 1600 },
+      { caption: 'Schichtaufbau tippen: Putz, Ziegel, Putz' },
+      { click: 'div.layer-row >> nth=0 >> mat-select' },
+      { hold: 1200 },
+      { click: 'mat-option >> text="Putz"' },
+      { hold: 900 },
+      { fill: ['div.layer-row >> nth=0 >> input[type=number]', '20'] },
+      { hold: 1200 },
+      { click: 'button:has-text("Schicht hinzufügen")' },
+      { hold: 1300 },
+      { click: 'div.layer-row >> nth=1 >> mat-select' },
+      { hold: 1200 },
+      { click: 'mat-option >> text="Ziegel"' },
+      { hold: 900 },
+      { fill: ['div.layer-row >> nth=1 >> input[type=number]', '658'] },
+      { hold: 1200 },
+      { click: 'button:has-text("Schicht hinzufügen")' },
+      { hold: 1300 },
+      { click: 'div.layer-row >> nth=2 >> mat-select' },
+      { hold: 1200 },
+      { click: 'mat-option >> text="Putz"' },
+      { hold: 900 },
+      { fill: ['div.layer-row >> nth=2 >> input[type=number]', '22'] },
+      { hold: 1200 },
+      { hold: 1400 },
+      { caption: 'Die Plausibilitätsprüfung schaut beim Tippen mit' },
+      { hold: 2600 },
+      { click: 'mat-dialog-container button:has-text("Hinzufügen")' },
+      { hold: 2800 },
+      { caption: 'Die Wand hängt jetzt am Gebäude' },
+      { hold: 3400 },
     ],
   },
   {
@@ -242,7 +306,11 @@ for (const chapter of chapters) {
   });
   if (TOKEN) {
     await context.addInitScript((t) => {
-      try { sessionStorage.setItem('auth_token', t); } catch { /* egal */ }
+      try {
+        sessionStorage.setItem('auth_token', t);
+        // Probestellungs-Hinweis nicht im Clip: er verdeckt sonst den Anfang.
+        localStorage.setItem('mhub-disclaimer-ack', '1');
+      } catch { /* egal */ }
     }, TOKEN);
   }
   const page = await context.newPage();
@@ -312,9 +380,9 @@ for (const chapter of chapters) {
       }
       if (step.fill) {
         const [sel, value] = step.fill;
+        // Kein zusaetzliches dispatchEvent: fill feuert input und change bereits,
+        // ein zweites change laesst den Schichteditor eine Leerzeile anhaengen.
         await page.locator(sel).first().fill(String(value), { timeout: 6000 });
-        await page.locator(sel).first().dispatchEvent('input');
-        await page.locator(sel).first().dispatchEvent('change');
       }
       if (step.press) await page.keyboard.press(step.press);
       if (step.followLink) {

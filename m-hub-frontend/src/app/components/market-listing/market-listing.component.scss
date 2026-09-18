@@ -614,3 +614,56 @@ $status-chip-background: rgba(mat.get-color-from-palette(vars.$my-primary, 500),
     margin-left: 0;
   }
 }
+
+
+.listing-media {
+  margin: 20px 0 8px;
+
+  h2 {
+    margin: 0 0 10px;
+    font-size: 1.05rem;
+  }
+}
+
+.listing-media-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.listing-media-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 4px;
+  border-bottom: 1px solid #e4e7ea;
+}
+
+.listing-media-icon {
+  flex: 0 0 auto;
+  color: #5a6069;
+}
+
+.listing-media-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listing-media-meta {
+  margin-left: 8px;
+  color: #7a828b;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.listing-media-link {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}

@@ -196,6 +196,9 @@ services:
     restart: unless-stopped
     build:
       context: ./m-hub-processing
+    environment:
+      # Fuer POST /copy: Medien beim Inserieren im Filer kopieren, gestreamt.
+      - SEAWEED_FILER_INTERNAL_URL=${SEAWEED_FILER_INTERNAL_URL:-http://seaweed-filer:8888}
     healthcheck:
       test:
         [

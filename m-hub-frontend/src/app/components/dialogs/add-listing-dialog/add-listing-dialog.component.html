@@ -199,6 +199,23 @@
       <div class="image-upload-wrapper full-row">
         <input #imageInput type="file" accept="image/*" multiple (change)="onImageFileSelected($event)" hidden />
 
+      <!-- Medien aus dem Gebaeude mitgeben. Nichts ist vorausgewaehlt, damit
+           Plaene nicht versehentlich im Markt landen. -->
+      <ng-container *ngIf="selectableDocuments.length > 0">
+        <mat-divider></mat-divider>
+        <h3 class="dialog-section-title">Medien aus dem Gebäude</h3>
+        <p class="dialog-section-hint">
+          Ausgewählte Dateien werden als Kopie an das Inserat gehängt.
+        </p>
+        <div class="listing-document-picker">
+          <mat-checkbox
+            *ngFor="let document of selectableDocuments"
+            [checked]="isDocumentSelected(document.id!)"
+            (change)="toggleDocument(document.id!, $event.checked)"
+          >{{ documentLabel(document) }}</mat-checkbox>
+        </div>
+      </ng-container>
+
         <div
           class="drop-zone"
           [class.drag-active]="isDragActive"

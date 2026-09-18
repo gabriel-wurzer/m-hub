@@ -20,6 +20,11 @@ HARVESTMAP = os.path.join(HIER, "video-branding", "m-hub_branding-harvestmap.mp4
 QUELLE = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HIER, "deck_quelle.pptx")
 ZIEL = sys.argv[2] if len(sys.argv) > 2 else os.path.join(HIER, "deck_neu.pptx")
 
+# --standbild: statt der Videos nur das Standbild einsetzen. Fuer die Fassung,
+# die nach Google Slides geht: Slides spielt eingebettete pptx-Videos nicht ab,
+# dort wird das Standbild per Hand gegen ein Drive-Video getauscht.
+NUR_STANDBILD = "--standbild" in sys.argv
+
 # Kapitel -> Folientitel. Titel, die es noch nicht gibt, werden angelegt.
 CLIPS = {
     "Suche und Abfrage": "karte",
@@ -87,6 +92,11 @@ def clip_einbetten(slide, mp4, png=None):
         print("   fehlt:", os.path.basename(mp4))
         return False
     breite = Inches(8.60)
+    if NUR_STANDBILD:
+        if png and os.path.exists(png):
+            slide.shapes.add_picture(png, Inches((13.33 - 8.60) / 2), Inches(1.85),
+                                     width=breite)
+        return True
     slide.shapes.add_movie(
         mp4, Inches((13.33 - 8.60) / 2), Inches(1.85), breite, Inches(8.60 / 1.6),
         poster_frame_image=png if png and os.path.exists(png) else None,

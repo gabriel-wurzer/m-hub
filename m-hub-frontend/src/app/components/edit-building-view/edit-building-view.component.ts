@@ -873,7 +873,8 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
         disableClose: true,
         autoFocus: false,
         data: {
-          component
+          component,
+          documents: this.documents
         }
       }
     );
@@ -927,7 +928,17 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
 
       this.marketListingService.addMarketListing(payload).subscribe({
         next: createdListing => {
-          console.log('Market listing created:', createdListing);
+          // Gewaehlte Gebaeudedokumente als Kopie ans Inserat haengen. Erst nach
+          // dem Anlegen moeglich, weil der Zielpfad die Inserats-ID enthaelt.
+          const ids = result.documentIds ?? [];
+          if (!createdListing?.id || ids.length === 0) return;
+          this.marketListingService.attachMedia(createdListing.id, ids).subscribe({
+            error: error => {
+              console.error('Error attaching listing media:', error);
+              this.snackBar.open('Inserat angelegt, die Medien konnten aber nicht angehängt werden.',
+                'OK', { duration: 8000, verticalPosition: 'top', panelClass: 'snackbar-warn' });
+            }
+          });
         },
         complete: () => {
           this.snackBar.open('Marktangebot erfolgreich inseriert.', 'OK', {

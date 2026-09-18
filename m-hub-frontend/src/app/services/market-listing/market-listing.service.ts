@@ -17,6 +17,20 @@ export type MarketListingCategoryCount = {
   count: number;
 };
 
+/** Medium an einem Inserat. Kopie des Gebaeudedokuments, nicht dessen Referenz. */
+export type MarketListingMedia = {
+  id: string;
+  market_listing_id: string;
+  sort_order: number;
+  name: string;
+  description?: string | null;
+  file_path: string;
+  file_type?: string | null;
+  file_original_name?: string | null;
+  file_size_bytes?: number | string | null;
+  source_document_id?: string | null;
+};
+
 export type SimilarMarketListingRadius = 500 | 1000 | 2000 | 5000;
 
 @Injectable({
@@ -25,6 +39,20 @@ export type SimilarMarketListingRadius = 500 | 1000 | 2000 | 5000;
 export class MarketListingService {
 
   private readonly apiUrl = '/api/market-listings';  // Node-RED route for Market Listings
+
+  /** Medien eines Inserats (oeffentlich lesbar). */
+  getMedia(marketListingId: string): Observable<MarketListingMedia[]> {
+    return this.http.get<MarketListingMedia[]>(`${this.apiUrl}/${marketListingId}/media`);
+  }
+
+  /**
+   * Gewaehlte Gebaeudedokumente ans Inserat kopieren. Kopie, nicht Referenz:
+   * am Gebaeude haengen auch Plaene, die nicht in den Markt sollen.
+   */
+  attachMedia(marketListingId: string, documentIds: string[]): Observable<MarketListingMedia[]> {
+    return this.http.post<MarketListingMedia[]>(
+      `${this.apiUrl}/${marketListingId}/media`, { document_ids: documentIds });
+  }
 
   constructor(private http: HttpClient) { }
 
