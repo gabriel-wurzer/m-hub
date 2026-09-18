@@ -96,13 +96,21 @@ async function abfrage(page, sagen) {
   const t0 = Date.now();
   const takt = (was) => console.log('   %ds  %s', Math.round((Date.now() - t0) / 1000), was);
 
-  async function zumInserat() {
+  async function zeigenUndKlicken(locator, ruhe = 700) {
+    await locator.scrollIntoViewIfNeeded().catch(() => {});
+    await locator.hover();
+    await warte(ruhe);
+    await locator.click();
+  }
+
+  /** Inserate liegen im Zustand von /markt, nach einem Viewer klickt man sich neu hin. */
+  async function oeffne(kategorie, inserat) {
     await page.goto(BASE + '/markt', { waitUntil: 'networkidle', timeout: 30000 }).catch(() => {});
-    await warte(1000);
-    await page.getByText('Mineralik').first().click({ timeout: 8000 });
-    await warte(1000);
-    await page.getByText(INSERAT).first().click({ timeout: 8000 });
+    await warte(1400);
+    await zeigenUndKlicken(page.getByText(kategorie).first(), 900);
     await warte(1800);
+    await zeigenUndKlicken(page.getByText(inserat).first(), 900);
+    await warte(2200);
     await page.locator('.listing-media').first()
       .scrollIntoViewIfNeeded({ timeout: 5000 }).catch(() => {});
   }
@@ -110,57 +118,52 @@ async function abfrage(page, sagen) {
   await page.goto(BASE + '/markt', { waitUntil: 'networkidle', timeout: 30000 }).catch(() => {});
   await warte(1300);
   sagen('Der Marktplatz: wiederverwendbare Bauteile, nach Materialgruppen');
-  await warte(2300);
-  takt('markt gezeigt');
+  await warte(2600);
+  takt('markt');
 
+  // --- Ziegel: Foto und Zertifikat ---
   sagen('Mineralik: Ziegel, Beton, Estrich');
-  await page.getByText('Mineralik').first().click({ timeout: 8000 });
-  sagen('Mauerziegel massiv aus dem Rückbau, rund 35.800 Stück');
-  await warte(3400);
-  await page.getByText(INSERAT).first().click({ timeout: 8000 });
-  await warte(2400);
-  sagen('Am Inserat hängen Medien aus dem Gebäude, nicht nur Fotos');
+  await zeigenUndKlicken(page.getByText('Mineralik').first(), 900);
+  await warte(2600);
+  sagen('Mauerziegel von 1875, 10.000 Stück aus einem einzigen Rückbau');
+  await zeigenUndKlicken(page.getByText('Mauerziegel massiv, ca. 1875').first(), 900);
+  await warte(2600);
+  sagen('Am Inserat hängen Foto und Rezertifizierung');
   await page.locator('.listing-media').first()
     .scrollIntoViewIfNeeded({ timeout: 5000 }).catch(() => {});
-  await warte(2600);
-  takt('inserat offen');
+  await warte(3000);
+  takt('ziegel offen');
 
-  const splatHref = await page.locator('.listing-media a:has-text("3D ansehen")').first()
+  const zertifikat = await page
+    .locator('.listing-media-item:has-text("rezertifizierung") a:has-text("Herunterladen")').first()
     .getAttribute('href', { timeout: 5000 }).catch(() => null);
-  if (splatHref) {
-    sagen('Der Gaussian Splat des Waschbeckens, direkt im Browser');
-    await page.goto(new URL(splatHref, BASE).toString(), { timeout: 90000 }).catch(() => {});
-    takt('viewer geladen (goto)');
-    await page.waitForFunction(
-      () => (document.body.innerText || '').includes('Loaded'), { timeout: 60000 }).catch(() => {});
-    takt('splat fertig');
-    await warte(800);
-
-    // Drehen laesst der Viewer selbst: das kostet keine Interaktion und laeuft
-    // fluessig, waehrend ein gezogener Orbit ueber 800.000 Splats sehr teuer ist.
-    sagen('Einmal rundherum: das Bauteil von allen Seiten');
-    await page.getByRole('button', { name: 'Spin off' }).click({ timeout: 5000 }).catch(() => {});
-    await warte(13000);
-    takt('rotation fertig');
-    sagen('Wer kauft, sieht das Bauteil vorher, nicht erst beim Abholen');
-    await warte(2500);
+  if (zertifikat) {
+    sagen('Welche Normen der Ziegel heute erfüllt, steht im Zertifikat');
+    await page.goto(new URL(zertifikat, BASE).toString(), { timeout: 30000 }).catch(() => {});
+    await warte(5500);
+    takt('zertifikat');
   }
 
-  sagen('Zurück zum Inserat');
-  await zumInserat();
-  await warte(1600);
-  takt('zurueck im inserat');
+  // --- Waschbecken: Splat ---
+  sagen('Ein Objekt aus demselben Haus: das Waschbecken');
+  await oeffne('Sonstige', 'Handwaschbecken, Gusseisen emailliert');
+  await warte(2200);
+  takt('waschbecken offen');
 
-  const pdfHref = await page
-    .locator('.listing-media-item:has-text("Störstoff") a:has-text("Herunterladen")').first()
+  const splat = await page.locator('.listing-media a:has-text("3D ansehen")').first()
     .getAttribute('href', { timeout: 5000 }).catch(() => null);
-  if (pdfHref) {
-    sagen('Das zweite Medium: der signierte Schad- und Störstoffbericht');
-    await page.goto(new URL(pdfHref, BASE).toString(), { timeout: 30000 }).catch(() => {});
-    await warte(4500);
-    takt('pdf gezeigt');
-    sagen('Er hängt am Inserat, nicht in einer Mail');
-    await warte(2200);
+  if (splat) {
+    sagen('Hier hängt der Gaussian Splat aus der Begehung');
+    await page.goto(new URL(splat, BASE).toString(), { timeout: 90000 }).catch(() => {});
+    await page.waitForFunction(
+      () => (document.body.innerText || '').includes('Loaded'), { timeout: 60000 }).catch(() => {});
+    await warte(900);
+    sagen('Einmal rundherum, bevor man kauft');
+    await page.getByRole('button', { name: 'Spin off' }).click({ timeout: 5000 }).catch(() => {});
+    await warte(14000);
+    takt('rotation');
+    sagen('Vom Bestand über die Begehung bis ins Inserat, ohne Medienbruch');
+    await warte(2600);
   }
   takt('ende');
 }
