@@ -159,7 +159,9 @@ async function abfrage(page, sagen) {
       () => (document.body.innerText || '').includes('Loaded'), { timeout: 60000 }).catch(() => {});
     await warte(900);
     sagen('Einmal rundherum, bevor man kauft');
-    await page.getByRole('button', { name: 'Spin off' }).click({ timeout: 5000 }).catch(() => {});
+    // Direkt ausloesen statt klicken: der Hauptthread rendert 800.000 Splats,
+    // Playwrights Klick wartet dann eine Minute auf Klickbarkeit.
+    await page.locator('#toggleSpin').dispatchEvent('click').catch(() => {});
     await warte(14000);
     takt('rotation');
     sagen('Vom Bestand über die Begehung bis ins Inserat, ohne Medienbruch');

@@ -1396,11 +1396,19 @@ window.addEventListener("resize", () => {
 
 renderer.setAnimationLoop(() => {
   if (spinEnabled && splatRoot) {
-    if (assetCenterModeSelect.value === "bounds" && centerSpinRoot) {
-      centerSpinRoot.rotation.y += 0.004;
-    } else {
-      splatRoot.rotation.y += 0.004;
-    }
+    // Die Kamera faehrt um das Bauteil, statt das Bauteil zu drehen. Beim
+    // Begutachten will man um ein Objekt herumgehen; ein sich drehendes Objekt
+    // steht dagegen schief zum Boden und wirkt wie ein Ausstellungsteller.
+    const ziel = controls.target;
+    const dx = camera.position.x - ziel.x;
+    const dz = camera.position.z - ziel.z;
+    const winkel = 0.004;
+    const cos = Math.cos(winkel);
+    const sin = Math.sin(winkel);
+    camera.position.x = ziel.x + dx * cos - dz * sin;
+    camera.position.z = ziel.z + dx * sin + dz * cos;
+    camera.lookAt(ziel);
+    controls.update();
   }
 
   controls.update();
