@@ -386,24 +386,6 @@ export class MarketListingComponent implements OnChanges, OnDestroy {
         };
       })
       .filter((image): image is ListingImageVm => image !== null)
-      .concat(this.bilderAusMedien())
       .sort((left, right) => left.sortOrder - right.sortOrder);
   }
-
-  /**
-   * Beim Inserieren hochgeladene Fotos liegen in den Medien, nicht in
-   * listing.images. Fuer die Galerie sind sie trotzdem Bilder des Inserats.
-   */
-  private bilderAusMedien(): ListingImageVm[] {
-    const bildTypen = new Set(['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp']);
-    return this.media
-      .filter(medium => bildTypen.has((medium.file_type ?? '').toLowerCase()))
-      .map((medium, index) => ({
-        key: medium.id,
-        url: this.mediaUrl(medium),
-        label: medium.name || medium.file_original_name || `Bild ${index + 1}`,
-        sortOrder: 1000 + (Number.isInteger(medium.sort_order) ? medium.sort_order : index)
-      }));
-  }
-
 }
