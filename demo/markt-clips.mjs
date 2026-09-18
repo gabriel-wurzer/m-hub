@@ -264,20 +264,61 @@ async function einbringen(page, sagen) {
   // Nur eigene Belege: Foto und Zertifikat entstehen bei der Aufbereitung.
   // Splat und Schadstoffbericht gehoeren zur Wand, nicht zum Ziegel.
   sagen('Dazu Eigenes: Foto des Ziegels und die Rezertifizierung');
-  const knopf = page.locator('button:has-text("Eigene Fotos oder PDFs")').first();
-  const auswahl = page.locator('mat-dialog-container input[type=file][accept*="pdf"]').first();
-  // Je Datei ein eigener Griff zum Knopf. Den Datei-Dialog des Betriebssystems
-  // kann ein Skript nicht oeffnen, aber so liest sich das Auswaehlen als
-  // zweimaliger Vorgang statt als Zaubertrick.
+  // Ursache und Wirkung sichtbar machen: die Datei wird als Kachel von aussen
+  // in die Ablageflaeche gezogen und landet dort. Der Datei-Dialog des
+  // Betriebssystems gehoert nicht zur Seite und laesst sich nicht aufnehmen.
+  const ablage = page.locator('.listing-own-upload').first();
+  await ablage.scrollIntoViewIfNeeded().catch(() => {});
+  await warte(1200);
+
   for (const datei of ['ziegel.png', 'rezertifizierung-mauerziegel.pdf']) {
-    await knopf.scrollIntoViewIfNeeded().catch(() => {});
-    await knopf.hover().catch(() => {});
-    await warte(900);
-    await knopf.click().catch(() => {});
-    await warte(1100);
-    await auswahl.setInputFiles('C:/temp/m-hub/AP6-DISSEMINATION/' + datei)
-      .catch((e) => console.log('   upload:', String(e).slice(0, 80)));
-    await warte(1800);
+    const inhalt = readFileSync('C:/temp/m-hub/AP6-DISSEMINATION/' + datei).toString('base64');
+    const kasten = await ablage.boundingBox();
+    if (!kasten) break;
+    const ziel = { x: kasten.x + kasten.width / 2, y: kasten.y + 40 };
+
+    // Kachel einblenden und zur Ablageflaeche fliegen lassen.
+    await page.evaluate(({ name, ziel }) => {
+      const k = document.createElement('div');
+      k.id = '__demo_datei';
+      k.textContent = name;
+      k.style.cssText =
+        'position:fixed;left:60px;top:' + (ziel.y + 210) + 'px;z-index:2147483646;' +
+        'background:#fff;border:1px solid #c3c9d0;border-radius:8px;padding:10px 14px;' +
+        'font:600 13px system-ui,Segoe UI,Arial,sans-serif;color:#2b3138;' +
+        'box-shadow:0 8px 24px rgba(0,0,0,.22);pointer-events:none;' +
+        'transition:left 1.1s ease-in-out, top 1.1s ease-in-out, opacity .25s';
+      document.body.appendChild(k);
+      requestAnimationFrame(() => {
+        k.style.left = (ziel.x - 80) + 'px';
+        k.style.top = ziel.y + 'px';
+      });
+    }, { name: datei, ziel });
+
+    // Der Zeiger begleitet die Kachel.
+    await page.mouse.move(80, ziel.y + 220);
+    await warte(150);
+    for (let i = 1; i <= 14; i += 1) {
+      await page.mouse.move(80 + ((ziel.x - 80) * i) / 14, (ziel.y + 220) - (220 * i) / 14);
+      await warte(75);
+    }
+    await warte(300);
+
+    // Echter Drop mit echtem Dateiinhalt.
+    await ablage.dispatchEvent('dragover');
+    await warte(500);
+    await page.evaluate(async ({ name, b64, typ }) => {
+      const binaer = atob(b64);
+      const bytes = new Uint8Array(binaer.length);
+      for (let i = 0; i < binaer.length; i += 1) bytes[i] = binaer.charCodeAt(i);
+      const dt = new DataTransfer();
+      dt.items.add(new File([bytes], name, { type: typ }));
+      document.querySelector('.listing-own-upload')
+        .dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true }));
+      const k = document.getElementById('__demo_datei');
+      if (k) { k.style.opacity = '0'; setTimeout(() => k.remove(), 300); }
+    }, { name: datei, b64: inhalt, typ: datei.endsWith('.pdf') ? 'application/pdf' : 'image/png' });
+    await warte(1700);
   }
   takt('dateien gewaehlt');
 

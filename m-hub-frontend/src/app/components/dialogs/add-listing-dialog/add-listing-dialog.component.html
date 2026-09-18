@@ -207,10 +207,18 @@
         <p class="dialog-section-hint">
           Ausgewählte Dateien werden als Kopie an das Inserat gehängt.
         </p>
-        <div class="listing-own-upload">
+        <div class="listing-own-upload"
+             [class.drop-active]="ownDropActive"
+             (dragover)="onOwnDragOver($event)"
+             (dragleave)="onOwnDragLeave()"
+             (drop)="onOwnDrop($event)">
+          <div class="listing-own-upload-hint">
+            <mat-icon>cloud_upload</mat-icon>
+            <span>Dateien hierher ziehen</span>
+          </div>
           <button mat-stroked-button type="button" (click)="ownFileInput.click()">
             <mat-icon>upload_file</mat-icon>
-            Eigene Fotos oder PDFs hinzufügen
+            oder Fotos und PDFs auswählen
           </button>
           <input #ownFileInput type="file" accept="image/png,image/jpeg,image/webp,application/pdf"
                  multiple (change)="onOwnFilesSelected($event)" hidden />

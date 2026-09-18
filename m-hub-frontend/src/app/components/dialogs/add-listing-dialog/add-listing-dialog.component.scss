@@ -587,3 +587,28 @@ mat-error {
     white-space: nowrap;
   }
 }
+
+
+.listing-own-upload {
+  border: 2px dashed #c3c9d0;
+  border-radius: 10px;
+  padding: 16px;
+  transition: border-color .15s ease-in-out, background-color .15s ease-in-out;
+
+  &.drop-active {
+    border-color: #0d612e;
+    background: rgba(13, 97, 46, 0.06);
+  }
+}
+
+.listing-own-upload-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: #6b7178;
+
+  mat-icon {
+    color: #8a9099;
+  }
+}

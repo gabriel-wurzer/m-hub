@@ -372,9 +372,31 @@ export class AddListingDialogComponent {
   /** Eigene Belege: Fotos und PDFs, die erst bei der Aufbereitung entstehen. */
   ownUploads: ListingUpload[] = [];
 
+  /** Fuer die Umrandung waehrend des Ziehens. */
+  ownDropActive = false;
+
+  onOwnDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.ownDropActive = true;
+  }
+
+  onOwnDragLeave(): void {
+    this.ownDropActive = false;
+  }
+
+  async onOwnDrop(event: DragEvent): Promise<void> {
+    event.preventDefault();
+    this.ownDropActive = false;
+    await this.addOwnFiles(Array.from(event.dataTransfer?.files ?? []));
+  }
+
   async onOwnFilesSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
-    const dateien = Array.from(input.files ?? []);
+    await this.addOwnFiles(Array.from(input.files ?? []));
+    input.value = '';
+  }
+
+  private async addOwnFiles(dateien: File[]): Promise<void> {
     for (const datei of dateien) {
       const endung = (datei.name.split('.').pop() ?? '').toLowerCase();
       const typ = endung === 'jpeg' ? 'jpg' : endung;
@@ -387,7 +409,6 @@ export class AddListingDialogComponent {
         data: await this.readAsBase64(datei)
       });
     }
-    input.value = '';
   }
 
   removeOwnUpload(index: number): void {
