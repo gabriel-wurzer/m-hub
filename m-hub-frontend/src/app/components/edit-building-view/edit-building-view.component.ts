@@ -931,14 +931,21 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
           // Gewaehlte Gebaeudedokumente als Kopie ans Inserat haengen. Erst nach
           // dem Anlegen moeglich, weil der Zielpfad die Inserats-ID enthaelt.
           const ids = result.documentIds ?? [];
-          if (!createdListing?.id || ids.length === 0) return;
-          this.marketListingService.attachMedia(createdListing.id, ids).subscribe({
-            error: error => {
-              console.error('Error attaching listing media:', error);
-              this.snackBar.open('Inserat angelegt, die Medien konnten aber nicht angehängt werden.',
-                'OK', { duration: 8000, verticalPosition: 'top', panelClass: 'snackbar-warn' });
-            }
-          });
+          const uploads = result.uploads ?? [];
+          if (!createdListing?.id) return;
+          const melden = (fehler: unknown) => {
+            console.error('Error attaching listing media:', fehler);
+            this.snackBar.open('Inserat angelegt, die Medien konnten aber nicht angehängt werden.',
+              'OK', { duration: 8000, verticalPosition: 'top', panelClass: 'snackbar-warn' });
+          };
+          if (ids.length > 0) {
+            this.marketListingService.attachMedia(createdListing.id, ids)
+              .subscribe({ error: melden });
+          }
+          if (uploads.length > 0) {
+            this.marketListingService.uploadMedia(createdListing.id, uploads)
+              .subscribe({ error: melden });
+          }
         },
         complete: () => {
           this.snackBar.open('Marktangebot erfolgreich inseriert.', 'OK', {

@@ -21,7 +21,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, 'video');
 const TOKEN = process.env.DEMO_TOKEN || readFileSync(join(HERE, '.token'), 'utf8').trim();
 
-const INSERAT = process.env.DEMO_LISTING || 'Ziegelmauerwerk Außenwand West';
+const INSERAT = process.env.DEMO_LISTING || 'Mauerziegel massiv, ca. 1875';
 
 mkdirSync(OUT, { recursive: true });
 
@@ -86,7 +86,8 @@ async function abfrage(page, sagen) {
 
   sagen('Mineralik: Ziegel, Beton, Estrich');
   await page.getByText('Mineralik').first().click({ timeout: 8000 });
-  await warte(1400);
+  sagen('Mauerziegel massiv aus dem Rückbau, rund 35.800 Stück');
+  await warte(3400);
   await page.getByText(INSERAT).first().click({ timeout: 8000 });
   await warte(2400);
   sagen('Am Inserat hängen Medien aus dem Gebäude, nicht nur Fotos');
@@ -140,58 +141,75 @@ async function einbringen(page, sagen) {
   const warte = (ms) => page.waitForTimeout(ms);
   const feld = (label) =>
     page.locator(`mat-dialog-container mat-form-field:has(mat-label:text-is("${label}")) input`).first();
+  const t0 = Date.now();
+  const takt = (was) => console.log('   %ds  %s', Math.round((Date.now() - t0) / 1000), was);
 
+  // Kurzer Vorlauf: der Clip soll im Formular stattfinden, nicht im Hinweg.
   await page.goto(BASE + '/bestandsverwaltung', { waitUntil: 'networkidle', timeout: 30000 })
     .catch(() => {});
-  await warte(1500);
-  sagen('Angemeldet, eigenes Objekt Schwarzspanierstraße 18');
+  await warte(600);
   await page.locator('.building-card').first().click();
-  await warte(1300);
+  await warte(700);
   await page.locator('button:has(mat-icon:text-is("edit"))').first().click();
-  await warte(2200);
-
+  await warte(1200);
   sagen('Ein erfasstes Bauteil lässt sich direkt inserieren');
-  await warte(1600);
   await page.locator('button[aria-label="Im Markt inserieren"]').first().click();
-  await warte(2000);
+  await warte(1400);
+  takt('maske offen');
 
-  // Das Formular Feld fuer Feld, sichtbar getippt. Wer zusieht, soll mitlesen
-  // koennen, was aus dem Bauteil kommt und was man selbst eintraegt.
-  sagen('Der Name kommt aus dem Bauteil und lässt sich anpassen');
+  sagen('Was verkauft wird, ist der Ziegel, nicht die Wand');
   const name = page.locator('mat-dialog-container input').first();
   await name.click();
   await name.fill('');
-  await name.type('Ziegelmauerwerk aus dem Rückbau', { delay: 55 });
-  await warte(1800);
+  await name.type('Mauerziegel massiv, ca. 1875', { delay: 45 });
+  await warte(1000);
 
-  sagen('Menge und Einheit: 17,30 Laufmeter aus dem Aufmaß');
-  for (const [label, wert] of [['Anzahl/Menge', '17.3'], ['Preis (€)', '0']]) {
-    const f = feld(label);
-    if (await f.count().catch(() => 0)) {
-      await f.scrollIntoViewIfNeeded().catch(() => {});
-      await f.click().catch(() => {});
-      await f.fill(String(wert)).catch(() => {});
-      await warte(1400);
-    }
+  const beschreibung = page.locator('mat-dialog-container textarea').first();
+  if (await beschreibung.count().catch(() => 0)) {
+    await beschreibung.click();
+    await beschreibung.type(
+      'Heinrich Drasche Werke Inzersdorf, Prägung H D mit Doppeladler. '
+      + 'L 30 cm, B 14 cm, St 7 cm.', { delay: 22 });
+    await warte(1200);
   }
-  await warte(1200);
 
-  sagen('Und jetzt das Neue: Medien aus dem Gebäude mitgeben');
-  const erste = page.locator('mat-dialog-container mat-checkbox').first();
-  await erste.scrollIntoViewIfNeeded().catch(() => {});
-  await warte(2400);
-
-  // Splat und Schadstoffbericht mitnehmen, Plaene und Rohdaten nicht.
-  for (const name2 of ['Handwaschbecken', 'Schad- und Störstofferkundung']) {
-    const box = page.locator(`mat-checkbox:has-text("${name2}") label`).first();
-    await box.scrollIntoViewIfNeeded();
-    await box.click();
+  sagen('Menge aus dem Wandvolumen gerechnet, 30 Prozent Ausschuss abgezogen');
+  const menge = feld('Anzahl/Menge');
+  if (await menge.count().catch(() => 0)) {
+    await menge.scrollIntoViewIfNeeded().catch(() => {});
+    await menge.click().catch(() => {});
+    await menge.fill('35800').catch(() => {});
     await warte(1600);
   }
-  sagen('Die Punktwolken-Rohdatei und das Modell bleiben bewusst draußen');
+  takt('formular gefuellt');
+
+  sagen('Medien aus dem Gebäude: Splat und Schadstoffbericht');
+  const erste = page.locator('mat-dialog-container mat-checkbox').first();
+  await erste.scrollIntoViewIfNeeded().catch(() => {});
+  await warte(1400);
+  for (const eintrag of ['Handwaschbecken', 'Schad- und Störstofferkundung']) {
+    const box = page.locator(`mat-checkbox:has-text("${eintrag}") label`).first();
+    await box.scrollIntoViewIfNeeded();
+    await box.click();
+    await warte(1100);
+  }
+  sagen('Punktwolke und Modell bleiben bewusst draußen');
+  await warte(2000);
+
+  // Und das Neue: Dateien, die es am Gebaeude nie gab.
+  sagen('Dazu Eigenes: Foto des Ziegels und die Rezertifizierung');
+  const knopf = page.locator('button:has-text("Eigene Fotos oder PDFs")').first();
+  await knopf.scrollIntoViewIfNeeded().catch(() => {});
+  await warte(1400);
+  const auswahl = page.locator('mat-dialog-container input[type=file][accept*="pdf"]').first();
+  await auswahl.setInputFiles([
+    'C:/temp/m-hub/AP6-DISSEMINATION/ziegel.png',
+    'C:/temp/m-hub/AP6-DISSEMINATION/rezertifizierung-mauerziegel.pdf',
+  ]).catch((e) => console.log('   upload:', String(e).slice(0, 80)));
+  await warte(2600);
+  sagen('Die entstehen erst bei der Wiederaufbereitung, nicht am Bau');
   await warte(3000);
-  sagen('Ausgewählt wird bewusst, kopiert wird erst beim Anlegen');
-  await warte(2800);
+  takt('ende');
 }
 
 const gewuenscht = process.argv.slice(2);

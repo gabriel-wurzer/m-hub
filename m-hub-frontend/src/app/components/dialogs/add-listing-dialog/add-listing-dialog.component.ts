@@ -30,6 +30,15 @@ export type AddListingDialogData = {
   documents?: Document[];
 };
 
+/** Eine am Inserat hochgeladene Datei, noch nicht verschickt. */
+export type ListingUpload = {
+  name: string;
+  file_type: string;
+  file_original_name: string;
+  mime: string;
+  data: string;
+};
+
 export type AddListingDialogImage = {
   key?: string;
   file: File;
@@ -54,6 +63,8 @@ export type AddListingDialogResult = {
   images: AddListingDialogImage[];
   /** IDs der Gebaeudedokumente, die als Kopie ans Inserat sollen. */
   documentIds: string[];
+  /** Eigene Dateien, die es am Gebaeude nicht gibt. */
+  uploads: ListingUpload[];
 };
 
 type MeasurementInput = number | string | null;
@@ -322,7 +333,8 @@ export class AddListingDialogComponent {
       height: this.normalizeOptionalMeasurement(this.height),
       contact: this.contact.trim(),
       images: [...this.selectedImages],
-      documentIds: this.selectedDocumentIds()
+      documentIds: this.selectedDocumentIds(),
+      uploads: [...this.ownUploads]
     };
 
     this.dialogRef?.close(result);
@@ -355,6 +367,40 @@ export class AddListingDialogComponent {
   documentLabel(document: Document): string {
     const typ = document.file_type ? `.${document.file_type}` : '';
     return `${document.name}${typ}`;
+  }
+
+  /** Eigene Belege: Fotos und PDFs, die erst bei der Aufbereitung entstehen. */
+  ownUploads: ListingUpload[] = [];
+
+  async onOwnFilesSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const dateien = Array.from(input.files ?? []);
+    for (const datei of dateien) {
+      const endung = (datei.name.split('.').pop() ?? '').toLowerCase();
+      const typ = endung === 'jpeg' ? 'jpg' : endung;
+      if (!['jpg', 'png', 'webp', 'pdf'].includes(typ)) continue;
+      this.ownUploads.push({
+        name: datei.name.replace(/[.][^.]+$/, ''),
+        file_type: typ,
+        file_original_name: datei.name,
+        mime: datei.type || '',
+        data: await this.readAsBase64(datei)
+      });
+    }
+    input.value = '';
+  }
+
+  removeOwnUpload(index: number): void {
+    this.ownUploads.splice(index, 1);
+  }
+
+  private readAsBase64(datei: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const leser = new FileReader();
+      leser.onload = () => resolve(String(leser.result ?? ''));
+      leser.onerror = () => reject(leser.error);
+      leser.readAsDataURL(datei);
+    });
   }
 
   close(): void {

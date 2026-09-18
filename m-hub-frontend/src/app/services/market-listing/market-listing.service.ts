@@ -31,6 +31,16 @@ export type MarketListingMedia = {
   source_document_id?: string | null;
 };
 
+export type MarketListingUpload = {
+  name: string;
+  description?: string | null;
+  file_type: string;
+  file_original_name: string;
+  mime?: string | null;
+  /** base64, mit oder ohne data:-Praefix. */
+  data: string;
+};
+
 export type SimilarMarketListingRadius = 500 | 1000 | 2000 | 5000;
 
 @Injectable({
@@ -52,6 +62,15 @@ export class MarketListingService {
   attachMedia(marketListingId: string, documentIds: string[]): Observable<MarketListingMedia[]> {
     return this.http.post<MarketListingMedia[]>(
       `${this.apiUrl}/${marketListingId}/media`, { document_ids: documentIds });
+  }
+
+  /**
+   * Eigene Dateien direkt ans Inserat. Bei der Wiederaufbereitung entstehen
+   * Fotos und Zertifikate, die es am Gebaeude nie gab.
+   */
+  uploadMedia(marketListingId: string, uploads: MarketListingUpload[]): Observable<MarketListingMedia[]> {
+    return this.http.post<MarketListingMedia[]>(
+      `${this.apiUrl}/${marketListingId}/media/upload`, { uploads });
   }
 
   constructor(private http: HttpClient) { }

@@ -20,6 +20,7 @@ Start:  cd m-hub-processing && python plausibility_api.py   (lauscht auf 127.0.0
 """
 import itertools
 import json
+import base64
 import os
 import urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -214,6 +215,29 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         pfad = self.path.rstrip("/")
+        if pfad == "/write":
+            # Eine hochgeladene Datei (base64) in den Filer legen. Fuer Medien,
+            # die erst am Inserat entstehen: Fotos und Zertifikate aus der
+            # Wiederaufbereitung, die es am Gebaeude nie gab.
+            try:
+                n = int(self.headers.get("Content-Length", 0) or 0)
+                data = json.loads(self.rfile.read(n) or b"{}")
+                roh = data["data"]
+                if "," in roh[:64] and roh[:5] == "data:":
+                    roh = roh.split(",", 1)[1]
+                inhalt = base64.b64decode(roh)
+                ziel = data["dst"]
+                if not ziel.startswith("/"):
+                    raise ValueError("dst muss ein absoluter Filer-Pfad sein")
+                req = urllib.request.Request(FILER + ziel, data=inhalt, method="PUT")
+                req.add_header("Content-Type", data.get("mime") or "application/octet-stream")
+                req.add_header("Content-Length", str(len(inhalt)))
+                with urllib.request.urlopen(req, timeout=300) as antwort:
+                    antwort.read()
+                self._send(200, {"ok": True, "size": len(inhalt), "dst": ziel})
+            except Exception as e:
+                self._send(400, {"error": str(e)})
+            return
         if pfad == "/copy-batch":
             # Mehrere Medien auf einmal, damit node-red keine Schleife braucht.
             try:

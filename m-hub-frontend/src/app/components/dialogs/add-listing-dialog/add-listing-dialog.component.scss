@@ -557,3 +557,33 @@ mat-error {
   gap: 6px;
   margin-bottom: 8px;
 }
+
+
+.listing-own-upload {
+  margin: 4px 0 14px;
+
+  button mat-icon {
+    margin-right: 6px;
+  }
+}
+
+.listing-own-upload-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+  }
+
+  span {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

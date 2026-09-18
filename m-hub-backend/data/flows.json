@@ -8057,8 +8057,10 @@
         "z": "mktmedia0000tab1",
         "name": "",
         "scope": [
-            "mktm_get_db",
             "mktm_fetch_db",
+            "mktu_db_owner",
+            "mktm_get_db",
+            "mktu_db_insert",
             "mktm_insert_db"
         ],
         "uncaught": false,
@@ -8084,6 +8086,199 @@
         "libs": [],
         "x": 1010,
         "y": 560,
+        "wires": [
+            [
+                "mktm_resp"
+            ]
+        ]
+    },
+    {
+        "id": "mktu_in",
+        "type": "http in",
+        "z": "mktmedia0000tab1",
+        "name": "POST listing media upload",
+        "url": "/api/market-listings/:ID/media/upload",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 200,
+        "y": 700,
+        "wires": [
+            [
+                "mktu_jwt"
+            ]
+        ]
+    },
+    {
+        "id": "mktu_jwt",
+        "type": "function",
+        "z": "mktmedia0000tab1",
+        "name": "verify JWT",
+        "func": "const jwt = global.get('jwt');\nconst secret = env.get('JWT_SECRET');\n\n// 0. Server config check\nif (!secret) {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Server misconfigured: JWT_SECRET missing' };\n    return [null, msg];\n}\n\n// 1. Get Header\nconst authHeader = msg.req.headers.authorization;\nif (!authHeader) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'No Authorization header' };\n    return [null, msg]; // Go to Output 2 (Error)\n}\n\n// 2. Parse Bearer Token\nconst parts = authHeader.split(' ');\nif (parts.length !== 2 || parts[0] !== 'Bearer') {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid token format' };\n    return [null, msg];\n}\nconst token = parts[1];\n\n// 3. Verify & Decode\ntry {\n    const decoded = jwt.verify(token, secret);\n\n    msg.user = decoded; \n    \n    return [msg, null]; // Go to Output 1 (Success)\n\n} catch (err) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'Invalid or expired token' };\n    return [null, msg];\n}\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 700,
+        "wires": [
+            [
+                "mktu_check"
+            ],
+            [
+                "mktm_resp"
+            ]
+        ]
+    },
+    {
+        "id": "mktu_check",
+        "type": "function",
+        "z": "mktmedia0000tab1",
+        "name": "build SQL query",
+        "func": "// Hochgeladene Medien ans Inserat. Anders als beim Kopieren kommen die Bytes\n// mit, deshalb geht es hier ueber /write im Processing-Dienst.\nconst user_id = msg.user && msg.user.sub;\nconst listing_id = msg.req.params.ID;\nconst body = msg.payload || {};\nconst dateien = Array.isArray(body.uploads) ? body.uploads : [];\n\nconst uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\nif (!uuidRe.test(String(user_id || ''))) {\n    msg.statusCode = 401; msg.payload = { error: 'Invalid user in token' }; return [null, msg];\n}\nif (!uuidRe.test(String(listing_id || ''))) {\n    msg.statusCode = 400; msg.payload = { error: 'Invalid listing id' }; return [null, msg];\n}\nif (!dateien.length) {\n    msg.statusCode = 400; msg.payload = { error: 'uploads required' }; return [null, msg];\n}\n\n// Bewusst eng: am Inserat sollen Belege und Fotos landen, keine Rohdaten.\nconst erlaubt = new Set(['jpg', 'jpeg', 'png', 'webp', 'pdf']);\nconst sauber = [];\nfor (const d of dateien) {\n    const typRoh = String(d.file_type || '').toLowerCase().replace(/^\\./, '');\n    const typ = typRoh === 'jpeg' ? 'jpg' : typRoh;\n    if (!erlaubt.has(typ)) {\n        msg.statusCode = 400;\n        msg.payload = { error: 'Unsupported file_type: ' + typRoh };\n        return [null, msg];\n    }\n    if (!d.data) {\n        msg.statusCode = 400; msg.payload = { error: 'data (base64) missing' }; return [null, msg];\n    }\n    const name = String(d.file_original_name || ('datei.' + typ))\n        .replace(/[^a-zA-Z0-9._-]/g, '_').replace(/_+/g, '_').slice(0, 180);\n    sauber.push({\n        name: String(d.name || name).slice(0, 200),\n        description: d.description || null,\n        file_type: typ,\n        file_original_name: name,\n        data: d.data,\n        mime: d.mime || null,\n    });\n}\n\nmsg.listingId = listing_id;\nmsg.userId = user_id;\nmsg.hochzuladen = sauber;\n// Ownerpruefung und naechste freie Sortiernummer in einem Zug.\nmsg.query = `SELECT m.id,\n                    COALESCE((SELECT MAX(sort_order) + 1 FROM market_listing_documents d\n                               WHERE d.market_listing_id = m.id), 0) AS next_sort\n               FROM market_listings m\n              WHERE m.id = $1::uuid AND m.owner_id = $2::uuid;`;\nmsg.params = [listing_id, user_id];\nreturn [msg, null];\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 700,
+        "wires": [
+            [
+                "mktu_db_owner"
+            ],
+            [
+                "mktm_resp"
+            ]
+        ]
+    },
+    {
+        "id": "mktu_db_owner",
+        "type": "postgresql",
+        "z": "mktmedia0000tab1",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 880,
+        "y": 700,
+        "wires": [
+            [
+                "mktu_send"
+            ]
+        ]
+    },
+    {
+        "id": "mktu_send",
+        "type": "function",
+        "z": "mktmedia0000tab1",
+        "name": "build write request",
+        "func": "// Reihenfolge fortschreiben und die Dateien einzeln in den Filer schicken.\nconst zeilen = Array.isArray(msg.payload) ? msg.payload : [];\nif (!zeilen.length) {\n    msg.statusCode = 403;\n    msg.payload = { error: 'Listing not found or not yours' };\n    return [null, msg];\n}\nconst start = Number(zeilen[0].next_sort || 0);\n\nmsg.medien = msg.hochzuladen.map((d, i) => Object.assign({}, d, {\n    sort_order: start + i,\n    file_path: '/mhub/market/' + msg.listingId + '/upload-' + (start + i) + '/' + d.file_original_name,\n}));\n\nmsg.url = (env.get('PLAUSIBILITY_URL') || 'http://127.0.0.1:8971') + '/write';\nmsg.method = 'POST';\nmsg.headers = { 'Content-Type': 'application/json' };\n// Der Dienst nimmt eine Datei je Aufruf; bei mehreren laeuft der Flow mehrfach.\nmsg.restliche = msg.medien.slice(1);\nmsg.aktuell = msg.medien[0];\nmsg.geschrieben = [];\nmsg.payload = { dst: msg.aktuell.file_path, data: msg.aktuell.data, mime: msg.aktuell.mime };\nreturn [msg, null];\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 820,
+        "wires": [
+            [
+                "mktu_http"
+            ],
+            [
+                "mktm_resp"
+            ]
+        ]
+    },
+    {
+        "id": "mktu_http",
+        "type": "http request",
+        "z": "mktmedia0000tab1",
+        "name": "write media (processing)",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 680,
+        "y": 820,
+        "wires": [
+            [
+                "mktu_next"
+            ]
+        ]
+    },
+    {
+        "id": "mktu_next",
+        "type": "function",
+        "z": "mktmedia0000tab1",
+        "name": "next file or INSERT",
+        "func": "// Antwort des Dienstes einsammeln, dann entweder die naechste Datei schicken\n// oder alles eintragen.\nconst antwort = msg.payload || {};\nif (antwort.ok) {\n    msg.geschrieben.push(Object.assign({}, msg.aktuell, { file_size_bytes: antwort.size }));\n}\n\nif (msg.restliche.length) {\n    msg.aktuell = msg.restliche.shift();\n    msg.url = (env.get('PLAUSIBILITY_URL') || 'http://127.0.0.1:8971') + '/write';\n    msg.method = 'POST';\n    msg.headers = { 'Content-Type': 'application/json' };\n    msg.payload = { dst: msg.aktuell.file_path, data: msg.aktuell.data, mime: msg.aktuell.mime };\n    return [null, msg];   // noch einmal zum http request\n}\n\nif (!msg.geschrieben.length) {\n    msg.statusCode = 502;\n    msg.payload = { error: 'Upload failed' };\n    return [null, null, msg];\n}\n\nmsg.query = `INSERT INTO market_listing_documents\n   (market_listing_id, sort_order, name, description, file_path, file_type,\n    file_original_name, file_size_bytes)\n SELECT $1::uuid, (x->>'sort_order')::int, x->>'name', x->>'description',\n        x->>'file_path', x->>'file_type', x->>'file_original_name',\n        NULLIF(x->>'file_size_bytes','')::bigint\n   FROM jsonb_array_elements($2::jsonb) AS x\n ON CONFLICT (market_listing_id, sort_order) DO NOTHING\n RETURNING *;`;\nmsg.params = [msg.listingId, JSON.stringify(msg.geschrieben.map(m => ({\n    sort_order: m.sort_order, name: m.name, description: m.description,\n    file_path: m.file_path, file_type: m.file_type,\n    file_original_name: m.file_original_name, file_size_bytes: m.file_size_bytes,\n})))];\nreturn [msg, null, null];\n",
+        "outputs": 3,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 910,
+        "y": 820,
+        "wires": [
+            [
+                "mktu_db_insert"
+            ],
+            [
+                "mktu_http"
+            ],
+            [
+                "mktm_resp"
+            ]
+        ]
+    },
+    {
+        "id": "mktu_db_insert",
+        "type": "postgresql",
+        "z": "mktmedia0000tab1",
+        "name": "mhub db",
+        "query": "msg.query",
+        "postgreSQLConfig": "e637e22c3aa8ed51",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 430,
+        "y": 940,
+        "wires": [
+            [
+                "mktu_fmt"
+            ]
+        ]
+    },
+    {
+        "id": "mktu_fmt",
+        "type": "function",
+        "z": "mktmedia0000tab1",
+        "name": "format result",
+        "func": "if (Array.isArray(msg.payload)) {\n    msg.statusCode = 201;\n} else {\n    msg.statusCode = 500;\n    msg.payload = { error: 'Database query failed' };\n}\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 940,
         "wires": [
             [
                 "mktm_resp"

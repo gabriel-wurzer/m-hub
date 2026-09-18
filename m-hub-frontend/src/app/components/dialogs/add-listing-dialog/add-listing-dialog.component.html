@@ -207,6 +207,24 @@
         <p class="dialog-section-hint">
           Ausgewählte Dateien werden als Kopie an das Inserat gehängt.
         </p>
+        <div class="listing-own-upload">
+          <button mat-stroked-button type="button" (click)="ownFileInput.click()">
+            <mat-icon>upload_file</mat-icon>
+            Eigene Fotos oder PDFs hinzufügen
+          </button>
+          <input #ownFileInput type="file" accept="image/png,image/jpeg,image/webp,application/pdf"
+                 multiple (change)="onOwnFilesSelected($event)" hidden />
+          <ul class="listing-own-upload-list" *ngIf="ownUploads.length > 0">
+            <li *ngFor="let datei of ownUploads; let i = index">
+              <mat-icon>{{ datei.file_type === 'pdf' ? 'picture_as_pdf' : 'image' }}</mat-icon>
+              <span>{{ datei.file_original_name }}</span>
+              <button mat-icon-button type="button" (click)="removeOwnUpload(i)" aria-label="Entfernen">
+                <mat-icon>close</mat-icon>
+              </button>
+            </li>
+          </ul>
+        </div>
+
         <div class="listing-document-picker">
           <mat-checkbox
             *ngFor="let document of selectableDocuments"
