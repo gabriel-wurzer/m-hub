@@ -60,6 +60,9 @@ const assetStats = {
   lodBudget: undefined,
 };
 let spinEnabled = false;
+// Eine volle Umrundung in etwa 18 Sekunden.
+const SPIN_RAD_PRO_SEKUNDE = (Math.PI * 2) / 18;
+let spinLetzteZeit = 0;
 let boundsVisible = false;
 let dimensionsVisible = false;
 let loadId = 0;
@@ -1324,6 +1327,7 @@ downloadArchicadXYZButton.addEventListener("click", downloadArchicadXYZAsset);
 
 toggleSpinButton.addEventListener("click", () => {
   spinEnabled = !spinEnabled;
+  spinLetzteZeit = performance.now();
   toggleSpinButton.setAttribute("aria-pressed", String(spinEnabled));
   toggleSpinButton.textContent = spinEnabled ? "Spin on" : "Spin off";
 });
@@ -1402,7 +1406,12 @@ renderer.setAnimationLoop(() => {
     const ziel = controls.target;
     const dx = camera.position.x - ziel.x;
     const dz = camera.position.z - ziel.z;
-    const winkel = 0.004;
+    // Zeitbasiert, nicht je Bild: bei grossen Splats rendert der Viewer zaeh,
+    // und eine an die Bildrate gekoppelte Drehung waere kaum wahrnehmbar.
+    const jetzt = performance.now();
+    const dt = Math.min((jetzt - (spinLetzteZeit || jetzt)) / 1000, 0.25);
+    spinLetzteZeit = jetzt;
+    const winkel = SPIN_RAD_PRO_SEKUNDE * dt;
     const cos = Math.cos(winkel);
     const sin = Math.sin(winkel);
     camera.position.x = ziel.x + dx * cos - dz * sin;
