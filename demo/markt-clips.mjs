@@ -37,6 +37,35 @@ async function aufnehmen(id, ablauf) {
       sessionStorage.setItem('auth_token', t);
       localStorage.setItem('mhub-disclaimer-ack', '1');
     } catch { /* egal */ }
+
+    // Sichtbarer Mauszeiger: Playwright rendert keinen, im Video sieht man sonst
+    // nicht, worauf geklickt wird. Rein dekorativ, faengt keine Klicks ab.
+    const zeichnen = () => {
+      if (document.getElementById('__demo_cursor')) return;
+      const punkt = document.createElement('div');
+      punkt.id = '__demo_cursor';
+      punkt.style.cssText =
+        'position:fixed;left:0;top:0;width:22px;height:22px;margin:-11px 0 0 -11px;' +
+        'border:2px solid #0d612e;border-radius:50%;background:rgba(13,97,46,.22);' +
+        'z-index:2147483647;pointer-events:none;transition:transform .08s ease-out';
+      document.body.appendChild(punkt);
+      document.addEventListener('mousemove', (e) => {
+        punkt.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+      }, true);
+      document.addEventListener('mousedown', () => {
+        punkt.style.background = 'rgba(13,97,46,.55)';
+        punkt.style.borderWidth = '3px';
+      }, true);
+      document.addEventListener('mouseup', () => {
+        punkt.style.background = 'rgba(13,97,46,.22)';
+        punkt.style.borderWidth = '2px';
+      }, true);
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', zeichnen);
+    } else {
+      zeichnen();
+    }
   }, TOKEN);
   const page = await context.newPage();
   const gesprochen = [];
@@ -139,76 +168,137 @@ async function abfrage(page, sagen) {
 // ------------------------------------------------------------- Einbringen
 async function einbringen(page, sagen) {
   const warte = (ms) => page.waitForTimeout(ms);
-  const feld = (label) =>
-    page.locator(`mat-dialog-container mat-form-field:has(mat-label:text-is("${label}")) input`).first();
   const t0 = Date.now();
   const takt = (was) => console.log('   %ds  %s', Math.round((Date.now() - t0) / 1000), was);
 
-  // Kurzer Vorlauf: der Clip soll im Formular stattfinden, nicht im Hinweg.
+  /** Erst hinfahren, dann klicken: der eingeblendete Zeiger soll den Weg zeigen. */
+  async function zeigenUndKlicken(locator, ruhe = 700) {
+    await locator.scrollIntoViewIfNeeded().catch(() => {});
+    await locator.hover();
+    await warte(ruhe);
+    await locator.click();
+  }
+
+  async function tippen(locator, text, verzoegerung = 45) {
+    await zeigenUndKlicken(locator, 400);
+    await locator.fill('');
+    await locator.type(text, { delay: verzoegerung });
+  }
+
+  const feld = (label) =>
+    page.locator(`mat-dialog-container mat-form-field:has(mat-label:text-is("${label}")) input`).first();
+
   await page.goto(BASE + '/bestandsverwaltung', { waitUntil: 'networkidle', timeout: 30000 })
     .catch(() => {});
-  await warte(600);
-  await page.locator('.building-card').first().click();
-  await warte(700);
-  await page.locator('button:has(mat-icon:text-is("edit"))').first().click();
-  await warte(1200);
-  sagen('Ein erfasstes Bauteil lässt sich direkt inserieren');
-  await page.locator('button[aria-label="Im Markt inserieren"]').first().click();
+  await warte(800);
+  await zeigenUndKlicken(page.locator('.building-card').first());
+  await warte(900);
+  await zeigenUndKlicken(page.locator('button:has(mat-icon:text-is("edit"))').first());
+
+  // Die Bestandsuebersicht soll man in Ruhe lesen koennen.
+  sagen('Die erfassten Bauteile, Objekte und Dokumente des Gebäudes');
+  await warte(5000);
+  takt('uebersicht gezeigt');
+
+  sagen('Ein Bauteil lässt sich direkt inserieren');
+  await zeigenUndKlicken(page.locator('button[aria-label="Im Markt inserieren"]').first(), 900);
   await warte(1400);
   takt('maske offen');
 
-  sagen('Was verkauft wird, ist der Ziegel, nicht die Wand');
-  const name = page.locator('mat-dialog-container input').first();
-  await name.click();
-  await name.fill('');
-  await name.type('Mauerziegel massiv, ca. 1875', { delay: 45 });
-  await warte(1000);
+  sagen('Verkauft wird der Ziegel, nicht die Wand');
+  await tippen(page.locator('mat-dialog-container input').first(), 'Mauerziegel massiv, ca. 1875');
+  await warte(800);
 
   const beschreibung = page.locator('mat-dialog-container textarea').first();
   if (await beschreibung.count().catch(() => 0)) {
-    await beschreibung.click();
-    await beschreibung.type(
-      'Heinrich Drasche Werke Inzersdorf, Prägung H D mit Doppeladler. '
-      + 'L 30 cm, B 14 cm, St 7 cm.', { delay: 22 });
-    await warte(1200);
+    await tippen(beschreibung, 'Heinrich Drasche Werke Inzersdorf, Prägung H D mit Doppeladler', 20);
+    await warte(900);
   }
 
-  sagen('Menge aus dem Wandvolumen gerechnet, 30 Prozent Ausschuss abgezogen');
-  const menge = feld('Anzahl/Menge');
-  if (await menge.count().catch(() => 0)) {
-    await menge.scrollIntoViewIfNeeded().catch(() => {});
-    await menge.click().catch(() => {});
-    await menge.fill('35800').catch(() => {});
-    await warte(1600);
+  sagen('Preis, Menge und Einheit');
+  for (const [label, wert] of [['Preis (€)', '1.60'], ['Anzahl/Menge', '10000']]) {
+    const f = feld(label);
+    if (await f.count().catch(() => 0)) await tippen(f, wert, 60);
+    await warte(700);
+  }
+
+  // Einheit ist eine Auswahl, kein Eingabefeld.
+  const einheit = page.locator('mat-dialog-container mat-form-field:has(mat-label:text-is("Einheit")) mat-select').first();
+  if (await einheit.count().catch(() => 0)) {
+    await zeigenUndKlicken(einheit, 600);
+    await warte(900);
+    await page.locator('mat-option >> text="Stück"').first().click({ timeout: 6000 }).catch(() => {});
+    await warte(900);
+  }
+
+  // Pflichtfelder, sonst bleibt "Erstellen" deaktiviert.
+  for (const [label, wert] of [['Material', 'Ziegel'], ['Status', 'eingelagert'], ['Potential', 'Wiederverwendung']]) {
+    const sel = page.locator(
+      `mat-dialog-container mat-form-field:has(mat-label:text-is("${label}")) mat-select`).first();
+    if (await sel.count().catch(() => 0)) {
+      await zeigenUndKlicken(sel, 500);
+      await warte(800);
+      await page.locator(`mat-option:has-text("${wert}")`).first().click({ timeout: 6000 })
+        .catch(() => page.keyboard.press('Escape'));
+      await warte(700);
+    }
+  }
+  const datum = feld('Datum (dd.mm.yyyy)');
+  if (await datum.count().catch(() => 0)) {
+    // Der Datepicker nimmt getippte Zeichen nicht zuverlaessig an; fill setzt
+    // den Wert, Tab laesst ihn uebernehmen.
+    await zeigenUndKlicken(datum, 500);
+    await datum.fill('23.09.2026');
+    await datum.press('Tab');
+  }
+  await warte(900);
+
+  sagen('Die Abmessungen des einzelnen Ziegels');
+  for (const [label, wert] of [['Länge (cm)', '30'], ['Breite (cm)', '14'], ['Höhe (cm)', '7']]) {
+    const f = feld(label);
+    if (await f.count().catch(() => 0)) await tippen(f, wert, 90);
+    await warte(600);
   }
   takt('formular gefuellt');
 
-  sagen('Medien aus dem Gebäude: Splat und Schadstoffbericht');
-  const erste = page.locator('mat-dialog-container mat-checkbox').first();
-  await erste.scrollIntoViewIfNeeded().catch(() => {});
-  await warte(1400);
-  for (const eintrag of ['Handwaschbecken', 'Schad- und Störstofferkundung']) {
-    const box = page.locator(`mat-checkbox:has-text("${eintrag}") label`).first();
-    await box.scrollIntoViewIfNeeded();
-    await box.click();
-    await warte(1100);
-  }
-  sagen('Punktwolke und Modell bleiben bewusst draußen');
-  await warte(2000);
-
-  // Und das Neue: Dateien, die es am Gebaeude nie gab.
+  // Nur eigene Belege: Foto und Zertifikat entstehen bei der Aufbereitung.
+  // Splat und Schadstoffbericht gehoeren zur Wand, nicht zum Ziegel.
   sagen('Dazu Eigenes: Foto des Ziegels und die Rezertifizierung');
   const knopf = page.locator('button:has-text("Eigene Fotos oder PDFs")').first();
-  await knopf.scrollIntoViewIfNeeded().catch(() => {});
-  await warte(1400);
   const auswahl = page.locator('mat-dialog-container input[type=file][accept*="pdf"]').first();
-  await auswahl.setInputFiles([
-    'C:/temp/m-hub/AP6-DISSEMINATION/ziegel.png',
-    'C:/temp/m-hub/AP6-DISSEMINATION/rezertifizierung-mauerziegel.pdf',
-  ]).catch((e) => console.log('   upload:', String(e).slice(0, 80)));
-  await warte(2600);
-  sagen('Die entstehen erst bei der Wiederaufbereitung, nicht am Bau');
+  // Je Datei ein eigener Griff zum Knopf. Den Datei-Dialog des Betriebssystems
+  // kann ein Skript nicht oeffnen, aber so liest sich das Auswaehlen als
+  // zweimaliger Vorgang statt als Zaubertrick.
+  for (const datei of ['ziegel.png', 'rezertifizierung-mauerziegel.pdf']) {
+    await knopf.scrollIntoViewIfNeeded().catch(() => {});
+    await knopf.hover().catch(() => {});
+    await warte(900);
+    await knopf.click().catch(() => {});
+    await warte(1100);
+    await auswahl.setInputFiles('C:/temp/m-hub/AP6-DISSEMINATION/' + datei)
+      .catch((e) => console.log('   upload:', String(e).slice(0, 80)));
+    await warte(1800);
+  }
+  takt('dateien gewaehlt');
+
+  sagen('Anlegen');
+  const anlegen = page.locator('mat-dialog-container button:has-text("Erstellen")').last();
+  await zeigenUndKlicken(anlegen, 900);
+  await warte(3500);
+  takt('inserat angelegt');
+
+  // Und jetzt hinschauen, was daraus geworden ist.
+  sagen('Und so steht der Ziegel im Marktplatz');
+  await page.goto(BASE + '/markt', { waitUntil: 'networkidle', timeout: 30000 }).catch(() => {});
+  await warte(1600);
+  await zeigenUndKlicken(page.getByText('Mineralik').first(), 800);
+  await warte(1800);
+  await zeigenUndKlicken(page.getByText('Mauerziegel massiv, ca. 1875').first(), 800);
   await warte(3000);
+  sagen('Mit Foto und Zertifikat am Inserat');
+  await page.locator('.listing-media').first()
+    .scrollIntoViewIfNeeded({ timeout: 5000 }).catch(() => {});
+  await warte(3500);
   takt('ende');
 }
 

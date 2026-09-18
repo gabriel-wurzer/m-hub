@@ -117,6 +117,7 @@ export class MarketListingComponent implements OnChanges, OnDestroy {
     const t = (medium.file_type ?? '').toLowerCase();
     if (this.is3dViewable(medium)) return 'view_in_ar';
     if (t === 'pdf') return 'picture_as_pdf';
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'svg', 'webp'].includes(t)) return 'image';
     return 'insert_drive_file';
   }
 
