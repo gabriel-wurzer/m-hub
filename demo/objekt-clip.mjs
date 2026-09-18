@@ -23,7 +23,7 @@ const NAME = 'Gründerzeithaus Garnisongasse 7';
 
 // Geschosse von oben nach unten, so wie der Dialog sie anlegt.
 const GESCHOSSE = [
-  { anzahl: '5', hoehe: '340', flaeche: '390', bezeichnung: 'Regelgeschoss' },
+  { anzahl: '5', hoehe: '340', flaeche: '390', bezeichnung: 'Wohngeschosse mit Mittelmauer' },
 ];
 
 mkdirSync(ROH, { recursive: true });
@@ -160,9 +160,14 @@ try {
       ['Geschossfläche (m²)', g.flaeche],
     ]) {
       const f = feld(label);
-      if (await f.count().catch(() => 0)) await tippenRuhig(f, wert, 45);
-      await warte(350);
+      if (await f.count().catch(() => 0)) await tippenRuhig(f, wert, 70);
+      await warte(600);
     }
+    // Die zweite "Bezeichnung" gehoert zum Geschoss, die erste zum Dach.
+    const bez = page.locator(
+      'mat-dialog-container mat-form-field:has(mat-label:text-is("Bezeichnung")) input').nth(1);
+    if (await bez.count().catch(() => 0)) await tippenRuhig(bez, g.bezeichnung, 45);
+    await warte(700);
   }
   takt('struktur gesetzt');
 
@@ -171,6 +176,8 @@ try {
 
   const anlegen = page.locator('mat-dialog-container button:has-text("Hinzufügen")').last();
   sagen('Übernehmen');
+  // Eine Sekunde stehenlassen, damit das ausgefuellte Formular lesbar ist.
+  await warte(1000);
   await zeigenUndKlicken(anlegen, 500);
   await warte(2400);
   takt('angelegt');
