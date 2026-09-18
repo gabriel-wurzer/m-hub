@@ -80,8 +80,8 @@ async function zeigenUndKlicken(locator, ruhe = 700) {
   await locator.click({ timeout: 10000, force: true });
 }
 
-async function tippen(locator, text, verzoegerung = 45) {
-  await zeigenUndKlicken(locator, 400);
+async function tippen(locator, text, verzoegerung = 30) {
+  await zeigenUndKlicken(locator, 220);
   await locator.fill('');
   await locator.type(text, { delay: verzoegerung });
 }
@@ -91,51 +91,54 @@ const feld = (label) =>
 
 try {
   await page.goto(BASE + '/karte', { waitUntil: 'networkidle', timeout: 30000 }).catch(() => {});
-  await warte(1500);
+  await warte(700);
   sagen('Ein Gebäude wird zum eigenen Objekt, sobald man es übernimmt');
-  await warte(2200);
+  await warte(1200);
 
   sagen('Adresse suchen');
-  await zeigenUndKlicken(page.locator('.leaflet-control-geocoder-icon').first(), 700);
-  await warte(600);
+  await zeigenUndKlicken(page.locator('.leaflet-control-geocoder-icon').first(), 300);
+  await warte(300);
   const suche = page.locator('input[placeholder="Suchen.."]').first();
   await suche.click();
-  await suche.type(ADRESSE, { delay: 70 });
-  await warte(800);
+  await suche.type(ADRESSE, { delay: 35 });
+  await warte(400);
   await page.keyboard.press('Enter');
-  await warte(2400);
+  await warte(1600);
 
   const treffer = page.locator('.leaflet-control-geocoder-alternatives li').first();
   if (await treffer.count()) {
-    await zeigenUndKlicken(treffer, 800);
-    await warte(4000);
+    await zeigenUndKlicken(treffer, 400);
+    await warte(3000);
   }
-  await warte(2200);
+  await warte(1200);
   takt('gebaeude gewaehlt');
 
   sagen('Die Stadtdaten sind da, jetzt kommt das eigene Wissen dazu');
-  await warte(2400);
-  await zeigenUndKlicken(page.getByRole('button', { name: 'Gebäude hinzufügen' }).first(), 900);
-  await warte(2000);
+  await warte(1400);
+  await zeigenUndKlicken(page.getByRole('button', { name: 'Gebäude hinzufügen' }).first(), 500);
+  await warte(1200);
   takt('dialog offen');
 
   sagen('Name und Adresse');
-  await tippen(feld('Name'), NAME);
-  await warte(700);
+  await tippen(feld('Name'), NAME, 22);
+  await warte(350);
   const adresse = feld('Adresse');
   if (!(await adresse.inputValue().catch(() => ''))) {
-    await tippen(adresse, 'Garnisongasse 7, 1090 Wien', 30);
+    await tippen(adresse, 'Garnisongasse 7, 1090 Wien', 18);
   }
-  await warte(900);
+  await warte(500);
 
   sagen('Und die Gebäudestruktur, Geschoss für Geschoss');
   const dachtyp = page.locator(
     'mat-dialog-container mat-form-field:has(mat-label:text-is("Dachtyp")) mat-select').first();
   if (await dachtyp.count().catch(() => 0)) {
-    await zeigenUndKlicken(dachtyp, 600);
-    await warte(900);
-    await page.locator('mat-option').first().click({ timeout: 6000 }).catch(() => {});
-    await warte(900);
+    await zeigenUndKlicken(dachtyp, 300);
+    await warte(500);
+    // Gezielt greifen statt die erste Zeile nehmen, das ist der Platzhalter.
+    const wahl = page.locator('mat-option >> text="Steildach"').first();
+    await (await wahl.count() ? wahl : page.locator('mat-option').nth(1))
+      .click({ timeout: 6000 }).catch(() => {});
+    await warte(500);
   }
 
   for (const g of GESCHOSSE) {
@@ -145,25 +148,25 @@ try {
       ['Geschossfläche (m²)', g.flaeche],
     ]) {
       const f = feld(label);
-      if (await f.count().catch(() => 0)) await tippen(f, wert, 80);
-      await warte(600);
+      if (await f.count().catch(() => 0)) await tippen(f, wert, 45);
+      await warte(300);
     }
   }
   takt('struktur gesetzt');
 
   sagen('Fünf Regelgeschosse mit 3,40 Meter Raumhöhe, typisch Gründerzeit');
-  await warte(2600);
+  await warte(1600);
 
   const anlegen = page.locator('mat-dialog-container button:has-text("Hinzufügen")').last();
   sagen('Übernehmen');
-  await zeigenUndKlicken(anlegen, 900);
-  await warte(3000);
+  await zeigenUndKlicken(anlegen, 500);
+  await warte(2400);
   takt('angelegt');
 
   sagen('Das Gebäude steht jetzt in der eigenen Objektliste');
   await page.goto(BASE + '/bestandsverwaltung', { waitUntil: 'networkidle', timeout: 30000 })
     .catch(() => {});
-  await warte(3200);
+  await warte(2600);
   const angelegt = await page.getByText(NAME).count().catch(() => 0);
   console.log('   in der Liste gefunden:', angelegt > 0);
   takt('ende');
