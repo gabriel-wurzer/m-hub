@@ -134,13 +134,17 @@ async function abfrage(page, sagen) {
   await warte(3000);
   takt('ziegel offen');
 
-  const zertifikat = await page
-    .locator('.listing-media-item:has-text("rezertifizierung") a:has-text("Herunterladen")').first()
-    .getAttribute('href', { timeout: 5000 }).catch(() => null);
+  // "Ansehen" statt Download: PDFs und Bilder zeigt der Browser selbst.
+  const ansehen = page
+    .locator('.listing-media-item:has-text("rezertifizierung") a:has-text("Ansehen")').first();
+  const zertifikat = await ansehen.getAttribute('href', { timeout: 5000 }).catch(() => null);
   if (zertifikat) {
     sagen('Welche Normen der Ziegel heute erfüllt, steht im Zertifikat');
+    await ansehen.scrollIntoViewIfNeeded().catch(() => {});
+    await ansehen.hover().catch(() => {});
+    await warte(900);
     await page.goto(new URL(zertifikat, BASE).toString(), { timeout: 30000 }).catch(() => {});
-    await warte(5500);
+    await warte(7000);
     takt('zertifikat');
   }
 

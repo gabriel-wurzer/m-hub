@@ -121,9 +121,15 @@
                 class="listing-media-link"
               >3D ansehen</a>
               <a
+                *ngIf="isInlineViewable(medium)"
                 [href]="mediaUrl(medium)"
                 target="_blank"
                 rel="noopener noreferrer"
+                class="listing-media-link"
+              >Ansehen</a>
+              <a
+                [href]="mediaUrl(medium)"
+                [attr.download]="medium.file_original_name || medium.name"
                 class="listing-media-link"
               >Herunterladen</a>
             </li>

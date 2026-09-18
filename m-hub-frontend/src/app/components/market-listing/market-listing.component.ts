@@ -119,6 +119,12 @@ export class MarketListingComponent implements OnChanges, OnDestroy {
     return `assets/${viewer}/index.html?src=${encodeURIComponent(this.mediaUrl(medium))}`;
   }
 
+  /** PDFs und Bilder zeigt der Browser selbst, dafuer braucht es keinen Download. */
+  isInlineViewable(medium: MarketListingMedia): boolean {
+    const t = (medium.file_type ?? '').toLowerCase();
+    return t === 'pdf' || ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'svg', 'webp'].includes(t);
+  }
+
   mediaIcon(medium: MarketListingMedia): string {
     const t = (medium.file_type ?? '').toLowerCase();
     if (this.is3dViewable(medium)) return 'view_in_ar';
