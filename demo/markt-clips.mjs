@@ -158,14 +158,13 @@ async function abfrage(page, sagen) {
     await page.waitForFunction(
       () => (document.body.innerText || '').includes('Loaded'), { timeout: 60000 }).catch(() => {});
     await warte(900);
-    sagen('Einmal rundherum, bevor man kauft');
-    // Direkt ausloesen statt klicken: der Hauptthread rendert 800.000 Splats,
-    // Playwrights Klick wartet dann eine Minute auf Klickbarkeit.
-    await page.locator('#toggleSpin').dispatchEvent('click').catch(() => {});
-    await warte(14000);
-    takt('rotation');
+    // Bewusst ohne Kamerafahrt: der Viewer rendert 800.000 Splats so zaeh, dass
+    // die Aufnahme ruckelt. Lieber ein ruhiges Bild und kurz halten.
+    sagen('Fotorealistisch, drehbar, vor dem Kauf');
+    await warte(4500);
+    takt('splat gezeigt');
     sagen('Vom Bestand über die Begehung bis ins Inserat, ohne Medienbruch');
-    await warte(2600);
+    await warte(2800);
   }
   takt('ende');
 }
