@@ -42,25 +42,10 @@ async function main() {
     }
   });
 
-  // Create a plan by fetching a PDF from a URL (m-hub hand-off: tool pulls the doc).
-  // NOTE: restrict `url` to the m-hub/seaweed host in production (SSRF).
-  app.post('/api/plan/from-url', async (req, res) => {
-    const { url, filename, token } = req.body as { url?: string; filename?: string; token?: string };
-    if (!url) return res.status(400).json({ error: 'url required' });
-    try {
-      const headers: Record<string, string> = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const r = await fetch(url, { headers });
-      if (!r.ok) return res.status(502).json({ error: `fetch failed: HTTP ${r.status}` });
-      const buf = Buffer.from(await r.arrayBuffer());
-      const name = filename || url.split('/').pop() || 'plan.pdf';
-      const plan = await importPdf(buf, name);
-      res.json(plan);
-    } catch (err: any) {
-      console.error('[from-url] failed', err);
-      res.status(500).json({ error: err?.message ?? 'from-url failed' });
-    }
-  });
+  // Kein /api/plan/from-url mehr: das PDF aus dem m-hub-Absprung zieht der
+  // Browser und laedt es ueber /api/plan/upload hoch. Von hier aus war die
+  // m-hub-Adresse ohnehin nicht erreichbar, und ein Server-seitiges fetch() auf
+  // eine frei mitgegebene URL waere ein offenes SSRF-Loch gewesen.
 
   app.get('/api/plan/:id', async (req, res) => {
     const plan = await loadPlan(req.params.id);

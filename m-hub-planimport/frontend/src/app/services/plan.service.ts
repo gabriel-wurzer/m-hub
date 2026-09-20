@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, switchMap } from 'rxjs';
 import { DetectRegion, PlanDoc } from '../models/plan.model';
 
 @Injectable({ providedIn: 'root' })
@@ -38,9 +38,22 @@ export class PlanService {
     return this.http.post<PlanDoc>(`${this.base}/plan/upload`, fd);
   }
 
-  /** Create a plan by fetching a PDF from a URL (integrated hand-off). */
-  createFromUrl(url: string, filename?: string, token?: string): Observable<PlanDoc> {
-    return this.http.post<PlanDoc>(`${this.base}/plan/from-url`, { url, filename, token }).pipe(
+  /**
+   * Create a plan from the PDF, das m-hub beim Absprung mitgibt.
+   *
+   * Das Ziehen passiert im BROWSER, nicht im Tool-Backend: die pdf_url ist eine
+   * m-hub-Adresse, und das Tool-Backend steht in einem eigenen Container ohne
+   * Route dorthin (lokal ist localhost:8910 aus dem Container heraus es selbst).
+   * Der Browser hat die Adresse ohnehin offen, also laedt er die Datei und
+   * schickt die Bytes durch denselben Upload wie eine handverlesene Datei.
+   */
+  createFromUrl(url: string, filename?: string): Observable<PlanDoc> {
+    return this.http.get(url, { responseType: 'blob' }).pipe(
+      switchMap((blob) => {
+        const fd = new FormData();
+        fd.append('file', new File([blob], filename || 'plan.pdf', { type: 'application/pdf' }));
+        return this.http.post<PlanDoc>(`${this.base}/plan/upload`, fd);
+      }),
       map((p) => ({ ...p, wallSegments: p.wallSegments ?? [], wallGroups: p.wallGroups ?? [], placemarks: p.placemarks ?? [], polygons: p.polygons ?? [] })),
     );
   }

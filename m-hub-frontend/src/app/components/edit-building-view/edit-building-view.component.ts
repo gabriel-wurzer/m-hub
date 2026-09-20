@@ -170,12 +170,28 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
       submit_url: `${window.location.origin}/api/import/plan`,
       storeys: this.storeyLabels(ub.structure).join(','),
       document_id: document.id,
-      // Absolute: the tool's backend fetches this server-side, where a
-      // relative /files/... path would not resolve.
-      pdf_url: new URL(document.file_url, window.location.origin).href
+      // Absolut, damit die Adresse auch unter einem anderen <base href> traegt.
+      pdf_url: new URL(this.fileHref(document.file_url), window.location.origin).href
     });
     const base = environment.planToolUrl || '';
     window.open(`${base}/plans?${params.toString()}`, '_blank', 'noopener');
+  }
+
+  /**
+   * In `file_url` steht der Speicherpfad (`/mhub/...`), ausgeliefert wird er
+   * unter `/files`. Ohne das Präfix antwortet nginx mit der SPA statt mit dem
+   * PDF, und das Plan-Tool bekommt eine HTML-Seite zu lesen. Fremde absolute
+   * URLs bleiben unverändert.
+   */
+  private fileHref(fileUrl: string): string {
+    try {
+      const parsed = new URL(fileUrl, window.location.origin);
+      const start = parsed.pathname.indexOf('/mhub/');
+      if (start >= 0) return `/files${parsed.pathname.slice(start)}${parsed.search}`;
+    } catch {
+      /* kein parsbarer Wert — unverändert durchreichen */
+    }
+    return fileUrl;
   }
 
   /** A PDF document can be opened in the 2D-plan tool — only when the tool is configured. */

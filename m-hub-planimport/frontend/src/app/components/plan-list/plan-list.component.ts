@@ -113,7 +113,7 @@ export class PlanListComponent {
     if (ctx?.pdfUrl) {
       this.uploading.set(true);
       const filename = ctx.pdfUrl.split('/').pop() || 'plan.pdf';
-      this.planSvc.createFromUrl(ctx.pdfUrl, filename, ctx.token).subscribe({
+      this.planSvc.createFromUrl(ctx.pdfUrl, filename).subscribe({
         next: (plan) => {
           this.uploading.set(false);
           this.openSetupDialog(plan);
