@@ -32,7 +32,7 @@ import {
 } from '../../models/building-component';
 import { Document, CreateDocumentPayload, ReserveDocumentPayload, UpdateDocumentPayload } from '../../models/document';
 import { Point2ifcService } from '../../services/point2ifc/point2ifc.service';
-import { Floor } from '../../models/floor';
+import { Floor, buildFloorOptions } from '../../models/floor';
 import { FloorType } from '../../enums/floor-type.enum';
 import { RoofType } from '../../enums/roof-type.enum';
 import { UserBuilding } from '../../models/building';
@@ -199,17 +199,17 @@ export class EditBuildingViewComponent implements OnInit, OnChanges, OnDestroy {
     return !!environment.planToolUrl && (document.file_type as string) === 'pdf';
   }
 
-  /** Expand the storey structure into individual location labels (e.g. "Regelgeschoss 1"). */
+  /**
+   * Die Geschoss-Bezeichnungen für den Absprung ins Plan-Werkzeug.
+   *
+   * Dieselbe Quelle wie die Verortungs-Auswahl im Bauteil-Dialog. Eine eigene
+   * Zählung hier hatte die `count` eines Blocks aufgefächert und pro Block neu
+   * bei 1 begonnen: ein Gebäude mit zwei Regelgeschoss-Blöcken bekam damit
+   * zweimal „Regelgeschoss 1“ in die Liste, und das Werkzeug lieferte
+   * Verortungen zurück, die es in m-hub gar nicht gibt.
+   */
   private storeyLabels(structure: Floor[] | undefined): string[] {
-    const labels: string[] = [];
-    for (const floor of structure ?? []) {
-      if ('count' in floor && typeof floor.count === 'number' && floor.count > 0) {
-        for (let i = 1; i <= floor.count; i++) labels.push(`${floor.type} ${i}`);
-      } else {
-        labels.push(String(floor.type));
-      }
-    }
-    return labels;
+    return buildFloorOptions(structure ?? []).map((option) => option.label);
   }
 
   ngOnInit(): void {

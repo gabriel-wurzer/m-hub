@@ -79,14 +79,13 @@ Zuweisungen weg und es gibt kein Undo.
 
 ## Schritt 6 — Übergeben
 
-Oben rechts **Übergeben**. Im Dialog **genau ein** Geschoss ankreuzen.
+Oben rechts **Übergeben**. Im Dialog ein Geschoss ankreuzen, dann nochmal
+**Übergeben**.
 
-Achtung: `Regelgeschoss 1` steht zweimal in der Liste, weil die Gebäudestruktur
-der ÖBB Zentrale zwei Blöcke mit derselben Bezeichnung hat. Eines davon reicht.
-Kreuzt du beide an, gehen zwei Pakete mit derselben Extrakt-ID hintereinander
-raus und das zweite ersetzt das erste.
-
-Dann nochmal **Übergeben**.
+Die Liste muss dieselben Geschosse zeigen wie die Verortungs-Auswahl im
+Bauteil-Dialog, für die ÖBB Zentrale also Dach, Regelgeschoss 1 und 2,
+Kellergeschoss 1 und 2. Steht dort ein Geschoss doppelt, läuft noch das alte
+Frontend.
 
 Es muss kommen: `Übergeben: 1 Bauteil(e), 0 Objekt(e) × 1 Geschoss(e)` mit einem
 Knopf „Zurück zu m-hub".

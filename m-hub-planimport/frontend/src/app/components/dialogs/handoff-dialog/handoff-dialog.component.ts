@@ -83,7 +83,13 @@ export class HandoffDialogComponent {
   constructor(
     public ref: MatDialogRef<HandoffDialogComponent, string[]>,
     @Inject(MAT_DIALOG_DATA) public data: HandoffDialogData,
-  ) {}
+  ) {
+    // Doppelte Geschosse raus. Die Auswahl haengt am Text, zwei gleich
+    // benannte Zeilen teilen sich also ein Haekchen, und @for stolpert
+    // ueber den doppelten Schluessel. Was m-hub schickt, ist nicht in
+    // unserer Hand, hier ist es billig abzufangen.
+    this.data = { ...data, storeys: [...new Set(data.storeys ?? [])] };
+  }
 
   toggle(s: string, on: boolean) {
     this.picked.update((p) => (on ? [...new Set([...p, s])] : p.filter((x) => x !== s)));

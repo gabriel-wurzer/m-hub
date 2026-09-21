@@ -16,7 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { FloorType } from '../../../enums/floor-type.enum';
 import { ObjectType } from '../../../enums/object-type';
 import { BuildingObjectImage, Objekt } from '../../../models/building-component';
-import { Floor } from '../../../models/floor';
+import { Floor, FloorOption, buildFloorOptions } from '../../../models/floor';
 
 export type EditObjectDialogData = {
   structure?: Floor[];
@@ -64,11 +64,6 @@ type NewObjectDialogImage = EditObjectDialogImage & {
 };
 
 type ObjectDialogImageItem = ExistingObjectDialogImage | NewObjectDialogImage;
-
-type FloorOption = {
-  label: string;
-  description?: string;
-};
 
 type LocationOptionVm = {
   value: string;
@@ -139,7 +134,7 @@ export class EditObjectDialogComponent {
     @Optional() @Inject(MAT_DIALOG_DATA) public data: EditObjectDialogData | null,
     private snackBar: MatSnackBar
   ) {
-    this.floorOptions = this.buildFloorOptions(this.data?.structure ?? []);
+    this.floorOptions = buildFloorOptions(this.data?.structure ?? []);
     this.rebuildFloorDescriptionByLocationLabel();
     this.locationOptions = [...this.floorOptions.map((option) => option.label), ...this.specialLocationOptions];
     this.locationOptionVms = this.locationOptions.map((value) => this.toLocationOptionVm(value));
@@ -716,26 +711,6 @@ export class EditObjectDialogComponent {
     return Number.isFinite(parsedValue) ? parsedValue : Number.NaN;
   }
 
-  private buildFloorOptions(structure: Floor[]): FloorOption[] {
-    const floorTypeIndex = {
-      [FloorType.KG]: 0,
-      [FloorType.RG]: 0
-    };
-
-    return structure.map((floor) => {
-      const description =
-        typeof floor.description === 'string' && floor.description.trim().length > 0
-          ? floor.description.trim()
-          : undefined;
-
-      if (floor.type === FloorType.KG || floor.type === FloorType.RG) {
-        floorTypeIndex[floor.type] += 1;
-        return { label: `${floor.type} ${floorTypeIndex[floor.type]}`, description };
-      }
-
-      return { label: floor.type, description };
-    });
-  }
 
   private formatLocationForPayload(): string {
     return this.selectedLocations.join(', ');

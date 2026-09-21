@@ -18,7 +18,7 @@ import { FloorType } from '../../../enums/floor-type.enum';
 import { PartType } from '../../../enums/part-type.enum';
 import { RoofType } from '../../../enums/roof-type.enum';
 import { Bauteil } from '../../../models/building-component';
-import { Floor } from '../../../models/floor';
+import { Floor, FloorOption, buildFloorOptions } from '../../../models/floor';
 import { PartStructure } from '../../../models/part-structure';
 
 export type EditPartDialogData = {
@@ -34,11 +34,6 @@ export type EditPartDialogResult = {
   isHazardous: boolean;
   description: string | null;
   location: string;
-};
-
-type FloorOption = {
-  label: string;
-  description?: string;
 };
 
 type LocationOptionVm = {
@@ -147,7 +142,7 @@ export class EditPartDialogComponent {
     private snackBar: MatSnackBar
   ) {
     this.roofTypeInBuilding = this.resolveRoofTypeInBuilding(this.data?.structure ?? []);
-    this.floorOptions = this.buildFloorOptions(this.data?.structure ?? []);
+    this.floorOptions = buildFloorOptions(this.data?.structure ?? []);
     this.rebuildFloorDescriptionByLocationLabel();
     this.locationOptions = [...this.floorOptions.map((option) => option.label), ...this.specialLocationOptions];
     this.locationOptionVms = this.locationOptions.map((value) => this.toLocationOptionVm(value));
@@ -360,26 +355,6 @@ export class EditPartDialogComponent {
     return types.size === 1 ? [...types][0] : null;
   }
 
-  private buildFloorOptions(structure: Floor[]): FloorOption[] {
-    const floorTypeIndex = {
-      [FloorType.KG]: 0,
-      [FloorType.RG]: 0
-    };
-
-    return structure.map((floor) => {
-      const description =
-        typeof floor.description === 'string' && floor.description.trim().length > 0
-          ? floor.description.trim()
-          : undefined;
-
-      if (floor.type === FloorType.KG || floor.type === FloorType.RG) {
-        floorTypeIndex[floor.type] += 1;
-        return { label: `${floor.type} ${floorTypeIndex[floor.type]}`, description };
-      }
-
-      return { label: floor.type, description };
-    });
-  }
 
   private syncAvailablePartTypes(): void {
     this.availablePartTypes = this.getAllowedPartTypesForSelectedLocations();
