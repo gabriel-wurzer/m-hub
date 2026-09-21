@@ -11,14 +11,30 @@ export class PlanService {
   // Absolute '/api' would hit m-hub's backend instead when served under a path.
   private base = 'api';
 
+  /**
+   * Fehlende Listen auffüllen und die Rasteradresse SELBST setzen.
+   *
+   * Das Backend kennt den Pfad nicht, unter dem das Tool ausgeliefert wird. Eine
+   * dort gebaute absolute Adresse (`/api/plan/<id>/raster`) zeigt unter
+   * `/plantool` auf m-hubs node-red statt aufs Tool, der Plan bleibt leer.
+   * Deshalb ist die Adresse hier relativ und löst gegen `<base href>` auf.
+   * Gilt auch für alte Pläne, in denen die absolute Adresse noch gespeichert ist.
+   */
+  private normalize = (p: PlanDoc): PlanDoc => ({
+    ...p,
+    wallSegments: p.wallSegments ?? [],
+    wallGroups: p.wallGroups ?? [],
+    placemarks: p.placemarks ?? [],
+    polygons: p.polygons ?? [],
+    rasterUrl: this.rasterUrl(p.id),
+  });
+
   list(): Observable<Array<Pick<PlanDoc, 'id' | 'originalFilename' | 'createdAt' | 'updatedAt'>>> {
     return this.http.get<any>(`${this.base}/plan`);
   }
 
   get(id: string): Observable<PlanDoc> {
-    return this.http.get<PlanDoc>(`${this.base}/plan/${id}`).pipe(
-      map((p) => ({ ...p, wallSegments: p.wallSegments ?? [], wallGroups: p.wallGroups ?? [], placemarks: p.placemarks ?? [], polygons: p.polygons ?? [] })),
-    );
+    return this.http.get<PlanDoc>(`${this.base}/plan/${id}`).pipe(map(this.normalize));
   }
 
   save(plan: PlanDoc): Observable<PlanDoc> {
@@ -35,7 +51,7 @@ export class PlanService {
   upload(file: File): Observable<PlanDoc> {
     const fd = new FormData();
     fd.append('file', file);
-    return this.http.post<PlanDoc>(`${this.base}/plan/upload`, fd);
+    return this.http.post<PlanDoc>(`${this.base}/plan/upload`, fd).pipe(map(this.normalize));
   }
 
   /**
@@ -54,7 +70,7 @@ export class PlanService {
         fd.append('file', new File([blob], filename || 'plan.pdf', { type: 'application/pdf' }));
         return this.http.post<PlanDoc>(`${this.base}/plan/upload`, fd);
       }),
-      map((p) => ({ ...p, wallSegments: p.wallSegments ?? [], wallGroups: p.wallGroups ?? [], placemarks: p.placemarks ?? [], polygons: p.polygons ?? [] })),
+      map(this.normalize),
     );
   }
 
@@ -65,7 +81,7 @@ export class PlanService {
   detectWalls(id: string, wallColors: Array<[number, number, number]>, scaleDenominator?: number, tolerance?: number, regions?: DetectRegion[]): Observable<PlanDoc> {
     return this.http.post<PlanDoc>(`${this.base}/plan/${id}/detect-walls`, {
       wallColors, scaleDenominator, tolerance, regions,
-    }).pipe(map((p) => ({ ...p, wallSegments: p.wallSegments ?? [], wallGroups: p.wallGroups ?? [], placemarks: p.placemarks ?? [], polygons: p.polygons ?? [] })));
+    }).pipe(map(this.normalize));
   }
 
   rasterUrl(id: string): string {

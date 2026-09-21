@@ -33,7 +33,8 @@ export async function importPdf(
     pageIndex: 0,
     pageWidth,
     pageHeight,
-    rasterUrl: `/api/plan/${id}/raster`,
+    // Keine rasterUrl: der Server weiss nicht, unter welchem Pfad das Tool
+    // ausgeliefert wird. Das Frontend setzt sie relativ (plan.service.normalize).
     rasterScale: raster.scale,
     wallSegments: [],
     wallGroups: [],
