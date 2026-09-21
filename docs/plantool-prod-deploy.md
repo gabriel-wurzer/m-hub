@@ -115,6 +115,10 @@ exit
 
 ## Schritt 8 — echter Durchlauf im Browser
 
+Ausführlich, mit Soll-Werten nach jedem Schritt und einer Gegenprobe in der
+Datenbank, steht das in [plantool-rundlauf-test.md](plantool-rundlauf-test.md).
+Die Kurzfassung:
+
 1. `https://m-hub.dap.tuwien.ac.at` öffnen, anmelden als `alice@example.com`.
 2. **Bestandsverwaltung**, Gebäude **ÖBB Zentrale** anklicken, dann auf den
    Stift (bearbeiten).
