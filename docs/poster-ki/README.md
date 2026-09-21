@@ -18,6 +18,14 @@ Das Skript prüft nebenbei, ob der Inhalt noch auf eine Seite passt. Die Höhe
 darf 4494 px (= 1189 mm bei 96 dpi) nicht überschreiten, sonst kippt der Rest
 auf eine zweite Seite.
 
+## Farbe
+
+Das m-hub-Grün ist `#046329`, abgegriffen aus der offiziellen Einladung
+(`AP6-DISSEMINATION/m-hub_abschlussveranstaltung.png`). Nicht mit dem Blau der
+Angular-Material-Palette im Frontend verwechseln, das ist die UI, nicht die
+Projektfarbe. Rot `#a03323` markiert die Stelle, wo ein Modell an seine Grenze
+kommt, sonst kommt keine zweite Farbe vor.
+
 ## Schriften
 
 Bahnschrift für die Überschriften, Segoe UI für den Lauftext. Beide liegen unter
