@@ -122,9 +122,8 @@ Die Kurzfassung:
 1. `https://m-hub.dap.tuwien.ac.at` öffnen, anmelden als `alice@example.com`.
 2. **Bestandsverwaltung**, Gebäude **ÖBB Zentrale** anklicken, dann auf den
    Stift (bearbeiten).
-3. Runter zu **Dokumente**, neues Dokument anlegen. Datei:
-   `C:\temp\m-hub\AP3-DATENERHEBUNG\M-HUB_TU Wien\M-HUB_TU Wien\23_FÄRBERMÜHLGASSE 12-14\0623372_001_004_P_BP_GR_20250206.pdf`
-   Name zum Beispiel `Plantest Vektor 2025`, Dateityp `pdf`. Speichern.
+3. Runter zu **Dokumente**. Der Testplan liegt dort schon:
+   `0623372_001_004_P_BP_GR_20250206`.
 4. In der Zeile dieses Dokuments auf das **Zirkel-Symbol** (Tooltip
    „Plan auswerten"). Es geht ein neuer Tab auf.
 
@@ -142,8 +141,9 @@ Die Kurzfassung:
    Stehen dort rund **1184**, hast du Schwarz erwischt. Dann auf **Erkennung**,
    die Farbe mit dem X entfernen, neu picken, nochmal Analysieren.
 
-6. Mit der Maus ein **Rechteck** über die Wohnung ziehen. Unten sagt eine
-   Meldung, wie viele Segmente ausgewählt sind.
+6. Eine **lange, dicke Wand** einmal anklicken. Kein Rechteck: das markiert zwar
+   viele Segmente, der Aufbau gilt aber immer der Wandgruppe des zuletzt
+   angeklickten. Rechts muss eine Länge von mehreren Metern stehen.
 7. Rechts ins Feld **Schichtaufbau (innen → außen)** tippen:
    `Putz 15 Ziegel _ Putz 15` und **Enter**. Oben springt der Zähler auf
    „1 mit Aufbau".
