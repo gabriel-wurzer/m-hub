@@ -42,7 +42,7 @@
   }
 
   /* ── Kopf ──────────────────────────────────────────────────────────── */
-  header { border-bottom: 1.4mm solid var(--blau); padding-bottom: 5mm; }
+  header { border-bottom: 1.4mm solid var(--blau); padding-bottom: 5mm; flex: none; }
 
   .kicker {
     display: flex; align-items: baseline; gap: 6mm;
@@ -65,7 +65,7 @@
   }
 
   /* ── Abschnitte ────────────────────────────────────────────────────── */
-  section { display: flex; flex-direction: column; gap: 4mm; }
+  section { display: flex; flex-direction: column; gap: 4mm; flex: none; }
 
   .marke {
     display: flex; align-items: center; gap: 5mm;
@@ -101,9 +101,9 @@
      einer Spalte die Seitenhoehe. */
   figure.diagramm svg { width: 67%; display: block; margin-left: auto; }
   figure.diagramm figcaption { width: 67%; margin-left: auto; }
-  figure.stadt img { width: 83%; margin: 0 auto; }
-  figure.stadt figcaption { width: 83%; margin: 2mm auto 0; }
-  figure.klein img { width: 66%; margin: 0 auto; }
+  figure.stadt img { width: 81%; margin: 0 auto; }
+  figure.stadt figcaption { width: 81%; margin: 2mm auto 0; }
+  figure.klein img { width: 50%; margin: 0 auto; }
   figure.matrix img { width: 86%; margin: 0 auto; }
   figure.matrix figcaption { width: 86%; margin: 2mm auto 0; }
   figcaption {
@@ -176,7 +176,7 @@
   .kette i { color: var(--linie); font-style: normal; font-size: 5mm; }
 
   /* ── Fuss ──────────────────────────────────────────────────────────── */
-  footer { margin-top: auto; border-top: .6mm solid var(--linie); padding-top: 4mm; }
+  footer { margin-top: auto; border-top: .6mm solid var(--linie); padding-top: 4mm; flex: none; }
   footer img { display: block; height: 52mm; width: auto; margin: 0 auto 3mm; }
   footer .zeile {
     display: flex; gap: 6mm; font-size: 4.2mm; color: var(--tinte-weich);
@@ -227,9 +227,24 @@
           folgt. Fehlt ein Kontext, fällt das Modell schrittweise auf den allgemeineren zurück.
         </p>
         <p>
-          Trainiert ist es auf <strong>elf realen Vermessungen</strong> aus den Use Cases,
-          normalisiert zu einem Katalog aus Bauperiode × Ort × Art. Kein externer Dienst,
-          keine Halluzination, alles im eigenen Container.
+          Trainiert ist es auf <strong>elf realen Vermessungen</strong> aus den Use Cases.
+          Die gemessenen Aufbauten werden zu einem Katalog normalisiert, dessen Zellen
+          <strong>Bauperiode × Ort × Art</strong> aufspannen: Keller, Regelgeschoss und
+          Dachgeschoss als Orte, Außenwand freistehend oder an den Nachbarn grenzend,
+          Innenwand, Boden und Dach als Arten. Jede Zelle hält die dort tatsächlich
+          gemessenen Schichtfolgen samt ihrer Nettoflächen.
+        </p>
+        <p>
+          Dasselbe Modell prüft nicht nur, es <strong>schlägt auch vor</strong>. Für eine
+          leere Zelle sucht eine Strahlsuche die wahrscheinlichste Folge, eine zweite Stufe
+          legt anschließend die Schichtdicken darüber. So bekommt jedes Gebäude eine
+          Materialzusammensetzung, auch dort, wo nie jemand gemessen hat — als Vorhersage
+          gekennzeichnet, nicht als Messung ausgegeben.
+        </p>
+        <p>
+          Bewusst kein Sprachmodell: kein externer Dienst, keine Halluzination, das Ergebnis
+          ist reproduzierbar und erklärbar, weil hinter jeder Aussage abzählbare Beobachtungen
+          stehen. Alles läuft im eigenen Container, die Prüfung antwortet während der Eingabe.
         </p>
 
         <div class="stufen" style="margin-top:6mm">
@@ -260,6 +275,14 @@
             </div>
           </div>
         </div>
+
+        <p style="margin-top:3.5mm">
+          Die Prüfung sitzt dort, wo eingegeben wird: beim Erfassen eines Bauteils in der
+          Anwendung ebenso wie beim Zuweisen eines Aufbaus im Planwerkzeug. Sie blockiert
+          nichts. Eine Meldung der Stufe 2 ist eine Rückfrage, keine Ablehnung — wer es
+          besser weiß, bestätigt und gibt dem Modell damit genau den Datenpunkt, der ihm
+          gefehlt hat.
+        </p>
       </div>
 
       <figure class="diagramm">
@@ -397,6 +420,27 @@
             Es fehlen Labels, nicht Signale.
           </p>
         </div>
+
+        <p style="margin-top:3.5mm">
+          Für den Weiterbau ist das weniger schlimm, als es klingt. Die Materialvorhersage
+          hängt an der <strong>Grobklasse</strong>, und die sitzt. Ein Gründerzeithaus von
+          einem Nachkriegsbau zu unterscheiden entscheidet über Ziegel gegen Beton, über
+          Vollziegel gegen Hohlblock, über Kalk- gegen Zementmörtel — und damit über den
+          allergrößten Teil der Massen.
+        </p>
+        <p>
+          Der nächste Schritt ist deshalb keine neue Architektur, sondern eine bessere
+          Verfugung mit dem, was die Stadt ohnehin weiß. Wo eine Bauperiode erhoben ist,
+          gilt sie; das Modell springt nur dort ein, wo nichts vorliegt. Beides wird zu
+          <strong>einer</strong> Periodenauskunft zusammengeführt, die ihre Herkunft
+          mitführt — erhoben oder vorhergesagt, mit welcher Konfidenz und aus welchem Lauf.
+        </p>
+        <p>
+          Die Vorhersage ist außerdem ein <strong>Schnappschuss</strong>, fest an den
+          Gebäudedatensatz gebunden, aus dem sie gerechnet wurde. Ändert sich der Datensatz,
+          wird neu gerechnet und als neue Version ausgerollt. Die alte bleibt nachvollziehbar,
+          statt still überschrieben zu werden.
+        </p>
       </div>
     </div>
   </section>
@@ -420,9 +464,22 @@
           <img src="bilder/parametrik.png" alt="Grundriss mit freier Außenwand, berührender Außenwand und geschätzten Innenwänden">
         </figure>
         <p>
-          Heute leitet ein parametrisches Modell die Mengen aus Grundriss und Höhe ab:
-          freie Außenwand, an den Nachbarn grenzende Wand, Innenwände als Anteil daraus.
-          Jede bessere Quelle ersetzt diese Schätzung für das ganze Gebäude.
+          Heute leitet ein parametrisches Modell die Mengen aus Grundriss und Höhe ab: freie
+          Außenwand, an den Nachbarn grenzende Wand, Innenwände als Anteil daraus, Boden und
+          Dach aus der Grundfläche. Die Geschossanzahl kommt aus Höhe und Geschosshöhe, die
+          Kellergeschosse aus dem, was Nutzerinnen und Nutzer für ihre Gebäude eingetragen
+          haben.
+        </p>
+        <p>
+          Jede bessere Quelle ersetzt diese Schätzung, und zwar für das ganze Gebäude statt
+          gemischt: der 2D-Plan liefert Wandlängen je Geschoss, die Punktwolke wird
+          geschossweise geschnitten und wie ein Plan ausgewertet, ein IFC bringt die Geometrie
+          exakt mit.
+        </p>
+        <p>
+          Wichtig dabei: bessere Geometrie verbessert die <strong>Mengen</strong>, nicht die
+          Materialien. Woraus eine Wand besteht, wird nur durch eine echte Messung besser
+          oder durch ein IFC, das es selbst mitbringt.
         </p>
         <div class="kette">
           <span class="aus">parametrisch</span><i>→</i>
@@ -436,13 +493,28 @@
         <div class="jetzt">Belege</div>
         <h3>Jede Eingabe trainiert mit</h3>
         <p>
-          Beide Modelle sind datenhungrig, aber an unterschiedlichen Stellen. Die Material-KI
+          Beide Modelle sind datenhungrig, aber an verschiedenen Stellen. Die Material-KI
           braucht mehr als elf Vermessungen, bevor sie einen echten Widerspruch behaupten
-          darf. Die Bauperiode braucht Belege für die Zeit nach 1980.
+          darf. Der Bauperiode fehlen Belege für die Zeit nach 1980.
         </p>
         <p>
-          Der Weg dorthin führt nicht über größere Modelle, sondern über den laufenden Betrieb:
-          jeder erfasste Aufbau und jede bestätigte Rückfrage ist ein Datenpunkt.
+          Der Weg dorthin führt nicht über größere Modelle, sondern über den laufenden
+          Betrieb. Jeder im Werkzeug erfasste Aufbau ist ein Datenpunkt, und jede
+          <strong>bestätigte Rückfrage</strong> ist mehr als das: sie liegt genau an der
+          Grenze dessen, was das Modell kennt. Wer eine Stufe-2-Meldung bestätigt oder
+          korrigiert, liefert die teuerste Sorte Trainingsdaten frei Haus.
+        </p>
+        <p>
+          Damit das trägt, bleiben die Quellen <strong>getrennt</strong>. Gemessen,
+          vorhergesagt und Basisdaten stehen nebeneinander statt übereinander, jede Zeile
+          führt ihre Herkunft und den Modellstand mit. Erst beim Lesen wird aufgelöst:
+          gemessen schlägt vorhergesagt schlägt Basisdaten. Nichts wird an Ort und Stelle
+          überschrieben.
+        </p>
+        <p>
+          Das hält den Vergleich „vorhergesagt gegen gemessen" jederzeit ehrlich und zeigt
+          zugleich auf der Karte, wo Proben noch fehlen. Die Lücken im Bestand werden so
+          selbst zur Arbeitsliste für die nächste Erhebung.
         </p>
       </div>
 
@@ -450,16 +522,23 @@
         <div class="jetzt">Maßstab</div>
         <h3>Nachts über die ganze Stadt</h3>
         <p>
-          Der Rechenkern ist als eigener Dienst angelegt, mit zwei getrennten Spuren: der
-          nächtliche Stadtlauf und die Aufträge, auf die jemand wartet. So steht die
+          Der Rechenkern ist ein eigener Dienst mit zwei getrennten Spuren: der nächtliche
+          Lauf über die ganze Stadt und die Aufträge, auf die jemand wartet. So steht die
           Auswertung einer einzelnen Punktwolke nie hinter dem Stadtlauf in der Schlange.
+          Lange Läufe melden ihren Fortstand als Zahl, nicht als Wartesymbol.
         </p>
         <p>
-          Ergebnisse sind eine <strong>abgeleitete, versionierte Schicht</strong>, niemals
-          eine Überschreibung: gemessen schlägt vorhergesagt schlägt Basisdaten, und die
-          Oberfläche zeigt, welche der drei gerade gilt. Als Nebenprodukt entsteht ein
-          Katalog typischer Schichtfolgen je Bauperiode, Ort und Art — eine Referenz,
-          die es so bislang nicht gibt.
+          Zwei Auswertungen hängen unmittelbar daran. Der <strong>materielle Gebäudepass</strong>
+          gibt es schon: Mengen und Tonnagen eines Gebäudes, auf drei Ebenen abrufbar, vom
+          Überblick bis zur einzelnen Schicht, als Datei zum Mitnehmen. Je besser Geometrie
+          und Material, desto belastbarer die Tonnage darin.
+        </p>
+        <p>
+          Der <strong>Aufbauten-Katalog</strong> kommt noch: typische Schichtfolgen je
+          Bauperiode, Bauteilart und Ort, nicht als Tabelle gepflegt, sondern aus dem
+          Bestand errechnet und mit jeder neuen Erhebung schärfer. Eine solche Referenz
+          gibt es bislang nirgends — sie fällt hier als Nebenprodukt an und ist für sich
+          genommen ein veröffentlichbares Ergebnis.
         </p>
       </div>
     </div>

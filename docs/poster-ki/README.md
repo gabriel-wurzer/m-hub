@@ -9,8 +9,10 @@ Nach jeder Änderung an `poster.html`:
 
 ```bash
 export PATH="$APPDATA/fnm/aliases/default:$PATH"
-node rendern.mjs
+cd ../../demo && node poster-rendern.mjs
 ```
+
+Das Skript liegt in `demo/`, weil playwright dort installiert ist.
 
 Das Skript prüft nebenbei, ob der Inhalt noch auf eine Seite passt. Die Höhe
 darf 4494 px (= 1189 mm bei 96 dpi) nicht überschreiten, sonst kippt der Rest
