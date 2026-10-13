@@ -22,6 +22,8 @@ import { Period, PeriodLabels } from '../../enums/period.enum';
 import { Usage, UsageLabels } from '../../enums/usage.enum';
 import { DocumentListComponent } from "../document-list/document-list.component";
 import { MdabMaterialGroup } from '../../enums/mdab-material-group.enum';
+import { materialPieData } from '../../utils/material-group-colors';
+import { usagePieEntry } from '../../utils/usage-colors';
 import { isBuilding } from '../../utils/model-guard';
 import { BuildingComponent } from '../../models/building-component';
 import { BuildingComponentCategory } from '../../enums/component-category';
@@ -220,10 +222,10 @@ export class StructureDetailsComponent implements OnChanges {
     if (!this.building) return;
 
     const usageData = [
-      { value: this.building.m2bgf_use1, name: UsageLabels[Usage.WOHNEN] },
-      { value: this.building.m2bgf_use2, name: UsageLabels[Usage.GEMISCHT] },
-      { value: this.building.m2bgf_use3, name: UsageLabels[Usage.INDUSTRIE] },
-      { value: this.building.m2bgf_use4, name: UsageLabels[Usage.SONSTIGES] }
+      usagePieEntry(Usage.WOHNEN, this.building.m2bgf_use1),
+      usagePieEntry(Usage.GEMISCHT, this.building.m2bgf_use2),
+      usagePieEntry(Usage.INDUSTRIE, this.building.m2bgf_use3),
+      usagePieEntry(Usage.SONSTIGES, this.building.m2bgf_use4)
     ].filter(entry => entry.value > 0);
 
     this.usagePieChartOptions = {
@@ -259,9 +261,7 @@ export class StructureDetailsComponent implements OnChanges {
           center: ['50%', '45%'],
           data: usageData,
           label: {
-            show: true,
-            position: 'outside',
-            alignTo: 'edge',
+            show: false
           },
           emphasis: {
             itemStyle: {
@@ -278,7 +278,7 @@ export class StructureDetailsComponent implements OnChanges {
   #updateMaterialsPieChart() {
     if (!this.building) return;
 
-    const materialsData = [
+    const materials = materialPieData([
       { value: this.building.bmg1, name: MdabMaterialGroup.mg_1 },
       { value: this.building.bmg2, name: MdabMaterialGroup.mg_2 },
       { value: this.building.bmg3, name: MdabMaterialGroup.mg_3 },
@@ -288,8 +288,8 @@ export class StructureDetailsComponent implements OnChanges {
       { value: this.building.bmg7, name: MdabMaterialGroup.mg_7 },
       { value: this.building.bmg8, name: MdabMaterialGroup.mg_8 },
       { value: this.building.bmg9, name: MdabMaterialGroup.mg_9 }
-    ].filter(entry => entry.value > 0);
-  
+    ]);
+
     this.materialsPieChartOptions = {
       title: {
         left: 'center',
@@ -315,6 +315,7 @@ export class StructureDetailsComponent implements OnChanges {
         height: 110,
         pageButtonPosition: 'start',
         pageIconSize: 11,
+        data: materials.legend,
       },
       series: [
         {
@@ -322,7 +323,7 @@ export class StructureDetailsComponent implements OnChanges {
           type: 'pie',
           radius: '60%',
           center: ['50%', '45%'],
-          data: materialsData,
+          data: materials.data,
           label: {
             show: false
           },

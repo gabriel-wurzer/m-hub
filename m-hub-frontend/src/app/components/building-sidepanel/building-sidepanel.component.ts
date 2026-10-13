@@ -12,6 +12,8 @@ import { MatListModule } from '@angular/material/list';
 import { EChartsOption } from 'echarts';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { MdabMaterialGroup } from '../../enums/mdab-material-group.enum';
+import { materialPieData } from '../../utils/material-group-colors';
+import { usagePieEntry } from '../../utils/usage-colors';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DocumentListComponent } from "../document-list/document-list.component";
 import { BreakpointObserver } from '@angular/cdk/layout';
@@ -138,10 +140,10 @@ export class BuildingSidepanelComponent implements OnInit, OnChanges, OnDestroy 
     if (!this.building) return;
 
     const usageData = [
-      { value: this.building.m2bgf_use1, name: UsageLabels[Usage.WOHNEN] },
-      { value: this.building.m2bgf_use2, name: UsageLabels[Usage.GEMISCHT] },
-      { value: this.building.m2bgf_use3, name: UsageLabels[Usage.INDUSTRIE] },
-      { value: this.building.m2bgf_use4, name: UsageLabels[Usage.SONSTIGES] }
+      usagePieEntry(Usage.WOHNEN, this.building.m2bgf_use1),
+      usagePieEntry(Usage.GEMISCHT, this.building.m2bgf_use2),
+      usagePieEntry(Usage.INDUSTRIE, this.building.m2bgf_use3),
+      usagePieEntry(Usage.SONSTIGES, this.building.m2bgf_use4)
     ].filter(entry => entry.value > 0);
 
     this.usagePieChartOptions = {
@@ -176,9 +178,7 @@ export class BuildingSidepanelComponent implements OnInit, OnChanges, OnDestroy 
           radius: '60%',
           data: usageData,
           label: {
-            show: true,
-            position: 'outside',
-            alignTo: 'edge',
+            show: false
           },
           emphasis: {
             itemStyle: {
@@ -195,7 +195,7 @@ export class BuildingSidepanelComponent implements OnInit, OnChanges, OnDestroy 
   updateMaterialsPieChart() {
     if (!this.building) return;
 
-    const materialsData = [
+    const materials = materialPieData([
       { value: this.building.bmg1, name: MdabMaterialGroup.mg_1 },
       { value: this.building.bmg2, name: MdabMaterialGroup.mg_2 },
       { value: this.building.bmg3, name: MdabMaterialGroup.mg_3 },
@@ -205,7 +205,7 @@ export class BuildingSidepanelComponent implements OnInit, OnChanges, OnDestroy 
       { value: this.building.bmg7, name: MdabMaterialGroup.mg_7 },
       { value: this.building.bmg8, name: MdabMaterialGroup.mg_8 },
       { value: this.building.bmg9, name: MdabMaterialGroup.mg_9 }
-    ].filter(entry => entry.value > 0);
+    ]);
 
     this.materialsPieChartOptions = {
       title: {
@@ -232,6 +232,7 @@ export class BuildingSidepanelComponent implements OnInit, OnChanges, OnDestroy 
         height: 110,
         pageButtonPosition: 'start',
         pageIconSize: 11,
+        data: materials.legend,
       },
       series: [
         {
@@ -239,7 +240,7 @@ export class BuildingSidepanelComponent implements OnInit, OnChanges, OnDestroy 
           type: 'pie',
           radius: '60%',
           center: ['50%', '38%'],
-          data: materialsData,
+          data: materials.data,
           label: {
             show: false
           },

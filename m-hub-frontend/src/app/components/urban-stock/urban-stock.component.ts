@@ -14,6 +14,7 @@ import { EChartsOption } from 'echarts';
 import { NgxEchartsModule } from 'ngx-echarts';
 
 import { MaterialPassService } from '../../services/material-pass/material-pass.service';
+import { materialPieData } from '../../utils/material-group-colors';
 
 interface StockRow {
   period: string;
@@ -152,9 +153,10 @@ export class UrbanStockComponent implements OnInit {
       this.materialsPieChartOptions = {};
       return;
     }
-    const data = this.groupLabels
-      .map((name, i) => ({ name, value: values[i] ?? 0 }))
-      .filter(d => d.value > 0);
+    // group labels from the CSV header match MdabMaterialGroup, so colours and slice order apply by name
+    const materials = materialPieData(
+      this.groupLabels.map((name, i) => ({ name, value: values[i] ?? 0 }))
+    );
 
     this.materialsPieChartOptions = {
       title: {
@@ -183,7 +185,8 @@ export class UrbanStockComponent implements OnInit {
         type: 'scroll',
         height: 110,
         pageButtonPosition: 'start',
-        pageIconSize: 11
+        pageIconSize: 11,
+        data: materials.legend
       },
       series: [
         {
@@ -191,7 +194,7 @@ export class UrbanStockComponent implements OnInit {
           type: 'pie',
           radius: '60%',
           center: ['50%', '45%'],
-          data,
+          data: materials.data,
           label: { show: false },
           emphasis: {
             itemStyle: {
