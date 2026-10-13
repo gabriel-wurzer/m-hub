@@ -30,6 +30,74 @@
         </mat-select>
     </mat-form-field>
 
+    <h3>Materialzusammensetzung</h3>
+
+    <section class="material-filter">
+        <div class="material-toggle-row">
+            <span class="material-toggle-title" [class.unavailable]="isMaterialFilterUnavailable">
+                Ähnliche Materialzusammensetzung
+            </span>
+            <button type="button" role="switch" class="material-switch"
+                aria-label="Ähnliche Materialzusammensetzung"
+                [class.checked]="!!materialReference"
+                [attr.aria-checked]="!!materialReference"
+                [disabled]="isMaterialFilterUnavailable"
+                (click)="toggleMaterialFilter()">
+                <span class="material-switch-handle"></span>
+            </button>
+        </div>
+
+        <div class="composition-card unavailable" *ngIf="isMaterialFilterUnavailable">
+            <div class="composition-bar"></div>
+            <span class="material-filter-hint">{{ materialFilterUnavailableHint }}</span>
+        </div>
+
+        <div class="composition-card preview" *ngIf="!materialReference && canUseSelectedBuildingAsReference">
+            <div class="composition-card-header">
+                <span class="material-caption">Vorschau</span>
+                <span>Gebäude ID {{ selectedBuilding?.bw_geb_id }}</span>
+            </div>
+            <ng-container *ngTemplateOutlet="compositionBar; context: { $implicit: selectedBuildingGroups }" />
+            <ng-container *ngTemplateOutlet="compositionLegend; context: { $implicit: selectedBuildingGroups, showOther: false }" />
+        </div>
+
+        <div class="composition-card active" *ngIf="materialReference">
+            <div class="composition-reference">
+                <mat-icon>apartment</mat-icon>
+                Gebäude ID {{ materialReference.buildingId }}
+            </div>
+            <span class="material-caption">Dominante Materialien nach Gewicht</span>
+            <ng-container *ngTemplateOutlet="compositionBar; context: { $implicit: materialReference.groups }" />
+            <ng-container *ngTemplateOutlet="compositionLegend; context: { $implicit: materialReference.groups, showOther: true }" />
+        </div>
+    </section>
+
+    <ng-template #compositionLegend let-groups let-showOther="showOther">
+        <div class="composition-legend">
+            <div class="composition-legend-row" *ngFor="let range of groups">
+                <span class="composition-swatch" [style.background]="materialGroupColor(range.group)"></span>
+                <span class="composition-legend-label">{{ materialGroupLabel(range.group) }}</span>
+                <span class="material-share-value">ca. {{ formatShare(range.share) }} %</span>
+            </div>
+            <div class="composition-legend-row other" *ngIf="showOther && otherShare(groups) >= 0.5">
+                <span class="composition-swatch segment-other"></span>
+                <span class="composition-legend-label">Übrige (je unter 10 %)</span>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template #compositionBar let-groups>
+        <div class="composition-bar">
+            <div *ngFor="let range of groups"
+                class="composition-segment"
+                [style.background]="materialGroupColor(range.group)"
+                [style.flex-grow]="range.share"></div>
+            <div *ngIf="otherShare(groups) > 0"
+                class="composition-segment segment-other"
+                [style.flex-grow]="otherShare(groups)"></div>
+        </div>
+    </ng-template>
+
     <div class="filter-menu-footer">
         <button mat-stroked-button class="reset-filter-button" type="button" (click)="resetForm()" [disabled]="isResetDisabled()">
             <mat-icon>restart_alt</mat-icon>

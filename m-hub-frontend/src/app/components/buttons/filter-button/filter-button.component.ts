@@ -16,7 +16,7 @@ export class FilterButtonComponent {
 
   isFilterActive = toSignal(
     this.filterService.filters$.pipe(
-      map(filters => filters.usages.length > 0 || filters.periods.length > 0)
+      map(filters => filters.usages.length > 0 || filters.periods.length > 0 || filters.materialReference !== null)
     ),
     { initialValue: false }
   );

@@ -32,6 +32,16 @@ export interface BaseBuilding {
     bmg7: number;
     bmg8: number;
     bmg9: number;
+    // share of the material group in the whole building in % (0-100), null if no material data
+    bmg1_share: number | null;
+    bmg2_share: number | null;
+    bmg3_share: number | null;
+    bmg4_share: number | null;
+    bmg5_share: number | null;
+    bmg6_share: number | null;
+    bmg7_share: number | null;
+    bmg8_share: number | null;
+    bmg9_share: number | null;
     geometry: any; // Geometry as GeoJSON object
 }
 

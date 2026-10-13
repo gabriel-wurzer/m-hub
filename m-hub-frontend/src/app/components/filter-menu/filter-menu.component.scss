@@ -17,6 +17,7 @@
     min-width: 300px;
 
     height: inherit;
+    overflow-y: auto;
     background: vars.$white-background;
     z-index: 1500;
     padding: 8px 12px 12px;
@@ -76,6 +77,200 @@ h3 {
 mat-form-field {
     width: 100%;
     font-size: 15px;
+}
+
+// ---- Material composition filter ----
+
+// Neutral greys as alpha of the darkest secondary shade: the lighter secondary shades
+// are nearly white in some customizations and would vanish on the white panel.
+$neutral: mat.get-color-from-palette(vars.$my-secondary, 900);
+$hint-text: mat.get-color-from-palette(vars.$my-secondary, 700);
+
+.material-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.material-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.material-toggle-title {
+    flex: 1 1 auto;
+    font-size: 15px;
+    font-weight: 500;
+
+    &.unavailable {
+        color: rgba($neutral, 0.38);
+    }
+}
+
+.material-filter-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: $hint-text;
+}
+
+.material-caption {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $hint-text;
+}
+
+.material-share-value {
+    font-weight: 500;
+    color: mat.get-color-from-palette(vars.$my-primary, 900);
+}
+
+.material-switch {
+    flex: none;
+    position: relative;
+    width: 40px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: rgba($neutral, 0.3);
+    cursor: pointer;
+    transition: background-color 150ms ease;
+
+    &.checked {
+        background: mat.get-color-from-palette(vars.$my-primary, 500);
+    }
+
+    &:disabled {
+        background: rgba($neutral, 0.1);
+        cursor: default;
+    }
+
+    &:focus-visible {
+        outline: 2px solid mat.get-color-from-palette(vars.$my-primary, 300);
+        outline-offset: 2px;
+    }
+}
+
+.material-switch-handle {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: vars.$white-background;
+    box-shadow: 0 1px 2px rgba($neutral, 0.25);
+    transition: transform 150ms ease;
+
+    .material-switch.checked & {
+        transform: translateX(16px);
+    }
+}
+
+// composition of the building as one stacked bar
+
+.composition-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px;
+    border-radius: 10px;
+
+    &.unavailable {
+        border: 1px dashed rgba($neutral, 0.2);
+
+        .composition-bar {
+            background: rgba($neutral, 0.08);
+        }
+    }
+
+    &.preview {
+        background: rgba($neutral, 0.03);
+        border: 1px solid rgba($neutral, 0.08);
+
+        .composition-bar {
+            opacity: 0.55;
+        }
+    }
+
+    &.active {
+        gap: 12px;
+        background: vars.$white-background;
+        border: 1px solid mat.get-color-from-palette(vars.$my-primary, 100);
+        box-shadow: 0 1px 4px rgba(mat.get-color-from-palette(vars.$my-primary, 700), 0.08);
+    }
+}
+
+.composition-card-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 12px;
+    color: $hint-text;
+}
+
+.composition-reference {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: $hint-text;
+
+    mat-icon {
+        width: 16px;
+        height: 16px;
+        font-size: 16px;
+    }
+}
+
+.composition-bar {
+    display: flex;
+    gap: 2px;
+    height: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.composition-segment {
+    flex: 1 1 0;
+}
+
+// the material group segments take their fixed colour from utils/material-group-colors.ts
+.segment-other { background: rgba($neutral, 0.2); }
+
+.composition-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.composition-legend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &.other {
+        color: $hint-text;
+    }
+}
+
+.composition-swatch {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+}
+
+.composition-legend-label {
+    flex: 1 1 auto;
 }
 
 button {

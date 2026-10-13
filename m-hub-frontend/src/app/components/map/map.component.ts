@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
-import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, map, switchMap, takeUntil } from 'rxjs/operators';
 import * as L from 'leaflet';
 import vectorTileLayer from 'leaflet-vector-tile-layer';
 import 'leaflet-control-geocoder';
@@ -9,12 +9,12 @@ import { Building, UserBuilding } from '../../models/building';
 import { environment } from '../../../environments/environment';
 import { FilterMenuComponent } from "../filter-menu/filter-menu.component";
 import { FilterButtonComponent } from "../buttons/filter-button/filter-button.component";
-import { FilterService } from '../../services/filter/filter.service';
+import { FilterService, MaterialReference } from '../../services/filter/filter.service';
 import { BuildingSidepanelComponent } from '../building-sidepanel/building-sidepanel.component';
 import { StructureViewComponent } from "../structure-view/structure-view.component";
 import { EditBuildingViewComponent } from '../edit-building-view/edit-building-view.component';
 import { MapService } from '../../services/map/map.service';
-import { Subject } from 'rxjs';
+import { Subject, of } from 'rxjs';
 import { EntityContext } from '../../models/entity-context';
 import { ActivatedRoute } from '@angular/router';
 
@@ -46,6 +46,10 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
   #highlightedFeatureLayer: L.GeoJSON | null = null;
   #markerLayer: L.Marker | null = null;
 
+  // reference building of the material composition filter, kept visible independent of the tile filters
+  #materialReferenceLayer: L.GeoJSON | null = null;
+  #materialReferenceBuildingID: string | null = null;
+
   #buildingsLayer: L.Layer | null = null;
   #buildingBlocksLayer: L.Layer | null = null;
 
@@ -54,7 +58,8 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
 
   #buildingsTable = 'buildings_details';
   #defaultColumns = ['fid', 'bw_geb_id', 'ST_AsGeoJSON(geom) as geometry'];
-  #additionalColumns = ['dom_nutzung', 'bp_best_guess', 'bp', 'm3vol', 'm2bgf', 'm2bgf_use1', 'm2bgf_use2', 'm2bgf_use3', 'm2bgf_use4', 'm2flaeche', 'maxhoehe', 'bmg1', 'bmg2', 'bmg3', 'bmg4', 'bmg5', 'bmg6', 'bmg7', 'bmg8', 'bmg9'];    
+  #additionalColumns = ['dom_nutzung', 'bp_best_guess', 'bp', 'm3vol', 'm2bgf', 'm2bgf_use1', 'm2bgf_use2', 'm2bgf_use3', 'm2bgf_use4', 'm2flaeche', 'maxhoehe', 'bmg1', 'bmg2', 'bmg3', 'bmg4', 'bmg5', 'bmg6', 'bmg7', 'bmg8', 'bmg9',
+    'bmg1_share', 'bmg2_share', 'bmg3_share', 'bmg4_share', 'bmg5_share', 'bmg6_share', 'bmg7_share', 'bmg8_share', 'bmg9_share'];
 
   #buildingBlockTable = 'buildingblocks';
   #defaultColumnsBB = ['blk', 'ST_AsGeoJSON(geom) as geometry'];
@@ -102,6 +107,16 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
     };
   }
 
+  private get materialReferenceStyle(): L.PathOptions {
+    return {
+      color: this.getThemeColor('--map-material-reference-color', '#1a4d99'),
+      fillColor: this.getThemeColor('--map-material-reference-fill-color', '#1a4d99'),
+      weight: 2,
+      fill: true,
+      fillOpacity: 0.6,
+    };
+  }
+
   private getThemeColor(cssVariableName: string, fallback: string): string {
     return getComputedStyle(this.hostRef.nativeElement)
       .getPropertyValue(cssVariableName)
@@ -117,13 +132,32 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(
         distinctUntilChanged((a, b) =>
           JSON.stringify(a.usages) === JSON.stringify(b.usages) &&
-          JSON.stringify(a.periods) === JSON.stringify(b.periods)
+          JSON.stringify(a.periods) === JSON.stringify(b.periods) &&
+          a.materialReference?.buildingId === b.materialReference?.buildingId
         ),
         takeUntil(this.destroy$)
       )
-      .subscribe(({ usages, periods }) => {
-        this.applyFilter(usages, periods);
+      .subscribe(({ usages, periods, materialReference }) => {
+        this.applyFilter(usages, periods, materialReference);
       });
+
+    // fetch the geometry of the material reference building whenever the reference changes
+    this.filterService.filters$
+      .pipe(
+        map(filters => filters.materialReference?.buildingId ?? null),
+        distinctUntilChanged(),
+        switchMap(buildingId => buildingId
+          ? this.mapService.getBuildingById(this.#buildingsTable, buildingId, this.#defaultColumns).pipe(
+              catchError(err => {
+                console.error("Error fetching material reference building:", err);
+                return of(null);
+              })
+            )
+          : of(null)
+        ),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(building => this.#showMaterialReference(building));
 
     this.route.queryParamMap
       .pipe(takeUntil(this.destroy$))
@@ -428,8 +462,9 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
    * Applies filter to the dataset and reloads the VectorGrid layer.
    * @param selectedUsages Array of selected usage categories as number array.
    * @param selectedPeriods Array of selected building periods as number array.
+   * @param materialReference Reference building for similar material composition, or null if inactive.
    */
-  applyFilter(selectedUsages: number[], selectedPeriods: number[]): void {
+  applyFilter(selectedUsages: number[], selectedPeriods: number[], materialReference: MaterialReference | null = null): void {
     let filter: string[] = [];
 
     // Filter for usage
@@ -437,16 +472,16 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
         filter.push(`dom_nutzung IN (${selectedUsages.join(', ')})`);
     }
 
-    // Filter for building periods
+    // Filter for building periods: matches the single best-guess period shown in the side panel,
+    // not every period in the comma separated bp list of the building's parts
     if (selectedPeriods.length > 0) {
-      const periodFilter = selectedPeriods.join(', ');
-      filter.push(`
-          EXISTS (
-              SELECT 1 FROM regexp_split_to_table(bp, ',') AS bp_value
-              WHERE bp_value::int IN (${periodFilter})
-          )
-      `);
+      filter.push(`bp_best_guess IN (${selectedPeriods.join(', ')})`);
     }
+
+    // Filter for similar material composition: every relevant group of the reference building within its window
+    materialReference?.groups.forEach(({ group, min, max }) => {
+      filter.push(`bmg${group}_share BETWEEN ${min.toFixed(2)} AND ${max.toFixed(2)}`);
+    });
 
     let filterQuery = filter.length > 0 ? filter.join(' AND ') : undefined;
 
@@ -544,7 +579,8 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
 
         this.#highlightedFeatureLayer = layer.addTo(this.#map);
         this.#selectedBuildingID = this.selectedBuilding.bw_geb_id;
-        
+        this.#updateMaterialReferenceVisibility();
+
         const bounds = layer.getBounds();
         const targetZoom = Math.max(this.#map.getZoom(), 18);
         this.#map.fitBounds(bounds, { maxZoom: targetZoom });
@@ -572,6 +608,47 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     this.#selectedBuildingID = null;
     this.selectedBuilding = null;
+    this.#updateMaterialReferenceVisibility();
+  }
+
+  /**
+   * Draw the reference building of the material composition filter as a separate darker layer.
+   * - Separate from the tile layer, so it stays visible even if other filters hide it in the tiles.
+   * - Clicking it selects the reference building.
+   * @param building Reference building with geometry, or null to remove the layer.
+   */
+  #showMaterialReference(building: Building | null): void {
+    if (this.#materialReferenceLayer) {
+      this.#map.removeLayer(this.#materialReferenceLayer);
+      this.#materialReferenceLayer = null;
+    }
+    this.#materialReferenceBuildingID = null;
+
+    if (!building?.geometry) return;
+
+    try {
+      this.#materialReferenceLayer = L.geoJSON(JSON.parse(building.geometry), {
+        style: this.materialReferenceStyle,
+      }).on('click', () => this.selectBuildingById(building.bw_geb_id));
+      this.#materialReferenceBuildingID = building.bw_geb_id;
+      this.#updateMaterialReferenceVisibility();
+    } catch (geometryParseError) {
+      console.error("Error parsing material reference geometry:", geometryParseError);
+    }
+  }
+
+  /**
+   * Show the material reference layer only while the reference building is not selected,
+   * otherwise the regular selection highlight is shown.
+   */
+  #updateMaterialReferenceVisibility(): void {
+    if (!this.#materialReferenceLayer) return;
+
+    if (this.#selectedBuildingID === this.#materialReferenceBuildingID) {
+      this.#map.removeLayer(this.#materialReferenceLayer);
+    } else if (!this.#map.hasLayer(this.#materialReferenceLayer)) {
+      this.#map.addLayer(this.#materialReferenceLayer);
+    }
   }
 
   toggleFilterPanel(): void {

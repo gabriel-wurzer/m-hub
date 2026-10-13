@@ -8,7 +8,9 @@
   --map-building-block-fill-color: #{vars.$map-building-block-fill-color};
   --map-selected-building-color: #{vars.$map-selected-building-color};
   --map-selected-building-fill-color: #{vars.$map-selected-building-fill-color};
-  
+  --map-material-reference-color: #{mat.get-color-from-palette(vars.$my-primary, 900)};
+  --map-material-reference-fill-color: #{mat.get-color-from-palette(vars.$my-primary, 900)};
+
   height: 100%;
   width: 100%;
 }
