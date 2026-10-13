@@ -1,3 +1,10 @@
+// the router outlet container clips overflow, so the host needs a fixed height for .urban-stock to scroll
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
 .urban-stock {
   display: block;
   padding: 28px 36px;

@@ -1,3 +1,10 @@
+// the router outlet container clips overflow, so the host needs a fixed height for .katalog to scroll
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
 .katalog {
   display: block;
   padding: 28px 36px;
